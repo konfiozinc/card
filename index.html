@@ -3,38 +3,41 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<!-- ─── METADATOS DE VISTA PREVIA Y SEO (SITIO WEB OFICIAL) ─── -->
-<title>KONFÍO ZINC · Sitio Web Oficial</title>
-<meta name="description" content="Soluciones digitales profesionales para llevar tu negocio al siguiente nivel.">
-
-<!-- Open Graph (WhatsApp, Facebook, LinkedIn) -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://konfiozinc.github.io/card/">
-<meta property="og:site_name" content="KONFÍO ZINC">
-<meta property="og:title" content="KONFÍO ZINC · Sitio Web Oficial">
-<meta property="og:description" content="Soluciones digitales profesionales para llevar tu negocio al siguiente nivel.">
+<meta name="description" content="Tarjetas digitales interactivas personalizadas para profesionales y negocios. Entrega en 24–48 h. — KONFÍO ZINC">
+<meta property="og:title" content="KONFÍO ZINC · Tarjeta Digital Premium">
+<meta property="og:description" content="Conecta sin límites: tu tarjeta digital personalizada en 24–48 h. Planes desde $49.900 COP y asesoría con IA.">
 <meta property="og:image" content="https://i.postimg.cc/tTBypHCZ/Whats-App-Image-2026-05-24-at-07-06-16.jpg">
-
-<!-- Twitter / X -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="KONFÍO ZINC · Sitio Web Oficial">
-<meta name="twitter:description" content="Soluciones digitales profesionales para llevar tu negocio al siguiente nivel.">
-<meta name="twitter:image" content="https://i.postimg.cc/tTBypHCZ/Whats-App-Image-2026-05-24-at-07-06-16.jpg">
+<title>KONFÍO ZINC | Tarjetas digitales premium desde $49.900</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
-/* ─── TOKENS ──────────────────────────────────────── */
+/* ─── DESIGN TOKENS ───────────────────────────────── */
 :root{
+  /* Brand palette */
   --gold:#F0B429; --gold2:#FFD97D;
   --orange:#F97316; --cyan:#00E5FF;
-  --black:#000; --g1:#0A0A0A; --g2:#111; --g3:#1A1A1A;
-  --white:#F5F5F0; --muted:#888;
-  --sec: 60px 5%;   /* sección estándar */
-  --ssec:40px 5%;   /* sección pequeña */
+  --success:#4ade80;
+
+  /* Dark surface system */
+  --bg:#000;
+  --surface:#0A0A0A;
+  --elevated:#111;
+  --surface2:#1A1A1A;
+
+  /* Text */
+  --fg:#F5F5F0;
+  --muted:#888;
+
+  /* Border */
+  --border:rgba(255,255,255,.08);
+  --border-gold:rgba(240,180,41,.2);
+
+  /* Spacing */
+  --sec:60px 5%;
+  --ssec:40px 5%;
 }
 
 /* ─── RESET ───────────────────────────────────────── */
@@ -42,23 +45,58 @@
 html{scroll-behavior:smooth;}
 body{
   font-family:'Plus Jakarta Sans',sans-serif;
-  background:var(--black); color:var(--white);
+  background:var(--bg); color:var(--fg);
   overflow-x:hidden; cursor:none;
+}
+
+/* ─── GRAIN OVERLAY ───────────────────────────────── */
+.kz-grain::before{
+  content:'';position:fixed;inset:0;pointer-events:none;z-index:9997;opacity:.45;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
 /* ─── CURSOR ──────────────────────────────────────── */
 .cur{width:10px;height:10px;background:var(--cyan);border-radius:50%;
-     position:fixed;pointer-events:none;z-index:9999;mix-blend-mode:difference;
-     transition:transform .15s;}
+     position:fixed;pointer-events:none;z-index:9999;mix-blend-mode:difference;transition:transform .15s;}
 .cur-ring{width:32px;height:32px;border:1px solid var(--gold);border-radius:50%;
           position:fixed;pointer-events:none;z-index:9998;mix-blend-mode:difference;}
 @media(max-width:600px){.cur,.cur-ring{display:none;}body{cursor:auto;}}
 
-/* ─── NOISE GRAIN ─────────────────────────────────── */
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:9997;opacity:.5;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+/* ─── UTILITY CLASSES ─────────────────────────────── */
+.text-gold{background:linear-gradient(90deg,var(--gold),var(--orange));
+           -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+           background-size:200%;animation:shim 3.5s linear infinite;}
+.text-cyan{color:var(--cyan);}
+.text-or{color:var(--orange);}
+.glow-ring{box-shadow:0 0 0 1px rgba(240,180,41,.25),0 0 40px rgba(240,180,41,.08);}
+.surface-panel{
+  background:rgba(255,255,255,.025);
+  border:1px solid var(--border);
+  border-radius:16px;
 }
+.label-eyebrow{
+  font-family:'Syne',sans-serif;font-size:.65rem;letter-spacing:4px;
+  text-transform:uppercase;color:var(--cyan);
+  display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;
+}
+.label-eyebrow::before{content:'//';color:var(--gold);}
+@keyframes shim{to{background-position:200%;}}
+
+/* ─── BG GRID ─────────────────────────────────────── */
+.bg-grid{
+  position:absolute;inset:0;
+  background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
+  background-size:55px 55px;
+  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black,transparent);
+}
+
+/* ─── REVEAL ──────────────────────────────────────── */
+.rev{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease;}
+.rev.vis{opacity:1;transform:translateY(0);}
+
+/* ─── DIVIDER ─────────────────────────────────────── */
+.div-line{height:1px;background:linear-gradient(90deg,transparent,var(--border-gold),transparent);margin:0 5%;}
 
 /* ─── NAV ─────────────────────────────────────────── */
 nav{
@@ -66,45 +104,40 @@ nav{
   display:flex;align-items:center;justify-content:space-between;
   padding:.9rem 5%;
   background:rgba(0,0,0,.75);backdrop-filter:blur(18px);
-  border-bottom:1px solid rgba(240,180,41,.12);
+  border-bottom:1px solid rgba(240,180,41,.1);
 }
-.nav-logo{font-family:'Orbitron',sans-serif;font-size:1.1rem;font-weight:700;
-          letter-spacing:3px;
-          background:linear-gradient(90deg,var(--gold),var(--orange));
-          -webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.nav-logo span{background:var(--cyan);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-logo{font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:3px;}
+.nav-logo .kz-g{background:linear-gradient(90deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-logo .kz-z{background:var(--cyan);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.nav-links{display:none;align-items:center;gap:1.5rem;font-family:'Syne',sans-serif;font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
+.nav-links a{color:inherit;text-decoration:none;transition:color .2s;}
+.nav-links a:hover{color:var(--gold);}
+@media(min-width:1024px){.nav-links{display:flex;}}
 .nav-cta{
-  background:transparent;border:1px solid var(--gold);color:var(--gold);
-  font-family:'Syne',sans-serif;font-size:.7rem;letter-spacing:2px;
-  text-transform:uppercase;padding:.5rem 1.2rem;cursor:none;
-  text-decoration:none;transition:all .3s;
+  display:flex;align-items:center;gap:.4rem;
+  background:transparent;border:1px solid rgba(240,180,41,.6);color:var(--gold);
+  font-family:'Syne',sans-serif;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;
+  padding:.5rem 1rem;cursor:none;text-decoration:none;transition:all .3s;border-radius:6px;
 }
-.nav-cta:hover{background:var(--gold);color:var(--black);}
+.nav-cta:hover{background:var(--gold);color:var(--bg);}
 
-/* ─── SECTION BASE ────────────────────────────────── */
-section{padding:var(--sec);}
-.sec-sm{padding:var(--ssec);}
-.tag{
-  font-family:'Syne',sans-serif;font-size:.65rem;letter-spacing:4px;
-  text-transform:uppercase;color:var(--cyan);
-  display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;
+/* ─── BUTTONS ─────────────────────────────────────── */
+.btn-p{
+  background:linear-gradient(135deg,var(--gold),var(--orange));
+  color:var(--bg);font-family:'Syne',sans-serif;
+  font-size:.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  padding:.9rem 2.2rem;border:none;cursor:none;text-decoration:none;
+  display:inline-flex;align-items:center;gap:.5rem;
+  position:relative;overflow:hidden;transition:transform .2s,box-shadow .3s;border-radius:8px;
 }
-.tag::before{content:'//';color:var(--gold);}
-.h2{
-  font-family:'Orbitron',sans-serif;
-  font-size:clamp(1.8rem,4vw,3.2rem);
-  line-height:1.1;letter-spacing:1px;margin-bottom:1rem;
+.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(240,180,41,.4);}
+.btn-s{
+  background:transparent;border:1px solid var(--border);color:var(--fg);
+  font-family:'Syne',sans-serif;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;
+  padding:.9rem 1.8rem;cursor:none;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;
+  transition:border-color .3s,color .3s;border-radius:8px;
 }
-.gold{color:var(--gold);}
-.cyan{color:var(--cyan);}
-.or{color:var(--orange);}
-
-/* ─── DIVIDER ─────────────────────────────────────── */
-.div-line{height:1px;background:linear-gradient(90deg,transparent,rgba(240,180,41,.25),transparent);margin:0 5%;}
-
-/* ─── REVEAL ──────────────────────────────────────── */
-.rev{opacity:0;transform:translateY(28px);transition:opacity .65s ease,transform .65s ease;}
-.rev.vis{opacity:1;transform:translateY(0);}
+.btn-s:hover{border-color:var(--cyan);color:var(--cyan);}
 
 /* ══════════════════════════════════════════════════
    HERO
@@ -113,16 +146,8 @@ section{padding:var(--sec);}
   min-height:100vh;display:flex;flex-direction:column;justify-content:center;
   padding:100px 5% 60px;position:relative;overflow:hidden;
 }
-.hero-grid{
-  position:absolute;inset:0;
-  background-image:
-    linear-gradient(rgba(0,229,255,.035) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(0,229,255,.035) 1px,transparent 1px);
-  background-size:55px 55px;
-  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black,transparent);
-}
 .hero-glow{position:absolute;top:-180px;right:-180px;width:650px;height:650px;
-           background:radial-gradient(circle,rgba(240,180,41,.11),transparent 70%);pointer-events:none;transition:transform .4s ease;}
+           background:radial-gradient(circle,rgba(240,180,41,.11),transparent 70%);pointer-events:none;}
 .hero-glow2{position:absolute;bottom:-250px;left:-80px;width:550px;height:550px;
             background:radial-gradient(circle,rgba(0,229,255,.07),transparent 70%);pointer-events:none;}
 .eyebrow{
@@ -134,22 +159,16 @@ section{padding:var(--sec);}
 .eyebrow::before{content:'';display:block;width:36px;height:1px;background:var(--cyan);}
 .hero-h1{
   font-family:'Orbitron',sans-serif;
-  font-size:clamp(2.6rem,7.5vw,7rem);
+  font-size:clamp(2.6rem,7.5vw,6rem);
   line-height:.92;letter-spacing:-1px;margin-bottom:.5em;
   opacity:0;animation:fuA .8s .4s forwards;
 }
-.gline{
-  background:linear-gradient(90deg,var(--gold) 0%,var(--orange) 50%,var(--gold) 100%);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-  background-size:200%;animation:shim 3.5s linear infinite;
-}
-@keyframes shim{to{background-position:200%;}}
 .hero-sub{
-  font-size:clamp(.9rem,2vw,1.1rem);color:var(--muted);
+  font-size:clamp(.9rem,2vw,1.05rem);color:var(--muted);
   max-width:560px;line-height:1.75;margin-bottom:2rem;
   opacity:0;animation:fuA .8s .6s forwards;
 }
-.hero-sub strong{color:var(--white);}
+.hero-sub strong{color:var(--fg);}
 .hero-acts{
   display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;
   opacity:0;animation:fuA .8s .8s forwards;
@@ -160,206 +179,321 @@ section{padding:var(--sec);}
 }
 .avatars{display:flex;}
 .av{
-  width:34px;height:34px;border-radius:50%;border:2px solid var(--black);
+  width:34px;height:34px;border-radius:50%;border:2px solid var(--bg);
   margin-left:-9px;display:flex;align-items:center;justify-content:center;
-  font-size:.62rem;font-weight:700;font-family:'Syne',sans-serif;
+  font-size:.6rem;font-weight:700;font-family:'Syne',sans-serif;
 }
 .av:first-child{margin-left:0;}
 .proof-txt{font-size:.78rem;color:var(--muted);}
 .proof-txt strong{color:var(--gold);}
 
 /* Floating card */
-.hero-card{
-  position:absolute;right:5%;top:50%;
-  width:min(340px,38%);
-  opacity:0;animation:fuL 1s .5s forwards;pointer-events:none;
-}
+.hero-card{position:absolute;right:5%;top:50%;width:min(340px,38%);opacity:0;animation:fuL 1s .5s forwards;pointer-events:none;}
 @media(max-width:900px){.hero-card{display:none;}}
 .fc{
   width:100%;aspect-ratio:1.586;
-  background:linear-gradient(135deg,#111,#1a1a1a 50%,#222);
-  border-radius:18px;border:1px solid rgba(240,180,41,.28);
+  background:linear-gradient(135deg,var(--elevated),var(--surface2));
+  border-radius:20px;border:1px solid rgba(240,180,41,.28);
   padding:1.8rem;position:relative;overflow:hidden;
-  box-shadow:0 35px 70px rgba(0,0,0,.85),0 0 50px rgba(240,180,41,.07);
+  box-shadow:0 40px 80px rgba(0,0,0,.9),0 0 60px rgba(240,180,41,.06);
   animation:flt 4s ease-in-out infinite;
 }
 @keyframes flt{0%,100%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-16px) rotate(-2deg);}}
 .fc-chip{width:46px;height:34px;background:linear-gradient(135deg,var(--gold),#c8962a);border-radius:6px;margin-bottom:1.6rem;}
 .fc-nfc{position:absolute;top:1.3rem;right:1.3rem;color:var(--cyan);font-size:1.3rem;opacity:.7;}
-.fc-num{font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:3px;color:rgba(255,255,255,.45);margin-bottom:.8rem;}
-.fc-name{font-family:'Orbitron',sans-serif;font-size:1.1rem;letter-spacing:3px;background:linear-gradient(90deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.fc-brand{position:absolute;bottom:1.3rem;right:1.3rem;font-family:'Orbitron',sans-serif;font-size:.85rem;letter-spacing:3px;color:rgba(255,255,255,.2);}
-.fc-scan{position:absolute;top:0;left:-100%;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--cyan),transparent);animation:scan 2.8s linear infinite;}
+.fc-num{font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:3px;color:rgba(255,255,255,.4);margin-bottom:.8rem;}
+.fc-name{font-family:'Orbitron',sans-serif;font-size:1.05rem;letter-spacing:3px;}
+.fc-brand{position:absolute;bottom:1.3rem;right:1.3rem;font-family:'Orbitron',sans-serif;font-size:.85rem;letter-spacing:3px;color:rgba(255,255,255,.18);}
+.kz-scanline{position:absolute;top:0;left:-100%;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--cyan),transparent);animation:scan 2.8s linear infinite;}
 @keyframes scan{to{left:100%;}}
 .fc-holo{position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(0,229,255,.04) 50%,transparent 60%);animation:holo 3s ease-in-out infinite;}
 @keyframes holo{0%,100%{opacity:.3;}50%{opacity:1;}}
 
-/* Animations */
 @keyframes fuA{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
 @keyframes fuL{from{opacity:0;transform:translate(35px,-50%);}to{opacity:1;transform:translate(0,-50%);}}
-
-/* ─── BUTTONS ─────────────────────────────────────── */
-.btn-p{
-  background:linear-gradient(135deg,var(--gold),var(--orange));
-  color:var(--black);font-family:'Syne',sans-serif;
-  font-size:.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  padding:.9rem 2.2rem;border:none;cursor:none;text-decoration:none;
-  display:inline-block;position:relative;overflow:hidden;
-  transition:transform .2s,box-shadow .3s;
-}
-.btn-p::after{content:'';position:absolute;inset:0;background:rgba(255,255,255,.18);
-              transform:translateX(-100%) skewX(-15deg);transition:transform .4s;}
-.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(240,180,41,.4);}
-.btn-p:hover::after{transform:translateX(100%) skewX(-15deg);}
-.btn-s{
-  background:transparent;border:1px solid rgba(255,255,255,.2);color:var(--white);
-  font-family:'Syne',sans-serif;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;
-  padding:.9rem 1.8rem;cursor:none;text-decoration:none;display:inline-block;
-  transition:border-color .3s,color .3s;
-}
-.btn-s:hover{border-color:var(--cyan);color:var(--cyan);}
 
 /* ══════════════════════════════════════════════════
    STATS
 ══════════════════════════════════════════════════ */
 .stats-bar{
-  background:rgba(240,180,41,.05);
-  border-top:1px solid rgba(240,180,41,.15);
-  border-bottom:1px solid rgba(240,180,41,.15);
+  background:rgba(240,180,41,.04);
+  border-top:1px solid rgba(240,180,41,.14);
+  border-bottom:1px solid rgba(240,180,41,.14);
   padding:1.8rem 5%;
   display:flex;justify-content:space-around;flex-wrap:wrap;gap:1.5rem;
 }
 .stat{text-align:center;}
-.snum{
-  font-family:'Orbitron',sans-serif;font-size:2.6rem;font-weight:700;line-height:1;
-  background:linear-gradient(90deg,var(--gold),var(--orange));
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-}
-.slbl{font-size:.68rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:.3rem;font-family:'Syne',sans-serif;}
+.snum{font-family:'Orbitron',sans-serif;font-size:2.6rem;font-weight:700;line-height:1;}
+.slbl{font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:.3rem;font-family:'Syne',sans-serif;}
 
 /* ══════════════════════════════════════════════════
-   PROBLEMA
+   SECCIONES ESTÁNDAR
 ══════════════════════════════════════════════════ */
-#problema{background:var(--g2);position:relative;}
+section{padding:var(--sec);}
+.sec-sm{padding:var(--ssec);}
+.h2{font-family:'Orbitron',sans-serif;font-size:clamp(1.7rem,4vw,3rem);line-height:1.1;letter-spacing:.5px;margin-bottom:1rem;}
+
+/* ──── PROBLEMA ────────────────────────────────── */
+#problema{background:var(--surface);position:relative;}
 #problema::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
 .prob-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;max-width:1100px;margin:0 auto;}
 @media(max-width:768px){.prob-grid{grid-template-columns:1fr;gap:2rem;}}
 .prob-items{display:flex;flex-direction:column;gap:1rem;}
 .prob-item{
-  display:flex;gap:.9rem;align-items:flex-start;
-  padding:1.2rem;background:rgba(0,0,0,.4);
-  border:1px solid rgba(255,255,255,.05);border-left:3px solid var(--orange);
-  transition:border-color .3s;
+  display:flex;gap:.9rem;align-items:flex-start;padding:1.2rem;
+  background:rgba(0,0,0,.4);border:1px solid var(--border);border-left:3px solid var(--orange);transition:border-color .3s;
+  border-radius:8px;
 }
 .prob-item:hover{border-left-color:var(--gold);}
 .pi-ico{font-size:1.3rem;flex-shrink:0;}
 .pi-t{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;margin-bottom:.25rem;}
 .pi-d{font-size:.78rem;color:var(--muted);line-height:1.6;}
 
-/* ══════════════════════════════════════════════════
-   MECANISMO
-══════════════════════════════════════════════════ */
-.mech-grid{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:2px;margin-top:2.5rem;
-}
+/* ──── MECANISMO ───────────────────────────────── */
+.mech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px;margin-top:2.5rem;}
 .mstep{
-  padding:2rem 1.6rem;background:var(--g2);
-  border:1px solid rgba(255,255,255,.05);
-  position:relative;overflow:hidden;transition:transform .3s,background .3s;
+  padding:2rem 1.6rem;background:var(--surface);
+  border:1px solid var(--border);position:relative;overflow:hidden;transition:transform .3s,background .3s;
 }
-.mstep:hover{transform:translateY(-4px);background:var(--g3);}
+.mstep:hover{transform:translateY(-4px);background:var(--surface2);}
 .mstep::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--orange));transform:scaleX(0);transform-origin:left;transition:transform .4s;}
 .mstep:hover::before{transform:scaleX(1);}
-.mnum{font-family:'Orbitron',sans-serif;font-size:3.5rem;color:rgba(240,180,41,.08);position:absolute;top:.5rem;right:1rem;line-height:1;}
+.mnum{font-family:'Orbitron',sans-serif;font-size:3.5rem;color:rgba(240,180,41,.07);position:absolute;top:.5rem;right:1rem;line-height:1;}
 .mico{font-size:1.8rem;margin-bottom:.8rem;}
 .mt{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.4rem;}
 .md{font-size:.8rem;color:var(--muted);line-height:1.6;}
 
-/* ══════════════════════════════════════════════════
-   BENEFICIOS
-══════════════════════════════════════════════════ */
-#beneficios{background:var(--g2);}
+/* ──── BENEFICIOS ──────────────────────────────── */
+#beneficios{background:var(--surface);}
 .ben-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.2rem;margin-top:2.5rem;}
 .bcard{
-  padding:1.6rem;border:1px solid rgba(255,255,255,.07);
-  background:rgba(0,0,0,.5);position:relative;overflow:hidden;transition:transform .3s;
+  padding:1.6rem;border:1px solid var(--border);
+  background:rgba(0,0,0,.5);border-radius:14px;position:relative;overflow:hidden;transition:transform .3s,border-color .3s;
 }
-.bcard::after{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(240,180,41,.05),transparent);opacity:0;transition:opacity .3s;}
-.bcard:hover{transform:translateY(-5px);}
-.bcard:hover::after{opacity:1;}
-.bico{font-size:2rem;margin-bottom:1rem;filter:drop-shadow(0 0 8px var(--gold));}
+.bcard:hover{transform:translateY(-5px);border-color:rgba(0,229,255,.3);}
+.bico{font-size:2rem;margin-bottom:1rem;}
 .bt{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.5rem;}
 .bd{font-size:.8rem;color:var(--muted);line-height:1.65;}
 
 /* ══════════════════════════════════════════════════
-   PORTAFOLIO (strip)
+   ASESOR IA  🤖
+══════════════════════════════════════════════════ */
+#asesor{position:relative;overflow:hidden;}
+.asesor-glow{position:absolute;top:0;right:-100px;width:500px;height:500px;background:radial-gradient(circle,rgba(240,180,41,.08),transparent 70%);pointer-events:none;}
+.asesor-grid{
+  display:grid;gap:3rem;align-items:center;max-width:1100px;margin:0 auto;
+  grid-template-columns:1fr 1.05fr;
+}
+@media(max-width:900px){.asesor-grid{grid-template-columns:1fr;}}
+.asesor-steps{margin-top:2rem;display:flex;flex-direction:column;gap:1.2rem;}
+.asstep{display:flex;gap:1rem;align-items:flex-start;}
+.asstep-num{
+  font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;color:var(--gold);
+  flex-shrink:0;width:28px;
+}
+.asstep-t{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;color:var(--fg);margin-bottom:.2rem;}
+.asstep-d{font-size:.8rem;color:var(--muted);line-height:1.55;}
+
+/* ── Chat widget ─────────────────────────────── */
+.chat-widget{
+  display:flex;flex-direction:column;overflow:hidden;
+  border:1px solid var(--border-gold);
+  border-radius:18px;background:var(--surface);
+  box-shadow:0 0 0 1px rgba(240,180,41,.12),0 40px 80px rgba(0,0,0,.6);
+  height:620px;
+}
+.chat-hdr{
+  display:flex;align-items:center;gap:.8rem;
+  padding:1rem 1.2rem;
+  border-bottom:1px solid var(--border);
+  background:linear-gradient(135deg,rgba(240,180,41,.07),rgba(0,229,255,.04));
+  flex-shrink:0;
+}
+.chat-hdr-logo{
+  width:38px;height:38px;border-radius:10px;
+  background:linear-gradient(135deg,var(--gold),var(--orange));
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;color:var(--bg);
+  flex-shrink:0;
+}
+.chat-hdr-info{flex:1;min-width:0;}
+.chat-hdr-name{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;color:var(--fg);}
+.chat-hdr-status{font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:.4rem;margin-top:.1rem;}
+.chat-online-dot{width:6px;height:6px;background:var(--success);border-radius:50%;box-shadow:0 0 6px var(--success);}
+.chat-reset{
+  background:none;border:none;color:var(--muted);cursor:none;
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  border-radius:8px;transition:background .2s,color .2s;font-size:.85rem;
+}
+.chat-reset:hover{background:rgba(255,255,255,.06);color:var(--gold);}
+
+.chat-msgs{
+  flex:1;overflow-y:auto;padding:1rem;
+  display:flex;flex-direction:column;gap:.8rem;
+  scrollbar-width:thin;scrollbar-color:rgba(240,180,41,.2) transparent;
+}
+.chat-msgs::-webkit-scrollbar{width:4px;}
+.chat-msgs::-webkit-scrollbar-thumb{background:rgba(240,180,41,.2);border-radius:2px;}
+
+.msg{display:flex;flex-direction:column;max-width:86%;}
+.msg.bot{align-self:flex-start;}
+.msg.user{align-self:flex-end;}
+.msg-bubble{
+  padding:.7rem 1rem;border-radius:14px;font-size:.82rem;line-height:1.6;
+}
+.msg.bot .msg-bubble{
+  background:rgba(255,255,255,.05);border:1px solid var(--border);
+  color:var(--fg);border-bottom-left-radius:4px;
+}
+.msg.user .msg-bubble{
+  background:linear-gradient(135deg,var(--gold),var(--orange));
+  color:var(--bg);font-weight:600;border-bottom-right-radius:4px;
+}
+.msg-time{font-size:.65rem;color:var(--muted);margin-top:.25rem;}
+.msg.user .msg-time{text-align:right;}
+
+/* Typing indicator */
+.typing-dots{display:flex;gap:4px;align-items:center;padding:.5rem 0;}
+.typing-dots span{
+  width:6px;height:6px;background:var(--muted);border-radius:50%;
+  animation:dot-bounce .9s ease-in-out infinite;
+}
+.typing-dots span:nth-child(2){animation-delay:.15s;}
+.typing-dots span:nth-child(3){animation-delay:.3s;}
+@keyframes dot-bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
+
+/* Quick chips */
+.chat-chips{
+  display:flex;flex-wrap:wrap;gap:.5rem;
+  padding:.75rem 1rem;border-top:1px solid var(--border);flex-shrink:0;
+}
+.chip{
+  padding:.4rem .9rem;border-radius:999px;
+  font-family:'Syne',sans-serif;font-size:.7rem;font-weight:600;
+  border:1px solid var(--border);background:var(--elevated);color:var(--muted);
+  cursor:none;transition:all .2s;
+}
+.chip:hover{border-color:rgba(240,180,41,.5);color:var(--gold);}
+
+/* Chat input */
+.chat-input-area{padding:.8rem 1rem;border-top:1px solid var(--border);flex-shrink:0;}
+.chat-form{display:flex;gap:.5rem;align-items:flex-end;}
+.chat-textarea{
+  flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border);
+  color:var(--fg);border-radius:10px;padding:.7rem .9rem;
+  font-family:'Plus Jakarta Sans',sans-serif;font-size:.82rem;
+  resize:none;max-height:120px;min-height:40px;
+  field-sizing:content;
+  transition:border-color .2s;
+  outline:none;
+}
+.chat-textarea:focus{border-color:rgba(240,180,41,.4);}
+.chat-textarea::placeholder{color:rgba(255,255,255,.25);}
+.chat-send{
+  width:36px;height:36px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--gold),var(--orange));
+  color:var(--bg);border:none;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:none;transition:transform .15s,opacity .2s;font-size:.85rem;
+}
+.chat-send:hover{transform:scale(1.05);}
+.chat-send:disabled{opacity:.4;transform:none;}
+
+/* ══════════════════════════════════════════════════
+   PORTAFOLIO MARQUEE
 ══════════════════════════════════════════════════ */
 #portafolio{overflow:hidden;padding:var(--sec);}
-.port-strip{
-  display:flex;gap:1rem;
-  animation:portScroll 40s linear infinite;
-  width:max-content;
+.port-marquee-wrap{
+  position:relative;overflow:hidden;
+  mask-image:linear-gradient(90deg,transparent,black 8%,black 92%,transparent);
 }
+.port-strip{display:flex;gap:1rem;animation:portScroll 40s linear infinite;width:max-content;}
 .port-strip:hover{animation-play-state:paused;}
 @keyframes portScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 .pitem{
-  width:160px;flex-shrink:0;
-  border-radius:12px;overflow:hidden;
-  border:1px solid rgba(255,255,255,.07);
-  background:var(--g2);transition:transform .3s,border-color .3s;cursor:pointer;
+  width:210px;flex-shrink:0;border-radius:16px;overflow:hidden;
+  border:1px solid var(--border);background:var(--surface);
+  transition:transform .3s,border-color .3s;cursor:pointer;position:relative;
 }
-.pitem:hover{transform:scale(1.04);border-color:rgba(240,180,41,.3);}
-.pitem img{width:100%;aspect-ratio:.75;object-fit:cover;object-position:top;}
-.pitem-label{padding:.5rem .7rem;}
-.pil-name{font-family:'Syne',sans-serif;font-size:.7rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.pil-cat{font-size:.6rem;color:var(--gold);font-family:'Syne',sans-serif;letter-spacing:.06em;text-transform:uppercase;}
+.pitem:hover{transform:scale(1.03);border-color:rgba(240,180,41,.4);}
+.pitem img{width:100%;height:315px;object-fit:cover;object-position:top;opacity:.9;transition:opacity .3s;display:block;}
+.pitem:hover img{opacity:1;}
+.pitem-overlay{
+  position:absolute;inset-x:0;bottom:0;
+  background:linear-gradient(to top,var(--bg) 0%,rgba(0,0,0,.85) 40%,transparent 100%);
+  padding:1rem .9rem .9rem;
+}
+.pil-name{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg);}
+.pil-cat{font-size:.6rem;color:var(--gold);font-family:'Syne',sans-serif;letter-spacing:.1em;text-transform:uppercase;margin-top:.2rem;}
+.pitem-arrow{
+  position:absolute;top:.7rem;right:.7rem;
+  width:24px;height:24px;border-radius:6px;
+  background:var(--gold);color:var(--bg);
+  display:flex;align-items:center;justify-content:center;font-size:.6rem;
+  opacity:0;transition:opacity .2s;
+}
+.pitem:hover .pitem-arrow{opacity:1;}
+
+/* Extra project links grid */
+.proj-links-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:.5rem;max-width:1100px;margin:1.5rem auto 0;
+}
+.proj-link{
+  display:flex;align-items:center;justify-content:space-between;gap:.8rem;
+  padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;
+  background:rgba(255,255,255,.02);text-decoration:none;
+  transition:border-color .2s;
+}
+.proj-link:hover{border-color:rgba(240,180,41,.35);}
+.proj-link-name{font-size:.82rem;font-weight:600;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.proj-link-cat{font-size:.62rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
+.proj-link i{color:var(--muted);font-size:.75rem;flex-shrink:0;transition:color .2s;}
+.proj-link:hover i{color:var(--gold);}
 
 /* ══════════════════════════════════════════════════
    TESTIMONIOS
 ══════════════════════════════════════════════════ */
 #testimonios{overflow:hidden;padding:var(--sec) 0;}
 .testi-hdr{padding:0 5% 2rem;}
+.ttrack-wrap{overflow:hidden;mask-image:linear-gradient(90deg,transparent,black 6%,black 94%,transparent);}
 .ttrack{display:flex;gap:1.2rem;animation:tScroll 35s linear infinite;width:max-content;}
 .ttrack:hover{animation-play-state:paused;}
 @keyframes tScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
 .tcard{
-  width:290px;flex-shrink:0;padding:1.5rem;
-  background:var(--g2);border:1px solid rgba(255,255,255,.06);position:relative;
+  width:320px;flex-shrink:0;padding:1.5rem;
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  display:flex;flex-direction:column;justify-content:space-between;
 }
-.tcard::before{content:'\201C';position:absolute;top:6px;right:12px;font-size:36px;color:rgba(240,180,41,.15);font-family:Georgia,serif;}
-.tstars{color:var(--gold);font-size:.8rem;margin-bottom:.8rem;letter-spacing:2px;}
-.ttxt{font-size:.8rem;color:var(--muted);line-height:1.7;margin-bottom:1rem;font-style:italic;}
+.tstars{color:var(--gold);font-size:.75rem;margin-bottom:.8rem;display:flex;gap:2px;}
+.ttxt{font-size:.82rem;color:var(--muted);line-height:1.7;margin-bottom:1rem;font-style:italic;flex:1;}
 .tau{display:flex;align-items:center;gap:.7rem;}
 .tav{
-  width:34px;height:34px;border-radius:50%;
+  width:36px;height:36px;border-radius:50%;
   background:linear-gradient(135deg,var(--gold),var(--orange));
   display:flex;align-items:center;justify-content:center;
-  font-size:.75rem;font-weight:700;color:var(--black);font-family:'Syne',sans-serif;flex-shrink:0;
+  font-size:.72rem;font-weight:700;color:var(--bg);font-family:'Syne',sans-serif;flex-shrink:0;
 }
-.tname{font-size:.8rem;font-weight:700;font-family:'Syne',sans-serif;}
+.tname{font-size:.82rem;font-weight:700;font-family:'Syne',sans-serif;}
 .trole{font-size:.68rem;color:var(--muted);}
 
 /* ══════════════════════════════════════════════════
    PRECIOS
 ══════════════════════════════════════════════════ */
-#precios{background:var(--g2);}
-.price-wrap{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
-  gap:1.2rem;max-width:1000px;margin:2.5rem auto 0;align-items:start;
-}
+#precios{background:var(--surface);}
+.price-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.2rem;max-width:1000px;margin:2.5rem auto 0;align-items:start;}
 .pcard{
   padding:2rem 1.8rem;
-  border:1px solid rgba(255,255,255,.07);
-  background:rgba(0,0,0,.6);position:relative;transition:transform .3s;
+  border:1px solid var(--border);
+  background:rgba(0,0,0,.6);border-radius:18px;position:relative;transition:transform .3s;
 }
 .pcard:hover{transform:translateY(-6px);}
-.pcard.pop{border-color:var(--gold);background:linear-gradient(180deg,rgba(240,180,41,.08),rgba(0,0,0,.6));}
+.pcard.pop{border-color:rgba(240,180,41,.5);background:linear-gradient(180deg,rgba(240,180,41,.07),rgba(0,0,0,.7));}
 .pop-badge{
-  position:absolute;top:-1px;left:50%;transform:translateX(-50%);
+  position:absolute;top:-13px;left:1.5rem;
   background:linear-gradient(90deg,var(--gold),var(--orange));
-  color:var(--black);font-family:'Syne',sans-serif;
-  font-size:.6rem;font-weight:700;padding:.25rem .9rem;letter-spacing:2px;
+  color:var(--bg);font-family:'Syne',sans-serif;
+  font-size:.6rem;font-weight:700;padding:.3rem 1rem;letter-spacing:2px;border-radius:999px;
 }
 .plan-n{font-family:'Orbitron',sans-serif;font-size:1.1rem;letter-spacing:2px;margin-bottom:.25rem;}
 .plan-d{font-size:.75rem;color:var(--muted);margin-bottom:1.5rem;}
@@ -367,19 +501,20 @@ section{padding:var(--sec);}
 .plan-px sub{font-size:1rem;vertical-align:sub;}
 .plan-per{font-size:.72rem;color:var(--muted);margin-bottom:1.5rem;}
 .feats{list-style:none;display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.5rem;}
-.feats li{font-size:.8rem;display:flex;align-items:flex-start;gap:.6rem;}
+.feats li{font-size:.8rem;display:flex;align-items:flex-start;gap:.6rem;color:var(--muted);}
 .feats li::before{content:'✓';color:var(--cyan);flex-shrink:0;font-weight:700;}
-.feats li.no{color:var(--muted);}
-.feats li.no::before{content:'×';color:rgba(255,255,255,.2);}
+.feats li.no{color:rgba(255,255,255,.25);text-decoration:line-through;}
+.feats li.no::before{content:'×';color:rgba(255,255,255,.15);}
 
 /* ══════════════════════════════════════════════════
-   GARANTIA
+   GARANTÍA
 ══════════════════════════════════════════════════ */
-#garantia{text-align:center;padding:var(--sec);}
+#garantia{text-align:center;}
 .gbox{
-  max-width:620px;margin:0 auto;padding:2.5rem 2rem;
-  border:1px solid rgba(0,229,255,.2);
+  max-width:620px;margin:0 auto;padding:3rem 2rem;
+  border:1px solid rgba(0,229,255,.18);
   background:linear-gradient(135deg,rgba(0,229,255,.04),rgba(0,0,0,.8));
+  border-radius:20px;
 }
 .gico{font-size:3.5rem;margin-bottom:1.2rem;filter:drop-shadow(0 0 18px var(--cyan));}
 .gt{font-family:'Orbitron',sans-serif;font-size:1.6rem;margin-bottom:.8rem;}
@@ -388,41 +523,59 @@ section{padding:var(--sec);}
 /* ══════════════════════════════════════════════════
    FAQ
 ══════════════════════════════════════════════════ */
-#faq{background:var(--g2);}
+#faq{background:var(--surface);}
 .faq-wrap{max-width:760px;margin:0 auto;}
 .faqs{display:flex;flex-direction:column;gap:.4rem;margin-top:2rem;}
-.fi{border:1px solid rgba(255,255,255,.06);overflow:hidden;}
+.fi{border:1px solid var(--border);overflow:hidden;border-radius:12px;}
+.fi.open{border-color:rgba(240,180,41,.3);}
 .fq{
   padding:1.1rem 1.3rem;font-weight:700;font-size:.88rem;
   font-family:'Syne',sans-serif;cursor:none;
-  display:flex;justify-content:space-between;align-items:center;
-  transition:color .2s;
+  display:flex;justify-content:space-between;align-items:center;transition:color .2s;
 }
 .fq:hover{color:var(--gold);}
-.fick{color:var(--gold);flex-shrink:0;margin-left:.8rem;transition:transform .3s;font-size:1rem;font-weight:300;}
+.fick{color:var(--gold);flex-shrink:0;margin-left:.8rem;transition:transform .3s;font-size:1.1rem;font-weight:300;}
 .fi.open .fick{transform:rotate(45deg);}
 .fa{max-height:0;overflow:hidden;transition:max-height .4s ease;}
-.fi.open .fa{max-height:180px;}
-.fa-in{padding:0 1.3rem 1.2rem;font-size:.82rem;color:var(--muted);line-height:1.8;border-top:1px solid rgba(255,255,255,.05);padding-top:.9rem;}
+.fi.open .fa{max-height:200px;}
+.fa-in{padding:0 1.3rem 1.2rem;font-size:.83rem;color:var(--muted);line-height:1.8;border-top:1px solid var(--border);padding-top:.9rem;}
 .fa-in span{color:var(--gold);}
+
+/* ══════════════════════════════════════════════════
+   ALIADOS
+══════════════════════════════════════════════════ */
+#aliados{padding:40px 5%;}
+.aliados-box{
+  max-width:1000px;margin:0 auto;
+  padding:2.5rem;
+  display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center;
+  border:1px solid var(--border);border-radius:18px;
+  background:rgba(255,255,255,.02);
+}
+@media(max-width:700px){.aliados-box{grid-template-columns:1fr;}}
+.aliados-ico{
+  width:44px;height:44px;border-radius:12px;background:var(--elevated);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;margin-bottom:1rem;
+}
 
 /* ══════════════════════════════════════════════════
    CTA FINAL
 ══════════════════════════════════════════════════ */
 #cta-final{text-align:center;padding:80px 5%;position:relative;overflow:hidden;}
-.cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(240,180,41,.09),transparent 70%);pointer-events:none;}
+.cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(240,180,41,.1),transparent 70%);pointer-events:none;}
 .cta-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(240,180,41,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(240,180,41,.03) 1px,transparent 1px);background-size:40px 40px;}
-.cta-h{font-family:'Orbitron',sans-serif;font-size:clamp(2.2rem,6vw,5.5rem);line-height:.95;margin-bottom:1.2rem;position:relative;}
+.cta-h{font-family:'Orbitron',sans-serif;font-size:clamp(2.2rem,6vw,5rem);line-height:.95;margin-bottom:1.2rem;position:relative;}
 .cta-sub{font-size:.95rem;color:var(--muted);max-width:440px;margin:0 auto 2.2rem;line-height:1.7;}
 .urgency{
   display:inline-flex;align-items:center;gap:.6rem;
   font-family:'Syne',sans-serif;font-size:.68rem;color:var(--orange);
-  border:1px solid rgba(249,115,22,.3);padding:.45rem 1rem;margin-bottom:2rem;
+  border:1px solid rgba(249,115,22,.3);padding:.45rem 1rem;margin-bottom:2rem;border-radius:999px;
 }
 .udot{width:7px;height:7px;background:var(--orange);border-radius:50%;animation:pulse 1.2s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
 
-/* ─── WHATSAPP FLOAT ──────────────────────────────── */
+/* ─── WA FLOAT ────────────────────────────────────── */
 .wa-float{
   position:fixed;bottom:24px;right:22px;z-index:9999;
   width:52px;height:52px;border-radius:50%;
@@ -430,7 +583,6 @@ section{padding:var(--sec);}
   display:flex;align-items:center;justify-content:center;
   font-size:26px;text-decoration:none;
   box-shadow:0 6px 24px rgba(37,211,102,.5);
-  border:2px solid rgba(255,255,255,.18);
   animation:waDrift 6s ease-in-out infinite;
 }
 @keyframes waDrift{0%,100%{transform:translateY(0);}40%{transform:translateY(-8px);}70%{transform:translateY(-4px);}85%{transform:translateY(-10px);}}
@@ -440,47 +592,21 @@ section{padding:var(--sec);}
 
 /* ─── FOOTER ──────────────────────────────────────── */
 footer{
-  padding:1.8rem 5%;border-top:1px solid rgba(255,255,255,.05);
+  padding:1.8rem 5%;border-top:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.8rem;
 }
-.fl{font-family:'Orbitron',sans-serif;font-size:1rem;letter-spacing:3px;background:linear-gradient(90deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.fl{font-family:'Orbitron',sans-serif;font-size:1rem;letter-spacing:3px;}
 .ft{font-size:.68rem;color:var(--muted);font-family:'Syne',sans-serif;letter-spacing:.04em;}
-
-/* ─── VIDEO THUMB ─────────────────────────────────── */
-.vthumb{
-  position:relative;border-radius:14px;overflow:hidden;cursor:none;
-  border:1px solid rgba(239,68,68,.22);transition:border-color .25s,transform .25s;
-}
-.vthumb:hover{border-color:rgba(239,68,68,.6);transform:scale(1.01);}
-.vthumb img{width:100%;aspect-ratio:16/9;object-fit:cover;filter:brightness(.7);display:block;}
-.vthumb-ov{
-  position:absolute;inset:0;
-  background:linear-gradient(to top,rgba(0,0,0,.7),transparent);
-  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;
-}
-.vplay{
-  width:52px;height:52px;border-radius:50%;background:rgba(239,68,68,.9);
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 0 0 8px rgba(239,68,68,.2),0 8px 24px rgba(0,0,0,.5);
-  animation:playPulse 2.5s ease-in-out infinite;
-}
-@keyframes playPulse{0%,100%{box-shadow:0 0 0 8px rgba(239,68,68,.2),0 8px 24px rgba(0,0,0,.5);}50%{box-shadow:0 0 0 14px rgba(239,68,68,.1),0 8px 28px rgba(0,0,0,.5);}}
-.vplay i{color:#fff;font-size:18px;margin-left:3px;}
-.vcap{position:absolute;bottom:10px;left:12px;}
-.vcap-t{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;color:#fff;}
-.vcap-s{font-size:.68rem;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:4px;margin-top:2px;}
-.yt{background:#f00;border-radius:3px;padding:1px 4px;font-size:.6rem;font-weight:700;color:#fff;font-family:'Syne',sans-serif;}
 
 /* ─── VIDEO MODAL ─────────────────────────────────── */
 .modal-ov{
   position:fixed;inset:0;z-index:1000;display:none;
   align-items:center;justify-content:center;padding:1rem;
-  background:rgba(0,0,0,.92);
-  opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;
+  background:rgba(0,0,0,.92);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;
 }
 .modal-ov.act{display:flex;opacity:1;visibility:visible;}
 .modal-inner{
-  background:#0D0D0D;border:1px solid rgba(240,180,41,.2);
+  background:var(--surface);border:1px solid var(--border-gold);
   border-radius:16px;overflow:hidden;width:100%;max-width:700px;
   transform:scale(.9) translateY(16px);transition:transform .3s,opacity .3s;opacity:0;
 }
@@ -491,38 +617,58 @@ footer{
   background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(249,115,22,.06));
   border-bottom:1px solid rgba(239,68,68,.18);
 }
-.modal-hdr span{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;color:#fff;}
+.modal-hdr span{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;color:var(--fg);}
 .mclose{background:none;border:none;font-size:1.4rem;color:var(--muted);cursor:none;transition:color .2s;}
 .mclose:hover{color:var(--gold);}
+
+/* Video thumb */
+.vthumb{position:relative;border-radius:14px;overflow:hidden;cursor:none;border:1px solid rgba(239,68,68,.22);transition:border-color .25s,transform .25s;}
+.vthumb:hover{border-color:rgba(239,68,68,.6);transform:scale(1.01);}
+.vthumb img{width:100%;aspect-ratio:16/9;object-fit:cover;filter:brightness(.7);display:block;}
+.vthumb-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;}
+.vplay{width:52px;height:52px;border-radius:50%;background:rgba(239,68,68,.9);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 8px rgba(239,68,68,.2);animation:playPulse 2.5s ease-in-out infinite;}
+@keyframes playPulse{0%,100%{box-shadow:0 0 0 8px rgba(239,68,68,.2);}50%{box-shadow:0 0 0 14px rgba(239,68,68,.08);}}
+.vplay i{color:#fff;font-size:18px;margin-left:3px;}
+.vcap{position:absolute;bottom:10px;left:12px;}
+.vcap-t{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;color:#fff;}
+.vcap-s{font-size:.68rem;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:4px;margin-top:2px;}
+.yt{background:#f00;border-radius:3px;padding:1px 4px;font-size:.6rem;font-weight:700;color:#fff;font-family:'Syne',sans-serif;}
 </style>
 </head>
-<body>
+<body class="kz-grain">
 
 <div class="cur" id="cur"></div>
 <div class="cur-ring" id="curRing"></div>
 
 <!-- NAV -->
 <nav>
-  <div class="nav-logo">KONFÍO <span>ZINC</span></div>
-  <a href="#precios" class="nav-cta">Quiero mi tarjeta</a>
+  <a href="#hero" class="nav-logo" style="text-decoration:none;"><span class="kz-g">KONFÍO</span> <span class="kz-z">ZINC</span></a>
+  <div class="nav-links">
+    <a href="#mecanismo">Cómo funciona</a>
+    <a href="#beneficios">Beneficios</a>
+    <a href="#portafolio">Portafolio</a>
+    <a href="#precios">Precios</a>
+    <a href="#faq">FAQ</a>
+  </div>
+  <a href="#asesor" class="nav-cta"><i class="fas fa-robot"></i>Asesor IA</a>
 </nav>
 
 <!-- ══ HERO ══════════════════════════════════════════ -->
 <section id="hero">
-  <div class="hero-grid"></div>
+  <div class="bg-grid"></div>
   <div class="hero-glow" id="hGlow"></div>
   <div class="hero-glow2"></div>
   <div style="position:relative;z-index:2;max-width:640px;">
     <div class="eyebrow">Tu presencia digital, redefinida</div>
     <h1 class="hero-h1">
-      <span class="gline">CONECTA</span><br>
-      <span style="color:var(--white)">SIN</span><br>
-      <span class="gline">LÍMITES</span>
+      <span class="text-gold">CONECTA</span><br>
+      <span style="color:var(--fg)">SIN</span><br>
+      <span class="text-gold">LÍMITES</span>
     </h1>
     <p class="hero-sub">Tu tarjeta de presentación <strong>inteligente y personalizada</strong> que convierte cada contacto en una oportunidad real. <strong>Un solo link. Impacto permanente.</strong></p>
     <div class="hero-acts">
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20mi%20tarjeta%20digital%20personalizada" target="_blank" class="btn-p"><i class="fab fa-whatsapp" style="margin-right:.5rem;"></i>SOLICITAR AHORA</a>
-      <a href="#mecanismo" class="btn-s">¿Cómo funciona?</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20mi%20tarjeta%20digital%20personalizada" target="_blank" class="btn-p"><i class="fab fa-whatsapp"></i>SOLICITAR AHORA</a>
+      <a href="#asesor" class="btn-s"><i class="fas fa-robot"></i>Hablar con el Asesor IA</a>
     </div>
     <div class="hero-proof">
       <div class="avatars">
@@ -535,15 +681,14 @@ footer{
       <p class="proof-txt"><strong>+58 profesionales</strong> ya confían en KONFÍO ZINC</p>
     </div>
   </div>
-  <!-- floating card visual -->
   <div class="hero-card">
     <div class="fc">
-      <div class="fc-scan"></div>
+      <div class="kz-scanline"></div>
       <div class="fc-holo"></div>
       <div class="fc-chip"></div>
       <div class="fc-nfc"><i class="fas fa-wifi" style="transform:rotate(90deg);"></i></div>
       <div class="fc-num">•••• •••• •••• 2026</div>
-      <div class="fc-name">KONFÍO ZINC PRO</div>
+      <div class="fc-name text-gold">KONFÍO ZINC PRO</div>
       <div class="fc-brand">KZ</div>
     </div>
   </div>
@@ -551,19 +696,19 @@ footer{
 
 <!-- ══ STATS ═════════════════════════════════════════ -->
 <div class="stats-bar">
-  <div class="stat rev"><div class="snum" data-count="58" data-sfx="+">0</div><div class="slbl">Clientes atendidos</div></div>
-  <div class="stat rev"><div class="snum" data-count="6" data-sfx="">0</div><div class="slbl">Ciudades en Colombia</div></div>
-  <div class="stat rev"><div class="snum" data-count="24" data-sfx="h">0</div><div class="slbl">Tiempo de entrega</div></div>
-  <div class="stat rev"><div class="snum" data-count="8" data-sfx="">0</div><div class="slbl">Sectores atendidos</div></div>
+  <div class="stat rev"><div class="snum text-gold" data-count="58" data-sfx="+">0</div><div class="slbl">Clientes atendidos</div></div>
+  <div class="stat rev"><div class="snum text-gold" data-count="6" data-sfx="">0</div><div class="slbl">Ciudades en Colombia</div></div>
+  <div class="stat rev"><div class="snum text-gold" data-count="24" data-sfx="h">0</div><div class="slbl">Tiempo de entrega</div></div>
+  <div class="stat rev"><div class="snum text-gold" data-count="8" data-sfx="">0</div><div class="slbl">Sectores atendidos</div></div>
 </div>
 
 <!-- ══ PROBLEMA ══════════════════════════════════════ -->
 <section id="problema">
   <div class="prob-grid">
     <div class="rev">
-      <div class="tag">El problema real</div>
-      <h2 class="h2">Tu tarjeta de papel <span class="or">te está costando</span> clientes</h2>
-      <p style="color:var(--muted);font-size:.88rem;line-height:1.8;margin-top:.8rem;">Cada vez que entregas papel, apuestas a que esa persona no lo perderá. Spoiler: <strong style="color:var(--white)">el 88% termina en la basura antes de 7 días.</strong></p>
+      <div class="label-eyebrow">El problema real</div>
+      <h2 class="h2">Tu tarjeta de papel <span class="text-or">te está costando</span> clientes</h2>
+      <p style="color:var(--muted);font-size:.88rem;line-height:1.8;margin-top:.8rem;">Cada vez que entregas papel, apuestas a que esa persona no lo perderá. Spoiler: <strong style="color:var(--fg)">el 88% termina en la basura antes de 7 días.</strong></p>
     </div>
     <div class="prob-items rev">
       <div class="prob-item"><div class="pi-ico">🗑️</div><div><div class="pi-t">Desechable por naturaleza</div><div class="pi-d">Tu inversión en diseño e impresión desaparece junto con la tarjeta.</div></div></div>
@@ -579,29 +724,27 @@ footer{
 <!-- ══ MECANISMO ═════════════════════════════════════ -->
 <section id="mecanismo">
   <div style="max-width:580px;" class="rev">
-    <div class="tag">Cómo funciona</div>
-    <h2 class="h2">Tu tarjeta lista en <span class="gold">3 pasos simples</span></h2>
+    <div class="label-eyebrow">Cómo funciona</div>
+    <h2 class="h2">Tu tarjeta lista en <span class="text-gold">4 pasos simples</span></h2>
     <p style="color:var(--muted);font-size:.88rem;line-height:1.75;">Sin tecnicismos. Sin apps que instalar. Solo tú, tu información y una presencia que impresiona.</p>
   </div>
   <div class="mech-grid">
-    <div class="mstep rev"><div class="mnum">01</div><div class="mico">✉️</div><h3 class="mt">Envíame tu info</h3><p class="md">Foto, nombre, teléfono, redes y servicios. Yo me encargo del diseño. No necesitas saber de tecnología.</p></div>
-    <div class="mstep rev"><div class="mnum">02</div><div class="mico">🎨</div><h3 class="mt">Diseño y revisión</h3><p class="md">En 24–48 h hábiles tendrás tu tarjeta personalizada lista para revisar. Ajustes incluidos.</p></div>
-    <div class="mstep rev"><div class="mnum">03</div><div class="mico">🚀</div><h3 class="mt">Comparte y convierte</h3><p class="md">Un link, un QR. Tus clientes te contactan con un solo toque desde cualquier celular del mundo.</p></div>
-    <div class="mstep rev"><div class="mnum">04</div><div class="mico">📊</div><h3 class="mt">Actualiza cuando quieras</h3><p class="md">¿Cambias de número o servicios? Edita tu tarjeta. Todos tus contactos la ven actualizada al instante.</p></div>
+    <div class="mstep rev"><div class="mnum">01</div><div class="mico">✉️</div><h3 class="mt">Envíame tu info</h3><p class="md">Foto, nombre, teléfono, redes y servicios. Yo me encargo del diseño.</p></div>
+    <div class="mstep rev"><div class="mnum">02</div><div class="mico">🎨</div><h3 class="mt">Diseño y revisión</h3><p class="md">En 24–48 h hábiles tendrás tu tarjeta personalizada lista para revisar.</p></div>
+    <div class="mstep rev"><div class="mnum">03</div><div class="mico">🚀</div><h3 class="mt">Comparte y convierte</h3><p class="md">Un link, un QR. Tus clientes te contactan desde cualquier celular.</p></div>
+    <div class="mstep rev"><div class="mnum">04</div><div class="mico">📊</div><h3 class="mt">Actualiza cuando quieras</h3><p class="md">Cambias de número o servicios — todos tus contactos lo ven al instante.</p></div>
   </div>
 </section>
 
 <div class="div-line"></div>
 
 <!-- ══ VIDEO ══════════════════════════════════════════ -->
-<section class="sec-sm" style="padding-top:40px;padding-bottom:40px;">
+<section class="sec-sm">
   <div style="max-width:680px;margin:0 auto;" class="rev">
-    <div class="tag" style="justify-content:center;">Ve cómo funciona</div>
-    <button id="vBtn" class="vthumb" style="width:100%;background:none;border:1px solid rgba(239,68,68,.22);padding:0;cursor:none;">
+    <div class="label-eyebrow" style="justify-content:center;">Ve cómo funciona</div>
+    <button id="vBtn" class="vthumb" style="width:100%;background:none;padding:0;cursor:none;border:1px solid rgba(239,68,68,.22);">
       <img src="https://img.youtube.com/vi/ndRhGLFUlLA/hqdefault.jpg" alt="Video KONFÍO ZINC" onerror="this.src='https://placehold.co/480x270/111/f87171?text=Ver+Video'">
-      <div class="vthumb-ov">
-        <div class="vplay"><i class="fas fa-play"></i></div>
-      </div>
+      <div class="vthumb-ov"><div class="vplay"><i class="fas fa-play"></i></div></div>
       <div class="vcap">
         <div class="vcap-t">¿Cómo es una tarjeta KONFÍO ZINC?</div>
         <div class="vcap-s"><span class="yt">YT</span>Mira el video completo</div>
@@ -615,16 +758,69 @@ footer{
 <!-- ══ BENEFICIOS ════════════════════════════════════ -->
 <section id="beneficios">
   <div style="max-width:580px;" class="rev">
-    <div class="tag">Por qué elegirnos</div>
-    <h2 class="h2">Todo lo que <span class="cyan">necesitas</span> en un solo link</h2>
+    <div class="label-eyebrow">Por qué elegirnos</div>
+    <h2 class="h2">Todo lo que <span class="text-cyan">necesitas</span> en un solo link</h2>
   </div>
   <div class="ben-grid">
-    <div class="bcard rev"><div class="bico">⚡</div><h3 class="bt">Actualización instantánea</h3><p class="bd">Cambia número, cargo o servicios desde el dashboard. La tarjeta se actualiza sin reimprimir nada.</p></div>
-    <div class="bcard rev"><div class="bico">🌐</div><h3 class="bt">Perfil digital completo</h3><p class="bd">Foto, redes, catálogo, WhatsApp directo, galería, agenda y mucho más. Todo en un lugar elegante.</p></div>
-    <div class="bcard rev"><div class="bico">📲</div><h3 class="bt">Sin apps · Sin fricción</h3><p class="bd">Funciona en cualquier celular con internet. Android, iPhone, sin descargas. Abre al instante.</p></div>
-    <div class="bcard rev"><div class="bico">🔗</div><h3 class="bt">Un link para todo</h3><p class="bd">WhatsApp, Instagram, TikTok, ubicación, catálogo, video y más. Compártelo por donde quieras.</p></div>
-    <div class="bcard rev"><div class="bico">📅</div><h3 class="bt">Sistema de citas</h3><p class="bd">Tus clientes agendan directamente desde tu tarjeta. Llegan listos, sin llamadas previas innecesarias.</p></div>
-    <div class="bcard rev"><div class="bico">♻️</div><h3 class="bt">Entrega en 24–48 h</h3><p class="bd">Una sola tarjeta digital reemplaza miles de papeles. Entrega rápida, sin complicaciones.</p></div>
+    <div class="bcard rev"><div class="bico">⚡</div><h3 class="bt">Actualización instantánea</h3><p class="bd">Cambia número, cargo o servicios. La tarjeta se actualiza sin reimprimir nada.</p></div>
+    <div class="bcard rev"><div class="bico">🌐</div><h3 class="bt">Perfil digital completo</h3><p class="bd">Foto, redes, catálogo, WhatsApp directo, galería y agenda. Todo elegante y en un solo lugar.</p></div>
+    <div class="bcard rev"><div class="bico">📲</div><h3 class="bt">Sin apps · Sin fricción</h3><p class="bd">Funciona en cualquier celular. Android, iPhone, sin descargas. Abre al instante.</p></div>
+    <div class="bcard rev"><div class="bico">🔗</div><h3 class="bt">Un link para todo</h3><p class="bd">WhatsApp, Instagram, TikTok, ubicación, catálogo y video. Compártelo por donde quieras.</p></div>
+    <div class="bcard rev"><div class="bico">📅</div><h3 class="bt">Sistema de citas</h3><p class="bd">Tus clientes agendan directo desde tu tarjeta. Llegan listos, sin llamadas previas.</p></div>
+    <div class="bcard rev"><div class="bico">⚡</div><h3 class="bt">Entrega en 24–48 h</h3><p class="bd">Una sola tarjeta digital reemplaza miles de papeles. Entrega rápida, sin complicaciones.</p></div>
+  </div>
+</section>
+
+<div class="div-line"></div>
+
+<!-- ══ ASESOR IA ══════════════════════════════════════ -->
+<section id="asesor">
+  <div class="asesor-glow"></div>
+  <div class="asesor-grid">
+    <!-- Lado izquierdo: descripción -->
+    <div class="rev">
+      <div class="label-eyebrow">Asesor con IA</div>
+      <h2 class="h2">Habla con nuestro asesor y recibe <span class="text-gold">una sola recomendación</span></h2>
+      <p style="color:var(--muted);font-size:.88rem;line-height:1.75;margin-top:.5rem;">No te enviamos una lista de precios. El asesor entiende tu negocio y te recomienda exactamente la solución que necesitas.</p>
+      <div class="asesor-steps">
+        <div class="asstep"><div class="asstep-num">01</div><div><div class="asstep-t">Escuchamos</div><div class="asstep-d">Nos cuentas a qué se dedica tu negocio y qué quieres lograr.</div></div></div>
+        <div class="asstep"><div class="asstep-num">02</div><div><div class="asstep-t">Diagnosticamos</div><div class="asstep-d">Revisamos tu presencia digital actual y las oportunidades de mejora.</div></div></div>
+        <div class="asstep"><div class="asstep-num">03</div><div><div class="asstep-t">Recomendamos una solución</div><div class="asstep-d">La que realmente le sirve a tu negocio — sin presión, sin tecnicismos.</div></div></div>
+        <div class="asstep"><div class="asstep-num">04</div><div><div class="asstep-t">Construimos y entregamos</div><div class="asstep-d">Tu enlace listo para compartir en 24–48 h hábiles.</div></div></div>
+      </div>
+    </div>
+
+    <!-- Chat widget -->
+    <div class="chat-widget rev glow-ring" id="chatWidget">
+      <!-- Header -->
+      <div class="chat-hdr">
+        <div class="chat-hdr-logo">KZ</div>
+        <div class="chat-hdr-info">
+          <div class="chat-hdr-name">Asesor KONFÍO ZINC</div>
+          <div class="chat-hdr-status"><span class="chat-online-dot"></span>En línea · responde al instante</div>
+        </div>
+        <button class="chat-reset" id="chatReset" title="Reiniciar conversación"><i class="fas fa-rotate-left"></i></button>
+      </div>
+
+      <!-- Messages -->
+      <div class="chat-msgs" id="chatMsgs"></div>
+
+      <!-- Quick chips -->
+      <div class="chat-chips" id="chatChips">
+        <button class="chip" data-msg="Es para mi propio negocio">Es para mi propio negocio</button>
+        <button class="chip" data-msg="¿Cuánto vale?">¿Cuánto vale?</button>
+        <button class="chip" data-msg="Quiero ver ejemplos">Quiero ver ejemplos</button>
+        <button class="chip" data-msg="Me interesa ser aliado">Me interesa ser aliado</button>
+      </div>
+
+      <!-- Input -->
+      <div class="chat-input-area">
+        <form class="chat-form" id="chatForm">
+          <textarea class="chat-textarea" id="chatInput" placeholder="Escribe tu mensaje…" rows="1"></textarea>
+          <button class="chat-send" type="submit" id="chatSend"><i class="fas fa-arrow-up"></i></button>
+        </form>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -632,32 +828,51 @@ footer{
 
 <!-- ══ PORTAFOLIO ════════════════════════════════════ -->
 <section id="portafolio">
-  <div style="max-width:580px;margin:0 auto 2.5rem;" class="rev" style="text-align:center;">
-    <div class="tag">Proyectos realizados</div>
-    <h2 class="h2">Más de <span class="gold">23 tarjetas</span> publicadas</h2>
+  <div style="max-width:580px;margin:0 auto 2.5rem;" class="rev">
+    <div class="label-eyebrow">Proyectos realizados</div>
+    <h2 class="h2">Más de <span class="text-gold">32 tarjetas</span> publicadas</h2>
     <p style="color:var(--muted);font-size:.85rem;line-height:1.7;margin-top:.5rem;">Desde profesionales de la salud hasta músicos, pasteleras y abogados. Cada tarjeta, única.</p>
   </div>
-  <div style="overflow:hidden;">
+  <div class="port-marquee-wrap">
     <div class="port-strip" id="portStrip">
       <!-- Set 1 -->
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/quiromasajes-gap/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/quiromasajes-gap/" alt="GAP"><div class="pitem-label"><div class="pil-name">Quiromasajes GAP</div><div class="pil-cat">Tarjeta Digital</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/abogados-dta/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/abogados-dta/" alt="DTA"><div class="pitem-label"><div class="pil-name">Abogados DTA</div><div class="pil-cat">Landing Legal</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/nandy_nails/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/nandy_nails/" alt="Nandy"><div class="pitem-label"><div class="pil-name">Nandy Nails</div><div class="pil-cat">Belleza</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/eltiti/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/eltiti/" alt="El Titi"><div class="pitem-label"><div class="pil-name">EL TITI</div><div class="pil-cat">Menú Digital</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/np-style/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/np-style/" alt="NP Style"><div class="pitem-label"><div class="pil-name">NP Style</div><div class="pil-cat">Peluquería</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/dg_ventas_avaluos/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/dg_ventas_avaluos/" alt="DG"><div class="pitem-label"><div class="pil-name">DG Avalúos</div><div class="pil-cat">Inmobiliaria</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/century_21_radial/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/century_21_radial/" alt="C21"><div class="pitem-label"><div class="pil-name">Century 21</div><div class="pil-cat">Inmobiliaria</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/calixto_acordeon_magico/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/calixto_acordeon_magico/" alt="Calixto"><div class="pitem-label"><div class="pil-name">Calixto Acordeón</div><div class="pil-cat">Entretenimiento</div></div></div>
-      <!-- Set 2 (duplicate for infinite) -->
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/quiromasajes-gap/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/quiromasajes-gap/" alt="GAP"><div class="pitem-label"><div class="pil-name">Quiromasajes GAP</div><div class="pil-cat">Tarjeta Digital</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/abogados-dta/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/abogados-dta/" alt="DTA"><div class="pitem-label"><div class="pil-name">Abogados DTA</div><div class="pil-cat">Landing Legal</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/nandy_nails/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/nandy_nails/" alt="Nandy"><div class="pitem-label"><div class="pil-name">Nandy Nails</div><div class="pil-cat">Belleza</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/eltiti/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/eltiti/" alt="El Titi"><div class="pitem-label"><div class="pil-name">EL TITI</div><div class="pil-cat">Menú Digital</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/np-style/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/np-style/" alt="NP Style"><div class="pitem-label"><div class="pil-name">NP Style</div><div class="pil-cat">Peluquería</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/dg_ventas_avaluos/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/dg_ventas_avaluos/" alt="DG"><div class="pitem-label"><div class="pil-name">DG Avalúos</div><div class="pil-cat">Inmobiliaria</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/century_21_radial/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/century_21_radial/" alt="C21"><div class="pitem-label"><div class="pil-name">Century 21</div><div class="pil-cat">Inmobiliaria</div></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/calixto_acordeon_magico/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/calixto_acordeon_magico/" alt="Calixto"><div class="pitem-label"><div class="pil-name">Calixto Acordeón</div><div class="pil-cat">Entretenimiento</div></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/tarjetapre/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/tarjetapre/" alt="Tarjeta PRE" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Tarjeta PRE</div><div class="pil-cat">Modelo general</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/quiromasajes-gap/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/quiromasajes-gap/" alt="GAP" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Quiromasajes GAP</div><div class="pil-cat">Salud y bienestar</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/abogados-dta/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/abogados-dta/" alt="DTA" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Abogados DTA</div><div class="pil-cat">Jurídico</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/nandy_nails/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/nandy_nails/" alt="Nandy" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Nandy Nails</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/eltiti/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/eltiti/" alt="El Titi" loading="lazy"><div class="pitem-overlay"><div class="pil-name">EL TITI</div><div class="pil-cat">Negocio local</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/np-style/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/np-style/" alt="NP Style" loading="lazy"><div class="pitem-overlay"><div class="pil-name">NP Style</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/mega-express/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/mega-express/" alt="Mega Express" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Mega Express</div><div class="pil-cat">Transporte</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/dg_ventas_avaluos/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/dg_ventas_avaluos/" alt="DG" loading="lazy"><div class="pitem-overlay"><div class="pil-name">DG Avalúos</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/calixto_acordeon_magico/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/calixto_acordeon_magico/" alt="Calixto" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Calixto Acordeón</div><div class="pil-cat">Música</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/makeup_artist/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/makeup_artist/" alt="Makeup" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Makeup Artist</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/fumigaciones-monterrey/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/fumigaciones-monterrey/" alt="Fumig" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Fumigaciones Monterrey</div><div class="pil-cat">Servicios</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/century_21_radial/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/century_21_radial/" alt="C21" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Century 21 Radial</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <!-- Set 2 (duplicate) -->
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/tarjetapre/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/tarjetapre/" alt="Tarjeta PRE" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Tarjeta PRE</div><div class="pil-cat">Modelo general</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/quiromasajes-gap/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/quiromasajes-gap/" alt="GAP" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Quiromasajes GAP</div><div class="pil-cat">Salud y bienestar</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/abogados-dta/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/abogados-dta/" alt="DTA" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Abogados DTA</div><div class="pil-cat">Jurídico</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/nandy_nails/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/nandy_nails/" alt="Nandy" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Nandy Nails</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/eltiti/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/eltiti/" alt="El Titi" loading="lazy"><div class="pitem-overlay"><div class="pil-name">EL TITI</div><div class="pil-cat">Negocio local</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/np-style/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/np-style/" alt="NP Style" loading="lazy"><div class="pitem-overlay"><div class="pil-name">NP Style</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/mega-express/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/mega-express/" alt="Mega Express" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Mega Express</div><div class="pil-cat">Transporte</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/dg_ventas_avaluos/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/dg_ventas_avaluos/" alt="DG" loading="lazy"><div class="pitem-overlay"><div class="pil-name">DG Avalúos</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/calixto_acordeon_magico/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/calixto_acordeon_magico/" alt="Calixto" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Calixto Acordeón</div><div class="pil-cat">Música</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/makeup_artist/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/makeup_artist/" alt="Makeup" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Makeup Artist</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/fumigaciones-monterrey/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/fumigaciones-monterrey/" alt="Fumig" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Fumigaciones Monterrey</div><div class="pil-cat">Servicios</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/century_21_radial/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/century_21_radial/" alt="C21" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Century 21 Radial</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
     </div>
+  </div>
+  <!-- Grid de proyectos extra -->
+  <div class="proj-links-grid rev">
+    <a href="https://konfiozinc.github.io/ca-ada_style/" target="_blank" class="proj-link"><span><div class="proj-link-name">La Cañada Style</div><div class="proj-link-cat">Moda</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/carniceria_la_milagrosa/" target="_blank" class="proj-link"><span><div class="proj-link-name">Carnicería La Milagrosa</div><div class="proj-link-cat">Alimentos</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/fumig_master/" target="_blank" class="proj-link"><span><div class="proj-link-name">Fumig Master</div><div class="proj-link-cat">Servicios</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/deicy-buitrago/" target="_blank" class="proj-link"><span><div class="proj-link-name">Deicy Buitrago</div><div class="proj-link-cat">Profesional</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/nutridrink/" target="_blank" class="proj-link"><span><div class="proj-link-name">NutriDrink</div><div class="proj-link-cat">Nutrición</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/lizeth_lozano/" target="_blank" class="proj-link"><span><div class="proj-link-name">Lizeth Lozano</div><div class="proj-link-cat">Profesional</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/gp/" target="_blank" class="proj-link"><span><div class="proj-link-name">GP Inmobiliaria</div><div class="proj-link-cat">Finca raíz</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/konfio-sports/" target="_blank" class="proj-link"><span><div class="proj-link-name">Konfío Sports</div><div class="proj-link-cat">Deportes</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
   </div>
   <div style="text-align:center;margin-top:1.8rem;" class="rev">
     <a href="https://konfiozinc.github.io/tarjetapre/" target="_blank" class="btn-s" style="font-size:.72rem;">VER PORTAFOLIO COMPLETO →</a>
@@ -669,17 +884,17 @@ footer{
 <!-- ══ TESTIMONIOS ═══════════════════════════════════ -->
 <section id="testimonios">
   <div class="testi-hdr rev">
-    <div class="tag">Prueba social</div>
-    <h2 class="h2">Lo que dicen <span class="gold">nuestros clientes</span></h2>
+    <div class="label-eyebrow">Prueba social</div>
+    <h2 class="h2">Lo que dicen <span class="text-gold">nuestros clientes</span></h2>
   </div>
-  <div style="overflow:hidden;">
+  <div class="ttrack-wrap">
     <div class="ttrack">
       <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Mis pacientes me escriben directo desde la tarjeta. Es profesional, elegante y me ahorra explicar cómo contactarme."</p><div class="tau"><div class="tav">IR</div><div><div class="tname">Dra. Isabela Rojas</div><div class="trole">Odontóloga · Estética Dental</div></div></div></div>
       <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"La entrega fue rapidísima y el resultado superó mis expectativas. Ya tengo agenda llena gracias al botón de citas."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--cyan),#007799);">RP</div><div><div class="tname">Regina Pereira</div><div class="trole">Nails &amp; Academy</div></div></div></div>
       <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Compartir mi menú por WhatsApp cambió todo. Los clientes ven los precios sin pedirlos y llegan listos para comprar."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--orange),#b45309);">DD</div><div><div class="tname">Dulce Delicia</div><div class="trole">Pastelería Artesanal</div></div></div></div>
       <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Antes repartía 200 tarjetas en papel y nadie me llamaba. Con la tarjeta digital recibo mensajes todos los días."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,#a855f7,#7e22ce);">CM</div><div><div class="tname">Carlos Mejía</div><div class="trole">Consultor de Negocios</div></div></div></div>
       <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Darwin diseñó algo que realmente me representa. El QR en mi local convierte visitas en clientes recurrentes."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--gold),#d4a017);">SG</div><div><div class="tname">Sandra Gil</div><div class="trole">Barbería La Cañada</div></div></div></div>
-      <!-- duplicados para loop -->
+      <!-- duplicados -->
       <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Mis pacientes me escriben directo desde la tarjeta. Es profesional, elegante y me ahorra explicar cómo contactarme."</p><div class="tau"><div class="tav">IR</div><div><div class="tname">Dra. Isabela Rojas</div><div class="trole">Odontóloga · Estética Dental</div></div></div></div>
       <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"La entrega fue rapidísima y el resultado superó mis expectativas. Ya tengo agenda llena gracias al botón de citas."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--cyan),#007799);">RP</div><div><div class="tname">Regina Pereira</div><div class="trole">Nails &amp; Academy</div></div></div></div>
       <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Compartir mi menú por WhatsApp cambió todo. Los clientes ven los precios sin pedirlos y llegan listos para comprar."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--orange),#b45309);">DD</div><div><div class="tname">Dulce Delicia</div><div class="trole">Pastelería Artesanal</div></div></div></div>
@@ -694,76 +909,55 @@ footer{
 <!-- ══ PRECIOS ═══════════════════════════════════════ -->
 <section id="precios">
   <div style="max-width:580px;" class="rev">
-    <div class="tag">Planes y precios</div>
-    <h2 class="h2">Invierte una vez.<br><span class="gold">Conecta para siempre.</span></h2>
+    <div class="label-eyebrow">Planes y precios</div>
+    <h2 class="h2">Invierte una vez.<br><span class="text-gold">Conecta para siempre.</span></h2>
     <p style="color:var(--muted);font-size:.85rem;line-height:1.7;margin-top:.6rem;">Precios en pesos colombianos. Pago único por diseño + dominio incluido 1 año.</p>
   </div>
   <div class="price-wrap">
-
-    <!-- START -->
     <div class="pcard rev">
-      <div class="plan-n">Start</div>
+      <div class="plan-n">START</div>
       <div class="plan-d">Para profesionales que inician</div>
-      <div class="plan-px" style="color:var(--white)"><sub>$</sub>49.900</div>
+      <div class="plan-px" style="color:var(--fg)"><sub>$</sub>49.900</div>
       <div class="plan-per">pago único · COP</div>
       <ul class="feats">
-        <li>Datos de contacto completos</li>
-        <li>Redes sociales (3 links)</li>
-        <li>Botón WhatsApp directo</li>
-        <li>Código QR descargable</li>
+        <li>Datos de contacto completos</li><li>Redes sociales (3 links)</li>
+        <li>Botón WhatsApp directo</li><li>Código QR descargable</li>
         <li>Entrega en 24–48 h</li>
-        <li class="no">Galería de fotos</li>
-        <li class="no">Sistema de citas</li>
-        <li class="no">Video promocional</li>
-        <li class="no">Animaciones premium</li>
+        <li class="no">Galería de fotos</li><li class="no">Sistema de citas</li>
+        <li class="no">Video promocional</li><li class="no">Animaciones premium</li>
       </ul>
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Start%20%E2%80%94%20%2449.900" target="_blank" class="btn-s" style="display:block;text-align:center;font-size:.72rem;">EMPEZAR →</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Start%20%E2%80%94%20%2449.900" target="_blank" class="btn-s" style="display:flex;justify-content:center;font-size:.72rem;">Quiero el START →</a>
     </div>
-
-    <!-- PRO (popular) -->
     <div class="pcard pop rev">
-      <div class="pop-badge">MÁS POPULAR</div>
-      <div class="plan-n" style="color:var(--gold)">Pro</div>
+      <div class="pop-badge">Más popular</div>
+      <div class="plan-n text-gold">PRO</div>
       <div class="plan-d">Para profesionales de alto impacto</div>
-      <div class="plan-px" style="background:linear-gradient(90deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;"><sub style="-webkit-text-fill-color:var(--gold)">$</sub>99.900</div>
+      <div class="plan-px text-gold"><sub style="color:var(--gold)">$</sub>99.900</div>
       <div class="plan-per">pago único · COP</div>
       <ul class="feats">
-        <li>Todo el plan Start</li>
-        <li>Galería de fotos interactiva</li>
-        <li>Ubicación / Google Maps</li>
-        <li>Guardar contacto (.vcf)</li>
-        <li>Links ilimitados</li>
-        <li>Sistema de citas integrado</li>
+        <li>Todo el plan START</li><li>Galería de fotos interactiva</li>
+        <li>Ubicación / Google Maps</li><li>Guardar contacto (.vcf)</li>
+        <li>Links ilimitados</li><li>Sistema de citas integrado</li>
         <li>Revisión de diseño incluida</li>
-        <li class="no">Video promocional</li>
-        <li class="no">Animaciones premium</li>
+        <li class="no">Video promocional</li><li class="no">Animaciones premium</li>
       </ul>
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Pro%20%E2%80%94%20%2499.900" target="_blank" class="btn-p" style="display:block;text-align:center;font-size:.75rem;">QUIERO EL PRO →</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Pro%20%E2%80%94%20%2499.900" target="_blank" class="btn-p" style="display:flex;justify-content:center;font-size:.75rem;">Quiero el PRO →</a>
     </div>
-
-    <!-- ELITE -->
     <div class="pcard rev">
-      <div class="plan-n" style="color:var(--cyan)">Elite</div>
+      <div class="plan-n text-cyan">ELITE</div>
       <div class="plan-d">Presencia premium sin límites</div>
-      <div class="plan-px" style="color:var(--white)"><sub>$</sub>149.900</div>
+      <div class="plan-px" style="color:var(--fg)"><sub>$</sub>149.900</div>
       <div class="plan-per">pago único · COP</div>
       <ul class="feats">
-        <li>Todo el plan Pro</li>
-        <li>Video promocional incrustado</li>
-        <li>Animaciones y efectos premium</li>
-        <li>Partículas y diseño a medida</li>
-        <li>Comparativa de servicios</li>
-        <li>FAQ interactivo propio</li>
-        <li>Instalable como app (PWA)</li>
-        <li>Contador de visitas en vivo</li>
+        <li>Todo el plan PRO</li><li>Video promocional incrustado</li>
+        <li>Animaciones y efectos premium</li><li>Partículas y diseño a medida</li>
+        <li>Comparativa de servicios</li><li>FAQ interactivo propio</li>
+        <li>Instalable como app (PWA)</li><li>Contador de visitas en vivo</li>
         <li>Soporte prioritario 30 días</li>
       </ul>
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Elite%20%E2%80%94%20%24149.900" target="_blank" class="btn-s" style="display:block;text-align:center;padding:.9rem;border-color:var(--cyan);color:var(--cyan);font-size:.72rem;">QUIERO ELITE →</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Elite%20%E2%80%94%20%24149.900" target="_blank" class="btn-s" style="display:flex;justify-content:center;font-size:.72rem;border-color:var(--cyan);color:var(--cyan);">Quiero el ELITE →</a>
     </div>
-
   </div>
-
-  <!-- Nota de garantía bajo precios -->
   <div style="text-align:center;margin-top:1.8rem;" class="rev">
     <p style="font-size:.78rem;color:var(--muted);">🛡️ Garantía de satisfacción · ⚡ Entrega 24–48 h · 💬 Soporte por WhatsApp</p>
   </div>
@@ -775,9 +969,9 @@ footer{
 <section id="garantia">
   <div class="gbox rev">
     <div class="gico">🛡️</div>
-    <h2 class="gt">Garantía de <span class="cyan">3 días hábiles</span></h2>
+    <h2 class="gt">Garantía de <span class="text-cyan">3 días hábiles</span></h2>
     <p class="gd">Si no quedas 100% satisfecho con el diseño de tu tarjeta, lo <strong style="color:var(--gold)">rediseño sin costo adicional</strong> hasta que quedes feliz. Sin letra pequeña, sin excusas.</p>
-    <div style="margin-top:1.2rem;display:inline-flex;align-items:center;gap:.5rem;font-family:'Syne',sans-serif;font-size:.72rem;color:#4ade80;border:1px solid rgba(74,222,128,.25);padding:.35rem 1rem;border-radius:999px;">
+    <div style="margin-top:1.2rem;display:inline-flex;align-items:center;gap:.5rem;font-family:'Syne',sans-serif;font-size:.72rem;color:var(--success);border:1px solid rgba(74,222,128,.25);padding:.35rem 1rem;border-radius:999px;">
       <i class="fas fa-circle-check"></i> Sin riesgo · Sin complicaciones
     </div>
   </div>
@@ -789,19 +983,35 @@ footer{
 <section id="faq">
   <div class="faq-wrap">
     <div class="rev">
-      <div class="tag">Preguntas frecuentes</div>
-      <h2 class="h2">Resolvemos tus <span class="gold">dudas</span></h2>
+      <div class="label-eyebrow">Preguntas frecuentes</div>
+      <h2 class="h2">Todo lo que <span class="text-gold">quieres saber</span></h2>
     </div>
     <div class="faqs">
       <div class="fi rev"><div class="fq">¿Necesito instalar alguna app? <span class="fick">+</span></div><div class="fa"><div class="fa-in">No. Tu tarjeta se abre directamente desde el navegador del celular — <span>sin descargas</span>. Funciona en Android, iPhone y cualquier dispositivo con internet.</div></div></div>
       <div class="fi rev"><div class="fq">¿Cuánto tarda en estar lista mi tarjeta? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Entre <span>24 y 48 horas hábiles</span> desde que confirmas el pago y me envías tu información. Incluye una ronda de revisión y ajustes.</div></div></div>
-      <div class="fi rev"><div class="fq">¿Puedo actualizar el contenido después? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Sí. Puedes solicitar cambios de foto, número, servicios y precios. Las actualizaciones tienen un <span>costo mínimo adicional</span> según la complejidad del cambio.</div></div></div>
-      <div class="fi rev"><div class="fq">¿Cómo comparto la tarjeta con mis clientes? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Por <span>link directo</span> en WhatsApp, Instagram o email; por <span>código QR</span> impreso en tu local o empaque; o añadiéndola a tu bio de redes sociales.</div></div></div>
-      <div class="fi rev"><div class="fq">¿Qué necesito para empezar? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Solo tu <span>foto, nombre, ocupación, teléfono y redes sociales</span>. Yo me encargo del diseño y la publicación. No necesitas saber de tecnología.</div></div></div>
+      <div class="fi rev"><div class="fq">¿Puedo actualizar el contenido después? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Sí. Las actualizaciones tienen un <span>costo mínimo adicional</span> según la complejidad del cambio solicitado.</div></div></div>
+      <div class="fi rev"><div class="fq">¿Cómo comparto la tarjeta con mis clientes? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Por <span>link directo</span> en WhatsApp, Instagram o email; por <span>código QR</span> impreso en tu local; o añadiéndola a tu bio de redes sociales.</div></div></div>
+      <div class="fi rev"><div class="fq">¿Qué necesito para empezar? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Solo tu <span>foto, nombre, ocupación, teléfono y redes sociales</span>. Yo me encargo del diseño y la publicación.</div></div></div>
       <div class="fi rev"><div class="fq">¿Cómo realizo el pago? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Acepto <span>Nequi, Daviplata, transferencia bancaria</span> y efectivo. El pago es anticipado para iniciar el diseño.</div></div></div>
     </div>
     <div style="text-align:center;margin-top:1.8rem;" class="rev">
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20tengo%20una%20pregunta%20sobre%20las%20tarjetas%20digitales%20%F0%9F%91%8B" target="_blank" class="btn-s" style="font-size:.72rem;"><i class="fab fa-whatsapp" style="margin-right:.5rem;"></i>TENGO OTRA PREGUNTA</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20tengo%20una%20pregunta%20sobre%20las%20tarjetas%20%F0%9F%91%8B" target="_blank" class="btn-s" style="font-size:.72rem;"><i class="fab fa-whatsapp"></i>Tengo otra pregunta</a>
+    </div>
+  </div>
+</section>
+
+<div class="div-line"></div>
+
+<!-- ══ ALIADOS ════════════════════════════════════════ -->
+<section id="aliados">
+  <div class="aliados-box rev">
+    <div>
+      <div class="aliados-ico"><i class="fas fa-handshake" style="color:var(--gold);"></i></div>
+      <h3 style="font-family:'Orbitron',sans-serif;font-size:1.2rem;font-weight:700;margin-bottom:.6rem;">¿Quieres ofrecer estas soluciones a tus clientes?</h3>
+      <p style="font-size:.85rem;color:var(--muted);line-height:1.7;">Trabajamos con agencias, diseñadores y comerciales que ya atienden negocios. Cuéntanos a qué te dedicas y revisamos juntos cómo colaborar.</p>
+    </div>
+    <div>
+      <a href="#asesor" class="btn-s" style="white-space:nowrap;">Hablar como aliado</a>
     </div>
   </div>
 </section>
@@ -813,17 +1023,17 @@ footer{
   <div class="cta-glow"></div>
   <div class="cta-grid"></div>
   <div style="position:relative;z-index:2;">
-    <div class="tag rev" style="justify-content:center;">Última llamada</div>
+    <div class="label-eyebrow rev" style="justify-content:center;">Última llamada</div>
     <h2 class="cta-h rev">
-      <span style="color:var(--white)">ELEVA</span><br>
-      <span style="background:linear-gradient(90deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;">TU MARCA</span><br>
-      <span style="color:var(--white)">HOY</span>
+      <span style="color:var(--fg)">ELEVA</span><br>
+      <span class="text-gold">TU MARCA</span><br>
+      <span style="color:var(--fg)">HOY</span>
     </h2>
-    <p class="cta-sub rev">Más de 58 profesionales en Colombia ya dejaron el papel atrás. La pregunta es: ¿cuándo más vas a esperar?</p>
-    <div class="urgency rev"><div class="udot"></div>PRECIO ESPECIAL · TIEMPO LIMITADO</div>
+    <p class="cta-sub rev">Más de 58 profesionales en Colombia ya dejaron el papel atrás. ¿Cuánto más vas a esperar?</p>
+    <div class="urgency rev"><div class="udot"></div>CUPOS LIMITADOS CADA SEMANA</div>
     <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;" class="rev">
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20mi%20tarjeta%20digital%20KONF%C3%8DO%20ZINC%20%F0%9F%91%8B" target="_blank" class="btn-p" style="font-size:.85rem;padding:1rem 2.5rem;"><i class="fab fa-whatsapp" style="margin-right:.5rem;"></i>QUIERO MI TARJETA →</a>
-      <a href="tel:+573206411340" class="btn-s" style="padding:1rem 1.8rem;font-size:.75rem;"><i class="fas fa-phone" style="margin-right:.5rem;"></i>LLAMAR AHORA</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20mi%20tarjeta%20digital%20KONF%C3%8DO%20ZINC%20%F0%9F%91%8B" target="_blank" class="btn-p" style="font-size:.85rem;padding:1rem 2.5rem;"><i class="fab fa-whatsapp"></i>QUIERO MI TARJETA</a>
+      <a href="tel:+573206411340" class="btn-s" style="padding:1rem 1.8rem;font-size:.75rem;"><i class="fas fa-phone"></i>LLAMAR AHORA</a>
     </div>
     <p style="margin-top:1.5rem;font-size:.75rem;color:var(--muted);" class="rev">🛡️ Garantía de satisfacción · 🚚 Entrega 24–48 h · ⚡ Activación inmediata</p>
   </div>
@@ -831,9 +1041,9 @@ footer{
 
 <!-- FOOTER -->
 <footer>
-  <div class="fl">KONFÍO ZINC</div>
+  <div class="fl"><span class="text-gold">KONFÍO</span> <span class="text-cyan">ZINC</span></div>
   <div class="ft">© 2026 KONFÍO ZINC · Todos los Derechos Reservados</div>
-  <div style="display:flex;gap:1.2rem;font-size:.7rem;color:var(--muted);">
+  <div style="display:flex;gap:1.2rem;font-size:.85rem;color:var(--muted);">
     <a href="https://www.instagram.com/konfiozinc" target="_blank" style="color:var(--muted);text-decoration:none;transition:color .2s;" onmouseenter="this.style.color='var(--gold)'" onmouseleave="this.style.color='var(--muted)'"><i class="fab fa-instagram"></i></a>
     <a href="https://www.tiktok.com/@konfiozinc" target="_blank" style="color:var(--muted);text-decoration:none;transition:color .2s;" onmouseenter="this.style.color='var(--gold)'" onmouseleave="this.style.color='var(--muted)'"><i class="fab fa-tiktok"></i></a>
     <a href="https://www.facebook.com/profile.php?id=61589654555930" target="_blank" style="color:var(--muted);text-decoration:none;transition:color .2s;" onmouseenter="this.style.color='var(--gold)'" onmouseleave="this.style.color='var(--muted)'"><i class="fab fa-facebook"></i></a>
@@ -859,87 +1069,271 @@ footer{
 
 <script>
 (function(){
-  /* ── Custom cursor ── */
-  const cur=document.getElementById('cur'), ring=document.getElementById('curRing');
-  let mx=0,my=0,tx=0,ty=0;
-  document.addEventListener('mousemove',e=>{
-    mx=e.clientX;my=e.clientY;
-    cur.style.left=(mx-5)+'px';cur.style.top=(my-5)+'px';
-  },{passive:true});
-  (function raf(){tx+=(mx-tx)*.12;ty+=(my-ty)*.12;ring.style.left=(tx-16)+'px';ring.style.top=(ty-16)+'px';requestAnimationFrame(raf);})();
-  document.querySelectorAll('a,button').forEach(el=>{
-    el.addEventListener('mouseenter',()=>{cur.style.transform='scale(2.5)';ring.style.transform='scale(.5)';});
-    el.addEventListener('mouseleave',()=>{cur.style.transform='scale(1)';ring.style.transform='scale(1)';});
+
+/* ══════════════════════════════════════════════════
+   CURSOR
+══════════════════════════════════════════════════ */
+const cur=document.getElementById('cur'), ring=document.getElementById('curRing');
+let mx=0,my=0,tx=0,ty=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX;my=e.clientY;
+  cur.style.left=(mx-5)+'px';cur.style.top=(my-5)+'px';
+},{passive:true});
+(function raf(){tx+=(mx-tx)*.12;ty+=(my-ty)*.12;ring.style.left=(tx-16)+'px';ring.style.top=(ty-16)+'px';requestAnimationFrame(raf);})();
+document.querySelectorAll('a,button').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.transform='scale(2.5)';ring.style.transform='scale(.5)';});
+  el.addEventListener('mouseleave',()=>{cur.style.transform='scale(1)';ring.style.transform='scale(1)';});
+});
+
+/* ── Parallax glow ── */
+const hg=document.getElementById('hGlow');
+document.addEventListener('mousemove',e=>{
+  if(!hg)return;
+  hg.style.transform=`translate(${(e.clientX/innerWidth-.5)*35}px,${(e.clientY/innerHeight-.5)*35}px)`;
+},{passive:true});
+
+/* ══════════════════════════════════════════════════
+   SCROLL REVEAL
+══════════════════════════════════════════════════ */
+const revEls=document.querySelectorAll('.rev');
+const revObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const sibs=Array.from(e.target.parentElement.children).filter(c=>c.classList.contains('rev'));
+      const idx=sibs.indexOf(e.target);
+      setTimeout(()=>e.target.classList.add('vis'),idx*70);
+      revObs.unobserve(e.target);
+    }
   });
+},{threshold:.06});
+revEls.forEach(r=>revObs.observe(r));
 
-  /* ── Parallax glow ── */
-  const hg=document.getElementById('hGlow');
-  document.addEventListener('mousemove',e=>{
-    if(!hg)return;
-    hg.style.transform=`translate(${(e.clientX/innerWidth-.5)*35}px,${(e.clientY/innerHeight-.5)*35}px)`;
-  },{passive:true});
+/* ══════════════════════════════════════════════════
+   COUNTER ANIMATION
+══════════════════════════════════════════════════ */
+function animCount(el,target,sfx){
+  const dur=1800,start=performance.now();
+  (function step(now){
+    const p=Math.min((now-start)/dur,1);
+    el.textContent=Math.floor((1-Math.pow(1-p,3))*target)+sfx;
+    if(p<1)requestAnimationFrame(step);
+  })(start);
+}
+const cObs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const el=e.target.querySelector('[data-count]');
+      if(el)animCount(el,parseInt(el.dataset.count),el.dataset.sfx||'');
+      cObs.unobserve(e.target);
+    }
+  });
+},{threshold:.5});
+document.querySelectorAll('.stat').forEach(s=>cObs.observe(s));
 
-  /* ── Scroll reveal ── */
-  const revEls=document.querySelectorAll('.rev');
-  const revObs=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
-      if(e.isIntersecting){
-        const sibs=Array.from(e.target.parentElement.children).filter(c=>c.classList.contains('rev'));
-        const idx=sibs.indexOf(e.target);
-        setTimeout(()=>e.target.classList.add('vis'),idx*70);
-        revObs.unobserve(e.target);
-      }
+/* ══════════════════════════════════════════════════
+   FAQ
+══════════════════════════════════════════════════ */
+document.querySelectorAll('.fq').forEach(q=>{
+  q.addEventListener('click',()=>{
+    const it=q.parentElement;
+    const was=it.classList.contains('open');
+    document.querySelectorAll('.fi.open').forEach(i=>i.classList.remove('open'));
+    if(!was)it.classList.add('open');
+  });
+});
+
+/* ══════════════════════════════════════════════════
+   VIDEO MODAL
+══════════════════════════════════════════════════ */
+const vModal=document.getElementById('vModal');
+const vFrame=document.getElementById('vFrame');
+const vClose=document.getElementById('vClose');
+document.getElementById('vBtn').addEventListener('click',()=>{
+  vFrame.src='https://www.youtube.com/embed/ndRhGLFUlLA?autoplay=1';
+  vModal.classList.add('act');
+  document.body.style.overflow='hidden';
+});
+function closeV(){vModal.classList.remove('act');vFrame.src='';document.body.style.overflow='';}
+vClose.addEventListener('click',closeV);
+vModal.addEventListener('click',e=>{if(e.target===vModal)closeV();});
+
+/* ══════════════════════════════════════════════════
+   ASESOR IA  🤖
+   Llama a la API de Anthropic (claude-sonnet-4-6)
+
+   ⚙️  PRODUCCIÓN: Reemplaza el valor de KZ_API_KEY
+   con tu clave de Anthropic (https://console.anthropic.com)
+   o apunta KZ_PROXY_URL a tu backend para ocultar la clave.
+══════════════════════════════════════════════════ */
+const KZ_API_KEY   = '';          // 👈 Pega aquí tu clave sk-ant-...
+const KZ_PROXY_URL = '';          // 👈 O usa una URL de tu backend proxy
+const KZ_ENDPOINT  = KZ_PROXY_URL || 'https://api.anthropic.com/v1/messages';
+
+const SYSTEM_PROMPT = `Eres el asesor de ventas de KONFÍO ZINC, una marca colombiana de tarjetas digitales interactivas para profesionales y pequeños negocios. Tu objetivo es entender el negocio del usuario y recomendarle UNO SOLO de los tres planes disponibles.
+
+PLANES:
+- START ($49.900 COP, pago único): Contacto, redes sociales (3 links), botón WhatsApp, QR descargable, entrega 24-48h. Sin galería, sin citas, sin video, sin animaciones.
+- PRO ($99.900 COP, pago único): Todo lo de Start + galería de fotos, Google Maps, guardar contacto (.vcf), links ilimitados, sistema de citas integrado, revisión de diseño incluida. Sin video ni animaciones premium.
+- ELITE ($149.900 COP, pago único): Todo lo de Pro + video promocional, animaciones y efectos premium, partículas y diseño a medida, comparativa de servicios, FAQ interactivo, instalable como app (PWA), contador de visitas en vivo, soporte prioritario 30 días.
+
+PERSONALIDAD:
+- Eres amable, cercano y profesional, en español colombiano natural.
+- Haces máximo 2 preguntas por turno para no agobiar al usuario.
+- Cuando tengas suficiente información, recomiendas UN solo plan y explicas brevemente por qué es el ideal para ese negocio.
+- Al final de tu recomendación, incluyes el link de WhatsApp: https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20mi%20tarjeta%20digital%20personalizada
+- No menciones competidores ni hagas promesas fuera de los planes listados.
+- Si preguntan por alianzas o representar la marca, explica que pueden escribir a Darwin por WhatsApp.
+
+INICIO: Saluda con energía y pregunta en qué tipo de negocio trabaja el usuario.`;
+
+let chatHistory = [];
+const msgsEl = document.getElementById('chatMsgs');
+const inputEl = document.getElementById('chatInput');
+const sendBtn = document.getElementById('chatSend');
+const chipsEl = document.getElementById('chatChips');
+let isTyping = false;
+
+function scrollToBottom(){
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+function addMsg(role, text){
+  const now = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  div.innerHTML = `
+    <div class="msg-bubble">${text.replace(/\n/g,'<br>').replace(/https?:\/\/[^\s]+/g, url=>`<a href="${url}" target="_blank" style="color:var(--gold);text-decoration:underline;">${url}</a>`)}</div>
+    <div class="msg-time">${now}</div>
+  `;
+  msgsEl.appendChild(div);
+  scrollToBottom();
+  return div;
+}
+
+function showTyping(){
+  const div = document.createElement('div');
+  div.className = 'msg bot';
+  div.id = 'typingIndicator';
+  div.innerHTML = `<div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
+  msgsEl.appendChild(div);
+  scrollToBottom();
+}
+
+function removeTyping(){
+  document.getElementById('typingIndicator')?.remove();
+}
+
+function buildHeaders(){
+  const h = {'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-allow-browser':'true'};
+  if(KZ_API_KEY) h['x-api-key'] = KZ_API_KEY;
+  return h;
+}
+
+async function sendToAI(userMsg){
+  if(isTyping) return;
+  isTyping = true;
+  sendBtn.disabled = true;
+  chipsEl.style.display = 'none';
+
+  chatHistory.push({role:'user', content: userMsg});
+  addMsg('user', userMsg);
+  showTyping();
+
+  try {
+    const res = await fetch(KZ_ENDPOINT, {
+      method:'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system: SYSTEM_PROMPT,
+        messages: chatHistory
+      })
     });
-  },{threshold:.08});
-  revEls.forEach(r=>revObs.observe(r));
-
-  /* ── Counter animation ── */
-  function animCount(el,target,sfx){
-    const dur=1800,start=performance.now();
-    (function step(now){
-      const p=Math.min((now-start)/dur,1);
-      const e=1-Math.pow(1-p,3);
-      el.textContent=Math.floor(e*target)+sfx;
-      if(p<1)requestAnimationFrame(step);
-    })(start);
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Lo siento, hubo un error. Por favor escríbeme por WhatsApp.';
+    removeTyping();
+    addMsg('bot', reply);
+    chatHistory.push({role:'assistant', content: reply});
+  } catch(err){
+    removeTyping();
+    addMsg('bot', '¡Hola! 👋 Parece que el asesor está cargando. Por ahora puedes escribirme directamente: <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20necesito%20asesor%C3%ADa" target="_blank" style="color:var(--gold);font-weight:700;">💬 Abrir WhatsApp</a>');
   }
-  const cObs=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
-      if(e.isIntersecting){
-        const el=e.target.querySelector('[data-count]');
-        if(el)animCount(el,parseInt(el.dataset.count),el.dataset.sfx||'');
-        cObs.unobserve(e.target);
-      }
-    });
-  },{threshold:.5});
-  document.querySelectorAll('.stat').forEach(s=>cObs.observe(s));
 
-  /* ── FAQ ── */
-  document.querySelectorAll('.fq').forEach(q=>{
-    q.addEventListener('click',()=>{
-      const it=q.parentElement;
-      const was=it.classList.contains('open');
-      document.querySelectorAll('.fi.open').forEach(i=>i.classList.remove('open'));
-      if(!was)it.classList.add('open');
-    });
-  });
+  isTyping = false;
+  sendBtn.disabled = false;
+  inputEl.focus();
+}
 
-  /* ── Video modal ── */
-  const vModal=document.getElementById('vModal');
-  const vFrame=document.getElementById('vFrame');
-  const vClose=document.getElementById('vClose');
-  document.getElementById('vBtn').addEventListener('click',()=>{
-    vFrame.src='https://www.youtube.com/embed/ndRhGLFUlLA?autoplay=1';
-    vModal.classList.add('act');
-    document.body.style.overflow='hidden';
-  });
-  function closeV(){
-    vModal.classList.remove('act');
-    vFrame.src='';
-    document.body.style.overflow='';
+// Mensaje de bienvenida al cargar
+async function initChat(){
+  showTyping();
+  try {
+    const res = await fetch(KZ_ENDPOINT, {
+      method:'POST',
+      headers: buildHeaders(),
+      body: JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:300,
+        system: SYSTEM_PROMPT,
+        messages:[{role:'user', content:'Inicia la conversación'}]
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || '¡Hola! 👋 Soy el asesor de KONFÍO ZINC. ¿En qué tipo de negocio trabajas?';
+    removeTyping();
+    addMsg('bot', reply);
+    chatHistory.push({role:'assistant', content: reply});
+  } catch {
+    removeTyping();
+    addMsg('bot', '¡Hola! 👋 Soy el asesor de KONFÍO ZINC. ¿En qué tipo de negocio o actividad trabajas? Cuéntame para recomendarte la mejor tarjeta digital para ti.');
+    chatHistory.push({role:'assistant', content:'¡Hola! 👋 Soy el asesor de KONFÍO ZINC. ¿En qué tipo de negocio o actividad trabajas? Cuéntame para recomendarte la mejor tarjeta digital para ti.'});
   }
-  vClose.addEventListener('click',closeV);
-  vModal.addEventListener('click',e=>{if(e.target===vModal)closeV();});
+}
+
+// Chips de respuesta rápida
+chipsEl.querySelectorAll('.chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    const msg = chip.dataset.msg;
+    sendToAI(msg);
+  });
+});
+
+// Form submit
+document.getElementById('chatForm').addEventListener('submit',e=>{
+  e.preventDefault();
+  const txt = inputEl.value.trim();
+  if(!txt||isTyping) return;
+  inputEl.value='';
+  sendToAI(txt);
+});
+
+// Enter para enviar (Shift+Enter = nueva línea)
+inputEl.addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){
+    e.preventDefault();
+    document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+  }
+});
+
+// Reset
+document.getElementById('chatReset').addEventListener('click',()=>{
+  chatHistory=[];
+  msgsEl.innerHTML='';
+  chipsEl.style.display='flex';
+  initChat();
+});
+
+// Init al entrar en viewport
+const chatObs = new IntersectionObserver(entries=>{
+  if(entries[0].isIntersecting){
+    initChat();
+    chatObs.disconnect();
+  }
+},{threshold:.1});
+chatObs.observe(document.getElementById('chatWidget'));
+
 })();
 </script>
 </body>
