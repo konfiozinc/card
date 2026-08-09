@@ -1336,5 +1336,667 @@ chatObs.observe(document.getElementById('chatWidget'));
 
 })();
 </script>
+
+<!-- ================================================================
+     🧠 AGENTE IA FLOTANTE · KONFÍO ZINC (OFFLINE)
+     Inyectado al final del body
+     ================================================================ -->
+
+<style>
+  /* ── Contenedor del widget flotante ── */
+  .kz-fab-wrapper {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+  }
+  @media (max-width: 480px) {
+    .kz-fab-wrapper { bottom: 16px; right: 16px; }
+  }
+
+  /* ── Botón flotante ── */
+  .kz-fab-btn {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #F0B429, #F97316);
+    border: none;
+    box-shadow: 0 8px 32px rgba(240, 180, 41, 0.45);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    color: #0a0a0f;
+    font-size: 26px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .kz-fab-btn:hover { transform: scale(1.08); box-shadow: 0 12px 44px rgba(240, 180, 41, 0.55); }
+  .kz-fab-btn:active { transform: scale(0.94); }
+  .kz-fab-btn .kz-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 13px;
+    height: 13px;
+    background: #22c55e;
+    border-radius: 50%;
+    border: 2px solid #0a0a0f;
+    animation: kz-pulse 2.2s ease-in-out infinite;
+  }
+  @keyframes kz-pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.82); } }
+
+  /* ── Ventana de chat ── */
+  .kz-fab-chat {
+    width: 380px;
+    max-width: calc(100vw - 32px);
+    height: 560px;
+    max-height: calc(100vh - 120px);
+    background: #0d0d12;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.85), 0 0 40px rgba(240, 180, 41, 0.08);
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    transform-origin: bottom right;
+    transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .kz-fab-chat.open {
+    display: flex;
+    animation: kz-chat-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  @keyframes kz-chat-in {
+    0% { opacity:0; transform: scale(0.92) translateY(12px); }
+    100% { opacity:1; transform: scale(1) translateY(0); }
+  }
+
+  /* ── Cabecera ── */
+  .kz-chat-header {
+    padding: 14px 18px;
+    background: rgba(20, 20, 30, 0.95);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  .kz-chat-header .kz-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #F0B429, #F97316);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    color: #0a0a0f;
+    flex-shrink: 0;
+  }
+  .kz-chat-header .kz-info { flex:1; min-width:0; }
+  .kz-chat-header .kz-info .kz-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .kz-chat-header .kz-info .kz-name .kz-badge {
+    font-size: 9px;
+    background: rgba(240,180,41,0.2);
+    color: #F0B429;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+  .kz-chat-header .kz-info .kz-status {
+    font-size: 11px;
+    color: #888;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .kz-chat-header .kz-info .kz-status .kz-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #22c55e;
+    display: inline-block;
+    animation: kz-pulse 2.2s ease-in-out infinite;
+  }
+  .kz-chat-header .kz-close {
+    background: none;
+    border: none;
+    color: #666;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 4px;
+    transition: color 0.2s;
+    line-height:1;
+  }
+  .kz-chat-header .kz-close:hover { color: #fff; }
+
+  /* ── Cuerpo (mensajes) ── */
+  .kz-chat-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: #0a0a0f;
+    scroll-behavior: smooth;
+  }
+  .kz-chat-body::-webkit-scrollbar { width:4px; }
+  .kz-chat-body::-webkit-scrollbar-track { background:transparent; }
+  .kz-chat-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:4px; }
+
+  .kz-msg {
+    max-width: 88%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.55;
+    word-wrap: break-word;
+    animation: kz-msg-in 0.3s ease;
+  }
+  @keyframes kz-msg-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+  .kz-msg-bot {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #e8e8e8;
+    border-bottom-left-radius: 4px;
+  }
+  .kz-msg-bot a { color: #F0B429; text-decoration: underline; text-underline-offset:2px; }
+  .kz-msg-bot a:hover { color: #FFD97D; }
+  .kz-msg-bot strong { color: #fff; }
+  .kz-msg-user {
+    align-self: flex-end;
+    background: linear-gradient(135deg, #F0B429, #F97316);
+    color: #0a0a0f;
+    border-bottom-right-radius: 4px;
+    font-weight: 500;
+  }
+  .kz-msg-typing {
+    align-self: flex-start;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 14px;
+    border-bottom-left-radius: 4px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 36px;
+  }
+  .kz-msg-typing span {
+    width: 7px; height: 7px;
+    background: #888;
+    border-radius: 50%;
+    display: inline-block;
+    animation: kz-typing 1.4s infinite both;
+  }
+  .kz-msg-typing span:nth-child(1) { animation-delay:0s; }
+  .kz-msg-typing span:nth-child(2) { animation-delay:0.2s; }
+  .kz-msg-typing span:nth-child(3) { animation-delay:0.4s; }
+  @keyframes kz-typing {
+    0%,60%,100% { transform:translateY(0); opacity:0.4; }
+    30% { transform:translateY(-6px); opacity:1; }
+  }
+
+  /* ── Botones rápidos ── */
+  .kz-chips {
+    padding: 8px 14px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    background: rgba(10,10,15,0.95);
+    flex-shrink: 0;
+  }
+  .kz-chips button {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 11.5px;
+    color: #ccc;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    white-space: nowrap;
+  }
+  .kz-chips button:hover {
+    background: rgba(240,180,41,0.15);
+    border-color: rgba(240,180,41,0.3);
+    color: #F0B429;
+  }
+
+  /* ── Input ── */
+  .kz-chat-input {
+    padding: 8px 14px 12px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    background: rgba(10,10,15,0.95);
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .kz-chat-input textarea {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #fff;
+    outline: none;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: border-color 0.2s;
+    resize: none;
+    min-height: 40px;
+    max-height: 100px;
+    line-height: 1.4;
+    field-sizing: content;
+  }
+  .kz-chat-input textarea::placeholder { color: #666; }
+  .kz-chat-input textarea:focus { border-color: rgba(240,180,41,0.4); }
+  .kz-chat-input button {
+    background: linear-gradient(135deg, #F0B429, #F97316);
+    border: none;
+    border-radius: 12px;
+    padding: 0 16px;
+    color: #0a0a0f;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .kz-chat-input button:hover { transform:scale(1.04); }
+  .kz-chat-input button:active { transform:scale(0.95); }
+
+  /* ── Botón WhatsApp dentro del chat ── */
+  .kz-wa-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #25D366;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 30px;
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    margin-top: 6px;
+  }
+  .kz-wa-btn:hover { transform:scale(1.04); box-shadow:0 4px 20px rgba(37,211,102,0.3); }
+
+  @media (max-width:480px) {
+    .kz-fab-btn { width:54px; height:54px; font-size:22px; }
+    .kz-fab-chat { width:calc(100vw - 32px); height:calc(100vh - 140px); max-height:600px; border-radius:16px; }
+    .kz-chat-body { padding:12px 14px; }
+    .kz-msg { font-size:12.5px; padding:8px 12px; }
+    .kz-chips button { font-size:10.5px; padding:5px 10px; }
+  }
+</style>
+
+<!-- HTML del widget flotante -->
+<div class="kz-fab-wrapper" id="kzFabWrapper">
+  <!-- Ventana de chat -->
+  <div class="kz-fab-chat" id="kzFabChat">
+    <div class="kz-chat-header">
+      <div class="kz-avatar">KZ</div>
+      <div class="kz-info">
+        <div class="kz-name">
+          Asesor KONFÍO ZINC
+          <span class="kz-badge">IA</span>
+        </div>
+        <div class="kz-status">
+          <span class="kz-dot"></span> En línea · responde al instante
+        </div>
+      </div>
+      <button class="kz-close" id="kzFabClose" aria-label="Cerrar chat">✕</button>
+    </div>
+
+    <div class="kz-chat-body" id="kzFabBody"></div>
+
+    <div class="kz-chips" id="kzFabChips">
+      <button data-msg="Es para mi propio negocio">Es para mi propio negocio</button>
+      <button data-msg="¿Cuánto cuesta una tarjeta digital?">💰 Ver precios</button>
+      <button data-msg="Quiero ver ejemplos de tu portafolio">💼 Ver portafolio</button>
+      <button data-msg="Quiero contratar una tarjeta digital para mi negocio">📱 Quiero una tarjeta</button>
+      <button data-msg="Me interesa ser aliado de KONFÍO ZINC">🤝 Quiero ser Partner</button>
+      <button data-msg="Hablar por WhatsApp" data-action="whatsapp">💬 WhatsApp</button>
+    </div>
+
+    <div class="kz-chat-input">
+      <textarea id="kzFabInput" placeholder="Escribe tu mensaje…" rows="1"></textarea>
+      <button id="kzFabSend" aria-label="Enviar">➤</button>
+    </div>
+  </div>
+
+  <!-- Botón flotante -->
+  <button class="kz-fab-btn" id="kzFabToggle" aria-label="Abrir chat con asesor IA">
+    <span class="kz-dot"></span>
+    💬
+  </button>
+</div>
+
+<script>
+  (function() {
+    'use strict';
+
+    // ── DOM refs ──
+    const chat = document.getElementById('kzFabChat');
+    const toggleBtn = document.getElementById('kzFabToggle');
+    const closeBtn = document.getElementById('kzFabClose');
+    const body = document.getElementById('kzFabBody');
+    const input = document.getElementById('kzFabInput');
+    const sendBtn = document.getElementById('kzFabSend');
+    const chips = document.getElementById('kzFabChips');
+
+    let isOpen = false;
+    let history = [];
+
+    function addMessage(text, sender) {
+      const div = document.createElement('div');
+      div.className = 'kz-msg ' + (sender === 'user' ? 'kz-msg-user' : 'kz-msg-bot');
+      let content = text;
+      if (sender === 'bot') {
+        content = text.replace(/\n/g, '<br>').replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:#F0B429;text-decoration:underline;">$1</a>');
+      }
+      div.innerHTML = content;
+      body.appendChild(div);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function showTyping() {
+      const div = document.createElement('div');
+      div.className = 'kz-msg-typing';
+      div.id = 'kzTyping';
+      div.innerHTML = '<span></span><span></span><span></span>';
+      body.appendChild(div);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    function hideTyping() {
+      const el = document.getElementById('kzTyping');
+      if (el) el.remove();
+    }
+
+    function showWhatsAppButton() {
+      if (document.querySelector('.kz-wa-btn')) return;
+      const div = document.createElement('div');
+      div.style.cssText = 'align-self: flex-start; margin-top: 4px;';
+      div.innerHTML = `
+        <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20estoy%20interesado%20en%20contratar%20una%20tarjeta%20digital%20con%20KONF%C3%8DO%20ZINC"
+           target="_blank" class="kz-wa-btn">
+          💬 CONTINUAR POR WHATSAPP
+        </a>
+      `;
+      body.appendChild(div);
+      body.scrollTop = body.scrollHeight;
+    }
+
+    // ── LÓGICA DEL AGENTE (TODAS LAS REGLAS DE NEGOCIO) ──
+    function getResponse(userMsg, history) {
+      const q = userMsg.toLowerCase().trim();
+      const lastBotMsg = history.filter(m => m.role === 'assistant').pop()?.content || '';
+
+      // ── PRIMER MENSAJE ──
+      if (history.length === 0) {
+        return `¡Hola! 👋 Bienvenido a KONFÍO ZINC.
+
+Ayudamos a negocios y profesionales a fortalecer su presencia digital con Tarjetas Digitales, Catálogos Digitales, Menús Digitales y Mini Landing Pages.
+
+Cuéntame, ¿tu consulta es para tu propio negocio o para un cliente?`;
+      }
+
+      // ── PARTNER / ALIADO ──
+      if (q.includes('aliado') || q.includes('partner') || q.includes('distribuidor') || q.includes('revender') || q.includes('agencia')) {
+        return `¡Excelente! 💼
+
+KONFÍO ZINC tiene un programa de aliados para agencias, diseñadores y comerciales.
+
+Para poder definir el esquema de comisiones, necesito conocer tu perfil:
+¿Actualmente a qué te dedicas?
+¿Qué tipo de clientes atiendes con más frecuencia?`;
+      }
+
+      // ── PRECIO ──
+      if (q.includes('precio') || q.includes('cuanto') || q.includes('costo') || q.includes('valor') || q.includes('tarifa') || q.includes('plan')) {
+        return `Claro 😊.
+
+Actualmente manejamos tres categorías:
+
+⭐ START: $49.900 COP
+⭐ PRO: $99.900 COP
+⭐ ELITE: $149.900 COP
+
+📌 START: Ideal para presencia digital sencilla
+📌 PRO: La más recomendada para la mayoría de negocios
+📌 ELITE: La solución más completa
+
+¿A qué se dedica tu negocio? Así podré recomendarte la mejor opción.`;
+      }
+
+      // ── PORTAFOLIO / EJEMPLOS ──
+      if (q.includes('ejemplo') || q.includes('portafolio') || q.includes('ver trabajos') || q.includes('muestra') || q.includes('referencias')) {
+        return `Claro 😊.
+
+Aquí puedes conocer nuestro portafolio y ver ejemplos reales:
+
+https://konfiozinc.github.io/card/
+
+Cuando lo revises, cuéntame qué estilo te gustó más y con gusto te preparo una propuesta personalizada.
+
+¿A qué se dedica tu negocio?`;
+      }
+
+      // ── DETECTAR SECTOR ──
+      const sectors = {
+        restaurante: ['restaurante', 'comida', 'cafetería', 'gastronomía', 'menú', 'carta', 'chef'],
+        belleza: ['belleza', 'peluquería', 'salón', 'estilista', 'color', 'alisado'],
+        uñas: ['uñas', 'manicure', 'pedicure', 'nail'],
+        maquillaje: ['maquillaje', 'makeup', 'maquilladora'],
+        barberia: ['barbería', 'barbero', 'corte', 'barba'],
+        nutricionista: ['nutricionista', 'nutrición', 'dietista'],
+        odontologo: ['odontólogo', 'dentista', 'odontología'],
+        abogado: ['abogado', 'jurídico', 'legal', 'derecho'],
+        inmobiliaria: ['inmobiliaria', 'bienes raíces', 'finca raíz', 'propiedades'],
+        transporte: ['transporte', 'mensajería', 'envíos', 'delivery'],
+        fumigacion: ['fumigación', 'plagas', 'control de plagas'],
+        diseno: ['diseño gráfico', 'diseñador', 'creativo', 'branding'],
+        eventos: ['eventos', 'decoración', 'fiestas', 'bodas'],
+        internet: ['internet', 'fibra óptica', 'telecomunicaciones', 'tv hogar']
+      };
+
+      let detectedSector = null;
+      for (const [sector, keywords] of Object.entries(sectors)) {
+        for (const kw of keywords) {
+          if (q.includes(kw)) {
+            detectedSector = sector;
+            break;
+          }
+        }
+        if (detectedSector) break;
+      }
+
+      // ── EJEMPLOS POR SECTOR ──
+      const examples = {
+        restaurante: 'https://konfiozinc.github.io/eltiti/',
+        belleza: 'https://konfiozinc.github.io/lizeth_lozano/',
+        uñas: 'https://konfiozinc.github.io/nandy_nails/',
+        maquillaje: 'https://konfiozinc.github.io/makeup_artist/',
+        barberia: 'https://konfiozinc.github.io/ca-ada_style/',
+        nutricionista: 'https://konfiozinc.github.io/nutricionista/',
+        odontologo: 'https://konfiozinc.github.io/servicios_odontologicos/',
+        abogado: 'https://konfiozinc.github.io/abogados-dta/',
+        inmobiliaria: 'https://konfiozinc.github.io/century_21_radial/',
+        transporte: 'https://konfiozinc.github.io/mega-express/',
+        fumigacion: 'https://konfiozinc.github.io/fumigaciones-monterrey/',
+        diseno: 'https://konfiozinc.github.io/diseno_grafico/',
+        eventos: 'https://konfiozinc.github.io/decoradora_de_fiestas/',
+        internet: 'https://konfiozinc.github.io/unefibra/'
+      };
+
+      // ── SI DETECTÓ SECTOR ──
+      if (detectedSector) {
+        const example = examples[detectedSector] || 'https://konfiozinc.github.io/card/';
+        const sectorName = {
+          restaurante: 'restaurante o negocio gastronómico',
+          belleza: 'estudio de belleza',
+          uñas: 'nail studio',
+          odontologo: 'consultorio odontológico',
+          inmobiliaria: 'inmobiliaria',
+          abogado: 'oficina jurídica'
+        } [detectedSector] || detectedSector;
+
+        return `¡Perfecto! 👋
+
+Veo que tienes un ${sectorName}. KONFÍO ZINC es ideal para ti.
+
+Puedes ver un ejemplo muy similar aquí:
+${example}
+
+📌 ¿Ya manejas redes sociales para tu negocio?`;
+      }
+
+      // ── CONTRATAR ──
+      if (q.includes('quiero') || q.includes('contratar') || q.includes('comprar') || q.includes('empezar') || q.includes('listo')) {
+        return `🎉 ¡Excelente! Vamos a iniciar tu proyecto.
+
+Te recomiendo KONFÍO ZINC PRO ($99.900 COP) porque se ajusta perfectamente a la mayoría de negocios.
+
+📌 Para comenzar, necesito que me compartas:
+• Nombre completo o razón social
+• Teléfono de contacto
+• Logo (si tienes)
+• Fotografías de tu negocio o servicios
+• Redes sociales
+• Servicios o productos que ofreces
+
+📌 Aceptamos pagos por Nequi, Daviplata, transferencia Bancolombia o enlace de Mercado Pago.
+
+¿Me compartes tu información para iniciar el diseño? ✨`;
+      }
+
+      // ── SOPORTE / ACTUALIZACIONES ──
+      if (q.includes('actualizar') || q.includes('cambios') || q.includes('modificar') || q.includes('soporte') || q.includes('garantía')) {
+        return `✅ Tu compra incluye 3 actualizaciones gratuitas durante el año para modificar datos básicos (ubicación, correo, contacto, redes).
+
+📌 Al ser un producto digital personalizado, no se realizan devoluciones una vez iniciado el diseño. Puedes solicitar ajustes durante la fase de revisión antes de la entrega final.
+
+📌 Además, ofrecemos garantía de satisfacción: si no quedas conforme, rediseñamos tu tarjeta sin costo adicional.`;
+      }
+
+      // ── TIEMPO DE ENTREGA ──
+      if (q.includes('entrega') || q.includes('tiempo') || q.includes('demora') || q.includes('cuándo')) {
+        return `⏱️ El tiempo estimado de entrega es de 2 a 5 días hábiles, una vez recibamos toda la información necesaria.
+
+📌 Si el proyecto requiere personalización especial, el tiempo podrá variar y te informaremos previamente.`;
+      }
+
+      // ── SALUDOS ──
+      if (q.includes('hola') || q.includes('buenas') || q.includes('saludo')) {
+        return `¡Hola! 👋 ¿Cómo estás?
+
+Cuéntame, ¿tu consulta es para tu propio negocio o para un cliente?`;
+      }
+
+      // ── RESPUESTA GENÉRICA ──
+      return `Entendido. 😊
+
+Para poder recomendarte la mejor solución, necesito conocer un poco más sobre tu negocio.
+
+¿A qué se dedica tu negocio o profesión? Así podré orientarte mejor.`;
+    }
+
+    // ── ENVIAR MENSAJE ──
+    function sendMessage(text) {
+      if (!text || !text.trim()) return;
+      const userMsg = text.trim();
+      addMessage(userMsg, 'user');
+      input.value = '';
+
+      history.push({ role: 'user', content: userMsg });
+
+      showTyping();
+
+      setTimeout(() => {
+        hideTyping();
+        const reply = getResponse(userMsg, history);
+        addMessage(reply, 'bot');
+        history.push({ role: 'assistant', content: reply });
+
+        if (reply.includes('CONTINUAR POR WHATSAPP') || reply.includes('wa.me')) {
+          showWhatsAppButton();
+        }
+      }, 600);
+    }
+
+    // ── BIENVENIDA ──
+    function showWelcome() {
+      const welcome = `¡Hola! 👋 Bienvenido a KONFÍO ZINC.
+
+Ayudamos a negocios y profesionales a fortalecer su presencia digital con Tarjetas Digitales, Catálogos Digitales, Menús Digitales y Mini Landing Pages.
+
+Cuéntame, ¿tu consulta es para tu propio negocio o para un cliente?`;
+      addMessage(welcome, 'bot');
+      history.push({ role: 'assistant', content: welcome });
+    }
+
+    // ── EVENTOS ──
+    function toggleChat() {
+      isOpen = !isOpen;
+      chat.classList.toggle('open', isOpen);
+      if (isOpen) {
+        input.focus();
+        if (body.children.length === 0) showWelcome();
+      }
+    }
+
+    toggleBtn.addEventListener('click', toggleChat);
+    closeBtn.addEventListener('click', toggleChat);
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage(input.value);
+      }
+    });
+    sendBtn.addEventListener('click', () => sendMessage(input.value));
+
+    chips.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      if (btn.dataset.action === 'whatsapp') {
+        window.open('https://wa.me/573206411340?text=Hola%20Darwin%2C%20estoy%20interesado%20en%20los%20servicios%20de%20KONF%C3%8DO%20ZINC', '_blank');
+        return;
+      }
+      const msg = btn.dataset.msg;
+      if (!isOpen) toggleChat();
+      setTimeout(() => sendMessage(msg), 300);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && isOpen) toggleChat();
+    });
+
+    console.log('🧠 Agente IA KONFÍO ZINC (offline) cargado correctamente');
+  })();
+</script>
+
 </body>
 </html>
