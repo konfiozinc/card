@@ -4,661 +4,101 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="description" content="Tarjetas digitales interactivas personalizadas para profesionales y negocios. Entrega en 24–48 h. — KONFÍO ZINC">
+<!-- ⚠️ Actualizar canonical/og:url con el dominio final de producción -->
+<link rel="canonical" href="https://konfiozinc.github.io/">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#0A0A0A">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KONFÍO ZINC">
+<meta property="og:locale" content="es_CO">
+<meta property="og:url" content="https://konfiozinc.github.io/">
 <meta property="og:title" content="KONFÍO ZINC · Tarjeta Digital Premium">
 <meta property="og:description" content="Conecta sin límites: tu tarjeta digital personalizada en 24–48 h. Planes desde $49.900 COP y asesoría con IA.">
 <meta property="og:image" content="https://i.postimg.cc/tTBypHCZ/Whats-App-Image-2026-05-24-at-07-06-16.jpg">
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KONFÍO ZINC · Tarjeta Digital Premium">
+<meta name="twitter:description" content="Conecta sin límites: tu tarjeta digital personalizada en 24–48 h. Planes desde $49.900 COP.">
+<meta name="twitter:image" content="https://i.postimg.cc/tTBypHCZ/Whats-App-Image-2026-05-24-at-07-06-16.jpg">
+
 <title>KONFÍO ZINC | Tarjetas digitales premium desde $49.900</title>
 
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%230A0A0A'/%3E%3Ctext x='32' y='42' font-family='Arial, sans-serif' font-size='28' font-weight='bold' fill='%23F0B429' text-anchor='middle'%3EKZ%3C/text%3E%3C/svg%3E">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="styles.css">
 
-<style>
-/* ─── DESIGN TOKENS ───────────────────────────────── */
-:root{
-  /* Brand palette */
-  --gold:#F0B429; --gold2:#FFD97D;
-  --orange:#F97316; --cyan:#00E5FF;
-  --success:#4ade80;
-
-  /* Dark surface system */
-  --bg:#000;
-  --surface:#0A0A0A;
-  --elevated:#111;
-  --surface2:#1A1A1A;
-
-  /* Text */
-  --fg:#F5F5F0;
-  --muted:#888;
-
-  /* Border */
-  --border:rgba(255,255,255,.08);
-  --border-gold:rgba(240,180,41,.2);
-
-  /* Spacing */
-  --sec:60px 5%;
-  --ssec:40px 5%;
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "https://konfiozinc.github.io/#org",
+      "name": "KONFÍO ZINC",
+      "url": "https://konfiozinc.github.io/",
+      "description": "Tarjetas digitales interactivas personalizadas para profesionales y negocios.",
+      "sameAs": [
+        "https://www.instagram.com/konfiozinc",
+        "https://www.tiktok.com/@konfiozinc",
+        "https://www.facebook.com/profile.php?id=61589654555930"
+      ]
+    },
+    {
+      "@type": "Product",
+      "name": "Tarjeta Digital KONFÍO ZINC",
+      "description": "Tarjeta de presentación digital personalizada con entrega en 24–48 h.",
+      "brand": { "@type": "Brand", "name": "KONFÍO ZINC" },
+      "offers": [
+        { "@type": "Offer", "name": "START", "price": "49900", "priceCurrency": "COP" },
+        { "@type": "Offer", "name": "PRO", "price": "99900", "priceCurrency": "COP" },
+        { "@type": "Offer", "name": "ELITE", "price": "149900", "priceCurrency": "COP" }
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "¿Necesito instalar alguna app?",
+          "acceptedAnswer": { "@type": "Answer", "text": "No. Tu tarjeta se abre directamente desde el navegador del celular, sin descargas. Funciona en Android, iPhone y cualquier dispositivo con internet." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cuánto tarda en estar lista mi tarjeta?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Entre 24 y 48 horas hábiles desde que confirmas el pago y envías tu información. Incluye una ronda de revisión y ajustes." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Puedo actualizar el contenido después?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Sí. Las actualizaciones tienen un costo mínimo adicional según la complejidad del cambio solicitado." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cómo comparto la tarjeta con mis clientes?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Por link directo en WhatsApp, Instagram o email; por código QR impreso en tu local; o añadiéndola a tu bio de redes sociales." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Qué necesito para empezar?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Solo tu foto, nombre, ocupación, teléfono y redes sociales. KONFÍO ZINC se encarga del diseño y la publicación." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cómo realizo el pago?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Se acepta Nequi, Daviplata, transferencia bancaria y efectivo. El pago es anticipado para iniciar el diseño." }
+        }
+      ]
+    }
+  ]
 }
-
-/* ─── RESET ───────────────────────────────────────── */
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html{scroll-behavior:smooth;}
-body{
-  font-family:'Plus Jakarta Sans',sans-serif;
-  background:var(--bg); color:var(--fg);
-  overflow-x:hidden; cursor:none;
-}
-
-/* ─── GRAIN OVERLAY ───────────────────────────────── */
-.kz-grain::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:9997;opacity:.45;
-  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-}
-
-/* ─── CURSOR ──────────────────────────────────────── */
-.cur{width:10px;height:10px;background:var(--cyan);border-radius:50%;
-     position:fixed;pointer-events:none;z-index:9999;mix-blend-mode:difference;transition:transform .15s;}
-.cur-ring{width:32px;height:32px;border:1px solid var(--gold);border-radius:50%;
-          position:fixed;pointer-events:none;z-index:9998;mix-blend-mode:difference;}
-@media(max-width:600px){.cur,.cur-ring{display:none;}body{cursor:auto;}}
-
-/* ─── UTILITY CLASSES ─────────────────────────────── */
-.text-gold{background:linear-gradient(90deg,var(--gold),var(--orange));
-           -webkit-background-clip:text;-webkit-text-fill-color:transparent;
-           background-size:200%;animation:shim 3.5s linear infinite;}
-.text-cyan{color:var(--cyan);}
-.text-or{color:var(--orange);}
-.glow-ring{box-shadow:0 0 0 1px rgba(240,180,41,.25),0 0 40px rgba(240,180,41,.08);}
-.surface-panel{
-  background:rgba(255,255,255,.025);
-  border:1px solid var(--border);
-  border-radius:16px;
-}
-.label-eyebrow{
-  font-family:'Syne',sans-serif;font-size:.65rem;letter-spacing:4px;
-  text-transform:uppercase;color:var(--cyan);
-  display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem;
-}
-.label-eyebrow::before{content:'//';color:var(--gold);}
-@keyframes shim{to{background-position:200%;}}
-
-/* ─── BG GRID ─────────────────────────────────────── */
-.bg-grid{
-  position:absolute;inset:0;
-  background-image:linear-gradient(rgba(0,229,255,.03) 1px,transparent 1px),
-                   linear-gradient(90deg,rgba(0,229,255,.03) 1px,transparent 1px);
-  background-size:55px 55px;
-  mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black,transparent);
-}
-
-/* ─── REVEAL ──────────────────────────────────────── */
-.rev{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease;}
-.rev.vis{opacity:1;transform:translateY(0);}
-
-/* ─── DIVIDER ─────────────────────────────────────── */
-.div-line{height:1px;background:linear-gradient(90deg,transparent,var(--border-gold),transparent);margin:0 5%;}
-
-/* ─── NAV ─────────────────────────────────────────── */
-nav{
-  position:fixed;top:0;left:0;right:0;z-index:1000;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:.9rem 5%;
-  background:rgba(0,0,0,.75);backdrop-filter:blur(18px);
-  border-bottom:1px solid rgba(240,180,41,.1);
-}
-.nav-logo{font-family:'Orbitron',sans-serif;font-size:1.05rem;font-weight:700;letter-spacing:3px;}
-.nav-logo .kz-g{background:linear-gradient(90deg,var(--gold),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.nav-logo .kz-z{background:var(--cyan);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
-.nav-links{display:none;align-items:center;gap:1.5rem;font-family:'Syne',sans-serif;font-size:.65rem;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);}
-.nav-links a{color:inherit;text-decoration:none;transition:color .2s;}
-.nav-links a:hover{color:var(--gold);}
-@media(min-width:1024px){.nav-links{display:flex;}}
-.nav-cta{
-  display:flex;align-items:center;gap:.4rem;
-  background:transparent;border:1px solid rgba(240,180,41,.6);color:var(--gold);
-  font-family:'Syne',sans-serif;font-size:.65rem;letter-spacing:2px;text-transform:uppercase;
-  padding:.5rem 1rem;cursor:pointer;text-decoration:none;transition:all .3s;border-radius:6px;
-}
-.nav-cta:hover{background:var(--gold);color:var(--bg);}
-
-/* ─── BUTTONS ─────────────────────────────────────── */
-.btn-p{
-  background:linear-gradient(135deg,var(--gold),var(--orange));
-  color:var(--bg);font-family:'Syne',sans-serif;
-  font-size:.8rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;
-  padding:.9rem 2.2rem;border:none;cursor:pointer;text-decoration:none;
-  display:inline-flex;align-items:center;gap:.5rem;
-  position:relative;overflow:hidden;transition:transform .2s,box-shadow .3s;border-radius:8px;
-}
-.btn-p:hover{transform:translateY(-2px);box-shadow:0 8px 36px rgba(240,180,41,.4);}
-.btn-s{
-  background:transparent;border:1px solid var(--border);color:var(--fg);
-  font-family:'Syne',sans-serif;font-size:.75rem;letter-spacing:2px;text-transform:uppercase;
-  padding:.9rem 1.8rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;
-  transition:border-color .3s,color .3s;border-radius:8px;
-}
-.btn-s:hover{border-color:var(--cyan);color:var(--cyan);}
-
-/* ══════════════════════════════════════════════════
-   HERO
-══════════════════════════════════════════════════ */
-#hero{
-  min-height:100vh;display:flex;flex-direction:column;justify-content:center;
-  padding:100px 5% 60px;position:relative;overflow:hidden;
-}
-.hero-glow{position:absolute;top:-180px;right:-180px;width:650px;height:650px;
-           background:radial-gradient(circle,rgba(240,180,41,.11),transparent 70%);pointer-events:none;}
-.hero-glow2{position:absolute;bottom:-250px;left:-80px;width:550px;height:550px;
-            background:radial-gradient(circle,rgba(0,229,255,.07),transparent 70%);pointer-events:none;}
-.eyebrow{
-  font-family:'Syne',sans-serif;font-size:.7rem;color:var(--cyan);
-  letter-spacing:4px;text-transform:uppercase;margin-bottom:1rem;
-  display:flex;align-items:center;gap:.7rem;
-  opacity:0;animation:fuA .8s .2s forwards;
-}
-.eyebrow::before{content:'';display:block;width:36px;height:1px;background:var(--cyan);}
-.hero-h1{
-  font-family:'Orbitron',sans-serif;
-  font-size:clamp(2.6rem,7.5vw,6rem);
-  line-height:.92;letter-spacing:-1px;margin-bottom:.5em;
-  opacity:0;animation:fuA .8s .4s forwards;
-}
-.hero-sub{
-  font-size:clamp(.9rem,2vw,1.05rem);color:var(--muted);
-  max-width:560px;line-height:1.75;margin-bottom:2rem;
-  opacity:0;animation:fuA .8s .6s forwards;
-}
-.hero-sub strong{color:var(--fg);}
-.hero-acts{
-  display:flex;flex-wrap:wrap;gap:.8rem;align-items:center;
-  opacity:0;animation:fuA .8s .8s forwards;
-}
-.hero-proof{
-  margin-top:2.5rem;display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;
-  opacity:0;animation:fuA .8s 1s forwards;
-}
-.avatars{display:flex;}
-.av{
-  width:34px;height:34px;border-radius:50%;border:2px solid var(--bg);
-  margin-left:-9px;display:flex;align-items:center;justify-content:center;
-  font-size:.6rem;font-weight:700;font-family:'Syne',sans-serif;
-}
-.av:first-child{margin-left:0;}
-.proof-txt{font-size:.78rem;color:var(--muted);}
-.proof-txt strong{color:var(--gold);}
-
-/* Floating card */
-.hero-card{position:absolute;right:5%;top:50%;width:min(340px,38%);opacity:0;animation:fuL 1s .5s forwards;pointer-events:none;}
-@media(max-width:900px){.hero-card{display:none;}}
-.fc{
-  width:100%;aspect-ratio:1.586;
-  background:linear-gradient(135deg,var(--elevated),var(--surface2));
-  border-radius:20px;border:1px solid rgba(240,180,41,.28);
-  padding:1.8rem;position:relative;overflow:hidden;
-  box-shadow:0 40px 80px rgba(0,0,0,.9),0 0 60px rgba(240,180,41,.06);
-  animation:flt 4s ease-in-out infinite;
-}
-@keyframes flt{0%,100%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-16px) rotate(-2deg);}}
-.fc-chip{width:46px;height:34px;background:linear-gradient(135deg,var(--gold),#c8962a);border-radius:6px;margin-bottom:1.6rem;}
-.fc-nfc{position:absolute;top:1.3rem;right:1.3rem;color:var(--cyan);font-size:1.3rem;opacity:.7;}
-.fc-num{font-family:'Orbitron',sans-serif;font-size:.72rem;letter-spacing:3px;color:rgba(255,255,255,.4);margin-bottom:.8rem;}
-.fc-name{font-family:'Orbitron',sans-serif;font-size:1.05rem;letter-spacing:3px;}
-.fc-brand{position:absolute;bottom:1.3rem;right:1.3rem;font-family:'Orbitron',sans-serif;font-size:.85rem;letter-spacing:3px;color:rgba(255,255,255,.18);}
-.kz-scanline{position:absolute;top:0;left:-100%;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--gold),var(--cyan),transparent);animation:scan 2.8s linear infinite;}
-@keyframes scan{to{left:100%;}}
-.fc-holo{position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(0,229,255,.04) 50%,transparent 60%);animation:holo 3s ease-in-out infinite;}
-@keyframes holo{0%,100%{opacity:.3;}50%{opacity:1;}}
-
-@keyframes fuA{from{opacity:0;transform:translateY(26px);}to{opacity:1;transform:translateY(0);}}
-@keyframes fuL{from{opacity:0;transform:translate(35px,-50%);}to{opacity:1;transform:translate(0,-50%);}}
-
-/* ══════════════════════════════════════════════════
-   STATS
-══════════════════════════════════════════════════ */
-.stats-bar{
-  background:rgba(240,180,41,.04);
-  border-top:1px solid rgba(240,180,41,.14);
-  border-bottom:1px solid rgba(240,180,41,.14);
-  padding:1.8rem 5%;
-  display:flex;justify-content:space-around;flex-wrap:wrap;gap:1.5rem;
-}
-.stat{text-align:center;}
-.snum{font-family:'Orbitron',sans-serif;font-size:2.6rem;font-weight:700;line-height:1;}
-.slbl{font-size:.65rem;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-top:.3rem;font-family:'Syne',sans-serif;}
-
-/* ══════════════════════════════════════════════════
-   SECCIONES ESTÁNDAR
-══════════════════════════════════════════════════ */
-section{padding:var(--sec);}
-.sec-sm{padding:var(--ssec);}
-.h2{font-family:'Orbitron',sans-serif;font-size:clamp(1.7rem,4vw,3rem);line-height:1.1;letter-spacing:.5px;margin-bottom:1rem;}
-
-/* ──── PROBLEMA ────────────────────────────────── */
-#problema{background:var(--surface);position:relative;}
-#problema::before{content:'';position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);}
-.prob-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;align-items:center;max-width:1100px;margin:0 auto;}
-@media(max-width:768px){.prob-grid{grid-template-columns:1fr;gap:2rem;}}
-.prob-items{display:flex;flex-direction:column;gap:1rem;}
-.prob-item{
-  display:flex;gap:.9rem;align-items:flex-start;padding:1.2rem;
-  background:rgba(0,0,0,.4);border:1px solid var(--border);border-left:3px solid var(--orange);transition:border-color .3s;
-  border-radius:8px;
-}
-.prob-item:hover{border-left-color:var(--gold);}
-.pi-ico{font-size:1.3rem;flex-shrink:0;}
-.pi-t{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;margin-bottom:.25rem;}
-.pi-d{font-size:.78rem;color:var(--muted);line-height:1.6;}
-
-/* ──── MECANISMO ───────────────────────────────── */
-.mech-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:2px;margin-top:2.5rem;}
-.mstep{
-  padding:2rem 1.6rem;background:var(--surface);
-  border:1px solid var(--border);position:relative;overflow:hidden;transition:transform .3s,background .3s;
-}
-.mstep:hover{transform:translateY(-4px);background:var(--surface2);}
-.mstep::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold),var(--orange));transform:scaleX(0);transform-origin:left;transition:transform .4s;}
-.mstep:hover::before{transform:scaleX(1);}
-.mnum{font-family:'Orbitron',sans-serif;font-size:3.5rem;color:rgba(240,180,41,.07);position:absolute;top:.5rem;right:1rem;line-height:1;}
-.mico{font-size:1.8rem;margin-bottom:.8rem;}
-.mt{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.4rem;}
-.md{font-size:.8rem;color:var(--muted);line-height:1.6;}
-
-/* ──── BENEFICIOS ──────────────────────────────── */
-#beneficios{background:var(--surface);}
-.ben-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.2rem;margin-top:2.5rem;}
-.bcard{
-  padding:1.6rem;border:1px solid var(--border);
-  background:rgba(0,0,0,.5);border-radius:14px;position:relative;overflow:hidden;transition:transform .3s,border-color .3s;
-}
-.bcard:hover{transform:translateY(-5px);border-color:rgba(0,229,255,.3);}
-.bico{font-size:2rem;margin-bottom:1rem;}
-.bt{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:.5rem;}
-.bd{font-size:.8rem;color:var(--muted);line-height:1.65;}
-
-/* ══════════════════════════════════════════════════
-   ASESOR IA  🤖
-══════════════════════════════════════════════════ */
-#asesor{position:relative;overflow:hidden;}
-.asesor-glow{position:absolute;top:0;right:-100px;width:500px;height:500px;background:radial-gradient(circle,rgba(240,180,41,.08),transparent 70%);pointer-events:none;}
-.asesor-grid{
-  display:grid;gap:3rem;align-items:center;max-width:1100px;margin:0 auto;
-  grid-template-columns:1fr 1.05fr;
-}
-@media(max-width:900px){.asesor-grid{grid-template-columns:1fr;}}
-.asesor-steps{margin-top:2rem;display:flex;flex-direction:column;gap:1.2rem;}
-.asstep{display:flex;gap:1rem;align-items:flex-start;}
-.asstep-num{
-  font-family:'Orbitron',sans-serif;font-size:.85rem;font-weight:700;color:var(--gold);
-  flex-shrink:0;width:28px;
-}
-.asstep-t{font-family:'Syne',sans-serif;font-size:.9rem;font-weight:700;color:var(--fg);margin-bottom:.2rem;}
-.asstep-d{font-size:.8rem;color:var(--muted);line-height:1.55;}
-
-/* ── Chat widget ─────────────────────────────── */
-.chat-widget{
-  display:flex;flex-direction:column;overflow:hidden;
-  border:1px solid var(--border-gold);
-  border-radius:18px;background:var(--surface);
-  box-shadow:0 0 0 1px rgba(240,180,41,.12),0 40px 80px rgba(0,0,0,.6);
-  height:620px;
-}
-.chat-hdr{
-  display:flex;align-items:center;gap:.8rem;
-  padding:1rem 1.2rem;
-  border-bottom:1px solid var(--border);
-  background:linear-gradient(135deg,rgba(240,180,41,.07),rgba(0,229,255,.04));
-  flex-shrink:0;
-}
-.chat-hdr-logo{
-  width:38px;height:38px;border-radius:10px;
-  background:linear-gradient(135deg,var(--gold),var(--orange));
-  display:flex;align-items:center;justify-content:center;
-  font-family:'Orbitron',sans-serif;font-size:.6rem;font-weight:700;color:var(--bg);
-  flex-shrink:0;
-}
-.chat-hdr-info{flex:1;min-width:0;}
-.chat-hdr-name{font-family:'Syne',sans-serif;font-size:.88rem;font-weight:700;color:var(--fg);}
-.chat-hdr-status{font-size:.7rem;color:var(--muted);display:flex;align-items:center;gap:.4rem;margin-top:.1rem;}
-.chat-online-dot{width:6px;height:6px;background:var(--success);border-radius:50%;box-shadow:0 0 6px var(--success);}
-.chat-reset{
-  background:none;border:none;color:var(--muted);cursor:pointer;
-  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
-  border-radius:8px;transition:background .2s,color .2s;font-size:.85rem;
-}
-.chat-reset:hover{background:rgba(255,255,255,.06);color:var(--gold);}
-
-.chat-msgs{
-  flex:1;overflow-y:auto;padding:1rem;
-  display:flex;flex-direction:column;gap:.8rem;
-  scrollbar-width:thin;scrollbar-color:rgba(240,180,41,.2) transparent;
-}
-.chat-msgs::-webkit-scrollbar{width:4px;}
-.chat-msgs::-webkit-scrollbar-thumb{background:rgba(240,180,41,.2);border-radius:2px;}
-
-.msg{display:flex;flex-direction:column;max-width:86%;}
-.msg.bot{align-self:flex-start;}
-.msg.user{align-self:flex-end;}
-.msg-bubble{
-  padding:.7rem 1rem;border-radius:14px;font-size:.82rem;line-height:1.6;
-}
-.msg.bot .msg-bubble{
-  background:rgba(255,255,255,.05);border:1px solid var(--border);
-  color:var(--fg);border-bottom-left-radius:4px;
-}
-.msg.user .msg-bubble{
-  background:linear-gradient(135deg,var(--gold),var(--orange));
-  color:var(--bg);font-weight:600;border-bottom-right-radius:4px;
-}
-.msg-time{font-size:.65rem;color:var(--muted);margin-top:.25rem;}
-.msg.user .msg-time{text-align:right;}
-
-/* Typing indicator */
-.typing-dots{display:flex;gap:4px;align-items:center;padding:.5rem 0;}
-.typing-dots span{
-  width:6px;height:6px;background:var(--muted);border-radius:50%;
-  animation:dot-bounce .9s ease-in-out infinite;
-}
-.typing-dots span:nth-child(2){animation-delay:.15s;}
-.typing-dots span:nth-child(3){animation-delay:.3s;}
-@keyframes dot-bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
-
-/* Quick chips */
-.chat-chips{
-  display:flex;flex-wrap:wrap;gap:.5rem;
-  padding:.75rem 1rem;border-top:1px solid var(--border);flex-shrink:0;
-}
-.chip{
-  padding:.4rem .9rem;border-radius:999px;
-  font-family:'Syne',sans-serif;font-size:.7rem;font-weight:600;
-  border:1px solid var(--border);background:var(--elevated);color:var(--muted);
-  cursor:pointer;transition:all .2s;
-}
-.chip:hover{border-color:rgba(240,180,41,.5);color:var(--gold);}
-
-/* Chat input */
-.chat-input-area{padding:.8rem 1rem;border-top:1px solid var(--border);flex-shrink:0;}
-.chat-form{display:flex;gap:.5rem;align-items:flex-end;}
-.chat-textarea{
-  flex:1;background:rgba(255,255,255,.04);border:1px solid var(--border);
-  color:var(--fg);border-radius:10px;padding:.7rem .9rem;
-  font-family:'Plus Jakarta Sans',sans-serif;font-size:.82rem;
-  resize:none;max-height:120px;min-height:40px;
-  field-sizing:content;
-  transition:border-color .2s;
-  outline:none;
-}
-.chat-textarea:focus{border-color:rgba(240,180,41,.4);}
-.chat-textarea::placeholder{color:rgba(255,255,255,.25);}
-.chat-send{
-  width:36px;height:36px;flex-shrink:0;
-  background:linear-gradient(135deg,var(--gold),var(--orange));
-  color:var(--bg);border:none;border-radius:8px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:transform .15s,opacity .2s;font-size:.85rem;
-}
-.chat-send:hover{transform:scale(1.05);}
-.chat-send:disabled{opacity:.4;transform:none;}
-
-/* ══════════════════════════════════════════════════
-   PORTAFOLIO MARQUEE
-══════════════════════════════════════════════════ */
-#portafolio{overflow:hidden;padding:var(--sec);}
-.port-marquee-wrap{
-  position:relative;overflow:hidden;
-  mask-image:linear-gradient(90deg,transparent,black 8%,black 92%,transparent);
-}
-.port-strip{display:flex;gap:1rem;animation:portScroll 40s linear infinite;width:max-content;}
-.port-strip:hover{animation-play-state:paused;}
-@keyframes portScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
-.pitem{
-  width:210px;flex-shrink:0;border-radius:16px;overflow:hidden;
-  border:1px solid var(--border);background:var(--surface);
-  transition:transform .3s,border-color .3s;cursor:pointer;position:relative;
-}
-.pitem:hover{transform:scale(1.03);border-color:rgba(240,180,41,.4);}
-.pitem img{width:100%;height:315px;object-fit:cover;object-position:top;opacity:.9;transition:opacity .3s;display:block;}
-.pitem:hover img{opacity:1;}
-.pitem-overlay{
-  position:absolute;inset-x:0;bottom:0;
-  background:linear-gradient(to top,var(--bg) 0%,rgba(0,0,0,.85) 40%,transparent 100%);
-  padding:1rem .9rem .9rem;
-}
-.pil-name{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg);}
-.pil-cat{font-size:.6rem;color:var(--gold);font-family:'Syne',sans-serif;letter-spacing:.1em;text-transform:uppercase;margin-top:.2rem;}
-.pitem-arrow{
-  position:absolute;top:.7rem;right:.7rem;
-  width:24px;height:24px;border-radius:6px;
-  background:var(--gold);color:var(--bg);
-  display:flex;align-items:center;justify-content:center;font-size:.6rem;
-  opacity:0;transition:opacity .2s;
-}
-.pitem:hover .pitem-arrow{opacity:1;}
-
-/* Extra project links grid */
-.proj-links-grid{
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:.5rem;max-width:1100px;margin:1.5rem auto 0;
-}
-.proj-link{
-  display:flex;align-items:center;justify-content:space-between;gap:.8rem;
-  padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;
-  background:rgba(255,255,255,.02);text-decoration:none;
-  transition:border-color .2s;
-}
-.proj-link:hover{border-color:rgba(240,180,41,.35);}
-.proj-link-name{font-size:.82rem;font-weight:600;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.proj-link-cat{font-size:.62rem;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;}
-.proj-link i{color:var(--muted);font-size:.75rem;flex-shrink:0;transition:color .2s;}
-.proj-link:hover i{color:var(--gold);}
-
-/* ══════════════════════════════════════════════════
-   TESTIMONIOS
-══════════════════════════════════════════════════ */
-#testimonios{overflow:hidden;padding:var(--sec) 0;}
-.testi-hdr{padding:0 5% 2rem;}
-.ttrack-wrap{overflow:hidden;mask-image:linear-gradient(90deg,transparent,black 6%,black 94%,transparent);}
-.ttrack{display:flex;gap:1.2rem;animation:tScroll 35s linear infinite;width:max-content;}
-.ttrack:hover{animation-play-state:paused;}
-@keyframes tScroll{from{transform:translateX(0);}to{transform:translateX(-50%);}}
-.tcard{
-  width:320px;flex-shrink:0;padding:1.5rem;
-  background:var(--surface);border:1px solid var(--border);border-radius:16px;
-  display:flex;flex-direction:column;justify-content:space-between;
-}
-.tstars{color:var(--gold);font-size:.75rem;margin-bottom:.8rem;display:flex;gap:2px;}
-.ttxt{font-size:.82rem;color:var(--muted);line-height:1.7;margin-bottom:1rem;font-style:italic;flex:1;}
-.tau{display:flex;align-items:center;gap:.7rem;}
-.tav{
-  width:36px;height:36px;border-radius:50%;
-  background:linear-gradient(135deg,var(--gold),var(--orange));
-  display:flex;align-items:center;justify-content:center;
-  font-size:.72rem;font-weight:700;color:var(--bg);font-family:'Syne',sans-serif;flex-shrink:0;
-}
-.tname{font-size:.82rem;font-weight:700;font-family:'Syne',sans-serif;}
-.trole{font-size:.68rem;color:var(--muted);}
-
-/* ══════════════════════════════════════════════════
-   PRECIOS
-══════════════════════════════════════════════════ */
-#precios{background:var(--surface);}
-.price-wrap{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:1.2rem;max-width:1000px;margin:2.5rem auto 0;align-items:start;}
-.pcard{
-  padding:2rem 1.8rem;
-  border:1px solid var(--border);
-  background:rgba(0,0,0,.6);border-radius:18px;position:relative;transition:transform .3s;
-}
-.pcard:hover{transform:translateY(-6px);}
-.pcard.pop{border-color:rgba(240,180,41,.5);background:linear-gradient(180deg,rgba(240,180,41,.07),rgba(0,0,0,.7));}
-.pop-badge{
-  position:absolute;top:-13px;left:1.5rem;
-  background:linear-gradient(90deg,var(--gold),var(--orange));
-  color:var(--bg);font-family:'Syne',sans-serif;
-  font-size:.6rem;font-weight:700;padding:.3rem 1rem;letter-spacing:2px;border-radius:999px;
-}
-.plan-n{font-family:'Orbitron',sans-serif;font-size:1.1rem;letter-spacing:2px;margin-bottom:.25rem;}
-.plan-d{font-size:.75rem;color:var(--muted);margin-bottom:1.5rem;}
-.plan-px{font-family:'Orbitron',sans-serif;font-size:2.8rem;font-weight:700;line-height:1;margin-bottom:.25rem;}
-.plan-px sub{font-size:1rem;vertical-align:sub;}
-.plan-per{font-size:.72rem;color:var(--muted);margin-bottom:1.5rem;}
-.feats{list-style:none;display:flex;flex-direction:column;gap:.65rem;margin-bottom:1.5rem;}
-.feats li{font-size:.8rem;display:flex;align-items:flex-start;gap:.6rem;color:var(--muted);}
-.feats li::before{content:'✓';color:var(--cyan);flex-shrink:0;font-weight:700;}
-.feats li.no{color:rgba(255,255,255,.25);text-decoration:line-through;}
-.feats li.no::before{content:'×';color:rgba(255,255,255,.15);}
-
-/* ══════════════════════════════════════════════════
-   GARANTÍA
-══════════════════════════════════════════════════ */
-#garantia{text-align:center;}
-.gbox{
-  max-width:620px;margin:0 auto;padding:3rem 2rem;
-  border:1px solid rgba(0,229,255,.18);
-  background:linear-gradient(135deg,rgba(0,229,255,.04),rgba(0,0,0,.8));
-  border-radius:20px;
-}
-.gico{font-size:3.5rem;margin-bottom:1.2rem;filter:drop-shadow(0 0 18px var(--cyan));}
-.gt{font-family:'Orbitron',sans-serif;font-size:1.6rem;margin-bottom:.8rem;}
-.gd{font-size:.88rem;color:var(--muted);line-height:1.8;max-width:460px;margin:0 auto;}
-
-/* ══════════════════════════════════════════════════
-   FAQ
-══════════════════════════════════════════════════ */
-#faq{background:var(--surface);}
-.faq-wrap{max-width:760px;margin:0 auto;}
-.faqs{display:flex;flex-direction:column;gap:.4rem;margin-top:2rem;}
-.fi{border:1px solid var(--border);overflow:hidden;border-radius:12px;}
-.fi.open{border-color:rgba(240,180,41,.3);}
-.fq{
-  padding:1.1rem 1.3rem;font-weight:700;font-size:.88rem;
-  font-family:'Syne',sans-serif;cursor:pointer;
-  display:flex;justify-content:space-between;align-items:center;transition:color .2s;
-}
-.fq:hover{color:var(--gold);}
-.fick{color:var(--gold);flex-shrink:0;margin-left:.8rem;transition:transform .3s;font-size:1.1rem;font-weight:300;}
-.fi.open .fick{transform:rotate(45deg);}
-.fa{max-height:0;overflow:hidden;transition:max-height .4s ease;}
-.fi.open .fa{max-height:200px;}
-.fa-in{padding:0 1.3rem 1.2rem;font-size:.83rem;color:var(--muted);line-height:1.8;border-top:1px solid var(--border);padding-top:.9rem;}
-.fa-in span{color:var(--gold);}
-
-/* ══════════════════════════════════════════════════
-   ALIADOS
-══════════════════════════════════════════════════ */
-#aliados{padding:40px 5%;}
-.aliados-box{
-  max-width:1000px;margin:0 auto;
-  padding:2.5rem;
-  display:grid;grid-template-columns:1fr auto;gap:2rem;align-items:center;
-  border:1px solid var(--border);border-radius:18px;
-  background:rgba(255,255,255,.02);
-}
-@media(max-width:700px){.aliados-box{grid-template-columns:1fr;}}
-.aliados-ico{
-  width:44px;height:44px;border-radius:12px;background:var(--elevated);
-  display:flex;align-items:center;justify-content:center;
-  font-size:1.2rem;margin-bottom:1rem;
-}
-
-/* ══════════════════════════════════════════════════
-   CTA FINAL
-══════════════════════════════════════════════════ */
-#cta-final{text-align:center;padding:80px 5%;position:relative;overflow:hidden;}
-.cta-glow{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:350px;background:radial-gradient(ellipse,rgba(240,180,41,.1),transparent 70%);pointer-events:none;}
-.cta-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(240,180,41,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(240,180,41,.03) 1px,transparent 1px);background-size:40px 40px;}
-.cta-h{font-family:'Orbitron',sans-serif;font-size:clamp(2.2rem,6vw,5rem);line-height:.95;margin-bottom:1.2rem;position:relative;}
-.cta-sub{font-size:.95rem;color:var(--muted);max-width:440px;margin:0 auto 2.2rem;line-height:1.7;}
-.urgency{
-  display:inline-flex;align-items:center;gap:.6rem;
-  font-family:'Syne',sans-serif;font-size:.68rem;color:var(--orange);
-  border:1px solid rgba(249,115,22,.3);padding:.45rem 1rem;margin-bottom:2rem;border-radius:999px;
-}
-.udot{width:7px;height:7px;background:var(--orange);border-radius:50%;animation:pulse 1.2s ease-in-out infinite;}
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.7);}}
-
-/* ─── WA FLOAT ────────────────────────────────────── */
-.wa-float{
-  position:fixed;bottom:24px;right:22px;z-index:9999;
-  width:52px;height:52px;border-radius:50%;
-  background:#25D366;color:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:26px;text-decoration:none;
-  box-shadow:0 6px 24px rgba(37,211,102,.5);
-  animation:waDrift 6s ease-in-out infinite;
-}
-@keyframes waDrift{0%,100%{transform:translateY(0);}40%{transform:translateY(-8px);}70%{transform:translateY(-4px);}85%{transform:translateY(-10px);}}
-.wa-ring{position:fixed;bottom:24px;right:22px;z-index:9998;width:52px;height:52px;border-radius:50%;pointer-events:none;}
-.wa-ring::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);border-radius:50%;border:2px solid #25D366;animation:waRing 2.4s ease-out infinite;}
-@keyframes waRing{0%{width:52px;height:52px;opacity:.8;}100%{width:104px;height:104px;opacity:0;}}
-
-/* ─── FOOTER ──────────────────────────────────────── */
-/* 🔥 CORREGIDO: Redes sociales centradas y con colores oficiales */
-footer{
-  padding:1.8rem 5%;
-  border-top:1px solid var(--border);
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:0.6rem;
-}
-.fl{font-family:'Orbitron',sans-serif;font-size:1rem;letter-spacing:3px;}
-.ft{font-size:.68rem;color:var(--muted);font-family:'Syne',sans-serif;letter-spacing:.04em;}
-.social-icons{
-  display:flex;
-  gap:1.8rem;
-  font-size:1.2rem;
-  margin-top:0.2rem;
-}
-.social-icons a{
-  text-decoration:none;
-  transition:transform .2s, color .2s;
-  display:inline-block;
-}
-.social-icons a:hover{
-  transform:scale(1.15);
-}
-.social-icons .ig{color:#F0B429;}
-.social-icons .ig:hover{color:#FFD97D;}
-.social-icons .tt{color:#00E5FF;}
-.social-icons .tt:hover{color:#66F0FF;}
-.social-icons .fb{color:#F97316;}
-.social-icons .fb:hover{color:#FFB07C;}
-
-/* ─── VIDEO MODAL ─────────────────────────────────── */
-.modal-ov{
-  position:fixed;inset:0;z-index:1000;display:none;
-  align-items:center;justify-content:center;padding:1rem;
-  background:rgba(0,0,0,.92);opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s;
-}
-.modal-ov.act{display:flex;opacity:1;visibility:visible;}
-.modal-inner{
-  background:var(--surface);border:1px solid var(--border-gold);
-  border-radius:16px;overflow:hidden;width:100%;max-width:700px;
-  transform:scale(.9) translateY(16px);transition:transform .3s,opacity .3s;opacity:0;
-}
-.modal-ov.act .modal-inner{transform:scale(1) translateY(0);opacity:1;}
-.modal-hdr{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:1rem 1.2rem;
-  background:linear-gradient(135deg,rgba(239,68,68,.1),rgba(249,115,22,.06));
-  border-bottom:1px solid rgba(239,68,68,.18);
-}
-.modal-hdr span{font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;color:var(--fg);}
-.mclose{background:none;border:none;font-size:1.4rem;color:var(--muted);cursor:pointer;transition:color .2s;}
-.mclose:hover{color:var(--gold);}
-
-/* Video thumb */
-.vthumb{position:relative;border-radius:14px;overflow:hidden;cursor:pointer;border:1px solid rgba(239,68,68,.22);transition:border-color .25s,transform .25s;}
-.vthumb:hover{border-color:rgba(239,68,68,.6);transform:scale(1.01);}
-.vthumb img{width:100%;aspect-ratio:16/9;object-fit:cover;filter:brightness(.7);display:block;}
-.vthumb-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.6rem;}
-.vplay{width:52px;height:52px;border-radius:50%;background:rgba(239,68,68,.9);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 8px rgba(239,68,68,.2);animation:playPulse 2.5s ease-in-out infinite;}
-@keyframes playPulse{0%,100%{box-shadow:0 0 0 8px rgba(239,68,68,.2);}50%{box-shadow:0 0 0 14px rgba(239,68,68,.08);}}
-.vplay i{color:#fff;font-size:18px;margin-left:3px;}
-.vcap{position:absolute;bottom:10px;left:12px;}
-.vcap-t{font-family:'Syne',sans-serif;font-size:.8rem;font-weight:700;color:#fff;}
-.vcap-s{font-size:.68rem;color:rgba(255,255,255,.6);display:flex;align-items:center;gap:4px;margin-top:2px;}
-.yt{background:#f00;border-radius:3px;padding:1px 4px;font-size:.6rem;font-weight:700;color:#fff;font-family:'Syne',sans-serif;}
-</style>
+</script>
 </head>
 <body class="kz-grain">
 
@@ -668,15 +108,17 @@ footer{
 <!-- NAV -->
 <nav>
   <a href="#hero" class="nav-logo" style="text-decoration:none;"><span class="kz-g">KONFÍO</span> <span class="kz-z">ZINC</span></a>
-  <div class="nav-links">
+  <div class="nav-links" id="navLinks">
     <a href="#mecanismo">Cómo funciona</a>
     <a href="#beneficios">Beneficios</a>
     <a href="#portafolio">Portafolio</a>
     <a href="#precios">Precios</a>
     <a href="#faq">FAQ</a>
   </div>
-  <!-- 🔥 CORREGIDO: El botón superior ahora abre el chat flotante -->
-  <a href="#" class="nav-cta" id="navAsesorToggle"><i class="fas fa-robot"></i>Asesor IA</a>
+  <div class="nav-right">
+    <a href="#" class="nav-cta" id="navAsesorToggle"><i class="fas fa-robot"></i>Asesor IA</a>
+    <button class="nav-toggle" id="navToggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks"><i class="fas fa-bars"></i></button>
+  </div>
 </nav>
 
 <!-- ══ HERO ══════════════════════════════════════════ -->
@@ -693,7 +135,7 @@ footer{
     </h1>
     <p class="hero-sub">Tu tarjeta de presentación <strong>inteligente y personalizada</strong> que convierte cada contacto en una oportunidad real. <strong>Un solo link. Impacto permanente.</strong></p>
     <div class="hero-acts">
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20mi%20tarjeta%20digital%20personalizada" target="_blank" class="btn-p"><i class="fab fa-whatsapp"></i>SOLICITAR AHORA</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20mi%20tarjeta%20digital%20personalizada" target="_blank" rel="noopener noreferrer" class="btn-p"><i class="fab fa-whatsapp"></i>SOLICITAR AHORA</a>
       <a href="#" class="btn-s" id="heroAsesorToggle"><i class="fas fa-robot"></i>Hablar con el Asesor IA</a>
     </div>
     <div class="hero-proof">
@@ -769,7 +211,7 @@ footer{
   <div style="max-width:680px;margin:0 auto;" class="rev">
     <div class="label-eyebrow" style="justify-content:center;">Ve cómo funciona</div>
     <button id="vBtn" class="vthumb" style="width:100%;background:none;padding:0;cursor:pointer;border:1px solid rgba(239,68,68,.22);">
-      <img src="https://img.youtube.com/vi/ndRhGLFUlLA/hqdefault.jpg" alt="Video KONFÍO ZINC" onerror="this.src='https://placehold.co/480x270/111/f87171?text=Ver+Video'">
+      <img src="https://img.youtube.com/vi/ndRhGLFUlLA/hqdefault.jpg" alt="Video KONFÍO ZINC" loading="lazy" onerror="this.src='https://placehold.co/480x270/111/f87171?text=Ver+Video'">
       <div class="vthumb-ov"><div class="vplay"><i class="fas fa-play"></i></div></div>
       <div class="vcap">
         <div class="vcap-t">¿Cómo es una tarjeta KONFÍO ZINC?</div>
@@ -816,36 +258,19 @@ footer{
       </div>
     </div>
 
-    <!-- Chat widget -->
-    <div class="chat-widget rev glow-ring" id="chatWidget">
-      <!-- Header -->
-      <div class="chat-hdr">
-        <div class="chat-hdr-logo">KZ</div>
-        <div class="chat-hdr-info">
-          <div class="chat-hdr-name">Asesor KONFÍO ZINC</div>
-          <div class="chat-hdr-status"><span class="chat-online-dot"></span>En línea · responde al instante</div>
-        </div>
-        <button class="chat-reset" id="chatReset" title="Reiniciar conversación"><i class="fas fa-rotate-left"></i></button>
+    <!-- Panel CTA (reemplaza al chat integrado que usaba API de Anthropic) -->
+    <div class="asesor-cta rev glow-ring">
+      <div class="asesor-cta-badge">🔒 100% offline · sin claves API</div>
+      <h3 class="asesor-cta-title">Tu asesor responde al instante</h3>
+      <p class="asesor-cta-desc">Precios, ejemplos, contratación y recomendaciones por sector — con lógica de reglas, sin exponer claves ni depender de servidores externos.</p>
+      <div class="asesor-cta-chips" aria-hidden="true">
+        <span class="chip">💰 Ver precios</span>
+        <span class="chip">💼 Ver portafolio</span>
+        <span class="chip">📱 Quiero una tarjeta</span>
+        <span class="chip">🤝 Ser partner</span>
       </div>
-
-      <!-- Messages -->
-      <div class="chat-msgs" id="chatMsgs"></div>
-
-      <!-- Quick chips -->
-      <div class="chat-chips" id="chatChips">
-        <button class="chip" data-msg="Es para mi propio negocio">Es para mi propio negocio</button>
-        <button class="chip" data-msg="¿Cuánto vale?">¿Cuánto vale?</button>
-        <button class="chip" data-msg="Quiero ver ejemplos">Quiero ver ejemplos</button>
-        <button class="chip" data-msg="Me interesa ser aliado">Me interesa ser aliado</button>
-      </div>
-
-      <!-- Input -->
-      <div class="chat-input-area">
-        <form class="chat-form" id="chatForm">
-          <textarea class="chat-textarea" id="chatInput" placeholder="Escribe tu mensaje…" rows="1"></textarea>
-          <button class="chat-send" type="submit" id="chatSend"><i class="fas fa-arrow-up"></i></button>
-        </form>
-      </div>
+      <button class="btn-p" id="asesorPanelToggle" style="align-self:flex-start;"><i class="fas fa-robot"></i>ABRIR EL ASESOR IA</button>
+      <p class="asesor-cta-note">También disponible abajo a la derecha, en toda la página.</p>
     </div>
   </div>
 </section>
@@ -862,46 +287,46 @@ footer{
   <div class="port-marquee-wrap">
     <div class="port-strip" id="portStrip">
       <!-- Set 1 -->
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/tarjetapre/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/tarjetapre/" alt="Tarjeta PRE" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Tarjeta PRE</div><div class="pil-cat">Modelo general</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/quiromasajes-gap/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/quiromasajes-gap/" alt="GAP" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Quiromasajes GAP</div><div class="pil-cat">Salud y bienestar</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/abogados-dta/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/abogados-dta/" alt="DTA" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Abogados DTA</div><div class="pil-cat">Jurídico</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/nandy_nails/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/nandy_nails/" alt="Nandy" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Nandy Nails</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/eltiti/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/eltiti/" alt="El Titi" loading="lazy"><div class="pitem-overlay"><div class="pil-name">EL TITI</div><div class="pil-cat">Negocio local</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/np-style/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/np-style/" alt="NP Style" loading="lazy"><div class="pitem-overlay"><div class="pil-name">NP Style</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/mega-express/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/mega-express/" alt="Mega Express" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Mega Express</div><div class="pil-cat">Transporte</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/dg_ventas_avaluos/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/dg_ventas_avaluos/" alt="DG" loading="lazy"><div class="pitem-overlay"><div class="pil-name">DG Avalúos</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/calixto_acordeon_magico/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/calixto_acordeon_magico/" alt="Calixto" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Calixto Acordeón</div><div class="pil-cat">Música</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/makeup_artist/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/makeup_artist/" alt="Makeup" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Makeup Artist</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/fumigaciones-monterrey/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/fumigaciones-monterrey/" alt="Fumig" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Fumigaciones Monterrey</div><div class="pil-cat">Servicios</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/century_21_radial/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/century_21_radial/" alt="C21" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Century 21 Radial</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <a class="pitem" href="https://konfiozinc.github.io/tarjetapre/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/tarjetapre/" alt="Tarjeta PRE" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Tarjeta PRE</div><div class="pil-cat">Modelo general</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/quiromasajes-gap/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/quiromasajes-gap/" alt="Quiromasajes GAP" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Quiromasajes GAP</div><div class="pil-cat">Salud y bienestar</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/abogados-dta/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/abogados-dta/" alt="Abogados DTA" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Abogados DTA</div><div class="pil-cat">Jurídico</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/nandy_nails/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/nandy_nails/" alt="Nandy Nails" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Nandy Nails</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/eltiti/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/eltiti/" alt="EL TITI" loading="lazy"><div class="pitem-overlay"><div class="pil-name">EL TITI</div><div class="pil-cat">Negocio local</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/np-style/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/np-style/" alt="NP Style" loading="lazy"><div class="pitem-overlay"><div class="pil-name">NP Style</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/mega-express/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/mega-express/" alt="Mega Express" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Mega Express</div><div class="pil-cat">Transporte</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/dg_ventas_avaluos/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/dg_ventas_avaluos/" alt="DG Avalúos" loading="lazy"><div class="pitem-overlay"><div class="pil-name">DG Avalúos</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/calixto_acordeon_magico/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/calixto_acordeon_magico/" alt="Calixto Acordeón" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Calixto Acordeón</div><div class="pil-cat">Música</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/makeup_artist/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/makeup_artist/" alt="Makeup Artist" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Makeup Artist</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/fumigaciones-monterrey/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/fumigaciones-monterrey/" alt="Fumigaciones Monterrey" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Fumigaciones Monterrey</div><div class="pil-cat">Servicios</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/century_21_radial/" target="_blank" rel="noopener noreferrer"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/century_21_radial/" alt="Century 21 Radial" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Century 21 Radial</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
       <!-- Set 2 (duplicate) -->
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/tarjetapre/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/tarjetapre/" alt="Tarjeta PRE" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Tarjeta PRE</div><div class="pil-cat">Modelo general</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/quiromasajes-gap/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/quiromasajes-gap/" alt="GAP" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Quiromasajes GAP</div><div class="pil-cat">Salud y bienestar</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/abogados-dta/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/abogados-dta/" alt="DTA" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Abogados DTA</div><div class="pil-cat">Jurídico</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/nandy_nails/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/nandy_nails/" alt="Nandy" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Nandy Nails</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/eltiti/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/eltiti/" alt="El Titi" loading="lazy"><div class="pitem-overlay"><div class="pil-name">EL TITI</div><div class="pil-cat">Negocio local</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/np-style/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/np-style/" alt="NP Style" loading="lazy"><div class="pitem-overlay"><div class="pil-name">NP Style</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/mega-express/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/mega-express/" alt="Mega Express" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Mega Express</div><div class="pil-cat">Transporte</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/dg_ventas_avaluos/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/dg_ventas_avaluos/" alt="DG" loading="lazy"><div class="pitem-overlay"><div class="pil-name">DG Avalúos</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/calixto_acordeon_magico/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/calixto_acordeon_magico/" alt="Calixto" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Calixto Acordeón</div><div class="pil-cat">Música</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/makeup_artist/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/makeup_artist/" alt="Makeup" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Makeup Artist</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/fumigaciones-monterrey/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/fumigaciones-monterrey/" alt="Fumig" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Fumigaciones Monterrey</div><div class="pil-cat">Servicios</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
-      <div class="pitem" onclick="window.open('https://konfiozinc.github.io/century_21_radial/','_blank')"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/century_21_radial/" alt="C21" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Century 21 Radial</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></div>
+      <a class="pitem" href="https://konfiozinc.github.io/tarjetapre/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/tarjetapre/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Tarjeta PRE</div><div class="pil-cat">Modelo general</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/quiromasajes-gap/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/quiromasajes-gap/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Quiromasajes GAP</div><div class="pil-cat">Salud y bienestar</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/abogados-dta/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/abogados-dta/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Abogados DTA</div><div class="pil-cat">Jurídico</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/nandy_nails/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/nandy_nails/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Nandy Nails</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/eltiti/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/eltiti/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">EL TITI</div><div class="pil-cat">Negocio local</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/np-style/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/np-style/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">NP Style</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/mega-express/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/mega-express/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Mega Express</div><div class="pil-cat">Transporte</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/dg_ventas_avaluos/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/dg_ventas_avaluos/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">DG Avalúos</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/calixto_acordeon_magico/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/calixto_acordeon_magico/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Calixto Acordeón</div><div class="pil-cat">Música</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/makeup_artist/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/makeup_artist/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Makeup Artist</div><div class="pil-cat">Belleza</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/fumigaciones-monterrey/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/fumigaciones-monterrey/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Fumigaciones Monterrey</div><div class="pil-cat">Servicios</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
+      <a class="pitem" href="https://konfiozinc.github.io/century_21_radial/" target="_blank" rel="noopener noreferrer" aria-hidden="true" tabindex="-1"><img src="https://image.thum.io/get/width/600/crop/900/https://konfiozinc.github.io/century_21_radial/" alt="" loading="lazy"><div class="pitem-overlay"><div class="pil-name">Century 21 Radial</div><div class="pil-cat">Inmobiliaria</div></div><div class="pitem-arrow"><i class="fas fa-arrow-up-right-from-square"></i></div></a>
     </div>
   </div>
   <!-- Grid de proyectos extra -->
   <div class="proj-links-grid rev">
-    <a href="https://konfiozinc.github.io/ca-ada_style/" target="_blank" class="proj-link"><span><div class="proj-link-name">La Cañada Style</div><div class="proj-link-cat">Moda</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
-    <a href="https://konfiozinc.github.io/carniceria_la_milagrosa/" target="_blank" class="proj-link"><span><div class="proj-link-name">Carnicería La Milagrosa</div><div class="proj-link-cat">Alimentos</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
-    <a href="https://konfiozinc.github.io/fumig_master/" target="_blank" class="proj-link"><span><div class="proj-link-name">Fumig Master</div><div class="proj-link-cat">Servicios</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
-    <a href="https://konfiozinc.github.io/deicy-buitrago/" target="_blank" class="proj-link"><span><div class="proj-link-name">Deicy Buitrago</div><div class="proj-link-cat">Profesional</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
-    <a href="https://konfiozinc.github.io/nutridrink/" target="_blank" class="proj-link"><span><div class="proj-link-name">NutriDrink</div><div class="proj-link-cat">Nutrición</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
-    <a href="https://konfiozinc.github.io/lizeth_lozano/" target="_blank" class="proj-link"><span><div class="proj-link-name">Lizeth Lozano</div><div class="proj-link-cat">Profesional</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
-    <a href="https://konfiozinc.github.io/gp/" target="_blank" class="proj-link"><span><div class="proj-link-name">GP Inmobiliaria</div><div class="proj-link-cat">Finca raíz</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
-    <a href="https://konfiozinc.github.io/konfio-sports/" target="_blank" class="proj-link"><span><div class="proj-link-name">Konfío Sports</div><div class="proj-link-cat">Deportes</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/ca-ada_style/" target="_blank" rel="noopener noreferrer" class="proj-link"><span><div class="proj-link-name">La Cañada Style</div><div class="proj-link-cat">Moda</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/carniceria_la_milagrosa/" target="_blank" rel="noopener noreferrer" class="proj-link"><span><div class="proj-link-name">Carnicería La Milagrosa</div><div class="proj-link-cat">Alimentos</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/fumig_master/" target="_blank" rel="noopener noreferrer" class="proj-link"><span><div class="proj-link-name">Fumig Master</div><div class="proj-link-cat">Servicios</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/deicy-buitrago/" target="_blank" rel="noopener noreferrer" class="proj-link"><span><div class="proj-link-name">Deicy Buitrago</div><div class="proj-link-cat">Profesional</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/nutridrink/" target="_blank" rel="noopener noreferrer" class="proj-link"><span><div class="proj-link-name">NutriDrink</div><div class="proj-link-cat">Nutrición</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/lizeth_lozano/" target="_blank" rel="noopener noreferrer" class="proj-link"><span><div class="proj-link-name">Lizeth Lozano</div><div class="proj-link-cat">Profesional</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/gp/" target="_blank" rel="noopener noreferrer" class="proj-link"><span><div class="proj-link-name">GP Inmobiliaria</div><div class="proj-link-cat">Finca raíz</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
+    <a href="https://konfiozinc.github.io/konfio-sports/" target="_blank" rel="noopener noreferrer" class="proj-link"><span><div class="proj-link-name">Konfío Sports</div><div class="proj-link-cat">Deportes</div></span><i class="fas fa-arrow-up-right-from-square"></i></a>
   </div>
   <div style="text-align:center;margin-top:1.8rem;" class="rev">
-    <a href="https://konfiozinc.github.io/tarjetapre/" target="_blank" class="btn-s" style="font-size:.72rem;">VER PORTAFOLIO COMPLETO →</a>
+    <a href="https://konfiozinc.github.io/tarjetapre/" target="_blank" rel="noopener noreferrer" class="btn-s" style="font-size:.72rem;">VER PORTAFOLIO COMPLETO →</a>
   </div>
 </section>
 
@@ -921,11 +346,11 @@ footer{
       <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Antes repartía 200 tarjetas en papel y nadie me llamaba. Con la tarjeta digital recibo mensajes todos los días."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,#a855f7,#7e22ce);">CM</div><div><div class="tname">Carlos Mejía</div><div class="trole">Consultor de Negocios</div></div></div></div>
       <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Darwin diseñó algo que realmente me representa. El QR en mi local convierte visitas en clientes recurrentes."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--gold),#d4a017);">SG</div><div><div class="tname">Sandra Gil</div><div class="trole">Barbería La Cañada</div></div></div></div>
       <!-- duplicados -->
-      <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Mis pacientes me escriben directo desde la tarjeta. Es profesional, elegante y me ahorra explicar cómo contactarme."</p><div class="tau"><div class="tav">IR</div><div><div class="tname">Dra. Isabela Rojas</div><div class="trole">Odontóloga · Estética Dental</div></div></div></div>
-      <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"La entrega fue rapidísima y el resultado superó mis expectativas. Ya tengo agenda llena gracias al botón de citas."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--cyan),#007799);">RP</div><div><div class="tname">Regina Pereira</div><div class="trole">Nails &amp; Academy</div></div></div></div>
-      <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Compartir mi menú por WhatsApp cambió todo. Los clientes ven los precios sin pedirlos y llegan listos para comprar."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--orange),#b45309);">DD</div><div><div class="tname">Dulce Delicia</div><div class="trole">Pastelería Artesanal</div></div></div></div>
-      <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Antes repartía 200 tarjetas en papel y nadie me llamaba. Con la tarjeta digital recibo mensajes todos los días."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,#a855f7,#7e22ce);">CM</div><div><div class="tname">Carlos Mejía</div><div class="trole">Consultor de Negocios</div></div></div></div>
-      <div class="tcard"><div class="tstars">★★★★★</div><p class="ttxt">"Darwin diseñó algo que realmente me representa. El QR en mi local convierte visitas en clientes recurrentes."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--gold),#d4a017);">SG</div><div><div class="tname">Sandra Gil</div><div class="trole">Barbería La Cañada</div></div></div></div>
+      <div class="tcard" aria-hidden="true"><div class="tstars">★★★★★</div><p class="ttxt">"Mis pacientes me escriben directo desde la tarjeta. Es profesional, elegante y me ahorra explicar cómo contactarme."</p><div class="tau"><div class="tav">IR</div><div><div class="tname">Dra. Isabela Rojas</div><div class="trole">Odontóloga · Estética Dental</div></div></div></div>
+      <div class="tcard" aria-hidden="true"><div class="tstars">★★★★★</div><p class="ttxt">"La entrega fue rapidísima y el resultado superó mis expectativas. Ya tengo agenda llena gracias al botón de citas."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--cyan),#007799);">RP</div><div><div class="tname">Regina Pereira</div><div class="trole">Nails &amp; Academy</div></div></div></div>
+      <div class="tcard" aria-hidden="true"><div class="tstars">★★★★★</div><p class="ttxt">"Compartir mi menú por WhatsApp cambió todo. Los clientes ven los precios sin pedirlos y llegan listos para comprar."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--orange),#b45309);">DD</div><div><div class="tname">Dulce Delicia</div><div class="trole">Pastelería Artesanal</div></div></div></div>
+      <div class="tcard" aria-hidden="true"><div class="tstars">★★★★★</div><p class="ttxt">"Antes repartía 200 tarjetas en papel y nadie me llamaba. Con la tarjeta digital recibo mensajes todos los días."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,#a855f7,#7e22ce);">CM</div><div><div class="tname">Carlos Mejía</div><div class="trole">Consultor de Negocios</div></div></div></div>
+      <div class="tcard" aria-hidden="true"><div class="tstars">★★★★★</div><p class="ttxt">"Darwin diseñó algo que realmente me representa. El QR en mi local convierte visitas en clientes recurrentes."</p><div class="tau"><div class="tav" style="background:linear-gradient(135deg,var(--gold),#d4a017);">SG</div><div><div class="tname">Sandra Gil</div><div class="trole">Barbería La Cañada</div></div></div></div>
     </div>
   </div>
 </section>
@@ -952,7 +377,7 @@ footer{
         <li class="no">Galería de fotos</li><li class="no">Sistema de citas</li>
         <li class="no">Video promocional</li><li class="no">Animaciones premium</li>
       </ul>
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Start%20%E2%80%94%20%2449.900" target="_blank" class="btn-s" style="display:flex;justify-content:center;font-size:.72rem;">Quiero el START →</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Start%20%E2%80%94%20%2449.900" target="_blank" rel="noopener noreferrer" class="btn-s" style="display:flex;justify-content:center;font-size:.72rem;">Quiero el START →</a>
     </div>
     <div class="pcard pop rev">
       <div class="pop-badge">Más popular</div>
@@ -967,7 +392,7 @@ footer{
         <li>Revisión de diseño incluida</li>
         <li class="no">Video promocional</li><li class="no">Animaciones premium</li>
       </ul>
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Pro%20%E2%80%94%20%2499.900" target="_blank" class="btn-p" style="display:flex;justify-content:center;font-size:.75rem;">Quiero el PRO →</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Pro%20%E2%80%94%20%2499.900" target="_blank" rel="noopener noreferrer" class="btn-p" style="display:flex;justify-content:center;font-size:.75rem;">Quiero el PRO →</a>
     </div>
     <div class="pcard rev">
       <div class="plan-n text-cyan">ELITE</div>
@@ -981,7 +406,7 @@ footer{
         <li>Instalable como app (PWA)</li><li>Contador de visitas en vivo</li>
         <li>Soporte prioritario 30 días</li>
       </ul>
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Elite%20%E2%80%94%20%24149.900" target="_blank" class="btn-s" style="display:flex;justify-content:center;font-size:.72rem;border-color:var(--cyan);color:var(--cyan);">Quiero el ELITE →</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20el%20plan%20Elite%20%E2%80%94%20%24149.900" target="_blank" rel="noopener noreferrer" class="btn-s" style="display:flex;justify-content:center;font-size:.72rem;border-color:var(--cyan);color:var(--cyan);">Quiero el ELITE →</a>
     </div>
   </div>
   <div style="text-align:center;margin-top:1.8rem;" class="rev">
@@ -1013,15 +438,15 @@ footer{
       <h2 class="h2">Todo lo que <span class="text-gold">quieres saber</span></h2>
     </div>
     <div class="faqs">
-      <div class="fi rev"><div class="fq">¿Necesito instalar alguna app? <span class="fick">+</span></div><div class="fa"><div class="fa-in">No. Tu tarjeta se abre directamente desde el navegador del celular — <span>sin descargas</span>. Funciona en Android, iPhone y cualquier dispositivo con internet.</div></div></div>
-      <div class="fi rev"><div class="fq">¿Cuánto tarda en estar lista mi tarjeta? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Entre <span>24 y 48 horas hábiles</span> desde que confirmas el pago y me envías tu información. Incluye una ronda de revisión y ajustes.</div></div></div>
-      <div class="fi rev"><div class="fq">¿Puedo actualizar el contenido después? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Sí. Las actualizaciones tienen un <span>costo mínimo adicional</span> según la complejidad del cambio solicitado.</div></div></div>
-      <div class="fi rev"><div class="fq">¿Cómo comparto la tarjeta con mis clientes? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Por <span>link directo</span> en WhatsApp, Instagram o email; por <span>código QR</span> impreso en tu local; o añadiéndola a tu bio de redes sociales.</div></div></div>
-      <div class="fi rev"><div class="fq">¿Qué necesito para empezar? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Solo tu <span>foto, nombre, ocupación, teléfono y redes sociales</span>. Yo me encargo del diseño y la publicación.</div></div></div>
-      <div class="fi rev"><div class="fq">¿Cómo realizo el pago? <span class="fick">+</span></div><div class="fa"><div class="fa-in">Acepto <span>Nequi, Daviplata, transferencia bancaria</span> y efectivo. El pago es anticipado para iniciar el diseño.</div></div></div>
+      <div class="fi rev"><button class="fq" aria-expanded="false" aria-controls="fa-1">¿Necesito instalar alguna app? <span class="fick" aria-hidden="true">+</span></button><div class="fa" id="fa-1" role="region"><div class="fa-in">No. Tu tarjeta se abre directamente desde el navegador del celular — <span>sin descargas</span>. Funciona en Android, iPhone y cualquier dispositivo con internet.</div></div></div>
+      <div class="fi rev"><button class="fq" aria-expanded="false" aria-controls="fa-2">¿Cuánto tarda en estar lista mi tarjeta? <span class="fick" aria-hidden="true">+</span></button><div class="fa" id="fa-2" role="region"><div class="fa-in">Entre <span>24 y 48 horas hábiles</span> desde que confirmas el pago y me envías tu información. Incluye una ronda de revisión y ajustes.</div></div></div>
+      <div class="fi rev"><button class="fq" aria-expanded="false" aria-controls="fa-3">¿Puedo actualizar el contenido después? <span class="fick" aria-hidden="true">+</span></button><div class="fa" id="fa-3" role="region"><div class="fa-in">Sí. Las actualizaciones tienen un <span>costo mínimo adicional</span> según la complejidad del cambio solicitado.</div></div></div>
+      <div class="fi rev"><button class="fq" aria-expanded="false" aria-controls="fa-4">¿Cómo comparto la tarjeta con mis clientes? <span class="fick" aria-hidden="true">+</span></button><div class="fa" id="fa-4" role="region"><div class="fa-in">Por <span>link directo</span> en WhatsApp, Instagram o email; por <span>código QR</span> impreso en tu local; o añadiéndola a tu bio de redes sociales.</div></div></div>
+      <div class="fi rev"><button class="fq" aria-expanded="false" aria-controls="fa-5">¿Qué necesito para empezar? <span class="fick" aria-hidden="true">+</span></button><div class="fa" id="fa-5" role="region"><div class="fa-in">Solo tu <span>foto, nombre, ocupación, teléfono y redes sociales</span>. Yo me encargo del diseño y la publicación.</div></div></div>
+      <div class="fi rev"><button class="fq" aria-expanded="false" aria-controls="fa-6">¿Cómo realizo el pago? <span class="fick" aria-hidden="true">+</span></button><div class="fa" id="fa-6" role="region"><div class="fa-in">Acepto <span>Nequi, Daviplata, transferencia bancaria</span> y efectivo. El pago es anticipado para iniciar el diseño.</div></div></div>
     </div>
     <div style="text-align:center;margin-top:1.8rem;" class="rev">
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20tengo%20una%20pregunta%20sobre%20las%20tarjetas%20%F0%9F%91%8B" target="_blank" class="btn-s" style="font-size:.72rem;"><i class="fab fa-whatsapp"></i>Tengo otra pregunta</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20tengo%20una%20pregunta%20sobre%20las%20tarjetas%20%F0%9F%91%8B" target="_blank" rel="noopener noreferrer" class="btn-s" style="font-size:.72rem;"><i class="fab fa-whatsapp"></i>Tengo otra pregunta</a>
     </div>
   </div>
 </section>
@@ -1037,7 +462,7 @@ footer{
       <p style="font-size:.85rem;color:var(--muted);line-height:1.7;">Trabajamos con agencias, diseñadores y comerciales que ya atienden negocios. Cuéntanos a qué te dedicas y revisamos juntos cómo colaborar.</p>
     </div>
     <div>
-      <a href="#asesor" class="btn-s" style="white-space:nowrap;">Hablar como aliado</a>
+      <button class="btn-s" id="aliadosToggle" style="white-space:nowrap;">Hablar como aliado</button>
     </div>
   </div>
 </section>
@@ -1058,34 +483,34 @@ footer{
     <p class="cta-sub rev">Más de 58 profesionales en Colombia ya dejaron el papel atrás. ¿Cuánto más vas a esperar?</p>
     <div class="urgency rev"><div class="udot"></div>CUPOS LIMITADOS CADA SEMANA</div>
     <div style="display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;" class="rev">
-      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20mi%20tarjeta%20digital%20KONF%C3%8DO%20ZINC%20%F0%9F%91%8B" target="_blank" class="btn-p" style="font-size:.85rem;padding:1rem 2.5rem;"><i class="fab fa-whatsapp"></i>QUIERO MI TARJETA</a>
+      <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20mi%20tarjeta%20digital%20KONF%C3%8DO%20ZINC%20%F0%9F%91%8B" target="_blank" rel="noopener noreferrer" class="btn-p" style="font-size:.85rem;padding:1rem 2.5rem;"><i class="fab fa-whatsapp"></i>QUIERO MI TARJETA</a>
       <a href="tel:+573206411340" class="btn-s" style="padding:1rem 1.8rem;font-size:.75rem;"><i class="fas fa-phone"></i>LLAMAR AHORA</a>
     </div>
     <p style="margin-top:1.5rem;font-size:.75rem;color:var(--muted);" class="rev">🛡️ Garantía de satisfacción · 🚚 Entrega 24–48 h · ⚡ Activación inmediata</p>
   </div>
 </section>
 
-<!-- FOOTER (CORREGIDO: redes sociales centradas y con colores) -->
+<!-- FOOTER -->
 <footer>
   <div class="fl"><span class="text-gold">KONFÍO</span> <span class="text-cyan">ZINC</span></div>
   <div class="ft">© 2026 KONFÍO ZINC · Todos los Derechos Reservados</div>
   <div class="social-icons">
-    <a href="https://www.instagram.com/konfiozinc" target="_blank" class="ig" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-    <a href="https://www.tiktok.com/@konfiozinc" target="_blank" class="tt" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
-    <a href="https://www.facebook.com/profile.php?id=61589654555930" target="_blank" class="fb" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+    <a href="https://www.instagram.com/konfiozinc" target="_blank" rel="noopener noreferrer" class="ig" aria-label="Instagram"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+    <a href="https://www.tiktok.com/@konfiozinc" target="_blank" rel="noopener noreferrer" class="tt" aria-label="TikTok"><i class="fab fa-tiktok" aria-hidden="true"></i></a>
+    <a href="https://www.facebook.com/profile.php?id=61589654555930" target="_blank" rel="noopener noreferrer" class="fb" aria-label="Facebook"><i class="fab fa-facebook" aria-hidden="true"></i></a>
   </div>
 </footer>
 
 <!-- WhatsApp flotante -->
-<a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20mi%20tarjeta%20digital%20personalizada" target="_blank" class="wa-float" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+<a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20quiero%20mi%20tarjeta%20digital%20personalizada" target="_blank" rel="noopener noreferrer" class="wa-float" aria-label="WhatsApp"><i class="fab fa-whatsapp" aria-hidden="true"></i></a>
 <div class="wa-ring"></div>
 
 <!-- Video Modal -->
-<div class="modal-ov" id="vModal">
+<div class="modal-ov" id="vModal" role="dialog" aria-modal="true" aria-labelledby="vModalTitle" aria-hidden="true">
   <div class="modal-inner">
     <div class="modal-hdr">
-      <span><i class="fas fa-play" style="color:#f87171;margin-right:.5rem;"></i>Video Promocional</span>
-      <button class="mclose" id="vClose">&times;</button>
+      <span id="vModalTitle"><i class="fas fa-play" style="color:#f87171;margin-right:.5rem;"></i>Video Promocional</span>
+      <button class="mclose" id="vClose" aria-label="Cerrar video">&times;</button>
     </div>
     <div style="position:relative;aspect-ratio:16/9;background:#000;">
       <iframe id="vFrame" width="100%" height="100%" src="" title="Video KONFÍO ZINC" frameborder="0" allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture" allowfullscreen style="position:absolute;inset:0;width:100%;height:100%;"></iframe>
@@ -1093,569 +518,9 @@ footer{
   </div>
 </div>
 
-<script>
-(function(){
-
-/* ══════════════════════════════════════════════════
-   CURSOR
-══════════════════════════════════════════════════ */
-const cur=document.getElementById('cur'), ring=document.getElementById('curRing');
-let mx=0,my=0,tx=0,ty=0;
-document.addEventListener('mousemove',e=>{
-  mx=e.clientX;my=e.clientY;
-  cur.style.left=(mx-5)+'px';cur.style.top=(my-5)+'px';
-},{passive:true});
-(function raf(){tx+=(mx-tx)*.12;ty+=(my-ty)*.12;ring.style.left=(tx-16)+'px';ring.style.top=(ty-16)+'px';requestAnimationFrame(raf);})();
-document.querySelectorAll('a,button').forEach(el=>{
-  el.addEventListener('mouseenter',()=>{cur.style.transform='scale(2.5)';ring.style.transform='scale(.5)';});
-  el.addEventListener('mouseleave',()=>{cur.style.transform='scale(1)';ring.style.transform='scale(1)';});
-});
-
-/* ── Parallax glow ── */
-const hg=document.getElementById('hGlow');
-document.addEventListener('mousemove',e=>{
-  if(!hg)return;
-  hg.style.transform=`translate(${(e.clientX/innerWidth-.5)*35}px,${(e.clientY/innerHeight-.5)*35}px)`;
-},{passive:true});
-
-/* ══════════════════════════════════════════════════
-   SCROLL REVEAL
-══════════════════════════════════════════════════ */
-const revEls=document.querySelectorAll('.rev');
-const revObs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){
-      const sibs=Array.from(e.target.parentElement.children).filter(c=>c.classList.contains('rev'));
-      const idx=sibs.indexOf(e.target);
-      setTimeout(()=>e.target.classList.add('vis'),idx*70);
-      revObs.unobserve(e.target);
-    }
-  });
-},{threshold:.06});
-revEls.forEach(r=>revObs.observe(r));
-
-/* ══════════════════════════════════════════════════
-   COUNTER ANIMATION
-══════════════════════════════════════════════════ */
-function animCount(el,target,sfx){
-  const dur=1800,start=performance.now();
-  (function step(now){
-    const p=Math.min((now-start)/dur,1);
-    el.textContent=Math.floor((1-Math.pow(1-p,3))*target)+sfx;
-    if(p<1)requestAnimationFrame(step);
-  })(start);
-}
-const cObs=new IntersectionObserver(entries=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting){
-      const el=e.target.querySelector('[data-count]');
-      if(el)animCount(el,parseInt(el.dataset.count),el.dataset.sfx||'');
-      cObs.unobserve(e.target);
-    }
-  });
-},{threshold:.5});
-document.querySelectorAll('.stat').forEach(s=>cObs.observe(s));
-
-/* ══════════════════════════════════════════════════
-   FAQ
-══════════════════════════════════════════════════ */
-document.querySelectorAll('.fq').forEach(q=>{
-  q.addEventListener('click',()=>{
-    const it=q.parentElement;
-    const was=it.classList.contains('open');
-    document.querySelectorAll('.fi.open').forEach(i=>i.classList.remove('open'));
-    if(!was)it.classList.add('open');
-  });
-});
-
-/* ══════════════════════════════════════════════════
-   VIDEO MODAL
-══════════════════════════════════════════════════ */
-const vModal=document.getElementById('vModal');
-const vFrame=document.getElementById('vFrame');
-const vClose=document.getElementById('vClose');
-document.getElementById('vBtn').addEventListener('click',()=>{
-  vFrame.src='https://www.youtube.com/embed/ndRhGLFUlLA?autoplay=1';
-  vModal.classList.add('act');
-  document.body.style.overflow='hidden';
-});
-function closeV(){vModal.classList.remove('act');vFrame.src='';document.body.style.overflow='';}
-vClose.addEventListener('click',closeV);
-vModal.addEventListener('click',e=>{if(e.target===vModal)closeV();});
-
-/* ══════════════════════════════════════════════════
-   ASESOR IA  🤖 (Chat integrado existente)
-══════════════════════════════════════════════════ */
-const KZ_API_KEY   = '';
-const KZ_PROXY_URL = '';
-const KZ_ENDPOINT  = KZ_PROXY_URL || 'https://api.anthropic.com/v1/messages';
-
-const SYSTEM_PROMPT = `Eres el asesor de ventas de KONFÍO ZINC...`; // (truncado por brevedad)
-
-let chatHistory = [];
-const msgsEl = document.getElementById('chatMsgs');
-const inputEl = document.getElementById('chatInput');
-const sendBtn = document.getElementById('chatSend');
-const chipsEl = document.getElementById('chatChips');
-let isTyping = false;
-
-function scrollToBottom(){
-  msgsEl.scrollTop = msgsEl.scrollHeight;
-}
-
-function addMsg(role, text){
-  const now = new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
-  const div = document.createElement('div');
-  div.className = `msg ${role}`;
-  div.innerHTML = `
-    <div class="msg-bubble">${text.replace(/\n/g,'<br>').replace(/https?:\/\/[^\s]+/g, url=>`<a href="${url}" target="_blank" style="color:var(--gold);text-decoration:underline;">${url}</a>`)}</div>
-    <div class="msg-time">${now}</div>
-  `;
-  msgsEl.appendChild(div);
-  scrollToBottom();
-  return div;
-}
-
-function showTyping(){
-  const div = document.createElement('div');
-  div.className = 'msg bot';
-  div.id = 'typingIndicator';
-  div.innerHTML = `<div class="msg-bubble"><div class="typing-dots"><span></span><span></span><span></span></div></div>`;
-  msgsEl.appendChild(div);
-  scrollToBottom();
-}
-
-function removeTyping(){
-  document.getElementById('typingIndicator')?.remove();
-}
-
-function buildHeaders(){
-  const h = {'Content-Type':'application/json','anthropic-version':'2023-06-01','anthropic-dangerous-allow-browser':'true'};
-  if(KZ_API_KEY) h['x-api-key'] = KZ_API_KEY;
-  return h;
-}
-
-async function sendToAI(userMsg){
-  if(isTyping) return;
-  isTyping = true;
-  sendBtn.disabled = true;
-  chipsEl.style.display = 'none';
-
-  chatHistory.push({role:'user', content: userMsg});
-  addMsg('user', userMsg);
-  showTyping();
-
-  try {
-    const res = await fetch(KZ_ENDPOINT, {
-      method:'POST',
-      headers: buildHeaders(),
-      body: JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:1000,
-        system: SYSTEM_PROMPT,
-        messages: chatHistory
-      })
-    });
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    const reply = data.content?.[0]?.text || 'Lo siento, hubo un error. Por favor escríbeme por WhatsApp.';
-    removeTyping();
-    addMsg('bot', reply);
-    chatHistory.push({role:'assistant', content: reply});
-  } catch(err){
-    removeTyping();
-    addMsg('bot', '¡Hola! 👋 Parece que el asesor está cargando. Por ahora puedes escribirme directamente: <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20necesito%20asesor%C3%ADa" target="_blank" style="color:var(--gold);font-weight:700;">💬 Abrir WhatsApp</a>');
-  }
-
-  isTyping = false;
-  sendBtn.disabled = false;
-  inputEl.focus();
-}
-
-async function initChat(){
-  showTyping();
-  try {
-    const res = await fetch(KZ_ENDPOINT, {
-      method:'POST',
-      headers: buildHeaders(),
-      body: JSON.stringify({
-        model:'claude-sonnet-4-6',
-        max_tokens:300,
-        system: SYSTEM_PROMPT,
-        messages:[{role:'user', content:'Inicia la conversación'}]
-      })
-    });
-    const data = await res.json();
-    const reply = data.content?.[0]?.text || '¡Hola! 👋 Soy el asesor de KONFÍO ZINC. ¿En qué tipo de negocio trabajas?';
-    removeTyping();
-    addMsg('bot', reply);
-    chatHistory.push({role:'assistant', content: reply});
-  } catch {
-    removeTyping();
-    addMsg('bot', '¡Hola! 👋 Soy el asesor de KONFÍO ZINC. ¿En qué tipo de negocio o actividad trabajas? Cuéntame para recomendarte la mejor tarjeta digital para ti.');
-    chatHistory.push({role:'assistant', content:'¡Hola! 👋 Soy el asesor de KONFÍO ZINC. ¿En qué tipo de negocio o actividad trabajas? Cuéntame para recomendarte la mejor tarjeta digital para ti.'});
-  }
-}
-
-chipsEl.querySelectorAll('.chip').forEach(chip=>{
-  chip.addEventListener('click',()=>{
-    const msg = chip.dataset.msg;
-    sendToAI(msg);
-  });
-});
-
-document.getElementById('chatForm').addEventListener('submit',e=>{
-  e.preventDefault();
-  const txt = inputEl.value.trim();
-  if(!txt||isTyping) return;
-  inputEl.value='';
-  sendToAI(txt);
-});
-
-inputEl.addEventListener('keydown',e=>{
-  if(e.key==='Enter'&&!e.shiftKey){
-    e.preventDefault();
-    document.getElementById('chatForm').dispatchEvent(new Event('submit'));
-  }
-});
-
-document.getElementById('chatReset').addEventListener('click',()=>{
-  chatHistory=[];
-  msgsEl.innerHTML='';
-  chipsEl.style.display='flex';
-  initChat();
-});
-
-const chatObs = new IntersectionObserver(entries=>{
-  if(entries[0].isIntersecting){
-    initChat();
-    chatObs.disconnect();
-  }
-},{threshold:.1});
-chatObs.observe(document.getElementById('chatWidget'));
-
-})();
-</script>
-
-<!-- ================================================================
-     🧠 AGENTE IA FLOTANTE · KONFÍO ZINC (OFFLINE)
-     🔥 CORREGIDO: botón superior ahora abre este chat
-     🔥 CORREGIDO: posición separada del WhatsApp
-     ================================================================ -->
-
-<style>
-  /* ── Contenedor del widget flotante ── */
-  .kz-fab-wrapper {
-    position: fixed;
-    bottom: 90px;  /* 🔥 SUBIDO para no tapar el WhatsApp */
-    right: 24px;
-    z-index: 99999;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 12px;
-  }
-  @media (max-width: 480px) {
-    .kz-fab-wrapper { bottom: 80px; right: 16px; }  /* 🔥 Ajuste móvil */
-  }
-
-  /* ── Botón flotante ── */
-  .kz-fab-btn {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #F0B429, #F97316);
-    border: none;
-    box-shadow: 0 8px 32px rgba(240, 180, 41, 0.45);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    color: #0a0a0f;
-    font-size: 26px;
-    position: relative;
-    flex-shrink: 0;
-  }
-  .kz-fab-btn:hover { transform: scale(1.08); box-shadow: 0 12px 44px rgba(240, 180, 41, 0.55); }
-  .kz-fab-btn:active { transform: scale(0.94); }
-  .kz-fab-btn .kz-dot {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 13px;
-    height: 13px;
-    background: #22c55e;
-    border-radius: 50%;
-    border: 2px solid #0a0a0f;
-    animation: kz-pulse 2.2s ease-in-out infinite;
-  }
-  @keyframes kz-pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.82); } }
-
-  /* ── Ventana de chat ── */
-  .kz-fab-chat {
-    width: 380px;
-    max-width: calc(100vw - 32px);
-    height: 560px;
-    max-height: calc(100vh - 120px);
-    background: #0d0d12;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.85), 0 0 40px rgba(240, 180, 41, 0.08);
-    display: none;
-    flex-direction: column;
-    overflow: hidden;
-    transform-origin: bottom right;
-    transition: opacity 0.25s ease, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  .kz-fab-chat.open {
-    display: flex;
-    animation: kz-chat-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  @keyframes kz-chat-in {
-    0% { opacity:0; transform: scale(0.92) translateY(12px); }
-    100% { opacity:1; transform: scale(1) translateY(0); }
-  }
-
-  /* ── Cabecera ── */
-  .kz-chat-header {
-    padding: 14px 18px;
-    background: rgba(20, 20, 30, 0.95);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-shrink: 0;
-  }
-  .kz-chat-header .kz-avatar {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: linear-gradient(135deg, #F0B429, #F97316);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 13px;
-    color: #0a0a0f;
-    flex-shrink: 0;
-  }
-  .kz-chat-header .kz-info { flex:1; min-width:0; }
-  .kz-chat-header .kz-info .kz-name {
-    font-weight: 600;
-    font-size: 14px;
-    color: #fff;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .kz-chat-header .kz-info .kz-name .kz-badge {
-    font-size: 9px;
-    background: rgba(240,180,41,0.2);
-    color: #F0B429;
-    padding: 2px 8px;
-    border-radius: 20px;
-    font-weight: 500;
-  }
-  .kz-chat-header .kz-info .kz-status {
-    font-size: 11px;
-    color: #888;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-  .kz-chat-header .kz-info .kz-status .kz-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    background: #22c55e;
-    display: inline-block;
-    animation: kz-pulse 2.2s ease-in-out infinite;
-  }
-  .kz-chat-header .kz-close {
-    background: none;
-    border: none;
-    color: #666;
-    font-size: 18px;
-    cursor: pointer;
-    padding: 4px;
-    transition: color 0.2s;
-    line-height:1;
-  }
-  .kz-chat-header .kz-close:hover { color: #fff; }
-
-  /* ── Cuerpo (mensajes) ── */
-  .kz-chat-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background: #0a0a0f;
-    scroll-behavior: smooth;
-  }
-  .kz-chat-body::-webkit-scrollbar { width:4px; }
-  .kz-chat-body::-webkit-scrollbar-track { background:transparent; }
-  .kz-chat-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.15); border-radius:4px; }
-
-  .kz-msg {
-    max-width: 88%;
-    padding: 10px 14px;
-    border-radius: 14px;
-    font-size: 13px;
-    line-height: 1.55;
-    word-wrap: break-word;
-    animation: kz-msg-in 0.3s ease;
-  }
-  @keyframes kz-msg-in { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
-  .kz-msg-bot {
-    align-self: flex-start;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.06);
-    color: #e8e8e8;
-    border-bottom-left-radius: 4px;
-  }
-  .kz-msg-bot a { color: #F0B429; text-decoration: underline; text-underline-offset:2px; }
-  .kz-msg-bot a:hover { color: #FFD97D; }
-  .kz-msg-bot strong { color: #fff; }
-  .kz-msg-user {
-    align-self: flex-end;
-    background: linear-gradient(135deg, #F0B429, #F97316);
-    color: #0a0a0f;
-    border-bottom-right-radius: 4px;
-    font-weight: 500;
-  }
-  .kz-msg-typing {
-    align-self: flex-start;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 14px;
-    border-bottom-left-radius: 4px;
-    padding: 12px 16px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    min-height: 36px;
-  }
-  .kz-msg-typing span {
-    width: 7px; height: 7px;
-    background: #888;
-    border-radius: 50%;
-    display: inline-block;
-    animation: kz-typing 1.4s infinite both;
-  }
-  .kz-msg-typing span:nth-child(1) { animation-delay:0s; }
-  .kz-msg-typing span:nth-child(2) { animation-delay:0.2s; }
-  .kz-msg-typing span:nth-child(3) { animation-delay:0.4s; }
-  @keyframes kz-typing {
-    0%,60%,100% { transform:translateY(0); opacity:0.4; }
-    30% { transform:translateY(-6px); opacity:1; }
-  }
-
-  /* ── Botones rápidos ── */
-  .kz-chips {
-    padding: 8px 14px 10px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    border-top: 1px solid rgba(255,255,255,0.04);
-    background: rgba(10,10,15,0.95);
-    flex-shrink: 0;
-  }
-  .kz-chips button {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 20px;
-    padding: 6px 14px;
-    font-size: 11.5px;
-    color: #ccc;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    white-space: nowrap;
-  }
-  .kz-chips button:hover {
-    background: rgba(240,180,41,0.15);
-    border-color: rgba(240,180,41,0.3);
-    color: #F0B429;
-  }
-
-  /* ── Input ── */
-  .kz-chat-input {
-    padding: 8px 14px 12px;
-    border-top: 1px solid rgba(255,255,255,0.04);
-    background: rgba(10,10,15,0.95);
-    display: flex;
-    gap: 8px;
-    flex-shrink: 0;
-  }
-  .kz-chat-input textarea {
-    flex: 1;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 10px 14px;
-    font-size: 13px;
-    color: #fff;
-    outline: none;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    transition: border-color 0.2s;
-    resize: none;
-    min-height: 40px;
-    max-height: 100px;
-    line-height: 1.4;
-    field-sizing: content;
-  }
-  .kz-chat-input textarea::placeholder { color: #666; }
-  .kz-chat-input textarea:focus { border-color: rgba(240,180,41,0.4); }
-  .kz-chat-input button {
-    background: linear-gradient(135deg, #F0B429, #F97316);
-    border: none;
-    border-radius: 12px;
-    padding: 0 16px;
-    color: #0a0a0f;
-    font-size: 16px;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-  .kz-chat-input button:hover { transform:scale(1.04); }
-  .kz-chat-input button:active { transform:scale(0.95); }
-
-  /* ── Botón WhatsApp dentro del chat ── */
-  .kz-wa-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: #25D366;
-    color: #fff;
-    padding: 8px 18px;
-    border-radius: 30px;
-    font-weight: 600;
-    font-size: 13px;
-    border: none;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-decoration: none;
-    margin-top: 6px;
-  }
-  .kz-wa-btn:hover { transform:scale(1.04); box-shadow:0 4px 20px rgba(37,211,102,0.3); }
-
-  @media (max-width:480px) {
-    .kz-fab-btn { width:54px; height:54px; font-size:22px; }
-    .kz-fab-chat { width:calc(100vw - 32px); height:calc(100vh - 140px); max-height:600px; border-radius:16px; }
-    .kz-chat-body { padding:12px 14px; }
-    .kz-msg { font-size:12.5px; padding:8px 12px; }
-    .kz-chips button { font-size:10.5px; padding:5px 10px; }
-  }
-</style>
-
-<!-- HTML del widget flotante -->
+<!-- ══ AGENTE IA FLOTANTE (OFFLINE) ═════════════════ -->
 <div class="kz-fab-wrapper" id="kzFabWrapper">
-  <!-- Ventana de chat -->
-  <div class="kz-fab-chat" id="kzFabChat">
+  <div class="kz-fab-chat" id="kzFabChat" role="dialog" aria-label="Asesor KONFÍO ZINC" aria-hidden="true">
     <div class="kz-chat-header">
       <div class="kz-avatar">KZ</div>
       <div class="kz-info">
@@ -1667,6 +532,7 @@ chatObs.observe(document.getElementById('chatWidget'));
           <span class="kz-dot"></span> En línea · responde al instante
         </div>
       </div>
+      <button class="kz-reset" id="kzFabReset" aria-label="Reiniciar conversación" title="Reiniciar conversación"><i class="fas fa-rotate-left"></i></button>
       <button class="kz-close" id="kzFabClose" aria-label="Cerrar chat">✕</button>
     </div>
 
@@ -1682,337 +548,17 @@ chatObs.observe(document.getElementById('chatWidget'));
     </div>
 
     <div class="kz-chat-input">
-      <textarea id="kzFabInput" placeholder="Escribe tu mensaje…" rows="1"></textarea>
+      <textarea id="kzFabInput" placeholder="Escribe tu mensaje…" rows="1" aria-label="Escribe tu mensaje"></textarea>
       <button id="kzFabSend" aria-label="Enviar">➤</button>
     </div>
   </div>
 
-  <!-- Botón flotante -->
-  <button class="kz-fab-btn" id="kzFabToggle" aria-label="Abrir chat con asesor IA">
+  <button class="kz-fab-btn" id="kzFabToggle" aria-label="Abrir chat con asesor IA" aria-expanded="false" aria-controls="kzFabChat">
     <span class="kz-dot"></span>
     💬
   </button>
 </div>
 
-<script>
-  // 🔥 CORREGIDO: Los botones superiores abren el chat flotante
-  document.addEventListener('DOMContentLoaded', function() {
-    const navAsesor = document.getElementById('navAsesorToggle');
-    const heroAsesor = document.getElementById('heroAsesorToggle');
-    const fabToggle = document.getElementById('kzFabToggle');
-
-    function openFloatingChat(e) {
-      if (e) e.preventDefault();
-      if (fabToggle) fabToggle.click();
-    }
-
-    if (navAsesor) navAsesor.addEventListener('click', openFloatingChat);
-    if (heroAsesor) heroAsesor.addEventListener('click', openFloatingChat);
-  });
-
-  (function() {
-    'use strict';
-
-    // ── DOM refs ──
-    const chat = document.getElementById('kzFabChat');
-    const toggleBtn = document.getElementById('kzFabToggle');
-    const closeBtn = document.getElementById('kzFabClose');
-    const body = document.getElementById('kzFabBody');
-    const input = document.getElementById('kzFabInput');
-    const sendBtn = document.getElementById('kzFabSend');
-    const chips = document.getElementById('kzFabChips');
-
-    let isOpen = false;
-    let history = [];
-
-    function addMessage(text, sender) {
-      const div = document.createElement('div');
-      div.className = 'kz-msg ' + (sender === 'user' ? 'kz-msg-user' : 'kz-msg-bot');
-      let content = text;
-      if (sender === 'bot') {
-        content = text.replace(/\n/g, '<br>').replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank" style="color:#F0B429;text-decoration:underline;">$1</a>');
-      }
-      div.innerHTML = content;
-      body.appendChild(div);
-      body.scrollTop = body.scrollHeight;
-    }
-
-    function showTyping() {
-      const div = document.createElement('div');
-      div.className = 'kz-msg-typing';
-      div.id = 'kzTyping';
-      div.innerHTML = '<span></span><span></span><span></span>';
-      body.appendChild(div);
-      body.scrollTop = body.scrollHeight;
-    }
-
-    function hideTyping() {
-      const el = document.getElementById('kzTyping');
-      if (el) el.remove();
-    }
-
-    function showWhatsAppButton() {
-      if (document.querySelector('.kz-wa-btn')) return;
-      const div = document.createElement('div');
-      div.style.cssText = 'align-self: flex-start; margin-top: 4px;';
-      div.innerHTML = `
-        <a href="https://wa.me/573206411340?text=Hola%20Darwin%2C%20estoy%20interesado%20en%20contratar%20una%20tarjeta%20digital%20con%20KONF%C3%8DO%20ZINC"
-           target="_blank" class="kz-wa-btn">
-          💬 CONTINUAR POR WHATSAPP
-        </a>
-      `;
-      body.appendChild(div);
-      body.scrollTop = body.scrollHeight;
-    }
-
-    // ── LÓGICA DEL AGENTE (TODAS LAS REGLAS DE NEGOCIO) ──
-    function getResponse(userMsg, history) {
-      const q = userMsg.toLowerCase().trim();
-      const lastBotMsg = history.filter(m => m.role === 'assistant').pop()?.content || '';
-
-      // ── PRIMER MENSAJE ──
-      if (history.length === 0) {
-        return `¡Hola! 👋 Bienvenido a KONFÍO ZINC.
-
-Ayudamos a negocios y profesionales a fortalecer su presencia digital con Tarjetas Digitales, Catálogos Digitales, Menús Digitales y Mini Landing Pages.
-
-Cuéntame, ¿tu consulta es para tu propio negocio o para un cliente?`;
-      }
-
-      // ── PARTNER / ALIADO ──
-      if (q.includes('aliado') || q.includes('partner') || q.includes('distribuidor') || q.includes('revender') || q.includes('agencia')) {
-        return `¡Excelente! 💼
-
-KONFÍO ZINC tiene un programa de aliados para agencias, diseñadores y comerciales.
-
-Para poder definir el esquema de comisiones, necesito conocer tu perfil:
-¿Actualmente a qué te dedicas?
-¿Qué tipo de clientes atiendes con más frecuencia?`;
-      }
-
-      // ── PRECIO ──
-      if (q.includes('precio') || q.includes('cuanto') || q.includes('costo') || q.includes('valor') || q.includes('tarifa') || q.includes('plan')) {
-        return `Claro 😊.
-
-Actualmente manejamos tres categorías:
-
-⭐ START: $49.900 COP
-⭐ PRO: $99.900 COP
-⭐ ELITE: $149.900 COP
-
-📌 START: Ideal para presencia digital sencilla
-📌 PRO: La más recomendada para la mayoría de negocios
-📌 ELITE: La solución más completa
-
-¿A qué se dedica tu negocio? Así podré recomendarte la mejor opción.`;
-      }
-
-      // ── PORTAFOLIO / EJEMPLOS ──
-      if (q.includes('ejemplo') || q.includes('portafolio') || q.includes('ver trabajos') || q.includes('muestra') || q.includes('referencias')) {
-        return `Claro 😊.
-
-Aquí puedes conocer nuestro portafolio y ver ejemplos reales:
-
-https://konfiozinc.github.io/card/
-
-Cuando lo revises, cuéntame qué estilo te gustó más y con gusto te preparo una propuesta personalizada.
-
-¿A qué se dedica tu negocio?`;
-      }
-
-      // ── DETECTAR SECTOR ──
-      const sectors = {
-        restaurante: ['restaurante', 'comida', 'cafetería', 'gastronomía', 'menú', 'carta', 'chef'],
-        belleza: ['belleza', 'peluquería', 'salón', 'estilista', 'color', 'alisado'],
-        uñas: ['uñas', 'manicure', 'pedicure', 'nail'],
-        maquillaje: ['maquillaje', 'makeup', 'maquilladora'],
-        barberia: ['barbería', 'barbero', 'corte', 'barba'],
-        nutricionista: ['nutricionista', 'nutrición', 'dietista'],
-        odontologo: ['odontólogo', 'dentista', 'odontología'],
-        abogado: ['abogado', 'jurídico', 'legal', 'derecho'],
-        inmobiliaria: ['inmobiliaria', 'bienes raíces', 'finca raíz', 'propiedades'],
-        transporte: ['transporte', 'mensajería', 'envíos', 'delivery'],
-        fumigacion: ['fumigación', 'plagas', 'control de plagas'],
-        diseno: ['diseño gráfico', 'diseñador', 'creativo', 'branding'],
-        eventos: ['eventos', 'decoración', 'fiestas', 'bodas'],
-        internet: ['internet', 'fibra óptica', 'telecomunicaciones', 'tv hogar']
-      };
-
-      let detectedSector = null;
-      for (const [sector, keywords] of Object.entries(sectors)) {
-        for (const kw of keywords) {
-          if (q.includes(kw)) {
-            detectedSector = sector;
-            break;
-          }
-        }
-        if (detectedSector) break;
-      }
-
-      // ── EJEMPLOS POR SECTOR ──
-      const examples = {
-        restaurante: 'https://konfiozinc.github.io/eltiti/',
-        belleza: 'https://konfiozinc.github.io/lizeth_lozano/',
-        uñas: 'https://konfiozinc.github.io/nandy_nails/',
-        maquillaje: 'https://konfiozinc.github.io/makeup_artist/',
-        barberia: 'https://konfiozinc.github.io/ca-ada_style/',
-        nutricionista: 'https://konfiozinc.github.io/nutricionista/',
-        odontologo: 'https://konfiozinc.github.io/servicios_odontologicos/',
-        abogado: 'https://konfiozinc.github.io/abogados-dta/',
-        inmobiliaria: 'https://konfiozinc.github.io/century_21_radial/',
-        transporte: 'https://konfiozinc.github.io/mega-express/',
-        fumigacion: 'https://konfiozinc.github.io/fumigaciones-monterrey/',
-        diseno: 'https://konfiozinc.github.io/diseno_grafico/',
-        eventos: 'https://konfiozinc.github.io/decoradora_de_fiestas/',
-        internet: 'https://konfiozinc.github.io/unefibra/'
-      };
-
-      // ── SI DETECTÓ SECTOR ──
-      if (detectedSector) {
-        const example = examples[detectedSector] || 'https://konfiozinc.github.io/card/';
-        const sectorName = {
-          restaurante: 'restaurante o negocio gastronómico',
-          belleza: 'estudio de belleza',
-          uñas: 'nail studio',
-          odontologo: 'consultorio odontológico',
-          inmobiliaria: 'inmobiliaria',
-          abogado: 'oficina jurídica'
-        } [detectedSector] || detectedSector;
-
-        return `¡Perfecto! 👋
-
-Veo que tienes un ${sectorName}. KONFÍO ZINC es ideal para ti.
-
-Puedes ver un ejemplo muy similar aquí:
-${example}
-
-📌 ¿Ya manejas redes sociales para tu negocio?`;
-      }
-
-      // ── CONTRATAR ──
-      if (q.includes('quiero') || q.includes('contratar') || q.includes('comprar') || q.includes('empezar') || q.includes('listo')) {
-        return `🎉 ¡Excelente! Vamos a iniciar tu proyecto.
-
-Te recomiendo KONFÍO ZINC PRO ($99.900 COP) porque se ajusta perfectamente a la mayoría de negocios.
-
-📌 Para comenzar, necesito que me compartas:
-• Nombre completo o razón social
-• Teléfono de contacto
-• Logo (si tienes)
-• Fotografías de tu negocio o servicios
-• Redes sociales
-• Servicios o productos que ofreces
-
-📌 Aceptamos pagos por Nequi, Daviplata, transferencia Bancolombia o enlace de Mercado Pago.
-
-¿Me compartes tu información para iniciar el diseño? ✨`;
-      }
-
-      // ── SOPORTE / ACTUALIZACIONES ──
-      if (q.includes('actualizar') || q.includes('cambios') || q.includes('modificar') || q.includes('soporte') || q.includes('garantía')) {
-        return `✅ Tu compra incluye 3 actualizaciones gratuitas durante el año para modificar datos básicos (ubicación, correo, contacto, redes).
-
-📌 Al ser un producto digital personalizado, no se realizan devoluciones una vez iniciado el diseño. Puedes solicitar ajustes durante la fase de revisión antes de la entrega final.
-
-📌 Además, ofrecemos garantía de satisfacción: si no quedas conforme, rediseñamos tu tarjeta sin costo adicional.`;
-      }
-
-      // ── TIEMPO DE ENTREGA ──
-      if (q.includes('entrega') || q.includes('tiempo') || q.includes('demora') || q.includes('cuándo')) {
-        return `⏱️ El tiempo estimado de entrega es de 2 a 5 días hábiles, una vez recibamos toda la información necesaria.
-
-📌 Si el proyecto requiere personalización especial, el tiempo podrá variar y te informaremos previamente.`;
-      }
-
-      // ── SALUDOS ──
-      if (q.includes('hola') || q.includes('buenas') || q.includes('saludo')) {
-        return `¡Hola! 👋 ¿Cómo estás?
-
-Cuéntame, ¿tu consulta es para tu propio negocio o para un cliente?`;
-      }
-
-      // ── RESPUESTA GENÉRICA ──
-      return `Entendido. 😊
-
-Para poder recomendarte la mejor solución, necesito conocer un poco más sobre tu negocio.
-
-¿A qué se dedica tu negocio o profesión? Así podré orientarte mejor.`;
-    }
-
-    // ── ENVIAR MENSAJE ──
-    function sendMessage(text) {
-      if (!text || !text.trim()) return;
-      const userMsg = text.trim();
-      addMessage(userMsg, 'user');
-      input.value = '';
-
-      history.push({ role: 'user', content: userMsg });
-
-      showTyping();
-
-      setTimeout(() => {
-        hideTyping();
-        const reply = getResponse(userMsg, history);
-        addMessage(reply, 'bot');
-        history.push({ role: 'assistant', content: reply });
-
-        if (reply.includes('CONTINUAR POR WHATSAPP') || reply.includes('wa.me')) {
-          showWhatsAppButton();
-        }
-      }, 600);
-    }
-
-    // ── BIENVENIDA ──
-    function showWelcome() {
-      const welcome = `¡Hola! 👋 Bienvenido a KONFÍO ZINC.
-
-Ayudamos a negocios y profesionales a fortalecer su presencia digital con Tarjetas Digitales, Catálogos Digitales, Menús Digitales y Mini Landing Pages.
-
-Cuéntame, ¿tu consulta es para tu propio negocio o para un cliente?`;
-      addMessage(welcome, 'bot');
-      history.push({ role: 'assistant', content: welcome });
-    }
-
-    // ── EVENTOS ──
-    function toggleChat() {
-      isOpen = !isOpen;
-      chat.classList.toggle('open', isOpen);
-      if (isOpen) {
-        input.focus();
-        if (body.children.length === 0) showWelcome();
-      }
-    }
-
-    toggleBtn.addEventListener('click', toggleChat);
-    closeBtn.addEventListener('click', toggleChat);
-
-    input.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage(input.value);
-      }
-    });
-    sendBtn.addEventListener('click', () => sendMessage(input.value));
-
-    chips.addEventListener('click', (e) => {
-      const btn = e.target.closest('button');
-      if (!btn) return;
-      if (btn.dataset.action === 'whatsapp') {
-        window.open('https://wa.me/573206411340?text=Hola%20Darwin%2C%20estoy%20interesado%20en%20los%20servicios%20de%20KONF%C3%8DO%20ZINC', '_blank');
-        return;
-      }
-      const msg = btn.dataset.msg;
-      if (!isOpen) toggleChat();
-      setTimeout(() => sendMessage(msg), 300);
-    });
-
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && isOpen) toggleChat();
-    });
-
-    console.log('🧠 Agente IA KONFÍO ZINC (offline) cargado correctamente');
-  })();
-</script>
-
+<script src="scripts.js"></script>
 </body>
 </html>
