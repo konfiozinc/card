@@ -258,7 +258,7 @@
       }
 
       /* Precio */
-      if (['precio', 'precios', 'cuanto', 'cuesta', 'costo', 'valor', 'tarifa', 'plan', 'planes', 'vale', 'precio de'].some(function (k) { return q.indexOf(k) !== -1; })) {
+      if (['precio', 'precios', 'cuanto', 'cuesta', 'costo', 'valor', 'tarifa', 'plan', 'planes', 'vale', 'precio de'].some(function (k) { return q.indexOf(k) !== -1; }) && !['entrega', 'tiempo', 'demora', 'tarda', 'dias habiles'].some(function (k) { return q.indexOf(k) !== -1; })) {
         return {
           text: 'Claro 😊.\n\nActualmente manejamos tres categorías:\n\n⭐ START: $49.900 COP\n⭐ PRO: $99.900 COP\n⭐ ELITE: $149.900 COP\n\n📌 START: Ideal para presencia digital sencilla\n📌 PRO: La más recomendada para la mayoría de negocios\n📌 ELITE: La solución más completa\n\n¿A qué se dedica tu negocio? Así podré recomendarte la mejor opción.',
           cta: true
@@ -268,7 +268,7 @@
       /* Portafolio / ejemplos */
       if (['ejemplo', 'ejemplos', 'portafolio', 'ver trabajos', 'muestra', 'referencias', 'trabajos'].some(function (k) { return q.indexOf(k) !== -1; })) {
         return {
-          text: 'Claro 😊.\n\nAquí puedes conocer nuestro portafolio y ver ejemplos reales:\n\nhttps://konfiozinc.github.io/card/\n\nCuando lo revises, cuéntame qué estilo te gustó más y con gusto te preparo una propuesta personalizada.\n\n¿A qué se dedica tu negocio?',
+          text: 'Claro 😊.\n\nAquí puedes conocer nuestro portafolio y ver ejemplos reales:\n\nhttps://konfiozinc.github.io/card/\n\nCuando lo revises, cuéntame qué estilo te gustó más y con gusto te preparo una propuesta personalizada.',
           cta: false
         };
       }
