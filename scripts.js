@@ -282,7 +282,7 @@
       }
 
       /* Soporte / actualizaciones / garantía */
-      if (['actualizar', 'cambios', 'modificar', 'soporte', 'garantia', 'devolucion', 'devoluciones'].some(function (k) { return q.indexOf(k) !== -1; })) {
+      if (['actualizar', 'actualizaciones', 'actualizacion', 'cambios', 'modificar', 'soporte', 'garantia', 'devolucion', 'devoluciones'].some(function (k) { return q.indexOf(k) !== -1; })) {
         return {
           text: '✅ Tu compra incluye 3 actualizaciones gratuitas al año para cambios menores: número de contacto, enlaces a redes, dirección y ubicación.\n\n📌 Los cambios más complejos (nuevas secciones, rediseños, catálogos o videos) se cotizan según la complejidad del cambio.\n\n📌 Al ser un producto digital personalizado, no se realizan devoluciones una vez iniciado el diseño. Puedes solicitar ajustes durante la fase de revisión antes de la entrega final.\n\n📌 Además, ofrecemos garantía de satisfacción: si no quedas conforme, rediseñamos tu tarjeta sin costo adicional.',
           cta: false
