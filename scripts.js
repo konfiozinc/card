@@ -252,7 +252,7 @@
       /* Partner / aliado */
       if (['aliado', 'partner', 'distribuidor', 'revender', 'agencia', 'colaborar', 'comisiones'].some(function (k) { return q.indexOf(k) !== -1; })) {
         return {
-          text: '¡Excelente! 💼\n\nKONFÍO ZINC tiene un programa de aliados para agencias, diseñadores y comerciales.\n\nPara poder definir el esquema de comisiones, necesito conocer tu perfil:\n¿Actualmente a qué te dedicas?\n¿Qué tipo de clientes atiendes con más frecuencia?',
+          text: '¡Excelente! 💼\n\nKONFÍO ZINC tiene un programa de aliados para agencias, diseñadores y comerciales.\n\nPara definir el esquema de comisiones y tu precio de distribuidor, necesito conocer tu perfil:\n¿Actualmente a qué te dedicas?\n¿Qué tipo de clientes atiendes con más frecuencia?\n\nCon tu perfil, el equipo comercial te confirma la tabla de comisiones y precios por WhatsApp.',
           cta: true
         };
       }
@@ -276,7 +276,7 @@
       /* Contratar (ANTES que la detección de sector) */
       if (['contratar', 'contrata', 'comprar', 'compras', 'empezar', 'listo', 'adquirir', 'quiero una tarjeta', 'quiero mi tarjeta', 'deseo una tarjeta', 'pagar', 'contratacion'].some(function (k) { return q.indexOf(k) !== -1; })) {
         return {
-          text: '🎉 ¡Excelente! Vamos a iniciar tu proyecto.\n\nTe recomiendo KONFÍO ZINC PRO ($99.900 COP) porque se ajusta perfectamente a la mayoría de negocios.\n\n📌 Para comenzar, necesito que me compartas:\n• Nombre completo o razón social\n• Teléfono de contacto\n• Logo (si tienes)\n• Fotografías de tu negocio o servicios\n• Redes sociales\n• Servicios o productos que ofreces\n\n📌 Aceptamos pagos por Nequi, Daviplata, transferencia Bancolombia o enlace de Mercado Pago.\n\n¿Me compartes tu información para iniciar el diseño? ✨',
+          text: '🎉 ¡Excelente! Vamos a iniciar tu proyecto.\n\nTe recomiendo KONFÍO ZINC PRO ($99.900 COP) porque se ajusta perfectamente a la mayoría de negocios.\n\n📌 Para comenzar, necesito que me compartas:\n• Nombre completo o razón social\n• Teléfono de contacto\n• Logo (si tienes)\n• Fotografías de tu negocio o servicios\n• Redes sociales\n• Servicios o productos que ofreces\n\n📌 Condiciones de pago: 50% de anticipo para iniciar y 50% antes de la entrega final.\n\n📌 Aceptamos pagos por Nequi, Daviplata, transferencia Bancolombia o enlace de Mercado Pago.\n\n¿Me compartes tu información para iniciar el diseño? ✨',
           cta: true
         };
       }
@@ -284,7 +284,7 @@
       /* Soporte / actualizaciones / garantía */
       if (['actualizar', 'cambios', 'modificar', 'soporte', 'garantia', 'devolucion', 'devoluciones'].some(function (k) { return q.indexOf(k) !== -1; })) {
         return {
-          text: '✅ Tu compra incluye 3 actualizaciones gratuitas durante el año para modificar datos básicos (ubicación, correo, contacto, redes).\n\n📌 Al ser un producto digital personalizado, no se realizan devoluciones una vez iniciado el diseño. Puedes solicitar ajustes durante la fase de revisión antes de la entrega final.\n\n📌 Además, ofrecemos garantía de satisfacción: si no quedas conforme, rediseñamos tu tarjeta sin costo adicional.',
+          text: '✅ Tu compra incluye 3 actualizaciones gratuitas al año para cambios menores: número de contacto, enlaces a redes, dirección y ubicación.\n\n📌 Los cambios más complejos (nuevas secciones, rediseños, catálogos o videos) se cotizan según la complejidad del cambio.\n\n📌 Al ser un producto digital personalizado, no se realizan devoluciones una vez iniciado el diseño. Puedes solicitar ajustes durante la fase de revisión antes de la entrega final.\n\n📌 Además, ofrecemos garantía de satisfacción: si no quedas conforme, rediseñamos tu tarjeta sin costo adicional.',
           cta: false
         };
       }
@@ -292,7 +292,7 @@
       /* Tiempo de entrega */
       if (['entrega', 'tiempo', 'demora', 'cuando', 'tarda', 'dias habiles'].some(function (k) { return q.indexOf(k) !== -1; })) {
         return {
-          text: '⏱️ El tiempo estimado de entrega es de 2 a 5 días hábiles, una vez recibamos toda la información necesaria.\n\n📌 Si el proyecto requiere personalización especial, el tiempo podrá variar y te informaremos previamente.',
+          text: '⏱️ El tiempo estimado de entrega es de 24 a 48 horas hábiles, una vez recibamos toda la información necesaria.\n\n📌 Si el proyecto requiere personalización especial, el tiempo podrá variar y te informaremos previamente.',
           cta: false
         };
       }
@@ -322,10 +322,13 @@
       /* Detección de sector (keywords ya normalizadas, sin acentos) */
       var sectors = {
         restaurante: ['restaurante', 'comida', 'cafeteria', 'gastronomia', 'menu', 'carta', 'chef', 'restaurantes', 'pizzeria', 'hamburguesas'],
+        pasteleria: ['pasteleria', 'reposteria', 'tortas', 'postres', 'pastel', 'dulces', 'panaderia'],
         belleza: ['belleza', 'peluqueria', 'salon', 'estilista', 'color', 'alisado', 'spa', 'cosmetica'],
         unas: ['unas', 'manicure', 'pedicure', 'nail'],
         maquillaje: ['maquillaje', 'makeup', 'maquilladora'],
         barberia: ['barberia', 'barbero', 'corte', 'barba'],
+        nutricion_funcional: ['nutricion funcional'],
+        nutricion_productos: ['productos nutricionales', 'suplementos', 'batidos', 'vitaminas', 'proteinas'],
         nutricionista: ['nutricionista', 'nutricion', 'dietista', 'nutriologo'],
         odontologo: ['odontologo', 'dentista', 'odontologia', 'dental'],
         abogado: ['abogado', 'juridico', 'legal', 'derecho', 'abogados', 'firma'],
@@ -334,7 +337,8 @@
         fumigacion: ['fumigacion', 'plagas', 'control de plagas', 'fumigaciones', 'fumigadora'],
         diseno: ['disenador', 'diseno grafico', 'branding', 'creativo', 'diseno'],
         eventos: ['eventos', 'decoracion', 'fiestas', 'bodas', 'decoradora', 'organizacion de eventos'],
-        internet: ['internet', 'fibra optica', 'telecomunicaciones', 'tv hogar', 'wifi']
+        internet: ['internet', 'fibra optica', 'telecomunicaciones', 'tv hogar', 'wifi'],
+        tienda: ['tienda', 'comercio', 'almacen', 'minimarket', 'supermercado']
       };
 
       var detectedSector = null;
@@ -345,10 +349,13 @@
       if (detectedSector) {
         var examples = {
           restaurante: 'https://konfiozinc.github.io/eltiti/',
+          pasteleria: 'https://konfiozinc.github.io/pasteleria_artesanal/',
           belleza: 'https://konfiozinc.github.io/lizeth_lozano/',
           unas: 'https://konfiozinc.github.io/nandy_nails/',
           maquillaje: 'https://konfiozinc.github.io/makeup_artist/',
           barberia: 'https://konfiozinc.github.io/ca-ada_style/',
+          nutricion_funcional: 'https://konfiozinc.github.io/nutricion_funcional/',
+          nutricion_productos: 'https://konfiozinc.github.io/nutridrink/',
           nutricionista: 'https://konfiozinc.github.io/nutricionista/',
           odontologo: 'https://konfiozinc.github.io/servicios_odontologicos/',
           abogado: 'https://konfiozinc.github.io/abogados-dta/',
@@ -357,14 +364,18 @@
           fumigacion: 'https://konfiozinc.github.io/fumigaciones-monterrey/',
           diseno: 'https://konfiozinc.github.io/diseno_grafico/',
           eventos: 'https://konfiozinc.github.io/decoradora_de_fiestas/',
-          internet: 'https://konfiozinc.github.io/unefibra/'
+          internet: 'https://konfiozinc.github.io/unefibra/',
+          tienda: 'https://konfiozinc.github.io/dondecompro/'
         };
         var sectorNames = {
           restaurante: 'restaurante o negocio gastronómico',
+          pasteleria: 'negocio de pastelería artesanal',
           belleza: 'estudio de belleza',
           unas: 'nail studio',
           maquillaje: 'estudio de maquillaje',
           barberia: 'barbería',
+          nutricion_funcional: 'consultorio de nutrición funcional',
+          nutricion_productos: 'negocio de productos nutricionales',
           nutricionista: 'consultorio de nutrición',
           odontologo: 'consultorio odontológico',
           abogado: 'oficina jurídica',
@@ -373,7 +384,8 @@
           fumigacion: 'empresa de fumigación',
           diseno: 'estudio de diseño',
           eventos: 'negocio de eventos',
-          internet: 'proveedor de internet'
+          internet: 'proveedor de internet',
+          tienda: 'negocio de tienda o comercio'
         };
         var example = examples[detectedSector] || 'https://konfiozinc.github.io/card/';
         var sectorName = sectorNames[detectedSector] || detectedSector;
