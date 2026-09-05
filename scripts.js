@@ -276,7 +276,7 @@
       /* Contratar (ANTES que la detección de sector) */
       if (['contratar', 'contrata', 'comprar', 'compras', 'empezar', 'listo', 'adquirir', 'quiero una tarjeta', 'quiero mi tarjeta', 'deseo una tarjeta', 'pagar', 'contratacion'].some(function (k) { return q.indexOf(k) !== -1; })) {
         return {
-          text: '🎉 ¡Excelente! Vamos a iniciar tu proyecto.\n\nTe recomiendo KONFÍO ZINC PRO ($99.900 COP) porque se ajusta perfectamente a la mayoría de negocios.\n\n📌 Para comenzar, necesito que me compartas:\n• Nombre completo o razón social\n• Teléfono de contacto\n• Logo (si tienes)\n• Fotografías de tu negocio o servicios\n• Redes sociales\n• Servicios o productos que ofreces\n\n📌 Condiciones de pago: 50% de anticipo para iniciar y 50% antes de la entrega final.\n\n📌 Aceptamos pagos por Nequi, Daviplata, transferencia bancaria (Bancolombia o Davivienda), Mercado Pago o efectivo.\n\n¿Me compartes tu información para iniciar el diseño? ✨',
+          text: '🎉 ¡Excelente! Vamos a iniciar tu proyecto.\n\nTe recomiendo KONFÍO ZINC PRO ($99.900 COP) porque se ajusta perfectamente a la mayoría de negocios.\n\n📌 Para comenzar, necesito que me compartas:\n• Nombre completo o razón social\n• Teléfono de contacto\n• Logo (si tienes)\n• Fotografías de tu negocio o servicios\n• Redes sociales\n• Servicios o productos que ofreces\n\n📌 Condiciones de pago: 50% de anticipo para iniciar y 50% antes de la entrega final.\n\n📌 Aceptamos pagos por \n\n¿Me compartes tu información para iniciar el diseño? ✨',
           cta: true
         };
       }
