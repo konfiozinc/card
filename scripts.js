@@ -196,6 +196,7 @@
     var isOpen = false;
     var history = [];
     var WA_URL = 'https://wa.me/573206411340?text=Hola%20Darwin%2C%20estoy%20interesado%20en%20los%20servicios%20de%20KONF%C3%8DO%20ZINC';
+    var KZ_BACKEND_URL = 'https://calm-heart-6828.konfiozinc.workers.dev';
 
     function formatBotText(text) {
       var s = escapeHtml(text);
@@ -504,6 +505,32 @@
     }
 
     /* ── Enviar mensaje ── */
+    function callBackend(message) {
+      var ctrl = new AbortController();
+      var timer = setTimeout(function () { ctrl.abort(); }, 30000);
+      var chatHistory = history.slice(-8);
+      while (chatHistory.length && chatHistory[0].role === 'assistant') {
+        chatHistory = chatHistory.slice(1);
+      }
+      return fetch(KZ_BACKEND_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: message, history: chatHistory }),
+        signal: ctrl.signal
+      }).then(function (res) {
+        clearTimeout(timer);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      }).then(function (data) {
+        var reply = (data && data.reply ? String(data.reply) : '').trim();
+        if (!reply) throw new Error('respuesta vacia');
+        return reply;
+      }).catch(function (e) {
+        clearTimeout(timer);
+        throw e;
+      });
+    }
+
     function sendMessage(text) {
       if (!text || !text.trim()) return;
       var userMsg = text.trim();
@@ -514,13 +541,20 @@
 
       showTyping();
 
-      setTimeout(function () {
-        hideTyping();
-        var res = getResponse(userMsg);
-        addMessage(res.text, 'bot');
-        history.push({ role: 'assistant', content: res.text });
-        if (res.cta) showWhatsAppButton();
-      }, 600);
+      callBackend(userMsg)
+        .then(function (reply) {
+          hideTyping();
+          addMessage(reply, 'bot');
+          history.push({ role: 'assistant', content: reply });
+          showWhatsAppButton();
+        })
+        .catch(function () {
+          hideTyping();
+          var res = getResponse(userMsg);
+          addMessage(res.text, 'bot');
+          history.push({ role: 'assistant', content: res.text });
+          if (res.cta) showWhatsAppButton();
+        });
     }
 
     /* ── Bienvenida ── */
