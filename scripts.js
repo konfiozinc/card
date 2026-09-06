@@ -260,7 +260,7 @@
       /* Precio */
       if (['precio', 'precios', 'cuanto', 'cuesta', 'costo', 'valor', 'tarifa', 'plan', 'planes', 'vale', 'precio de'].some(function (k) { return q.indexOf(k) !== -1; }) && !['entrega', 'tiempo', 'demora', 'tarda', 'dias habiles'].some(function (k) { return q.indexOf(k) !== -1; })) {
         return {
-          text: 'Claro 😊.\n\nActualmente manejamos tres categorías:\n\n⭐ START: $49.900 COP\n⭐ PRO: $99.900 COP\n⭐ ELITE: $149.900 COP\n\n📌 START: Ideal para presencia digital sencilla\n📌 PRO: La más recomendada para la mayoría de negocios\n📌 ELITE: La solución más completa\n\n¿A qué se dedica tu negocio? Así podré recomendarte la mejor opción.',
+          text: 'Claro 😊.\n\nManejamos tres categorías de Tarjetas Digitales:\n\n⭐ START: $49.900 COP — presencia sencilla (información, llamada, WhatsApp, redes, ubicación, guardar contacto).\n⭐ PRO: $99.900 COP — la recomendada (todo START + galería, portafolio, horarios, botones y mejor diseño).\n⭐ ELITE: $149.900 COP — la más completa (todo PRO + videos, testimonios, catálogo y diseño exclusivo).\n\nPago único + dominio incluido 1 año.\n\n¿A qué se dedica tu negocio? Así te recomiendo la mejor opción.',
           cta: true
         };
       }
@@ -276,7 +276,7 @@
       /* Contratar (ANTES que la detección de sector) */
       if (['contratar', 'contrata', 'comprar', 'compras', 'empezar', 'listo', 'adquirir', 'quiero una tarjeta', 'quiero mi tarjeta', 'deseo una tarjeta', 'pagar', 'contratacion'].some(function (k) { return q.indexOf(k) !== -1; })) {
         return {
-          text: '🎉 ¡Excelente! Vamos a iniciar tu proyecto.\n\nTe recomiendo KONFÍO ZINC PRO ($99.900 COP) porque se ajusta perfectamente a la mayoría de negocios.\n\n📌 Para comenzar, necesito que me compartas:\n• Nombre completo o razón social\n• Teléfono de contacto\n• Logo (si tienes)\n• Fotografías de tu negocio o servicios\n• Redes sociales\n• Servicios o productos que ofreces\n\n📌 Condiciones de pago: 50% de anticipo para iniciar y 50% antes de la entrega final.\n\n📌 Aceptamos pagos por \n\n¿Me compartes tu información para iniciar el diseño? ✨',
+          text: '🎉 ¡Excelente! Vamos a iniciar tu proyecto.\n\nTe recomiendo KONFÍO ZINC PRO ($99.900 COP) porque se ajusta perfectamente a la mayoría de negocios.\n\n📌 Para comenzar, necesito que me compartas:\n• Nombre completo o razón social\n• Teléfono de contacto\n• Logo (si tienes)\n• Fotografías de tu negocio o servicios\n• Redes sociales\n• Servicios o productos que ofreces\n\n📌 Condiciones de pago: 50% de anticipo para iniciar y 50% antes de la entrega final.\n\n📌 Aceptamos pagos por Bancolombia, Davivienda, Nequi, Daviplata, Efectivo, Bre B, Tranfi ya o Mercado Pago.\n\n¿Me compartes tu información para iniciar el diseño? ✨',
           cta: true
         };
       }
@@ -293,6 +293,92 @@
       if (['entrega', 'tiempo', 'demora', 'cuando', 'tarda', 'dias habiles'].some(function (k) { return q.indexOf(k) !== -1; })) {
         return {
           text: '⏱️ El tiempo estimado de entrega es de 24 a 48 horas hábiles, una vez recibamos toda la información necesaria.\n\n📌 Si el proyecto requiere personalización especial, el tiempo podrá variar y te informaremos previamente.',
+          cta: false
+        };
+      }
+
+      /* Formas de pago */
+      if (['pago', 'pagos', 'nequi', 'daviplata', 'bancolombia', 'mercado pago', 'efectivo', 'metodos de pago', 'cuotas', 'consignacion', 'anticipo', 'abono', 'transferencia'].some(function (k) { return q.indexOf(k) !== -1; })) {
+        return {
+          text: '💳 Aceptamos estos métodos de pago:\n\n• Bancolombia\n• Davivienda\n• Nequi\n• Daviplata\n• Efectivo\n• Bre B\n• Tranfi ya\n• Mercado Pago\n\n📌 Forma de pago: 50% de anticipo para iniciar y 50% antes de la entrega final.\n\n¿Qué método prefieres? Te paso los datos por WhatsApp.',
+          cta: true
+        };
+      }
+
+      /* Qué es una tarjeta digital */
+      if (['que es', 'para que sirve', 'en que consiste', 'que es una tarjeta', 'tarjeta digital', 'como funciona una tarjeta'].some(function (k) { return q.indexOf(k) !== -1; })) {
+        return {
+          text: '📲 Una tarjeta digital es tu tarjeta de presentación en un solo enlace: foto, datos de contacto, redes sociales, botón de WhatsApp, ubicación, galería y sistema de citas.\n\nTus clientes la abren desde el celular sin descargar nada. Sustituye a la tarjeta de papel y se actualiza sin reimprimir.\n\n¿Quieres ver un ejemplo?',
+          cta: false
+        };
+      }
+
+      /* Proceso / cómo funciona */
+      if (['como funciona', 'proceso', 'pasos', 'como se hace', 'que necesito', 'que debo enviar', 'requisitos', 'como empiezo', 'que se necesita'].some(function (k) { return q.indexOf(k) !== -1; })) {
+        return {
+          text: 'El proceso es muy simple:\n\n1️⃣ Me envías tu info: foto, nombre, teléfono, redes sociales y servicios.\n2️⃣ Diseño tu tarjeta (24–48 h hábiles).\n3️⃣ La revisas y ajustamos lo que necesites.\n4️⃣ Te entrego tu enlace y tu código QR para compartir.\n\n¿Empezamos? 🚀',
+          cta: true
+        };
+      }
+
+      /* Qué incluye / beneficios */
+      if (['incluye', 'caracteristicas', 'que trae', 'que tiene', 'beneficios', 'funciones', 'que ofrece'].some(function (k) { return q.indexOf(k) !== -1; })) {
+        return {
+          text: 'Cada tarjeta digital incluye:\n\n• Datos de contacto completos\n• Redes sociales\n• Botón de WhatsApp directo\n• Código QR descargable\n• Dominio por 1 año\n\nSegún el plan, también: galería de fotos, sistema de citas, video promocional y animaciones premium.\n\nDime qué plan o sector te interesa y te detallo todo.',
+          cta: false
+        };
+      }
+
+      /* QR / link / dominio */
+      if (['qr', 'codigo qr', 'nfc', 'link', 'enlace', 'dominio', 'url'].some(function (k) { return q.indexOf(k) !== -1; })) {
+        return {
+          text: '📱 Todas las tarjetas incluyen tu enlace personal y un código QR descargable para imprimirlo en tu local, facturas o redes.\n\nEl dominio va incluido por 1 año; después se renueva con un costo mínimo.\n\n¿Quieres saber algo más?',
+          cta: false
+        };
+      }
+
+      /* Cobertura / dónde */
+      if (['donde', 'ciudades', 'cobertura', 'colombia', 'nacional', 'envio', 'que ciudad', 'ubicacion'].some(function (k) { return q.indexOf(k) !== -1; })) {
+        return {
+          text: '🌎 Atendemos en toda Colombia y la entrega es 100% en línea, así que no importa en qué ciudad estés.\n\nYa hemos trabajado con clientes en varias ciudades del país. Todo se coordina por WhatsApp.',
+          cta: true
+        };
+      }
+
+      /* Contacto / soporte */
+      if (['contacto', 'whatsapp', 'telefono', 'numero', 'celular', 'hablar con alguien', 'atencion', 'ayuda', 'comunicarme', 'escribirles', 'instagram', 'tiktok', 'facebook', 'redes sociales'].some(function (k) { return q.indexOf(k) !== -1; })) {
+        return {
+          text: '📞 Puedes escribirme directo por WhatsApp al +57 320 641 1340 (Darwin) o usar el botón verde de aquí abajo. Te respondo al instante.\n\nTambién me encuentras en Instagram @konfiozinc y TikTok @konfiozinc.',
+          cta: true
+        };
+      }
+
+      /* Servicios que ofrecemos */
+      if (['servicios', 'que ofrecen', 'que hacen', 'que venden', 'catalogo digital', 'catalogos', 'menu digital', 'menus digitales', 'landing page', 'automatizacion', 'asistentes con ia', 'que mas hacen'].some(function (k) { return q.indexOf(k) !== -1; })) {
+        return {
+          text: '🚀 Ofrecemos soluciones digitales para tu negocio:\n\n• Tarjetas Digitales Interactivas (producto principal)\n• Catálogos Digitales\n• Menús Digitales para restaurantes\n• Mini Landing Pages\n• Automatización\n• Asistentes con IA\n\n📌 No realizamos sistemas empresariales, tiendas virtuales complejas, sitios web corporativos grandes ni apps móviles.\n\n¿Cuál te interesa?',
+          cta: false
+        };
+      }
+
+      /* Referidos / descuentos */
+      if (['referido', 'referir', 'descuento', 'promocion', 'promociones', 'cliente frecuente', 'recomendar a un amigo'].some(function (k) { return q.indexOf(k) !== -1; })) {
+        return {
+          text: '🎁 Tenemos un beneficio: 10% de descuento por referir a un amigo o para clientes frecuentes (se aplica cuando el referido confirma su compra).\n\n¿Tienes a alguien interesado? Cuéntame y lo coordinamos.',
+          cta: true
+        };
+      }
+
+      /* Objeciones */
+      if (['esta caro', 'muy caro', 'costoso', 'es caro', 'carisimo', 'mucho dinero'].some(function (k) { return q.indexOf(k) !== -1; })) {
+        return {
+          text: 'Lo entiendo 😊. La idea no es solo entregarte una tarjeta digital, sino una herramienta profesional para que tus clientes encuentren toda tu información en un solo lugar y puedas compartirla fácilmente.\n\nAdemás tienes garantía de rediseño sin costo: el riesgo es cero.\n\n¿Te gustaría ver un ejemplo de tu sector?',
+          cta: false
+        };
+      }
+      if (['lo voy a pensar', 'pensarlo', 'lo pienso', 'mas adelante', 'lo pensare', 'despues'].some(function (k) { return q.indexOf(k) !== -1; })) {
+        return {
+          text: 'Claro, no hay problema 😊. Si más adelante tienes alguna duda o quieres que te recomiende la mejor opción para tu negocio, con gusto te ayudo.\n\nAquí dejo los precios por si los necesitas: START $49.900 · PRO $99.900 · ELITE $149.900.',
           cta: false
         };
       }
@@ -340,7 +426,10 @@
         eventos: ['eventos', 'decoracion', 'fiestas', 'bodas', 'decoradora', 'organizacion de eventos'],
         internet: ['internet', 'fibra optica', 'telecomunicaciones', 'tv hogar', 'wifi'],
         tienda: ['tienda', 'comercio', 'almacen', 'minimarket', 'supermercado'],
-        musica: ['musica', 'cantante', 'cantar', 'voz', 'canto', 'musical', 'grabar', 'acordeon', 'artista', 'banda']
+        musica: ['musica', 'cantante', 'cantar', 'voz', 'canto', 'musical', 'grabar', 'acordeon', 'artista', 'banda'],
+        carniceria: ['carniceria', 'carnes', 'venta de alimentos', 'carnes frias', 'carnicos'],
+        gruas: ['gruas', 'grua', 'servicios 24 horas', 'asistencia vial'],
+        masajes: ['masajes', 'masajista', 'quiromasajes', 'salud y bienestar', 'bienestar', 'relajacion']
       };
 
       var detectedSector = null;
@@ -369,7 +458,10 @@
           eventos: 'https://konfiozinc.github.io/decoradora_de_fiestas/',
           internet: 'https://konfiozinc.github.io/unefibra/',
           tienda: 'https://konfiozinc.github.io/dondecompro/',
-          musica: 'https://konfiozinc.github.io/calixto_acordeon_magico/'
+          musica: 'https://konfiozinc.github.io/calixto_acordeon_magico/',
+          carniceria: 'https://konfiozinc.github.io/carniceria_la_milagrosa/',
+          gruas: 'https://konfiozinc.github.io/gruas_gyr_arias/',
+          masajes: 'https://konfiozinc.github.io/quiromasajes-gap/'
         };
         var sectorNames = {
           restaurante: 'restaurante o negocio gastronómico',
@@ -391,7 +483,10 @@
           eventos: 'negocio de eventos',
           internet: 'proveedor de internet',
           tienda: 'negocio de tienda o comercio',
-          musica: 'proyecto musical o artístico'
+          musica: 'proyecto musical o artístico',
+          carniceria: 'carnicería o negocio de alimentos',
+          gruas: 'servicio de grúas',
+          masajes: 'negocio de masajes o bienestar'
         };
         var example = examples[detectedSector] || 'https://konfiozinc.github.io/card/';
         var sectorName = sectorNames[detectedSector] || detectedSector;
@@ -401,10 +496,10 @@
         };
       }
 
-      /* Respuesta genérica */
+      /* Respuesta de respaldo (cuando no hay coincidencia) */
       return {
-        text: 'Entendido. 😊\n\nPara poder recomendarte la mejor solución, necesito conocer un poco más sobre tu negocio.\n\n¿A qué se dedica tu negocio o profesión? Así podré orientarte mejor.',
-        cta: false
+        text: 'Buena pregunta 😊. Para darte una respuesta exacta y personalizada sobre eso, lo mejor es que me escribas por WhatsApp y te atiendo al instante.\n\nMientras tanto, aquí puedo ayudarte con:\n• 💰 Precios y planes\n• 💼 Ver ejemplos\n• ⏱️ Tiempos de entrega\n• 💳 Formas de pago\n• 📱 Contratar tu tarjeta\n\nToca uno de los botones de abajo o cuéntame a qué se dedica tu negocio. 👇',
+        cta: true
       };
     }
 
@@ -430,7 +525,7 @@
 
     /* ── Bienvenida ── */
     function showWelcome() {
-      var welcome = '¡Hola! 👋 Bienvenido a KONFÍO ZINC.\n\nAyudamos a negocios y profesionales a fortalecer su presencia digital con Tarjetas Digitales, Catálogos Digitales, Menús Digitales y Mini Landing Pages.\n\nCuéntame, ¿tu consulta es para tu propio negocio o para un cliente?';
+      var welcome = '¡Hola! 👋 Bienvenido a KONFÍO ZINC.\n\nAyudamos a negocios y profesionales a fortalecer su presencia digital con Tarjetas Digitales, Catálogos Digitales, Menús Digitales, Mini Landing Pages, Automatización y Asistentes con IA.\n\nCuéntame, ¿tu consulta es para tu propio negocio o para un cliente?';
       addMessage(welcome, 'bot');
       history.push({ role: 'assistant', content: welcome });
     }
