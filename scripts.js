@@ -339,7 +339,8 @@
         diseno: ['disenador', 'diseno grafico', 'branding', 'creativo', 'diseno'],
         eventos: ['eventos', 'decoracion', 'fiestas', 'bodas', 'decoradora', 'organizacion de eventos'],
         internet: ['internet', 'fibra optica', 'telecomunicaciones', 'tv hogar', 'wifi'],
-        tienda: ['tienda', 'comercio', 'almacen', 'minimarket', 'supermercado']
+        tienda: ['tienda', 'comercio', 'almacen', 'minimarket', 'supermercado'],
+        musica: ['musica', 'cantante', 'cantar', 'voz', 'canto', 'musical', 'grabar', 'acordeon', 'artista', 'banda']
       };
 
       var detectedSector = null;
@@ -367,7 +368,8 @@
           diseno: 'https://konfiozinc.github.io/diseno_grafico/',
           eventos: 'https://konfiozinc.github.io/decoradora_de_fiestas/',
           internet: 'https://konfiozinc.github.io/unefibra/',
-          tienda: 'https://konfiozinc.github.io/dondecompro/'
+          tienda: 'https://konfiozinc.github.io/dondecompro/',
+          musica: 'https://konfiozinc.github.io/calixto_acordeon_magico/'
         };
         var sectorNames = {
           restaurante: 'restaurante o negocio gastronómico',
@@ -388,7 +390,8 @@
           diseno: 'estudio de diseño',
           eventos: 'negocio de eventos',
           internet: 'proveedor de internet',
-          tienda: 'negocio de tienda o comercio'
+          tienda: 'negocio de tienda o comercio',
+          musica: 'proyecto musical o artístico'
         };
         var example = examples[detectedSector] || 'https://konfiozinc.github.io/card/';
         var sectorName = sectorNames[detectedSector] || detectedSector;
