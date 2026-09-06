@@ -200,7 +200,9 @@
 
     function formatBotText(text) {
       var s = escapeHtml(text);
+      s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
       s = s.replace(/\n/g, '<br>');
+      s = s.replace(/(^|<br>)\s*[-•]\s+/g, '$1• ');
       s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
       return s;
     }
