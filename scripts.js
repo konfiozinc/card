@@ -376,6 +376,9 @@
       if (has(['ia', 'asistente', 'asistentes', 'agente', 'bot', 'chatbot'])) {
         return { text: 'Creamos asistentes con IA que responden a tus clientes 24/7 🤖, con la información de tu negocio, en tu web o WhatsApp.\n\n¿Quieres uno para tu negocio?', cta: true };
       }
+      if (has(['qr', 'codigo qr', 'codigos qr'])) {
+        return { text: 'Creamos códigos QR personalizados con tu marca 📱, ideales para imprimir en mesas, stickers, empaques o facturas.\n\nLlevan a tus clientes directo a tu menú, catálogo, WhatsApp o ubicación.\n\n¿Para qué lo necesitas?', cta: true };
+      }
       if (has(['servicio', 'servicios', 'producto', 'productos', 'que ofrecen', 'que hacen', 'que venden'])) {
         return { text: 'Creamos productos digitales para tu negocio 📱:\n\n• Tarjetas digitales interactivas\n• Landing pages\n• Catálogos digitales\n• Menús digitales\n• Asistentes con IA\n\n¿Cuál te interesa?', cta: true };
       }
