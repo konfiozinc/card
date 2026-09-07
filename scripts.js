@@ -174,6 +174,58 @@
     });
   }
 
+  // Ver todos los proyectos
+  var PROJECTS = [
+    ['EL TITI — Comidas rápidas', 'https://konfiozinc.github.io/eltiti/'],
+    ['Abogados DTA — Jurídico', 'https://konfiozinc.github.io/abogados-dta/'],
+    ['FRC Alianza Legal — Abogado', 'https://konfiozinc.github.io/fcr_alianza_legal/'],
+    ['DTA Chanclas', 'https://konfiozinc.github.io/proyecto-dta/'],
+    ['Colsabor — Comida sana', 'https://konfiozinc.github.io/colsabor/'],
+    ['Dulce Delicia — Pastelería', 'https://konfiozinc.github.io/pasteleria_artesanal/'],
+    ['Carnicería La Milagrosa', 'https://konfiozinc.github.io/carniceria_la_milagrosa/'],
+    ['Nandy Nails — Uñas', 'https://konfiozinc.github.io/nandy_nails/'],
+    ['Makeup Artist', 'https://konfiozinc.github.io/makeup_artist/'],
+    ['NP Style — Salón', 'https://konfiozinc.github.io/np-style/'],
+    ['La Cañada Style — Barbería', 'https://konfiozinc.github.io/ca-ada_style/'],
+    ['Lizeth Lozano — Contadora', 'https://konfiozinc.github.io/lizeth_lozano/'],
+    ['Nutricionista', 'https://konfiozinc.github.io/nutricionista/'],
+    ['Nutrición funcional', 'https://konfiozinc.github.io/nutricion_funcional/'],
+    ['NutriDrink — Productos nutricionales', 'https://konfiozinc.github.io/nutridrink/'],
+    ['Servicios odontológicos', 'https://konfiozinc.github.io/servicios_odontologicos/'],
+    ['Cirujana dentista', 'https://konfiozinc.github.io/cirujana_dentista/'],
+    ['Diseño gráfico', 'https://konfiozinc.github.io/diseno_grafico/'],
+    ['Decoradora de fiestas', 'https://konfiozinc.github.io/decoradora_de_fiestas/'],
+    ['Fumigaciones Monterrey', 'https://konfiozinc.github.io/fumigaciones-monterrey/'],
+    ['Fumig Master', 'https://konfiozinc.github.io/fumig_master/'],
+    ['Mega Express — Transporte', 'https://konfiozinc.github.io/mega-express/'],
+    ['Grúas GYR Arias', 'https://konfiozinc.github.io/gruas_gyr_arias/'],
+    ['Century 21 Radial — Inmobiliaria', 'https://konfiozinc.github.io/century_21_radial/'],
+    ['GP — Multiservicios y lotes', 'https://konfiozinc.github.io/gp/'],
+    ['DG Avalúos', 'https://konfiozinc.github.io/dg_ventas_avaluos/'],
+    ['DondeCompro — Tienda', 'https://konfiozinc.github.io/dondecompro/'],
+    ['NBC Company — Utensilios', 'https://konfiozinc.github.io/nbccompany/'],
+    ['UneFibra — Internet', 'https://konfiozinc.github.io/unefibra/'],
+    ['Quiromasajes GAP', 'https://konfiozinc.github.io/quiromasajes-gap/'],
+    ['Calixto Acordeón Mágico', 'https://konfiozinc.github.io/calixto_acordeon_magico/'],
+    ['The Big Bang Carranga', 'https://konfiozinc.github.io/the-big-bang-carranga/'],
+    ['Deicy Buitrago', 'https://konfiozinc.github.io/deicy-buitrago/'],
+    ['Nómina Centinela', 'https://konfiozinc.github.io/nomina_centinela/'],
+    ['PRORED Fedpazco', 'https://konfiozinc.github.io/prored_fedpazco/'],
+    ['Konfío Sports', 'https://konfiozinc.github.io/konfio-sports/']
+  ];
+
+  var verTodosBtn = $('#verTodosBtn');
+  if (verTodosBtn) {
+    verTodosBtn.addEventListener('click', function () {
+      var html = '<div style="padding:1.2rem;display:grid;gap:.5rem;">';
+      PROJECTS.forEach(function (p) {
+        html += '<a href="' + p[1] + '" target="_blank" rel="noopener noreferrer" style="display:flex;justify-content:space-between;align-items:center;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.02);font-size:.9rem;color:var(--fg);">' + escapeHtml(p[0]) + ' <i class="fas fa-arrow-up-right-from-square" style="color:var(--gold);flex-shrink:0;"></i></a>';
+      });
+      html += '</div>';
+      openModal(html, 'Todos los proyectos (' + PROJECTS.length + ')');
+    });
+  }
+
   if (modalClose) modalClose.addEventListener('click', closeModal);
   if (modal) {
     modal.addEventListener('click', function (e) { if (e.target === modal) closeModal(); });
@@ -261,7 +313,7 @@
   if (chat && toggleBtn) {
     var isOpen = false;
     var history = [];
-    var WA_URL = 'https://wa.me/573206411340?text=Hola%2C%20quiero%20una%20consultor%C3%ADa%20gratis%20de%20marketing%20digital';
+    var WA_URL = 'https://wa.me/573206411340?text=Hola%2C%20quiero%20una%20cotizaci%C3%B3n%20gratis%20para%20mi%20negocio';
     var BACKEND_URL = 'https://calm-heart-6828.konfiozinc.workers.dev';
 
     function formatBotText(text) {
@@ -309,25 +361,40 @@
       var q = normalize(userMsg);
       var has = function (arr) { return arr.some(function (k) { return q.indexOf(k) !== -1; }); };
 
-      if (has(['servicio', 'servicios', 'que ofrecen', 'que hacen', 'que venden'])) {
-        return { text: 'Ofrecemos marketing digital integral 🚀:\n\n• SEO y posicionamiento web\n• Gestión de redes sociales\n• Publicidad digital (Google, Facebook, TikTok)\n• Diseño y desarrollo web\n• Branding e identidad visual\n• Email marketing y automatización\n• Analítica y reportes\n\n¿Cuál te interesa?', cta: true };
+      if (has(['tarjeta', 'tarjetas', 'tarjeta digital', 'tarjetas digitales'])) {
+        return { text: 'La tarjeta digital es tu presentación en un solo enlace 💳: contacto, redes, WhatsApp, ubicación y galería. Se actualiza al instante y reemplaza el papel.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
       }
-      if (has(['precio', 'cuanto', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto', 'cotiza'])) {
-        return { text: 'Cada plan se cotiza según tus objetivos y alcance 📊. Agenda un diagnóstico gratis y te entregamos una propuesta a tu medida, sin compromiso.\n\n¿Quieres que te contactemos para armar tu plan?', cta: true };
+      if (has(['landing', 'pagina', 'landing page', 'landing pages'])) {
+        return { text: 'Creamos landing pages rápidas y enfocadas en conversión 🚀, ideales para promocionar tu negocio o un producto.\n\nCuéntame qué quieres promocionar y te cotizo.', cta: true };
       }
-      if (has(['portafolio', 'ejemplo', 'ejemplos', 'trabajo', 'trabajos', 'casos', 'resultados'])) {
-        return { text: 'Tenemos casos de éxito en restaurantes, salud, belleza, inmobiliaria y más 💼.\n\nPuedes verlos en la sección "Portafolio" de esta página o aquí: https://konfiozinc.github.io/card/\n\n¿De qué sector es tu negocio?', cta: false };
+      if (has(['catalogo', 'catalogos', 'catalogo digital', 'catalogos digitales'])) {
+        return { text: 'Tu catálogo digital te permite mostrar productos o servicios con precios y compartirlo por WhatsApp o redes 📖.\n\n¿Qué tipo de productos o servicios ofreces?', cta: true };
       }
-      if (has(['consultoria', 'diagnostico', 'gratis', 'empezar', 'contratar', 'quiero', 'agendar', 'reunion'])) {
-        return { text: '¡Perfecto! 🎉 Agenda tu diagnóstico gratis y armamos una estrategia a tu medida.\n\nEscoge el canal que prefieras: aquí mismo cuéntame de tu negocio, o toca el botón de WhatsApp 👇', cta: true };
+      if (has(['menu', 'menus', 'menu digital', 'menus digitales', 'restaurante', 'comida'])) {
+        return { text: 'Los menús digitales con QR son perfectos para restaurantes 🍽️: tus clientes ven platos y precios, y piden directo.\n\n¿Tu negocio es de comida? Te muestro un ejemplo.', cta: true };
+      }
+      if (has(['ia', 'asistente', 'asistentes', 'agente', 'bot', 'chatbot'])) {
+        return { text: 'Creamos asistentes con IA que responden a tus clientes 24/7 🤖, con la información de tu negocio, en tu web o WhatsApp.\n\n¿Quieres uno para tu negocio?', cta: true };
+      }
+      if (has(['servicio', 'servicios', 'producto', 'productos', 'que ofrecen', 'que hacen', 'que venden'])) {
+        return { text: 'Creamos productos digitales para tu negocio 📱:\n\n• Tarjetas digitales interactivas\n• Landing pages\n• Catálogos digitales\n• Menús digitales\n• Asistentes con IA\n\n¿Cuál te interesa?', cta: true };
+      }
+      if (has(['precio', 'cuanto', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto', 'cotiza', 'cotizacion', 'cotizar'])) {
+        return { text: 'Cada proyecto se cotiza según lo que necesites 📊. Escríbeme por WhatsApp y te envío una cotización gratis, sin compromiso.\n\n¿Quieres que te cotice ahora?', cta: true };
+      }
+      if (has(['portafolio', 'ejemplo', 'ejemplos', 'trabajo', 'trabajos', 'casos', 'resultados', 'proyectos'])) {
+        return { text: 'Tenemos proyectos en restaurantes, salud, belleza, inmobiliaria, transporte y más 💼.\n\nPuedes verlos en la sección "Portafolio" de esta página o tocar "Ver todos los proyectos".\n\n¿De qué sector es tu negocio?', cta: false };
+      }
+      if (has(['entrega', 'tiempo', 'cuanto tarda', 'cuando', 'demora', 'rapido', 'tarda'])) {
+        return { text: '⏱️ Entregamos en 24 a 48 horas hábiles la mayoría de proyectos, una vez recibimos tu información y el pago.', cta: true };
       }
       if (has(['contacto', 'whatsapp', 'telefono', 'numero', 'correo', 'email', 'hablar'])) {
         return { text: '📞 Contáctanos por:\n• WhatsApp: +57 320 641 1340\n• Email: konfiozinc@gmail.com\n\nO usa el botón verde de WhatsApp. ¡Te respondemos al instante!', cta: true };
       }
       if (has(['hola', 'buenas', 'buenos dias', 'saludo', 'hey'])) {
-        return { text: '¡Hola! 👋 Soy el asesor de KONFÍO ZINC, agencia de marketing digital.\n\nCuéntame, ¿qué te gustaría lograr con tu marca? (más clientes, más ventas, mejor presencia online…)', cta: false };
+        return { text: '¡Hola! 👋 Soy el asesor de KONFÍO ZINC.\n\nCreamos tarjetas digitales, landing pages, catálogos, menús digitales y asistentes con IA.\n\nCuéntame, ¿qué te gustaría crear para tu negocio?', cta: false };
       }
-      return { text: 'Buena pregunta 😊. Para darte una respuesta exacta y personalizada, escríbeme por WhatsApp y te atiendo al instante.\n\nAquí puedo ayudarte con: servicios, precios, portafolio o agendar una consultoría gratis. Toca uno de los botones de abajo 👇', cta: true };
+      return { text: 'Buena pregunta 😊. Para darte una respuesta exacta, escríbeme por WhatsApp y te atiendo al instante.\n\nAquí puedo ayudarte con: productos, precios, portafolio o cotizar tu proyecto. Toca un botón de abajo 👇', cta: true };
     }
 
     function callBackend(message) {
@@ -379,7 +446,7 @@
     }
 
     function showWelcome() {
-      var welcome = '¡Hola! 👋 Bienvenido a KONFÍO ZINC, tu agencia de marketing digital.\n\nAyudamos a negocios a crecer con SEO, publicidad, redes sociales, diseño web y branding.\n\nCuéntame, ¿qué te gustaría lograr con tu marca?';
+      var welcome = '¡Hola! 👋 Bienvenido a KONFÍO ZINC.\n\nCreamos tarjetas digitales, landing pages, catálogos y menús digitales, y asistentes con IA para tu negocio.\n\nCuéntame, ¿qué te gustaría crear?';
       addMessage(welcome, 'bot');
       history.push({ role: 'assistant', content: welcome });
     }
