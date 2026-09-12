@@ -361,6 +361,9 @@
       var q = normalize(userMsg);
       var has = function (arr) { return arr.some(function (k) { return q.indexOf(k) !== -1; }); };
 
+      if (/(^|\s)unas(\s|$)/.test(q) && !/dudas/.test(q)) {
+        return { text: '¡Perfecto! 👋 Para tu sector tenemos este ejemplo real:\nhttps://konfiozinc.github.io/nandy_nails/\n\n📌 ¿Ya manejas redes sociales para tu negocio?', cta: false };
+      }
       if (has(['tarjeta', 'tarjetas', 'tarjeta digital', 'tarjetas digitales'])) {
         return { text: 'La tarjeta digital es tu presentación en un solo enlace 💳: contacto, redes, WhatsApp, ubicación y galería. Se actualiza al instante y reemplaza el papel.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
       }
@@ -373,7 +376,7 @@
       if (has(['menu', 'menus', 'menu digital', 'menus digitales'])) {
         return { text: 'Los menús digitales con QR son perfectos para restaurantes 🍽️: tus clientes ven platos y precios, y piden directo.\n\n¿Quieres un menú digital para tu negocio?', cta: true };
       }
-      if (has(['ia', 'asistente', 'asistentes', 'agente', 'bot', 'chatbot'])) {
+      if (has(['asistente', 'asistentes', 'agente', 'agentes', 'chatbot']) || /\bia\b/.test(q)) {
         return { text: 'Creamos asistentes con IA que responden a tus clientes 24/7 🤖, con la información de tu negocio, en tu web o WhatsApp.\n\n¿Quieres uno para tu negocio?', cta: true };
       }
       if (has(['qr', 'codigo qr', 'codigos qr'])) {
