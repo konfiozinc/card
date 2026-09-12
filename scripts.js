@@ -396,7 +396,7 @@
         [['abogado', 'abogados', 'juridico', 'legal', 'derecho', 'firma'], ['https://konfiozinc.github.io/abogados-dta/', 'https://konfiozinc.github.io/fcr_alianza_legal/']],
         [['belleza', 'salon', 'peluqueria', 'estilista'], ['https://konfiozinc.github.io/np-style/']],
         [['barberia', 'barbero'], ['https://konfiozinc.github.io/ca-ada_style/']],
-        [['unas', 'manicure', 'pedicure', 'nail'], ['https://konfiozinc.github.io/nandy_nails/']],
+        [['manicure', 'pedicure', 'nail'], ['https://konfiozinc.github.io/nandy_nails/']],
         [['maquillaje', 'makeup'], ['https://konfiozinc.github.io/makeup_artist/']],
         [['contador', 'contadora', 'contabilidad'], ['https://konfiozinc.github.io/lizeth_lozano/']],
         [['nutricion funcional'], ['https://konfiozinc.github.io/nutricion_funcional/']],
