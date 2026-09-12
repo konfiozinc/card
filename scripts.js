@@ -370,8 +370,8 @@
       if (has(['catalogo', 'catalogos', 'catalogo digital', 'catalogos digitales'])) {
         return { text: 'Tu catálogo digital te permite mostrar productos o servicios con precios y compartirlo por WhatsApp o redes 📖.\n\n¿Qué tipo de productos o servicios ofreces?', cta: true };
       }
-      if (has(['menu', 'menus', 'menu digital', 'menus digitales', 'restaurante', 'comida'])) {
-        return { text: 'Los menús digitales con QR son perfectos para restaurantes 🍽️: tus clientes ven platos y precios, y piden directo.\n\n¿Tu negocio es de comida? Te muestro un ejemplo.', cta: true };
+      if (has(['menu', 'menus', 'menu digital', 'menus digitales'])) {
+        return { text: 'Los menús digitales con QR son perfectos para restaurantes 🍽️: tus clientes ven platos y precios, y piden directo.\n\n¿Quieres un menú digital para tu negocio?', cta: true };
       }
       if (has(['ia', 'asistente', 'asistentes', 'agente', 'bot', 'chatbot'])) {
         return { text: 'Creamos asistentes con IA que responden a tus clientes 24/7 🤖, con la información de tu negocio, en tu web o WhatsApp.\n\n¿Quieres uno para tu negocio?', cta: true };
@@ -385,8 +385,40 @@
       if (has(['precio', 'cuanto', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto', 'cotiza', 'cotizacion', 'cotizar'])) {
         return { text: 'Cada proyecto se cotiza según lo que necesites 📊. Escríbeme por WhatsApp y te envío una cotización gratis, sin compromiso.\n\n¿Quieres que te cotice ahora?', cta: true };
       }
+      /* Ejemplos reales por sector (hasta 2 enlaces) */
+      var sectores = [
+        [['restaurante', 'restaurantes', 'comida', 'comidas', 'cafeteria', 'pizzeria', 'hamburgues'], ['https://konfiozinc.github.io/eltiti/', 'https://konfiozinc.github.io/colsabor/']],
+        [['pasteleria', 'reposteria', 'tortas', 'postres'], ['https://konfiozinc.github.io/pasteleria_artesanal/']],
+        [['carniceria', 'carnes'], ['https://konfiozinc.github.io/carniceria_la_milagrosa/']],
+        [['abogado', 'abogados', 'juridico', 'legal', 'derecho', 'firma'], ['https://konfiozinc.github.io/abogados-dta/', 'https://konfiozinc.github.io/fcr_alianza_legal/']],
+        [['belleza', 'salon', 'peluqueria', 'estilista'], ['https://konfiozinc.github.io/np-style/']],
+        [['barberia', 'barbero'], ['https://konfiozinc.github.io/ca-ada_style/']],
+        [['unas', 'manicure', 'pedicure', 'nail'], ['https://konfiozinc.github.io/nandy_nails/']],
+        [['maquillaje', 'makeup'], ['https://konfiozinc.github.io/makeup_artist/']],
+        [['contador', 'contadora', 'contabilidad'], ['https://konfiozinc.github.io/lizeth_lozano/']],
+        [['nutricion funcional'], ['https://konfiozinc.github.io/nutricion_funcional/']],
+        [['productos nutricionales', 'suplementos'], ['https://konfiozinc.github.io/nutridrink/']],
+        [['nutricionista', 'nutricion', 'dietista'], ['https://konfiozinc.github.io/nutricionista/']],
+        [['odontologo', 'odontologia', 'dentista', 'dental'], ['https://konfiozinc.github.io/servicios_odontologicos/', 'https://konfiozinc.github.io/cirujana_dentista/']],
+        [['diseno', 'disenador', 'branding'], ['https://konfiozinc.github.io/diseno_grafico/']],
+        [['eventos', 'decoracion', 'fiestas'], ['https://konfiozinc.github.io/decoradora_de_fiestas/']],
+        [['fumigacion', 'plagas'], ['https://konfiozinc.github.io/fumigaciones-monterrey/', 'https://konfiozinc.github.io/fumig_master/']],
+        [['transporte', 'mensajeria', 'envios', 'logistica'], ['https://konfiozinc.github.io/mega-express/']],
+        [['grua', 'gruas', 'remolque'], ['https://konfiozinc.github.io/gruas_gyr_arias/']],
+        [['inmobiliaria', 'bienes raices', 'finca raiz', 'avaluos'], ['https://konfiozinc.github.io/century_21_radial/', 'https://konfiozinc.github.io/dg_ventas_avaluos/']],
+        [['tienda', 'comercio', 'almacen'], ['https://konfiozinc.github.io/dondecompro/', 'https://konfiozinc.github.io/nbccompany/']],
+        [['internet', 'fibra', 'telecomunicaciones', 'tv hogar'], ['https://konfiozinc.github.io/unefibra/']],
+        [['musica', 'cantante', 'cantar', 'voz', 'artista', 'banda'], ['https://konfiozinc.github.io/calixto_acordeon_magico/', 'https://konfiozinc.github.io/the-big-bang-carranga/']],
+        [['masaje', 'masajes', 'quiromasaje', 'terapia'], ['https://konfiozinc.github.io/quiromasajes-gap/']]
+      ];
+      for (var si = 0; si < sectores.length; si++) {
+        if (has(sectores[si][0])) {
+          var enlaces = sectores[si][1];
+          return { text: '¡Perfecto! 👋 Para tu sector tenemos ' + (enlaces.length > 1 ? 'estos ejemplos reales:' : 'este ejemplo real:') + '\n' + enlaces.join('\n') + '\n\n📌 ¿Ya manejas redes sociales para tu negocio?', cta: false };
+        }
+      }
       if (has(['portafolio', 'ejemplo', 'ejemplos', 'trabajo', 'trabajos', 'casos', 'resultados', 'proyectos'])) {
-        return { text: 'Tenemos proyectos en restaurantes, salud, belleza, inmobiliaria, transporte y más 💼.\n\nPuedes verlos en la sección "Portafolio" de esta página o tocar "Ver todos los proyectos".\n\n¿De qué sector es tu negocio?', cta: false };
+        return { text: 'Tenemos proyectos en restaurantes, salud, belleza, inmobiliaria, transporte, música y más 💼.\n\nPuedes ver el portafolio oficial aquí:\nhttps://konfiozinc.github.io/card/\n\n¿De qué sector es tu negocio? Así te muestro un ejemplo parecido.', cta: false };
       }
       if (has(['entrega', 'tiempo', 'cuanto tarda', 'cuando', 'demora', 'rapido', 'tarda'])) {
         return { text: '⏱️ Entregamos en 24 a 48 horas hábiles la mayoría de proyectos, una vez recibimos tu información y el pago.', cta: true };
