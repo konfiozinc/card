@@ -1,0 +1,30 @@
+# Prompt Gemini · Carta / menú / lista de precios → texto ordenado
+Herramienta interna de KONFÍO ZINC para acelerar el armado de menús y catálogos digitales.
+
+## Cómo usarlo (1 minuto)
+1. Abre Gemini (https://gemini.google.com o la app).
+2. Adjunta la FOTO de la carta, menú o lista de precios del cliente.
+3. Pega el prompt de abajo y envía.
+4. Copia el resultado y pégalo en tu menú/catálogo digital.
+
+---
+
+## El prompt (copia desde aquí)
+
+Voy a enviarte la foto de una carta, menú o lista de precios de un negocio. Haz esto:
+
+1) Extrae TODOS los productos o servicios con su nombre, precio y descripción, EXACTAMENTE como aparecen. No cambies nombres ni precios, no inventes nada.
+
+2) Organízalos por categorías. Si la foto no trae categorías, agrúpalos por tipo (entradas, platos, bebidas, postres, etc.).
+
+3) Devuélvemelo en texto plano, sin negritas ni símbolos raros, con este formato exacto:
+
+NOMBRE DE LA CATEGORÍA
+• Producto — $precio
+  (descripción corta si la hay)
+
+4) Si un precio o nombre no se lee bien en la foto, escribe un signo [?] al final en vez de adivinar.
+
+5) Al terminar, dime qué partes de la foto no se alcanzaron a leer, para revisarlas yo.
+
+Solo quiero el resultado ordenado, listo para copiar a un menú digital.
