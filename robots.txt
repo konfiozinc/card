@@ -1,0 +1,28 @@
+# ═══════════════════════════════════════════════════════════════
+# robots.txt · KONFÍO ZINC — https://konfiozinc.github.io/card/
+# Instrucciones para los rastreadores de buscadores.
+# ═══════════════════════════════════════════════════════════════
+
+# Permite el rastreo de todo el sitio público
+User-agent: *
+Allow: /
+
+# Páginas de estado que no deben indexarse (también llevan <meta name="robots" content="noindex">)
+Disallow: /card/gracias.html
+Disallow: /card/404.html
+
+# Evita que se rastreen parámetros de campaña duplicados
+Disallow: /*?utm_
+Disallow: /*?fbclid=
+Disallow: /*?gclid=
+
+# Rastreadores de imágenes y recursos: acceso completo
+User-agent: Googlebot-Image
+Allow: /
+
+# Bloquea rastreadores de contenido de IA que no generan tráfico
+User-agent: CCBot
+Disallow: /
+
+# Sitemap del sitio (incluye todas las páginas)
+Sitemap: https://konfiozinc.github.io/card/sitemap.xml
