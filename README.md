@@ -258,7 +258,7 @@ Plantilla base del encabezado del artículo:
 
 ---
 
-## 6. Programa de aliados (liados.html)
+## 6. Programa de aliados (`liados.html)
 
 Página pública que explica cómo ganar dinero vendiendo las tarjetas digitales. Tiene dos modelos:
 
@@ -273,7 +273,7 @@ Página pública que explica cómo ganar dinero vendiendo las tarjetas digitales
 
 > 📌 **Fuente única de verdad:** PROGRAMA_ALIADOS.md (documento interno, **no se versiona** porque
 > contiene condiciones de negociación). Si cambias comisiones o niveles ahí, actualiza también
-> liados.html y la función de respaldo del agente IA en ssets/js/main.js.
+> `liados.html y la función de respaldo del agente IA en `ssets/js/main.js.
 
 > ⚠️ La página publica las tablas del programa, pero **no** los márgenes internos por debajo de
 > costo ni las condiciones negociables: la regla del documento es que las comisiones «no se negocian
