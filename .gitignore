@@ -32,3 +32,13 @@ functions/*.log
 # estas van en las variables de entorno de Cloud Functions o en la consola.
 **/serviceAccountKey*.json
 **/*-service-account.json
+
+# ── Documentos internos del negocio (NO publicos) ───────────────────
+# Contienen el modelo de ingresos, metas, ticket medio, comisiones,
+# campanas de prospeccion y prompts internos. Se retiraron del repo
+# publico: GitHub Pages servia estos archivos por URL directa.
+# Si se editan, se quedan solo en disco (el .gitignore los protege).
+KIT_COMERCIAL/
+PLAN_CRECIMIENTO_AGENCIA.md
+PROMPT_GEMINI_MENU.txt
+ESPECIFICACION_SITIO.md
