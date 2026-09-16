@@ -61,6 +61,7 @@ card/
 ├── servicios.html                 · Overview de los 6 servicios reales + proceso + paquetes + FAQ general
 ├── portafolio.html                · Portafolio con filtros por categoría y casos de estudio en modal
 ├── blog.html                      · Entrada al blog desde la raíz
+├── aliados.html                   · Programa de aliados: modelos distribuidor y referido, comisiones y niveles
 ├── contacto.html                  · Formulario, datos de contacto, mapa, horarios y FAQ rápida
 ├── gracias.html                   · Confirmación de envío del formulario (noindex)
 ├── 404.html                       · Página de error personalizada (noindex)
@@ -257,7 +258,30 @@ Plantilla base del encabezado del artículo:
 
 ---
 
-## 6. Panel de administración de clientes (Firebase)
+## 6. Programa de aliados (liados.html)
+
+Página pública que explica cómo ganar dinero vendiendo las tarjetas digitales. Tiene dos modelos:
+
+| Modelo | Cómo funciona | Ganas |
+|---|---|---|
+| **Distribuidor** (recomendado) | Compra a precio de aliado y vende al precio que defina | La diferencia. Niveles por ventas mensuales: **Bronce** 1–4 ventas (30%), **Plata** 5–9 (40%), **Oro** 10+ (50%) |
+| **Referido** (sin inversión) | Presenta el cliente; KONFÍO ZINC cierra y cobra | **20%** de comisión: $9.980 START · $19.980 PRO · $29.980 ELITE |
+
+**Incentivo de activación:** tarjeta PRO de muestra con 50% de descuento (.950) al activarse; gratis al cerrar las primeras 3 ventas.
+
+**Reglas:** el aliado gestiona la venta y el cobro; KONFÍO ZINC hace diseño, publicación, hosting del primer año y soporte. Precios en COP. Medios de pago: Bancolombia, Davivienda, Nequi, Daviplata, Bre-B, Transfiya, Mercado Pago y efectivo.
+
+> 📌 **Fuente única de verdad:** PROGRAMA_ALIADOS.md (documento interno, **no se versiona** porque
+> contiene condiciones de negociación). Si cambias comisiones o niveles ahí, actualiza también
+> liados.html y la función de respaldo del agente IA en ssets/js/main.js.
+
+> ⚠️ La página publica las tablas del programa, pero **no** los márgenes internos por debajo de
+> costo ni las condiciones negociables: la regla del documento es que las comisiones «no se negocian
+> en el chat» y toda negociación se deriva a Darwin (+57 320 641 1340).
+
+---
+
+## 7. Panel de administración de clientes (Firebase)
 
 El panel vive en **`admin.html`** y es una aplicación de una sola página que habla directamente
 con Firestore desde el navegador (SDK modular v10 por CDN, sin build step).
@@ -407,7 +431,7 @@ Los servicios son de **pago único con vigencia de 12 meses**. A los 12 meses se
 
 ---
 
-## 7. Despliegue en GitHub Pages
+## 8. Despliegue en GitHub Pages
 
 El repositorio ya está conectado: GitHub Pages publica la rama `main` en la raíz del repo, por lo
 que la URL es `https://konfiozinc.github.io/card/`.
@@ -441,7 +465,7 @@ $repo = "C:\Users\PC\Documents\KONFIO_ZINC\0-Agencia y Recursos\Agencia_Konfio_Z
 
 ---
 
-## 8. Configuración pendiente después del despliegue (placeholders)
+## 9. Configuración pendiente después del despliegue (placeholders)
 
 | # | Qué | Dónde |
 |---|---|---|
@@ -467,7 +491,7 @@ no pasa nada: la función `track()` no falla):
 
 ---
 
-## 9. Mantenimiento y buenas prácticas
+## 10. Mantenimiento y buenas prácticas
 
 - **No cambies la identidad visual** (colores, tipografías, radios): está centralizada en los
   tokens `:root` de `assets/css/styles.css`.
@@ -515,7 +539,7 @@ foreach ($f in $html) {
 
 ---
 
-## 10. Contacto del responsable
+## 11. Contacto del responsable
 
 **Darwin Montalvo** — Fundador y Director de Estrategia Digital · KONFÍO ZINC
 
