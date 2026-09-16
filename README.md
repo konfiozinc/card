@@ -37,7 +37,7 @@ clientes** con base de datos en Firebase Firestore y notificaciones push automá
 
 | Servicio | Página | Precio desde | Categoría de portafolio |
 |---|---|---|---|
-| Tarjetas Digitales (planes **Star**, **Pro**, **Elite**) | `servicios/tarjetas-digitales.html` | $70.000 | `tarjetas` |
+| Tarjetas Digitales (planes **Star**, **Pro**, **Elite**) | `servicios/tarjetas-digitales.html` | $49.900 | `tarjetas` |
 | Catálogos Digitales | `servicios/catalogos-digitales.html` | $120.000 | `catalogos` |
 | Menús Digitales | `servicios/menus-digitales.html` | $150.000 | `menus` |
 | Landing Pages | `servicios/landing-pages.html` | $350.000 | `landing` |
