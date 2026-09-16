@@ -77,6 +77,11 @@ card/
 │
 ├── herramientas/
 │   ├── verificar-sitio.js         · Verificador de integridad (enlaces, SEO, JSON-LD, sitemap)
+│   ├── verificar-firebase.js      · Comprueba si Firebase quedó bien configurado
+│   ├── configurar-firebase.js     · Inyecta la config de Firebase y crea .firebaserc
+│   ├── probar-agente.js           · 26 pruebas de enrutamiento del Asesor IA
+│   ├── enlazar-aliados-blog.js    · Enlazado interno a la página de aliados (idempotente)
+│   ├── aplicar-correcciones.js    · Precios, botones y redes sociales (auditado)
 │   ├── migracion-servicios.js     · Migración histórica a los 6 servicios reales (ya aplicada)
 │   ├── corregir-rutas-raiz.js     · Corrección de prefijos de ruta en las páginas de la raíz
 │   └── corregir-textos-servicios.js · Corrección de etiquetas de servicio antiguas
@@ -286,7 +291,7 @@ Página pública que explica cómo ganar dinero vendiendo las tarjetas digitales
 El panel vive en **`admin.html`** y es una aplicación de una sola página que habla directamente
 con Firestore desde el navegador (SDK modular v10 por CDN, sin build step).
 
-### 6.1 Qué hace
+### 7.1 Qué hace
 
 | Función | Detalle |
 |---|---|
@@ -300,143 +305,116 @@ con Firestore desde el navegador (SDK modular v10 por CDN, sin build step).
 | Push | Suscripción del navegador a FCM y guardado del token en la ficha del cliente |
 | Recordatorio manual | Invoca la Cloud Function `enviarRecordatorio` para un cliente concreto |
 
-### 6.2 Configuración inicial en Firebase Console (paso a paso)
+### 7.2 Configuración inicial en Firebase Console (paso a paso)
 
-1. **Crear el proyecto** en https://console.firebase.google.com (o usa el existente de KONFÍO ZINC).
-2. **Registrar una app web:** ⚙️ Configuración del proyecto → *Tus apps* → `</>` → copia el objeto
-   `firebaseConfig`.
-3. **Pegar la configuración en dos archivos** (deben quedar idénticos):
-   - `assets/js/firebase-config.js` → `firebaseConfig` y `vapidKey`
-   - `firebase-messaging-sw.js` (raíz) → `firebaseConfig`
-4. **Activar Authentication:** *Compilación* → Authentication → Comenzar → habilitar
-   **Correo electrónico/contraseña**. Luego en *Usuarios* → **Agregar usuario** con el correo del
-   administrador (por ejemplo `konfiozinc@gmail.com`) y una contraseña robusta.
-5. **Autorizar el dominio:** Authentication → *Configuración* → **Dominios autorizados** → agregar
-   `konfiozinc.github.io`. Sin esto, el inicio de sesión falla desde GitHub Pages.
-6. **Crear Firestore:** *Compilación* → Firestore Database → Crear base de datos → modo producción.
-7. **Nombrar administradores:** en Firestore, crea la colección `admins` y un documento cuyo **ID
-   sea el UID** del usuario creado en el paso 4 (Authentication → Usuarios → columna *UID*). El
-   documento puede quedar vacío; lo que importa es que exista. Sin esto, el panel cierra la sesión
-   automáticamente por seguridad.
-8. **Desplegar reglas e índices:**
+> ⏱️ **Tiempo estimado: 10 minutos**, casi todo en la consola de Google.
+
+#### Antes de empezar: ¿proyecto nuevo o reutilizar uno?
+
+**Crea un proyecto NUEVO y exclusivo para la agencia.** No reutilices el proyecto `une-fibra` (es el
+de tu cliente UneFibra: tiene sus propias reglas y su esquema de usuarios) ni mezcles aquí la base de
+clientes de KONFÍO ZINC. Si el día de mañana vendes o transfieres la agencia, los datos de tus
+clientes no deben vivir dentro del proyecto de un cliente.
+
+El panel es **independiente del sitio**: el sitio público sigue en GitHub Pages y no necesita
+Firebase para funcionar.
+
+#### Paso 1 · Crear el proyecto (2 min)
+
+1. https://console.firebase.google.com → **Crear proyecto** → nombre: `konfio-zinc`.
+2. Desactiva Google Analytics (no lo necesitas aquí; el sitio usa GA4 aparte).
+
+#### Paso 2 · Registrar la app web y copiar la configuración (2 min)
+
+1. En el proyecto: ⚙️ **Configuración del proyecto** → pestaña *General* → sección *Tus apps*.
+2. Clic en el icono **`</>`** (web) → alias `panel` → **Registrar app**.
+3. Copia el bloque **`firebaseConfig`** que aparece.
+4. Pégalo en un archivo llamado **`firebase-config-temp.json`** en la raíz de este proyecto.
+5. Ejecuta:
    ```powershell
-   npm install -g firebase-tools
-   firebase login
-   firebase use --add          # selecciona tu proyecto y asígnale el alias "default"
-   firebase deploy --only firestore:rules,firestore:indexes
+   node herramientas/configurar-firebase.js
    ```
-9. **Activar Cloud Messaging:** *Compilación* → Messaging → en *Configuración web* → **Certificados
-   push web** → genera el par de claves y copia la **clave VAPID** en `assets/js/firebase-config.js`.
-10. **Verificar:** abre `https://konfiozinc.github.io/card/admin.html`, inicia sesión y comprueba que
-    carga el dashboard. Si ves el aviso azul de "Firebase está sin configurar", los placeholders
-    `PENDIENTE…` siguen en su sitio.
+   El script valida la configuración, la inyecta en `assets/js/firebase-config.js` y en
+   `firebase-messaging-sw.js` (que deben quedar idénticos), crea `.firebaserc` y **borra el archivo
+   temporal** (contenía la apiKey en claro).
 
-### 6.3 Modelo de datos en Firestore
+#### Paso 3 · Activar Authentication (2 min)
 
-**Colección `clientes`** — un documento por cliente:
+1. *Compilación* → **Authentication** → Comenzar → habilitar **Correo electrónico/contraseña**.
+2. Pestaña *Users* → **Agregar usuario**: `konfiozinc@gmail.com` + una contraseña robusta
+   (guárdala en tu gestor de contraseñas: no hay autorregistro).
+3. *Settings* → **Dominios autorizados** → **Agregar dominio**: `konfiozinc.github.io`.
+   Sin este paso el inicio de sesión falla desde GitHub Pages.
 
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `nombre` | string | Nombre completo del cliente |
-| `email` | string | Correo electrónico |
-| `telefono` | string | Teléfono / WhatsApp |
-| `empresa` | string | Nombre del negocio |
-| `servicio` | string | Uno de los 6 servicios reales |
-| `categoria` | string | `Star`, `Pro` o `Elite` (solo Tarjetas Digitales) |
-| `descripcion` | string | Detalle del proyecto contratado |
-| `fechaActivacion` | timestamp | Inicio del servicio |
-| `fechaVencimiento` | timestamp | `fechaActivacion` + 12 meses por defecto |
-| `estado` | string | `activo` · `por_vencer` · `inactivo` |
-| `precio` | number | Valor pagado en COP |
-| `metodoPago` | string | Nequi · Daviplata · Transferencia · Efectivo |
-| `fcmToken` | string | Token del dispositivo para notificaciones push |
-| `notificacionesEnviadas` | array | `[{ tipo, diasRestantes, fecha }]` de avisos ya enviados |
-| `notas` | string | Observaciones internas |
-| `creadoEn` / `actualizadoEn` | timestamp | Auditoría |
+#### Paso 4 · Crear Firestore y nombrar administradores (2 min)
 
-**Subcolección `clientes/{clienteId}/pagos`** — historial de pagos: `fecha` (timestamp),
-`monto` (number), `metodo` (string), `notas` (string), `registradoEn` (timestamp).
+1. *Compilación* → **Firestore Database** → Crear base de datos → **modo producción** → región
+   `us-central1` (o `southamerica-east1`, más cerca de Colombia).
+2. Pestaña *Datos* → **Iniciar colección** → id: `admins`.
+3. **ID del documento:** copia el **UID** de tu usuario desde Authentication (columna *User UID*).
+   Puedes dejar el documento sin campos: lo único que importa es que exista.
+4. Agrega un campo `email` (tipo string) con `konfiozinc@gmail.com` si quieres identificarlo luego.
 
-**Colección `admins`** — un documento por administrador, con el **UID** como id.
+> 🔒 Por qué esto no se automatiza: permitir que el primer usuario autenticado se registre solo
+> como administrador abre una ventana en la que un tercero con la configuración pública podría
+> hacerlo antes que tú. Esos dos clics en la consola son el precio de que no exista ese backdoor.
 
-**Colección `notificaciones_log`** — auditoría de cada aviso enviado por la Cloud Function.
-
-### 6.4 Cómo agregar o renovar un cliente
-
-**Agregar:** pestaña **Nuevo / editar** → completa identificación, servicio (la categoría se
-habilita solo para Tarjetas Digitales), fechas, precio y método de pago → **Guardar cliente**. Al
-elegir la fecha de activación, el vencimiento se calcula solo a 12 meses (puedes cambiarlo).
-El precio se autocompleta con el valor de referencia del servicio elegido.
-
-**Renovar:** en la pestaña **Clientes**, botón <i class="fas fa-rotate"></i> de la fila. Toma como
-base el vencimiento actual si todavía es futuro (no se pierden días pagados) o la fecha de hoy si
-ya venció, suma 12 meses, pone el estado en `activo` y **reinicia el historial de avisos** para el
-nuevo ciclo.
-
-### 6.5 Desplegar las Cloud Functions (notificaciones push)
+#### Paso 5 · Desplegar reglas, índices y funciones (3 min)
 
 ```powershell
-cd functions
-npm install
-cd ..
+# Instalar la CLI (solo la primera vez)
+npm install -g firebase-tools
+
+# Autenticarse (abre el navegador)
+firebase login
+
+# Comprobar que no falta nada antes de desplegar
+node herramientas/verificar-firebase.js
+
+# Desplegar
+firebase deploy --only firestore:rules,firestore:indexes
+cd functions ; npm install ; cd ..
 firebase deploy --only functions
 ```
 
-Se despliegan tres funciones:
+> ⚠️ Las **Cloud Functions programadas** requieren el plan **Blaze** (pago por uso; centavos al mes
+> para este volumen). Si no lo activas, el panel funciona igual y solo se pierden los avisos
+> automáticos de vencimiento. Las reglas, los índices y el panel **no** necesitan Blaze.
 
-| Función | Tipo | Qué hace |
-|---|---|---|
-| `verificarVencimientos` | programada (cron) | Corre todos los días a las **8:00 a.m. (America/Bogota)**. Envía los avisos de **10, 5, 3 y 1 día** antes del vencimiento, marca como `inactivo` a quien ya venció y actualiza `por_vencer` a ≤15 días |
-| `enviarRecordatorio` | callable | Recordatorio inmediato a un cliente; lo usa el botón 🔔 de la tabla |
-| `recalcularVencimientos` | callable | Recalcula `fechaActivacion + 12 meses` y reinicia avisos (útil en lote) |
+#### Paso 6 · Activar las notificaciones push (1 min)
 
-> ⚠️ Las funciones programadas requieren el **plan Blaze** (pago por uso). Para este volumen de
-> datos el costo es de centavos al mes. Si no quieres activarlo, el panel sigue funcionando: solo
-> se pierden los envíos automáticos (los recordatorios manuales también, porque son una función).
+1. *Compilación* → **Messaging** → sección *Configuración web* → **Certificados push web** →
+   *Generar par de claves*.
+2. Copia la **clave VAPID** y pégala en `assets/js/firebase-config.js`:
+   ```javascript
+   export const vapidKey = 'AQUI_LA_CLAVE_VAPID';
+   ```
+3. Vuelve a desplegar el sitio (`git add -A && git commit && git push`).
 
-**Ver logs:** `firebase functions:log` o la pestaña *Registros* en la consola.
+#### Paso 7 · Probar
 
-### 6.6 Cómo funciona el push en un sitio estático
+1. Abre `https://konfiozinc.github.io/card/admin.html` e inicia sesión.
+2. Debe aparecer el **dashboard** (no el aviso azul de "Firebase está sin configurar").
+3. Crea un cliente de prueba → revisa que aparezca en la tabla → registra un pago → exporta el CSV.
+4. Pestaña *Notificaciones* → elige el cliente de prueba → **Activar notificaciones** → acepta el
+   permiso del navegador. Verifica que el token quedó guardado en su ficha (botón 👁️ de la tabla).
+5. Borra el cliente de prueba.
 
-El sitio no tiene backend propio, así que no hay "cliente logueado" al que asociar un dispositivo.
-Por eso el panel pide elegir a qué cliente pertenece el navegador antes de suscribirlo: así se
-vincula un celular concreto (el del dueño del negocio, por ejemplo) con su ficha, y el token se
-guarda en `fcmToken`.
+#### Comprobación rápida en cualquier momento
 
-**Requisitos:** HTTPS (GitHub Pages ya lo da), permiso concedido por el usuario y la **clave VAPID**
-configurada. Alternativa futura documentada: una página pública de suscripción que reciba el id del
-cliente por enlace.
+```powershell
+node herramientas/verificar-firebase.js
+```
 
-### 6.7 Seguridad: por qué el panel es privado de verdad
-
-Tres capas independientes, y las tres son necesarias:
-
-1. **`admin.html` con `noindex, nofollow`** y fuera del sitemap y del menú público (no aparece en
-   buscadores, pero la URL es adivinable: **esto no protege nada por sí solo**).
-2. **Firebase Authentication:** sin sesión válida no se cargan datos.
-3. **`firestore.rules`:** deniega todo por defecto y solo permite leer/escribir a usuarios
-   autenticados que además existan en la colección `admins`. La validación ocurre **en el servidor
-   de Google**, así que aunque alguien copie la configuración pública de Firebase desde el HTML, no
-   puede leer nada.
-
-> La configuración de una app web de Firebase (`apiKey`, `projectId`, etc.) **no es un secreto**:
-> está diseñada para viajar al navegador. Lo que nunca debe subirse al repositorio son las claves de
-> servicio (*service account*), que van en las variables de entorno de Cloud Functions.
-
-### 6.8 Modelo de suscripción
-
-Los servicios son de **pago único con vigencia de 12 meses**. A los 12 meses se ofrece la renovación
-(anual) y, opcionalmente, el plan de mantenimiento **KZ Activo**. Los avisos de vencimiento se envían
-10, 5, 3 y 1 día antes para que la renovación se gestione a tiempo.
-
----
+Revisa la configuración de los dos archivos, la coherencia entre ellos, la clave VAPID, `.firebaserc`,
+las reglas, los índices, las Cloud Functions y el panel. Sale con código 1 si hay errores.
 
 ## 8. Despliegue en GitHub Pages
 
 El repositorio ya está conectado: GitHub Pages publica la rama `main` en la raíz del repo, por lo
 que la URL es `https://konfiozinc.github.io/card/`.
 
-### 6.1 Método manual (Git)
+### 8.1 Método manual (Git)
 
 ```powershell
 $git = "C:\Program Files\Git\cmd\git.exe"
@@ -451,7 +429,7 @@ $repo = "C:\Users\PC\Documents\KONFIO_ZINC\0-Agencia y Recursos\Agencia_Konfio_Z
 & $git -C $repo push origin main
 ```
 
-### 6.2 Verificar el despliegue
+### 8.2 Verificar el despliegue
 
 1. GitHub Actions → pestaña **Actions** del repo: el flujo `pages-build-deployment` debe terminar en verde (~1–3 min).
 2. Abre https://konfiozinc.github.io/card/ y navega: Inicio → Servicios → cada servicio → Portafolio → Blog → Contacto.

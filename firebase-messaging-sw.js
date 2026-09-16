@@ -21,7 +21,7 @@ const firebaseConfig = {
   apiKey: 'PENDIENTE_API_KEY',
   authDomain: 'PENDIENTE_PROJECT_ID.firebaseapp.com',
   projectId: 'PENDIENTE_PROJECT_ID',
-  storageBucket: 'PENDIENTE_PROJECT_ID.appspot.com',
+  storageBucket: 'PENDIENTE_PROJECT_ID.firebasestorage.app',
   messagingSenderId: 'PENDIENTE_SENDER_ID',
   appId: 'PENDIENTE_APP_ID'
 };

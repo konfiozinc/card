@@ -69,9 +69,18 @@ service cloud.firestore {
     }
 
     // ── Colección de administradores ─────────────────────────────────
-    // Solo lectura para quien ya es admin; la creación de nuevos admins se
-    // hace desde la consola de Firebase o con el Admin SDK (nunca desde el
-    // navegador), para que nadie pueda auto-promoverse.
+    // Un documento por administrador, con el UID de Authentication como id.
+    //
+    // Los administradores se crean SIEMPRE fuera del navegador: en la consola
+    // de Firestore (colección `admins` + documento cuyo id es el UID) o con el
+    // Admin SDK. Nunca se permite la escritura desde el cliente.
+    //
+    // ¿Por qué no hay auto-registro del primer administrador?
+    // Se evaluó y se descartó: cualquier regla que permita al primer usuario
+    // autenticado promoverse a sí mismo abre una ventana en la que un tercero
+    // con la configuración pública podría registrarse antes que tú. La
+    // comodidad de ahorrarte dos clics en la consola no compensa dejar un
+    // backdoor permanente en el panel de clientes.
     match /admins/{uid} {
       allow read: if estaAutenticado() && request.auth.uid == uid;
       allow write: if false;
