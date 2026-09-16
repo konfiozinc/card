@@ -258,7 +258,7 @@ Plantilla base del encabezado del artículo:
 
 ---
 
-## 6. Programa de aliados (`liados.html)
+## 6. Programa de aliados (`aliados.html`)
 
 Página pública que explica cómo ganar dinero vendiendo las tarjetas digitales. Tiene dos modelos:
 
