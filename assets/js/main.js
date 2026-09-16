@@ -604,38 +604,65 @@
       if (/(^|\s)unas(\s|$)/.test(q) && !/dudas/.test(q)) {
         return { text: '¡Perfecto! 👋 Para tu sector tenemos este ejemplo real:\nhttps://konfiozinc.github.io/nandy_nails/\n\n📌 ¿Ya manejas redes sociales para tu negocio?', cta: false };
       }
+      /* ── Paquetes todo en uno ───────────────────────────────────────
+         Debe ir ANTES de la regla de tarjetas: "cuánto cuesta" + "tarjeta"
+         es una pregunta de precio, no de producto. */
+      if (has(['cuanto cuesta', 'cuanto vale', 'precio', 'precios', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto'])
+          && has(['tarjeta', 'tarjetas'])) {
+        return { text: 'Las tarjetas digitales van desde $49.900 💳:\n\n• STAR $49.900 — tu presentación: contacto, WhatsApp, redes, ubicación y QR.\n• PRO $99.900 — añade catálogo o menú, precios y galería.\n• ELITE $149.900 — suma agenda de citas, formularios, varias sedes y agente IA.\n\n¿Te recomiendo una según tu negocio?', cta: true };
+      }
+      if (has(['paquete', 'paquetes', 'todo en uno', 'combo'])) {
+        return { text: 'Tenemos 4 paquetes todo en uno 📦:\n\n• KZ Inicio $59.900 — tarjeta Star + QR.\n• KZ Negocio $179.900 ⭐ el más pedido — tarjeta Pro + catálogo o menú + QR.\n• KZ Profesional $279.900 — tarjeta Elite + mini landing + catálogo/menú + QR.\n• KZ Premium desde $479.900 — todo lo anterior + agente IA 24/7.\n\nPago único, con dominio incluido el primer año.\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
+      }
+
+      /* ── Programa de aliados ────────────────────────────────────────
+         Va DESPUÉS de las reglas de producto (para no secuestrar consultas
+         de cliente) pero ANTES de las de sector: así "quiero ganar
+         recomendando tarjetas" o "cuánto gano si vendo una tarjeta" caen
+         aquí y no en la ficha del producto.
+         Fuente: PROGRAMA_ALIADOS.md. Las tablas públicas están en aliados.html.
+         Regla del documento: las comisiones NO se negocian en el chat; toda
+         negociación se deriva a Darwin por WhatsApp. */
+      if (has(['aliado', 'aliados', 'distribuidor', 'distribuidores', 'revender', 'reventa',
+               'referido', 'referidos', 'comision', 'comisiones', 'ingreso extra',
+               'ganar dinero', 'gano dinero', 'ganar plata', 'ganar con', 'ser socio',
+               'marca blanca', 'afiliado', 'afiliados',
+               'comprar al por mayor', 'al por mayor', 'por mayor'])
+          || (has(['ganar', 'ganancia', 'gano', 'margen']) && has(['tarjeta', 'tarjetas', 'vender', 'venda', 'vendo', 'vendiendo']))) {
+        return { text: '¡Sí! Tenemos un programa de aliados para que ganes vendiendo nuestras tarjetas digitales 🤝\n\n*Opción 1 · Distribuidor* (la más rentable)\nCompras a precio de aliado y vendes al precio que quieras:\n• Bronce (1 a 4 ventas/mes) · 30% → Star $34.930 · Pro $69.930 · Elite $104.930\n• Plata (5 a 9) · 40% → Star $29.940 · Pro $59.940 · Elite $89.940\n• Oro (10 o más) · 50% → Star $24.950 · Pro $49.950 · Elite $74.950\n\n*Opción 2 · Referido* (sin invertir nada)\nSolo presentas el cliente y ganas el 20%: $9.980 (Star), $19.980 (Pro) o $29.980 (Elite).\n\n🎁 Al activarte te llevas una tarjeta PRO de muestra con 50% de descuento ($49.950), y gratis si cierras tus primeras 3 ventas.\n\nNosotros hacemos el diseño, el hosting y el soporte: tú te concentras en vender.\n\nVer tablas completas: https://konfiozinc.github.io/card/aliados.html\n\n¿Quieres que te active como aliado?', cta: true };
+      }
+
+      /* ── Tarjetas digitales (producto) ─────────────────────────────── */
       if (has(['tarjeta', 'tarjetas'])) {
-        return { text: 'La tarjeta digital es tu presentación en un solo enlace 💳: contacto, redes, WhatsApp, ubicación y galería. Se actualiza al instante y reemplaza el papel.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
+        return { text: 'La tarjeta digital es tu presentación en un solo enlace 💳: contacto, WhatsApp, redes, ubicación, servicios y galería. Se actualiza al instante y reemplaza el papel.\n\nHay tres planes: Star $49.900, Pro $99.900 y Elite $149.900.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
       }
       if (has(['landing', 'pagina', 'landing page', 'landing pages'])) {
-        return { text: 'Creamos landing pages rápidas y enfocadas en conversión 🚀, ideales para promocionar tu negocio o un producto.\n\nCuéntame qué quieres promocionar y te cotizo.', cta: true };
+        return { text: 'Creamos landing pages rápidas y enfocadas en conversión 🚀 desde $350.000: promesa clara, prueba social, formulario, WhatsApp y medición de resultados.\n\nCuéntame qué quieres promocionar y te cotizo.', cta: true };
       }
       if (has(['catalogo', 'catalogos'])) {
-        return { text: 'Tu catálogo digital te permite mostrar productos o servicios con precios y compartirlo por WhatsApp o redes 📖.\n\n¿Qué tipo de productos o servicios ofreces?', cta: true };
+        return { text: 'Tu catálogo digital te permite mostrar productos con fotos y precios actualizables, y compartirlo por WhatsApp o redes 📖. Desde $120.000.\n\n¿Qué tipo de productos o servicios ofreces?', cta: true };
       }
       if (has(['menu', 'menus'])) {
-        return { text: 'Los menús digitales con QR son perfectos para restaurantes 🍽️: tus clientes ven platos y precios, y piden directo.\n\n¿Quieres un menú digital para tu negocio?', cta: true };
+        return { text: 'Los menús digitales con QR son perfectos para restaurantes 🍽️: tus clientes ven platos, precios y promociones, y piden directo por WhatsApp. Desde $150.000.\n\n¿Quieres un menú digital para tu negocio?', cta: true };
       }
-      if (has(['asistente', 'asistentes', 'agente', 'agentes', 'chatbot']) || /\bia\b/.test(q)) {
-        return { text: 'Creamos asistentes con IA que responden a tus clientes 24/7 🤖, con la información de tu negocio, en tu web o WhatsApp.\n\n¿Quieres uno para tu negocio?', cta: true };
+      if (has(['asistente', 'asistentes', 'agente ia', 'agentes ia', 'agente con ia', 'chatbot']) || /\bia\b/.test(q)) {
+        return { text: 'Creamos agentes IA que atienden a tus clientes 24/7 🤖: responden precios, horarios, disponibilidad y agendan citas, entrenados con la información de tu negocio. Desde $250.000.\n\n¿Quieres uno para tu negocio?', cta: true };
       }
       if (has(['qr', 'codigo qr', 'codigos qr'])) {
-        return { text: 'Creamos códigos QR personalizados con tu marca 📱, ideales para imprimir en mesas, stickers, empaques o facturas.\n\nLlevan a tus clientes directo a tu menú, catálogo, WhatsApp o ubicación.\n\n¿Para qué lo necesitas?', cta: true };
+        return { text: 'Creamos códigos QR personalizados con tu logo y tus colores 📱 desde $50.000, para imprimir en mesas, vitrinas, empaques o facturas.\n\nLlevan a tus clientes directo a tu menú, catálogo, WhatsApp o reseñas de Google.\n\n¿Para qué lo necesitas?', cta: true };
       }
-      if (has(['seo', 'posicionamiento', 'google'])) {
-        return { text: 'Trabajamos el SEO técnico y de contenido 🔍 para que tu negocio aparezca en Google cuando tus clientes buscan lo que ofreces.\n\nTe hacemos un diagnóstico sin costo. ¿Lo agendamos?', cta: true };
-      }
-      if (has(['redes', 'instagram', 'facebook', 'tiktok', 'sociales'])) {
-        return { text: 'Gestionamos tus redes sociales 📲 con calendario de contenido, diseño de piezas y respuesta a mensajes, para construir comunidad y vender.\n\n¿En qué redes está tu negocio hoy?', cta: true };
-      }
-      if (has(['publicidad', 'ads', 'pauta', 'anuncios'])) {
-        return { text: 'Gestionamos publicidad digital con ROI medible 📈 en Google Ads, Meta Ads y TikTok Ads: segmentación, creatividades y reportes claros.\n\n¿Qué quieres promocionar?', cta: true };
+
+
+      /* ── Consultas generales ──────────────────────────────────────── */
+      if (has(['seo', 'posicionamiento', 'google ads', 'pauta', 'publicidad', 'redes sociales',
+               'community manager', 'branding', 'email marketing', 'diseno de marca'])) {
+        return { text: 'Esos servicios no los ofrecemos directamente 🙌. Lo que sí hacemos son seis soluciones digitales:\n\n• Tarjetas Digitales (Star, Pro y Elite)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nOjo: la landing page y la tarjeta sí salen optimizadas para que te encuentren en Google. ¿Cuál te interesa?', cta: true };
       }
       if (has(['servicio', 'servicios', 'producto', 'productos', 'que ofrecen', 'que hacen', 'que venden'])) {
-        return { text: 'Creamos y gestionamos la presencia digital de tu negocio 📱:\n\n• Tarjetas digitales interactivas\n• Landing pages\n• Catálogos y menús digitales\n• Asistentes con IA\n• SEO, redes sociales y publicidad\n• Branding y códigos QR\n\n¿Cuál te interesa?', cta: true };
+        return { text: 'Estas son nuestras seis soluciones 📱:\n\n• Tarjetas Digitales (Star, Pro y Elite)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
       }
-      if (has(['precio', 'cuanto', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto', 'cotiza', 'cotizacion', 'cotizar'])) {
-        return { text: 'Cada proyecto se cotiza según lo que necesites 📊. Escríbeme por WhatsApp y te envío una cotización gratis, sin compromiso.\n\n¿Quieres que te cotice ahora?', cta: true };
+      if (has(['precio', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto', 'cotiza', 'cotizacion', 'cotizar'])) {
+        return { text: 'Nuestros precios arrancan así 📊:\n\n• Códigos QR: desde $50.000\n• Tarjetas Digitales: desde $49.900 (Star $49.900 · Pro $99.900 · Elite $149.900)\n• Catálogos Digitales: desde $120.000\n• Menús Digitales: desde $150.000\n• Agentes IA: desde $250.000\n• Landing Pages: desde $350.000\n\nTambién hay paquetes todo en uno desde $59.900. Escríbeme por WhatsApp y te preparo la cotización exacta, sin compromiso.', cta: true };
       }
       var sectores = [
         [['restaurante', 'restaurantes', 'comida', 'comidas', 'cafeteria', 'pizzeria', 'hamburgues'], ['https://konfiozinc.github.io/eltiti/', 'https://konfiozinc.github.io/colsabor/']],
@@ -651,7 +678,7 @@
         [['productos nutricionales', 'suplementos'], ['https://konfiozinc.github.io/nutridrink/']],
         [['nutricionista', 'nutricion', 'dietista'], ['https://konfiozinc.github.io/nutricionista/']],
         [['odontologo', 'odontologia', 'dentista', 'dental'], ['https://konfiozinc.github.io/servicios_odontologicos/', 'https://konfiozinc.github.io/cirujana_dentista/']],
-        [['diseno', 'disenador', 'branding'], ['https://konfiozinc.github.io/diseno_grafico/']],
+        [['diseno', 'disenador', 'diseno grafico'], ['https://konfiozinc.github.io/diseno_grafico/']],
         [['eventos', 'decoracion', 'fiestas'], ['https://konfiozinc.github.io/decoradora_de_fiestas/']],
         [['fumigacion', 'plagas'], ['https://konfiozinc.github.io/fumigaciones-monterrey/', 'https://konfiozinc.github.io/fumig_master/']],
         [['transporte', 'mensajeria', 'envios', 'logistica'], ['https://konfiozinc.github.io/mega-express/']],
@@ -665,22 +692,22 @@
       for (var si = 0; si < sectores.length; si++) {
         if (has(sectores[si][0])) {
           var enlaces = sectores[si][1];
-          return { text: '¡Perfecto! 👋 Para tu sector tenemos ' + (enlaces.length > 1 ? 'estos ejemplos reales:' : 'este ejemplo real:') + '\n' + enlaces.join('\n') + '\n\n📌 ¿Ya manejas redes sociales para tu negocio?', cta: false };
+          return { text: '¡Perfecto! 👋 Para tu sector tenemos ' + (enlaces.length > 1 ? 'estos ejemplos reales:' : 'este ejemplo real:') + '\n' + enlaces.join('\n') + '\n\n📌 ¿Quieres que te arme algo parecido para tu negocio?', cta: false };
         }
       }
       if (has(['portafolio', 'ejemplo', 'ejemplos', 'trabajo', 'trabajos', 'casos', 'resultados', 'proyectos'])) {
         return { text: 'Tenemos proyectos en restaurantes, salud, belleza, inmobiliaria, transporte, música y más 💼.\n\nPuedes ver el portafolio completo aquí:\nhttps://konfiozinc.github.io/card/portafolio.html\n\n¿De qué sector es tu negocio? Así te muestro un ejemplo parecido.', cta: false };
       }
-      if (has(['entrega', 'tiempo', 'cuanto tarda', 'cuando', 'demora', 'rapido', 'tarda'])) {
-        return { text: '⏱️ Entregamos en 24 a 48 horas hábiles la mayoría de proyectos, una vez recibimos tu información y el pago.', cta: true };
+      if (has(['entrega', 'tiempo', 'cuanto tarda', 'cuanto tardan', 'tardan', 'tarda', 'cuando', 'demora', 'rapido'])) {
+        return { text: '⏱️ Entregamos en 24 a 48 horas hábiles las tarjetas, catálogos y menús digitales. Las landing pages tardan de 5 a 15 días y los agentes IA de 5 a 10 días, según el alcance.', cta: true };
       }
       if (has(['contacto', 'whatsapp', 'telefono', 'numero', 'correo', 'email', 'hablar'])) {
         return { text: '📞 Contáctanos por:\n• WhatsApp: +57 320 641 1340\n• Email: konfiozinc@gmail.com\n\nO usa el botón verde de WhatsApp. ¡Te respondemos al instante!', cta: true };
       }
       if (has(['hola', 'buenas', 'buenos dias', 'saludo', 'hey'])) {
-        return { text: '¡Hola! 👋 Soy el asesor de KONFÍO ZINC.\n\nImpulsamos marcas con estrategia digital: tarjetas digitales, landing pages, SEO, redes, publicidad, branding, IA y más.\n\nCuéntame, ¿qué te gustaría lograr con tu negocio?', cta: false };
+        return { text: '¡Hola! 👋 Soy el asesor de KONFÍO ZINC.\n\nTe ayudo con nuestras seis soluciones:\n• Tarjetas Digitales (Star, Pro y Elite)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nY si quieres ganar dinero recomendándonos, tengo el programa de aliados.\n\nCuéntame, ¿qué necesitas?', cta: false };
       }
-      return { text: 'Buena pregunta 😊. Para darte una respuesta exacta, escríbeme por WhatsApp y te atiendo al instante.\n\nAquí puedo ayudarte con: servicios, precios, portafolio o cotizar tu proyecto. Toca un botón de abajo 👇', cta: true };
+      return { text: 'Buena pregunta 😊. Para darte una respuesta exacta, escríbeme por WhatsApp y te atiendo al instante.\n\nAquí puedo ayudarte con: servicios, precios, programa de aliados, portafolio o cotizar tu proyecto. Toca un botón de abajo 👇', cta: true };
     }
 
     function callBackend(message) {
@@ -733,7 +760,7 @@
     }
 
     function showWelcome() {
-      var welcome = '¡Hola! 👋 Bienvenido a KONFÍO ZINC.\n\nSomos la agencia de marketing digital que impulsa tu marca: tarjetas digitales, landing pages, SEO, redes sociales, publicidad, branding, asistentes con IA y códigos QR.\n\nCuéntame, ¿qué te gustaría lograr?';
+      var welcome = '¡Hola! 👋 Bienvenido a KONFÍO ZINC.\n\nTe ayudo con nuestras seis soluciones: tarjetas digitales (Star, Pro y Elite), catálogos, menús digitales con QR, landing pages, códigos QR y agentes IA de atención 24/7.\n\nY si quieres ganar dinero recomendándonos, pregunta por el *programa de aliados*.\n\n¿Qué necesitas?';
       addMessage(welcome, 'bot');
       history.push({ role: 'assistant', content: welcome });
     }
