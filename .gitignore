@@ -11,3 +11,24 @@ TEXTO_COMPLETO_ASESOR.txt
 PLANTILLAS_RESPUESTA_HUMANA.txt
 SEGUIMIENTO_LEADS.csv
 BASE_CONOCIMIENTO_ENLACES.txt
+
+# ── Firebase ────────────────────────────────────────────────────────
+# Dependencias de Cloud Functions (se reinstalan con `npm install`)
+functions/node_modules/
+
+# Caché local de la CLI de Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+functions/*.log
+.runtimeconfig.json
+
+# IMPORTANTE: assets/js/firebase-config.js SÍ se versiona a propósito.
+# La configuración de una app web de Firebase no es un secreto (viaja al
+# navegador por diseño). La seguridad real la dan Authentication y las reglas
+# de firestore.rules, que exigen sesión y pertenencia a la colección `admins`.
+# Lo que NUNCA debe subirse son las claves de servicio (*service account*):
+# estas van en las variables de entorno de Cloud Functions o en la consola.
+**/serviceAccountKey*.json
+**/*-service-account.json

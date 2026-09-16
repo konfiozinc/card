@@ -1,0 +1,92 @@
+rules_version = '2';
+
+// ═══════════════════════════════════════════════════════════════════
+// firestore.rules · KONFÍO ZINC
+// Reglas de seguridad de Cloud Firestore para la base de datos de clientes.
+//
+// Principio de diseño: DENEGAR POR DEFECTO.
+// Solo los usuarios autenticados (el equipo de KONFÍO ZINC dado de alta en
+// Firebase Authentication) pueden leer o escribir la colección `clientes` y
+// su subcolección `pagos`. Cualquier visitante anónimo del sitio —incluido
+// quien abra admin.html— queda bloqueado a nivel de base de datos, aunque
+// conozca la configuración pública de Firebase.
+//
+// Desplegar con:  firebase deploy --only firestore:rules
+// ═══════════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ── Función auxiliar: ¿hay sesión iniciada? ──────────────────────
+    function estaAutenticado() {
+      return request.auth != null;
+    }
+
+    // ── Función auxiliar: ¿el usuario está en la lista blanca de admins? ──
+    // El panel comprueba el rol, pero la regla es la que manda:
+    // existe un documento por administrador en la colección `admins`.
+    function esAdmin() {
+      return estaAutenticado()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // ── Colección principal: clientes ────────────────────────────────
+    match /clientes/{clienteId} {
+
+      // Lectura: cualquier administrador autenticado
+      allow read: if esAdmin();
+
+      // Creación: validando los campos mínimos y que el estado sea válido
+      allow create: if esAdmin()
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() > 1
+        && request.resource.data.email is string
+        && request.resource.data.servicio in [
+             'Tarjetas Digitales', 'Catálogos Digitales', 'Menús Digitales',
+             'Landing Pages', 'Códigos QR', 'Agentes IA'
+           ]
+        && request.resource.data.estado in ['activo', 'por_vencer', 'inactivo']
+        && request.resource.data.fechaVencimiento is timestamp;
+
+      // Actualización: no se permite cambiar el creador ni dejar campos clave vacíos
+      allow update: if esAdmin()
+        && request.resource.data.nombre is string
+        && request.resource.data.servicio is string
+        && request.resource.data.estado in ['activo', 'por_vencer', 'inactivo'];
+
+      // Borrado: solo administradores
+      allow delete: if esAdmin();
+
+      // ── Subcolección: historial de pagos ───────────────────────────
+      match /pagos/{pagoId} {
+        allow read: if esAdmin();
+        allow create: if esAdmin()
+          && request.resource.data.monto is number
+          && request.resource.data.monto > 0
+          && request.resource.data.fecha is timestamp;
+        allow update, delete: if esAdmin();
+      }
+    }
+
+    // ── Colección de administradores ─────────────────────────────────
+    // Solo lectura para quien ya es admin; la creación de nuevos admins se
+    // hace desde la consola de Firebase o con el Admin SDK (nunca desde el
+    // navegador), para que nadie pueda auto-promoverse.
+    match /admins/{uid} {
+      allow read: if estaAutenticado() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // ── Registro de notificaciones enviadas (auditoría del backend) ───
+    // Lo escribe la Cloud Function con privilegios de administrador.
+    match /notificaciones_log/{docId} {
+      allow read: if esAdmin();
+      allow write: if false;
+    }
+
+    // ── Cualquier otra ruta: denegada ────────────────────────────────
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

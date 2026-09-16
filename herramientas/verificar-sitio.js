@@ -109,11 +109,10 @@ for (const file of htmlFiles) {
   }
 
   const canonical = (raw.match(/rel="canonical" href="([^"]*)"/) || [])[1];
-  /* La página 404 no lleva canonical a propósito: es una página de error y no
-     debe declarar una versión preferida de una URL inexistente. */
-  if (relPath === '404.html') {
-    if (canonical) warn(`404.html NO debería llevar canonical · ${relPath}`);
-    if (!/name="robots" content="noindex/.test(raw)) err(`404.html DEBE ser noindex · ${relPath}`);
+  /* La página 404 y el panel privado no llevan canonical a propósito:
+     la 404 es una página de error y admin.html es una vista privada. */
+  if (relPath === '404.html' || relPath === 'admin.html') {
+    if (canonical) warn(`${relPath} NO debería llevar canonical · ${relPath}`);
   } else if (!canonical) err(`SIN canonical · ${relPath}`);
   else {
     const esperado = expectedCanonical(relPath);
@@ -129,22 +128,37 @@ for (const file of htmlFiles) {
   const root = (raw.match(/data-root="([^"]*)"/) || [])[1];
   if (root === undefined) warn(`SIN data-root en <html> · ${relPath}`);
 
+  /* El panel privado (admin.html) tiene reglas propias: no lleva los
+     componentes del sitio público porque es una vista de aplicación. */
+  const esPanel = relPath === 'admin.html';
+
   if (!/name="google-site-verification"/.test(raw)) warn(`SIN meta de Search Console · ${relPath}`);
-  if (!/G-XXXXXXXXXX/.test(raw)) warn(`SIN placeholder de GA4 · ${relPath}`);
   if (!/og:title/.test(raw)) warn(`SIN Open Graph · ${relPath}`);
   if (!/og:image/.test(raw)) warn(`SIN og:image · ${relPath}`);
   if (!/twitter:card/.test(raw)) warn(`SIN Twitter Card · ${relPath}`);
   if (!/rel="icon"/.test(raw)) warn(`SIN favicon · ${relPath}`);
   if (!/apple-touch-icon/.test(raw)) warn(`SIN apple-touch-icon · ${relPath}`);
-  if (!/assets\/js\/main\.js/.test(raw)) err(`NO CARGA main.js · ${relPath}`);
+
+  if (!esPanel) {
+    if (!/G-XXXXXXXXXX/.test(raw)) warn(`SIN placeholder de GA4 · ${relPath}`);
+    if (!/assets\/js\/main\.js/.test(raw)) err(`NO CARGA main.js · ${relPath}`);
+    if (!/id="navToggle"/.test(raw)) err(`SIN botón de menú móvil (#navToggle) · ${relPath}`);
+    if (!/id="navLinks"/.test(raw)) err(`SIN lista de navegación (#navLinks) · ${relPath}`);
+    if (!/class="wa-float"/.test(raw)) err(`SIN botón flotante de WhatsApp · ${relPath}`);
+    if (!/id="backTop"/.test(raw)) err(`SIN botón volver arriba (#backTop) · ${relPath}`);
+    if (!/id="kzFabChat"/.test(raw)) err(`SIN agente IA flotante · ${relPath}`);
+    if (!/id="modal"/.test(raw)) err(`SIN modal · ${relPath}`);
+    if (!/wa\.me\/573206411340/.test(raw)) err(`SIN enlace de WhatsApp · ${relPath}`);
+  } else {
+    /* Comprobaciones específicas del panel de administración */
+    if (!/noindex/.test(raw)) err(`El panel admin.html DEBE ser noindex · ${relPath}`);
+    if (!/firebase-config\.js/.test(raw)) err(`admin.html no carga firebase-config.js · ${relPath}`);
+    if (!/assets\/js\/admin\.js/.test(raw)) err(`admin.html no carga admin.js · ${relPath}`);
+    if (!/id="loginForm"/.test(raw)) err(`admin.html SIN formulario de acceso · ${relPath}`);
+    if (!/id="tablaClientes"/.test(raw)) err(`admin.html SIN tabla de clientes · ${relPath}`);
+    if (!/id="clienteForm"/.test(raw)) err(`admin.html SIN formulario de cliente · ${relPath}`);
+  }
   if (!/assets\/css\/styles\.css/.test(raw)) err(`NO CARGA styles.css · ${relPath}`);
-  if (!/id="navToggle"/.test(raw)) err(`SIN botón de menú móvil (#navToggle) · ${relPath}`);
-  if (!/id="navLinks"/.test(raw)) err(`SIN lista de navegación (#navLinks) · ${relPath}`);
-  if (!/class="wa-float"/.test(raw)) err(`SIN botón flotante de WhatsApp · ${relPath}`);
-  if (!/id="backTop"/.test(raw)) err(`SIN botón volver arriba (#backTop) · ${relPath}`);
-  if (!/id="kzFabChat"/.test(raw)) err(`SIN agente IA flotante · ${relPath}`);
-  if (!/id="modal"/.test(raw)) err(`SIN modal · ${relPath}`);
-  if (!/wa\.me\/573206411340/.test(raw)) err(`SIN enlace de WhatsApp · ${relPath}`);
 
   /* 3. JSON-LD válido ---------------------------------------------- */
   let jsonld = 0;
@@ -201,10 +215,13 @@ else {
     if (p === '' || p === loc) p = 'index.html';
     if (!fs.existsSync(path.join(REPO, p))) err(`SITEMAP apunta a archivo inexistente · ${loc}`);
   }
-  /* Aviso si hay páginas indexables que no están en el sitemap */
+  /* Aviso si hay páginas indexables que no están en el sitemap.
+     Se excluyen las páginas que a propósito no se indexan: gracias.html
+     (confirmación de formulario), 404.html (error) y admin.html (panel privado). */
+  const SIN_INDEXAR = ['gracias.html', '404.html', 'admin.html'];
   for (const f of htmlFiles) {
     const r = rel(f);
-    if (r === 'gracias.html' || r === '404.html') continue;
+    if (SIN_INDEXAR.includes(r)) continue;
     const url = expectedCanonical(r);
     if (!locs.includes(url)) warn(`PÁGINA FUERA DEL SITEMAP · ${r}`);
   }

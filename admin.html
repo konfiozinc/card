@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es-CO" data-base="." data-root=".">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de administración | KONFÍO ZINC</title>
+<meta name="description" content="Panel privado de gestión de clientes de KONFÍO ZINC: control de servicios activos, vencimientos, pagos y notificaciones push.">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#000000">
+<!-- Panel privado: no se indexa ni se referencia desde el menú público -->
+
+<!-- Sin Analytics en el panel: es una vista privada y no debe medirse como el sitio público -->
+<meta name="google-site-verification" content="PENDIENTE-CODIGO-SEARCH-CONSOLE">
+
+<!-- Favicon y apple-touch-icon -->
+<link rel="icon" href="assets/img/logos/logo.jpeg" type="image/jpeg">
+<link rel="apple-touch-icon" href="assets/img/logos/logo.jpeg">
+
+<!-- Fuentes y estilos -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="assets/css/styles.css">
+
+<!-- Solo para la página privada: evita que buscadores y previews muestren el panel -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KONFÍO ZINC">
+<meta property="og:title" content="Panel de administración | KONFÍO ZINC">
+<meta property="og:description" content="Panel privado de gestión de clientes.">
+<meta property="og:image" content="https://konfiozinc.github.io/card/assets/img/logos/logo.jpeg">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Panel de administración | KONFÍO ZINC">
+</head>
+<body>
+<a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+<canvas id="particles" aria-hidden="true"></canvas>
+
+<!-- ══════════════ HEADER SIMPLE (el panel no lleva menú público) ══════════════ -->
+<header class="site-header" id="header">
+  <nav class="nav container" aria-label="Navegación del panel">
+    <a href="index.html" class="nav-logo" aria-label="KONFÍO ZINC - Volver al sitio">
+      <img src="assets/img/logos/logo.jpeg" alt="Logotipo de KONFÍO ZINC" class="nav-logo-img" width="38" height="38">
+      <span class="nav-logo-text">KONFÍO <span class="text-gold">ZINC</span></span>
+    </a>
+    <div class="nav-actions">
+      <span class="who" id="whoBox" hidden>Panel privado · <strong id="whoUserHeader">—</strong></span>
+      <button class="btn btn-ghost" id="logoutBtn" hidden><i class="fas fa-right-from-bracket"></i> Salir</button>
+    </div>
+  </nav>
+</header>
+
+<main id="contenido">
+  <!-- ══════════════ AVISOS ══════════════ -->
+  <div class="container" style="padding-top:1rem;">
+    <div id="adminAlerts" role="status" aria-live="polite"></div>
+  </div>
+
+  <!-- ══════════════ AVISO DE CONFIGURACIÓN PENDIENTE ══════════════ -->
+  <section class="admin-login" id="configPendiente" hidden>
+    <div class="admin-login-card">
+      <div class="lock" aria-hidden="true"><i class="fas fa-screwdriver-wrench"></i></div>
+      <h2 class="brand">Firebase está sin configurar</h2>
+      <p class="sub">El panel necesita las credenciales de tu proyecto para funcionar.</p>
+      <div class="admin-alert pending">
+        <p><strong>1.</strong> Abre <code>assets/js/firebase-config.js</code> y reemplaza cada <code>PENDIENTE…</code> por los valores de tu proyecto (Firebase Console → ⚙️ Configuración del proyecto → Tus apps → Configuración del SDK).</p>
+        <p><strong>2.</strong> Repite los mismos valores en <code>firebase-messaging-sw.js</code> (la raíz) para que funcionen las notificaciones push.</p>
+        <p><strong>3.</strong> Despliega las reglas de seguridad: <code>firebase deploy --only firestore:rules,firestore:indexes</code>.</p>
+        <p><strong>4.</strong> Crea tu usuario administrador en Authentication y añade su UID a la colección <code>admins</code> de Firestore.</p>
+        <p>Las instrucciones completas están en el <code>README.md</code> del proyecto.</p>
+      </div>
+      <a href="index.html" class="btn btn-ghost btn-block"><i class="fas fa-arrow-left"></i> Volver al sitio</a>
+    </div>
+  </section>
+
+  <!-- ══════════════ VISTA DE INICIO DE SESIÓN ══════════════ -->
+  <section class="admin-login" id="loginView" hidden>
+    <div class="admin-login-card">
+      <div class="lock" aria-hidden="true"><i class="fas fa-lock"></i></div>
+      <h1 class="brand">Panel de administración</h1>
+      <p class="sub">Acceso exclusivo para el equipo de KONFÍO ZINC.</p>
+
+      <form id="loginForm" novalidate>
+        <div class="form-group">
+          <label for="loginEmail">Correo electrónico</label>
+          <input type="email" id="loginEmail" name="email" autocomplete="username" placeholder="tu@correo.com" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Contraseña</label>
+          <input type="password" id="loginPassword" name="password" autocomplete="current-password" placeholder="••••••••" required>
+        </div>
+        <div class="form-error-box" id="loginError" role="alert"></div>
+        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtn"><i class="fas fa-right-to-bracket"></i> Entrar al panel</button>
+      </form>
+
+      <p class="form-note">Si olvidaste tu contraseña, restablécela desde Firebase Console → Authentication → Usuarios. Por seguridad, el panel no permite autorregistro.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════ PANEL ══════════════ -->
+  <section class="admin-shell" id="panelView" hidden>
+    <div class="container">
+
+      <!-- Encabezado del panel -->
+      <div class="admin-bar">
+        <div>
+          <h2>Gestión de clientes</h2>
+          <p class="who">Sesión iniciada como <strong id="whoUserInline">—</strong> · <span id="ultimaSync">datos en tiempo real</span></p>
+        </div>
+        <div class="admin-actions-row" style="margin:0">
+          <button class="btn btn-primary" id="nuevoClienteBtn" onclick="document.querySelector('[data-tab=nuevo]').click()"><i class="fas fa-user-plus"></i> Nuevo cliente</button>
+          <a href="index.html" class="btn btn-ghost"><i class="fas fa-house"></i> Ver el sitio</a>
+        </div>
+      </div>
+
+      <!-- Pestañas -->
+      <div class="admin-tabs" role="tablist">
+        <button class="admin-tab active" data-tab="dashboard" role="tab" aria-selected="true"><i class="fas fa-chart-pie"></i> Dashboard</button>
+        <button class="admin-tab" data-tab="clientes" role="tab" aria-selected="false"><i class="fas fa-users"></i> Clientes</button>
+        <button class="admin-tab" data-tab="nuevo" role="tab" aria-selected="false"><i class="fas fa-user-plus"></i> Nuevo / editar</button>
+        <button class="admin-tab" data-tab="push" role="tab" aria-selected="false"><i class="fas fa-bell"></i> Notificaciones</button>
+      </div>
+
+      <!-- ── PESTAÑA: DASHBOARD ── -->
+      <div class="admin-panel active" id="panel-dashboard" role="tabpanel">
+        <div class="admin-kpis">
+          <div class="admin-kpi is-active">
+            <div class="kpi-label">Clientes activos</div>
+            <div class="kpi-value" id="kpiActivos">0</div>
+            <div class="kpi-note">Con servicio vigente</div>
+          </div>
+          <div class="admin-kpi is-soon">
+            <div class="kpi-label">Por vencer</div>
+            <div class="kpi-value" id="kpiPorVencer">0</div>
+            <div class="kpi-note">Próximos 15 días</div>
+          </div>
+          <div class="admin-kpi is-inactive">
+            <div class="kpi-label">Inactivos</div>
+            <div class="kpi-value" id="kpiInactivos">0</div>
+            <div class="kpi-note">Servicio vencido</div>
+          </div>
+          <div class="admin-kpi is-money">
+            <div class="kpi-label">Ingresos del mes</div>
+            <div class="kpi-value" id="kpiIngresos">$0</div>
+            <div class="kpi-note">Según activaciones de este mes · <span id="kpiTotal">0</span> clientes en total</div>
+          </div>
+        </div>
+
+        <div class="admin-charts">
+          <div class="admin-chart-box">
+            <h3><i class="fas fa-layer-group"></i> Clientes por servicio</h3>
+            <div class="admin-bars" id="barrasServicio"></div>
+          </div>
+          <div class="admin-chart-box">
+            <h3><i class="fas fa-clock"></i> Próximos vencimientos (30 días)</h3>
+            <div class="admin-bars" id="listaProximos"></div>
+          </div>
+        </div>
+
+        <div class="admin-chart-box">
+          <h3><i class="fas fa-bell"></i> Estado de las notificaciones push</h3>
+          <p class="cell-muted" id="pushResumen">Cargando…</p>
+          <p class="admin-hint" style="margin-top:.6rem;">Los avisos automáticos se envían 10, 5, 3 y 1 día antes del vencimiento, mediante la Cloud Function <code>verificarVencimientos</code>.</p>
+        </div>
+      </div>
+
+      <!-- ── PESTAÑA: CLIENTES ── -->
+      <div class="admin-panel" id="panel-clientes" role="tabpanel">
+        <div class="admin-toolbar">
+          <div class="form-group">
+            <label for="buscar">Buscar</label>
+            <input type="search" id="buscar" placeholder="Nombre, correo, teléfono o empresa…">
+          </div>
+          <div class="form-group">
+            <label for="filtroEstado">Estado</label>
+            <select id="filtroEstado"></select>
+          </div>
+          <div class="form-group">
+            <label for="filtroServicio">Servicio</label>
+            <select id="filtroServicio"></select>
+          </div>
+          <div class="form-group">
+            <label for="filtroCategoria">Categoría (Tarjetas)</label>
+            <select id="filtroCategoria"></select>
+          </div>
+        </div>
+
+        <div class="admin-actions-row">
+          <button class="btn btn-ghost" id="limpiarFiltros"><i class="fas fa-filter-circle-xmark"></i> Limpiar filtros</button>
+          <button class="btn btn-primary" id="exportarCsv"><i class="fas fa-file-csv"></i> Exportar CSV / Excel</button>
+          <span class="admin-hint">Haz clic en los encabezados para ordenar por vencimiento, nombre o precio.</span>
+        </div>
+
+        <div class="admin-table-wrap">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th class="sortable" data-sort="nombre">Cliente</th>
+                <th>Contacto</th>
+                <th>Servicio</th>
+                <th class="sortable" data-sort="fechaVencimiento">Vencimiento</th>
+                <th>Estado</th>
+                <th class="sortable" data-sort="precio">Precio</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaClientes"></tbody>
+          </table>
+          <p class="admin-table-empty" id="tablaVacia">Todavía no hay clientes registrados.</p>
+        </div>
+      </div>
+
+      <!-- ── PESTAÑA: NUEVO / EDITAR ── -->
+      <div class="admin-panel" id="panel-nuevo" role="tabpanel">
+        <form class="admin-form" id="clienteForm" novalidate>
+          <h2 id="formTitulo" style="font-family:var(--font-title);font-size:1.05rem;margin-bottom:1.2rem;">Nuevo cliente</h2>
+
+          <fieldset>
+            <legend>Identificación</legend>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="formNombre">Nombre completo *</label>
+                <input type="text" id="formNombre" placeholder="Ej.: María Fernanda Gómez" required>
+              </div>
+              <div class="form-group">
+                <label for="formEmpresa">Empresa o negocio</label>
+                <input type="text" id="formEmpresa" placeholder="Ej.: Clínica Dental Sonrisa">
+              </div>
+              <div class="form-group">
+                <label for="formEmail">Correo electrónico *</label>
+                <input type="email" id="formEmail" placeholder="cliente@correo.com" required>
+              </div>
+              <div class="form-group">
+                <label for="formTelefono">Teléfono / WhatsApp *</label>
+                <input type="tel" id="formTelefono" placeholder="+57 300 000 0000" required>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Servicio contratado</legend>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="formServicio">Servicio *</label>
+                <select id="formServicio" required></select>
+              </div>
+              <div class="form-group">
+                <label for="formCategoria">Categoría (solo Tarjetas Digitales)</label>
+                <select id="formCategoria" disabled></select>
+                <p class="admin-hint">Star, Pro o Elite. Se habilita al elegir Tarjetas Digitales.</p>
+              </div>
+              <div class="form-group full">
+                <label for="formDescripcion">Descripción del proyecto</label>
+                <input type="text" id="formDescripcion" placeholder="Ej.: tarjeta digital con catálogo de 30 productos y QR de vitrina">
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Vigencia y pago</legend>
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="formFechaActivacion">Fecha de activación *</label>
+                <input type="date" id="formFechaActivacion" required>
+                <p class="admin-hint">Al elegirla, calculamos el vencimiento a 12 meses.</p>
+              </div>
+              <div class="form-group">
+                <label for="formFechaVencimiento">Fecha de vencimiento *</label>
+                <input type="date" id="formFechaVencimiento" required>
+              </div>
+              <div class="form-group">
+                <label for="formPrecio">Precio pagado (COP)</label>
+                <input type="number" id="formPrecio" min="0" step="1000" placeholder="Ej.: 120000">
+              </div>
+              <div class="form-group">
+                <label for="formMetodoPago">Método de pago</label>
+                <select id="formMetodoPago"></select>
+              </div>
+              <div class="form-group">
+                <label for="formEstado">Estado</label>
+                <select id="formEstado"></select>
+                <p class="admin-hint">Se recalcula automáticamente según el vencimiento.</p>
+              </div>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Notas internas</legend>
+            <div class="form-group">
+              <label for="formNotas">Observaciones</label>
+              <textarea id="formNotas" rows="3" placeholder="Renovación pendiente, solicitud de cambios, preferencias de contacto…"></textarea>
+            </div>
+          </fieldset>
+
+          <div class="form-error-box" id="formError" role="alert"></div>
+
+          <div class="admin-actions-row" style="margin-top:1rem">
+            <button type="submit" class="btn btn-primary btn-lg" id="btnGuardar"><i class="fas fa-floppy-disk"></i> Guardar cliente</button>
+            <button type="button" class="btn btn-ghost btn-lg" id="cancelarEdicion"><i class="fas fa-xmark"></i> Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <!-- ── PESTAÑA: NOTIFICACIONES ── -->
+      <div class="admin-panel" id="panel-push" role="tabpanel">
+        <div class="push-box">
+          <div>
+            <h3 style="font-family:var(--font-title);font-size:1rem;margin-bottom:.4rem;">Suscripción de este dispositivo</h3>
+            <p>Activa las notificaciones push en este navegador y vincúlalas a un cliente. Así recibirás los avisos de vencimiento (10, 5, 3 y 1 día antes) aunque la página esté cerrada.</p>
+            <p class="push-status off" id="pushEstado">Comprobando soporte…</p>
+          </div>
+          <div style="min-width:260px;">
+            <div class="form-group">
+              <label for="pushCliente">Cliente de este dispositivo</label>
+              <select id="pushCliente"></select>
+            </div>
+            <button class="btn btn-primary btn-block" id="activarPush"><i class="fas fa-bell"></i> Activar notificaciones</button>
+          </div>
+        </div>
+
+        <div class="admin-alert">
+          <p><strong>Cómo funcionan los avisos automáticos</strong></p>
+          <p>La Cloud Function <code>verificarVencimientos</code> se ejecuta todos los días a las 8:00 a.m. (hora de Colombia). Revisa la fecha de vencimiento de cada cliente y envía una notificación push cuando faltan <strong>10, 5, 3 y 1 día</strong>. También marca como <em>inactivo</em> a quien ya venció y actualiza el estado <em>por vencer</em> a 15 días o menos.</p>
+          <p>Además, podrás lanzar un recordatorio manual desde el botón <i class="fas fa-bell"></i> de cada fila en la pestaña Clientes.</p>
+          <p class="admin-hint">Requiere el plan Blaze de Firebase (pago por uso). Para un proyecto de este tamaño el costo es de centavos al mes.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<!-- ══════════════ MODAL: DETALLE DEL CLIENTE ══════════════ -->
+<div class="admin-modal" id="detalleModal" role="dialog" aria-modal="true" aria-labelledby="detalleTitulo">
+  <div class="admin-modal-inner">
+    <div class="admin-modal-header">
+      <span id="detalleTitulo">Cliente</span>
+      <button data-close aria-label="Cerrar">✕</button>
+    </div>
+    <div class="admin-modal-body" id="detalleBody"></div>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL: REGISTRAR PAGO ══════════════ -->
+<div class="admin-modal" id="pagoModal" role="dialog" aria-modal="true" aria-labelledby="pagoTitulo">
+  <div class="admin-modal-inner" style="max-width:520px">
+    <div class="admin-modal-header">
+      <span id="pagoTitulo">Registrar pago</span>
+      <button data-close aria-label="Cerrar">✕</button>
+    </div>
+    <div class="admin-modal-body">
+      <form id="pagoForm" novalidate>
+        <input type="hidden" id="pagoClienteId">
+        <div class="form-group">
+          <label for="pagoFecha">Fecha del pago</label>
+          <input type="date" id="pagoFecha" required>
+        </div>
+        <div class="form-group">
+          <label for="pagoMonto">Monto (COP)</label>
+          <input type="number" id="pagoMonto" min="1" step="1000" required>
+        </div>
+        <div class="form-group">
+          <label for="pagoMetodo">Método de pago</label>
+          <select id="pagoMetodo" required>
+            <option value="">Selecciona…</option>
+            <option>Nequi</option>
+            <option>Daviplata</option>
+            <option>Transferencia</option>
+            <option>Efectivo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="pagoNotas">Notas</label>
+          <input type="text" id="pagoNotas" placeholder="Ej.: pago de renovación anual">
+        </div>
+        <div class="form-error-box" id="pagoError" role="alert"></div>
+        <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-money-bill-wave"></i> Guardar pago</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FOOTER DEL PANEL ══════════════ -->
+<footer class="footer">
+  <div class="container footer-bottom" style="border:0">
+    <p>© 2026 KONFÍO ZINC · Panel privado de administración · <a href="index.html">Volver al sitio público</a></p>
+  </div>
+</footer>
+
+<!-- El JS del sitio público se carga igual para reutilizar partículas y utilidades.
+     La lógica del panel va aparte, como módulo ES, porque usa el SDK de Firebase. -->
+<script src="assets/js/main.js" defer></script>
+<script type="module" src="assets/js/admin.js"></script>
+</body>
+</html>

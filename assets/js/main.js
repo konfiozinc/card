@@ -503,7 +503,7 @@
           window.location.href = next;
         }).catch(function () {
           if (btn) { btn.disabled = false; btn.innerHTML = original; }
-          showBox(errorBox, 'No pudimos enviar el formulario. Escríbenos directo por <a href="' + WHATSAPP + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;">WhatsApp</a> o al correo confiotv@gmail.com.');
+          showBox(errorBox, 'No pudimos enviar el formulario. Escríbenos directo por <a href="' + WHATSAPP + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;">WhatsApp</a> o al correo konfiozinc@gmail.com.');
           track('form_error', { form: 'contacto', reason: 'network' });
         });
         return;
@@ -675,7 +675,7 @@
         return { text: '⏱️ Entregamos en 24 a 48 horas hábiles la mayoría de proyectos, una vez recibimos tu información y el pago.', cta: true };
       }
       if (has(['contacto', 'whatsapp', 'telefono', 'numero', 'correo', 'email', 'hablar'])) {
-        return { text: '📞 Contáctanos por:\n• WhatsApp: +57 320 641 1340\n• Email: confiotv@gmail.com\n\nO usa el botón verde de WhatsApp. ¡Te respondemos al instante!', cta: true };
+        return { text: '📞 Contáctanos por:\n• WhatsApp: +57 320 641 1340\n• Email: konfiozinc@gmail.com\n\nO usa el botón verde de WhatsApp. ¡Te respondemos al instante!', cta: true };
       }
       if (has(['hola', 'buenas', 'buenos dias', 'saludo', 'hey'])) {
         return { text: '¡Hola! 👋 Soy el asesor de KONFÍO ZINC.\n\nImpulsamos marcas con estrategia digital: tarjetas digitales, landing pages, SEO, redes, publicidad, branding, IA y más.\n\nCuéntame, ¿qué te gustaría lograr con tu negocio?', cta: false };

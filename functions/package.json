@@ -1,0 +1,24 @@
+{
+  "name": "konfio-zinc-functions",
+  "description": "Cloud Functions de KONFÍO ZINC: verificación diaria de vencimientos y notificaciones push (FCM) 10, 5, 3 y 1 día antes del vencimiento.",
+  "version": "1.0.0",
+  "private": true,
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "scripts": {
+    "serve": "firebase emulators:start --only functions,firestore",
+    "shell": "firebase functions:shell",
+    "deploy": "firebase deploy --only functions",
+    "logs": "firebase functions:log",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^6.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0"
+  }
+}

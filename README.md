@@ -1,18 +1,21 @@
-# KONFÍO ZINC — Sitio web de agencia de marketing digital
+# KONFÍO ZINC — Sitio web de soluciones digitales
 
 Sitio web **multipágina**, responsive y optimizado para SEO de **KONFÍO ZINC**, agencia de
-marketing digital en Colombia. Reemplaza la antigua landing de una sola página por una
-arquitectura completa de agencia: home, servicios, portafolio con casos de estudio, blog,
-nosotros y contacto.
+soluciones digitales en Colombia. Incluye home, página de servicios, 6 páginas de servicio,
+portafolio con casos de estudio, blog, nosotros, contacto y un **panel privado de gestión de
+clientes** con base de datos en Firebase Firestore y notificaciones push automáticas.
 
 - **URL en producción:** https://konfiozinc.github.io/card/
+- **Panel de administración:** https://konfiozinc.github.io/card/admin.html (privado)
 - **Repositorio:** https://github.com/konfiozinc/card
 - **Rama de despliegue:** `main` (GitHub Pages, carpeta raíz `/`)
-- **Responsable:** Darwin Montalvo — Fundador y Director de Estrategia Digital · `confiotv@gmail.com` · WhatsApp +57 320 641 1340
+- **Responsable:** Darwin Montalvo — Fundador · `konfiozinc@gmail.com` · WhatsApp +57 320 641 1340
 
 > ⚠️ **Respaldo del sitio anterior:** el `index.html` de la landing one-page original quedó
-> guardado como **`index-old.html`**. Nada del contenido previo se eliminó: todo se migró a las
-> páginas nuevas.
+> guardado como **`index-old.html`**. Los servicios de marketing digital genéricos (SEO, redes
+> sociales, publicidad digital, desarrollo web genérico, branding y email marketing) se
+> **retiraron del sitio** porque la agencia no los ofrece: sus páginas siguen recuperables desde
+> el historial de Git (`git log --diff-filter=D --name-only`).
 
 ---
 
@@ -20,7 +23,8 @@ nosotros y contacto.
 
 | Aspecto | Detalle |
 |---|---|
-| Tecnología | HTML5 + CSS3 + JavaScript vanilla (sin frameworks ni build step) |
+| Tecnología | HTML5 + CSS3 + JavaScript vanilla (sitio estático, sin build step) |
+| Backend | Firebase (Firestore + Authentication + Cloud Functions + Cloud Messaging) |
 | Identidad visual | Negro `#000000`, dorado `#F0B429`, naranja `#F97316`, cian `#00E5FF` |
 | Tipografías | Orbitron (títulos) · Inter (textos), cargadas con `display=swap` |
 | Iconografía | Font Awesome 6.5.1 (CDN) |
@@ -28,6 +32,20 @@ nosotros y contacto.
 | SEO | Títulos y meta descripciones únicos, canonical, Open Graph, Twitter Cards, datos estructurados (Schema.org), `sitemap.xml`, `robots.txt` |
 | Analytics | Placeholder de GA4 y de Search Console en el `<head>` de cada página + eventos de tracking en CTAs |
 | Rendimiento | CSS crítico inline, `<script defer>`, miniaturas con `loading="lazy"`, video de YouTube con carga diferida (se inyecta el iframe solo al hacer clic) |
+
+### Los 6 servicios reales de la agencia
+
+| Servicio | Página | Precio desde | Categoría de portafolio |
+|---|---|---|---|
+| Tarjetas Digitales (planes **Star**, **Pro**, **Elite**) | `servicios/tarjetas-digitales.html` | $70.000 | `tarjetas` |
+| Catálogos Digitales | `servicios/catalogos-digitales.html` | $120.000 | `catalogos` |
+| Menús Digitales | `servicios/menus-digitales.html` | $150.000 | `menus` |
+| Landing Pages | `servicios/landing-pages.html` | $350.000 | `landing` |
+| Códigos QR | `servicios/codigos-qr.html` | $50.000 | `qr` |
+| Agentes IA | `servicios/agentes-ia.html` | $250.000 | `agentes` |
+
+> Las subcategorías **Star / Pro / Elite** existen solo en Tarjetas Digitales. No son categorías
+> de filtro del portafolio: se muestran dentro de su página de servicio y de su página de casos.
 
 El sitio **no requiere compilación**: se sube tal cual a GitHub Pages.
 
@@ -37,44 +55,56 @@ El sitio **no requiere compilación**: se sube tal cual a GitHub Pages.
 
 ```
 card/
-├── index.html                     · Home de la agencia (hero, métricas, servicios, proceso, testimonios, portafolio, FAQ, CTA)
+├── index.html                     · Home (hero + video lite, métricas, 6 servicios, por qué elegirnos, proceso, testimonios, portafolio, garantía, FAQ, CTA)
 ├── index-old.html                 · Respaldo de la landing one-page anterior
 ├── nosotros.html                  · Historia, fundador (Darwin Montalvo), misión/visión/valores, equipo, números
-├── servicios.html                 · Overview de los 6 servicios + proceso + paquetes + FAQ general
+├── servicios.html                 · Overview de los 6 servicios reales + proceso + paquetes + FAQ general
 ├── portafolio.html                · Portafolio con filtros por categoría y casos de estudio en modal
 ├── blog.html                      · Entrada al blog desde la raíz
 ├── contacto.html                  · Formulario, datos de contacto, mapa, horarios y FAQ rápida
 ├── gracias.html                   · Confirmación de envío del formulario (noindex)
 ├── 404.html                       · Página de error personalizada (noindex)
+├── admin.html                     · PANEL PRIVADO de gestión de clientes (Firebase, noindex)
+├── firebase-messaging-sw.js       · Service worker de FCM para las notificaciones push
+├── firebase.json                  · Configuración de Firebase (Firestore, Functions, Hosting)
+├── firestore.rules                · Reglas de seguridad de Firestore (denegar por defecto)
+├── firestore.indexes.json         · Índices compuestos que necesitan las consultas del panel
 ├── sitemap.xml                    · Sitemap con todas las URLs indexables
 ├── robots.txt                     · Instrucciones para crawlers + referencia al sitemap
 ├── README.md                      · Este documento
 ├── ESPECIFICACION_SITIO.md        · Especificación de componentes y SEO (documento interno de trabajo)
 │
 ├── herramientas/
-│   └── verificar-sitio.js         · Verificador de integridad del sitio (enlaces, SEO, JSON-LD, sitemap)
+│   ├── verificar-sitio.js         · Verificador de integridad (enlaces, SEO, JSON-LD, sitemap)
+│   ├── migracion-servicios.js     · Migración histórica a los 6 servicios reales (ya aplicada)
+│   ├── corregir-rutas-raiz.js     · Corrección de prefijos de ruta en las páginas de la raíz
+│   └── corregir-textos-servicios.js · Corrección de etiquetas de servicio antiguas
 │
-├── servicios/                     · Una página por servicio (misma estructura: problema, proceso, beneficios, casos, FAQ, relacionados)
-│   ├── seo.html
-│   ├── redes-sociales.html
-│   ├── publicidad-digital.html
-│   ├── desarrollo-web.html
-│   ├── branding.html
-│   └── email-marketing.html
+├── functions/                     · Cloud Functions (Node 20)
+│   ├── index.js                   · verificarVencimientos + enviarRecordatorio + recalcularVencimientos
+│   └── package.json               · Dependencias de las funciones
 │
-├── portafolio/                    · Casos de éxito por categoría
-│   ├── tarjetas-digitales.html
-│   ├── landing-pages.html
+├── servicios/                     · Una página por servicio (problema, planes, proceso, beneficios, casos, FAQ, relacionados, CTA)
+│   ├── tarjetas-digitales.html    · Con los planes Star, Pro y Elite
 │   ├── catalogos-digitales.html
 │   ├── menus-digitales.html
-│   ├── asistentes-ia.html
-│   └── codigos-qr.html
+│   ├── landing-pages.html
+│   ├── codigos-qr.html
+│   └── agentes-ia.html
+│
+├── portafolio/                    · Casos de éxito por categoría (1 por servicio)
+│   ├── tarjetas-digitales.html
+│   ├── catalogos-digitales.html
+│   ├── menus-digitales.html
+│   ├── landing-pages.html
+│   ├── codigos-qr.html
+│   └── agentes-ia.html
 │
 ├── blog/                          · Blog y artículos
 │   ├── index.html                 · Índice del blog
-│   ├── menu-digital-interactivo.html
-│   ├── tendencias-marketing-digital-2026.html
-│   └── guia-codigos-qr-negocio.html
+│   ├── tarjetas-digitales-star-pro-elite.html
+│   ├── catalogos-y-menus-digitales.html
+│   └── agentes-ia-atencion-24-7.html
 │
 └── assets/
     ├── css/
@@ -124,7 +154,7 @@ modal son automáticos (los gestiona `assets/js/main.js`):
 
 **Reglas:**
 1. `data-category` acepta una o varias categorías separadas por espacio. Valores válidos:
-   `tarjetas`, `landing`, `catalogos`, `menus`, `asistentes`, `qr`.
+   `tarjetas`, `catalogos`, `menus`, `landing`, `qr`, `agentes`.
 2. `data-metrics` separa cada métrica con `|` (se muestran como chips en el modal).
 3. Todos los atributos `data-*` de texto deben usar comillas dobles exteriores y **no** incluir
    comillas dobles dentro del valor (usa comillas simples si necesitas entrecomillar).
@@ -211,17 +241,173 @@ Plantilla base del encabezado del artículo:
 
 ## 5. Cómo agregar un servicio nuevo
 
-1. Crea `servicios/nombre-servicio.html` partiendo de `servicios/seo.html` (es la plantilla
-   canónica: hero, el problema, cómo funciona, beneficios, casos, FAQ, relacionados, CTA).
-2. Añade el `<a>` correspondiente en el submenú de **todas** las páginas (bloque
-   `<div class="nav-sub">` del header) y una tarjeta en `servicios.html`.
-3. Añade la URL a `sitemap.xml`.
-4. Añade la palabra clave del servicio a la función de respaldo del agente IA (`getLocalResponse`
+1. Crea `servicios/nombre-servicio.html` partiendo de `servicios/tarjetas-digitales.html` (es la
+   plantilla canónica: hero, el problema, planes, cómo funciona, beneficios, casos, FAQ,
+   relacionados, CTA).
+2. Añade el `<a>` correspondiente en el submenú de **todas** las páginas y en la columna
+   "Servicios" del footer (bloques `<div class="nav-sub">` y `<h4>Servicios</h4>`), además de una
+   tarjeta en `servicios.html` y en `index.html`.
+3. Añade la URL a `sitemap.xml` y crea su categoría en `portafolio/` con una tarjeta y un
+   `data-filter` en `portafolio.html`.
+4. Añade el nuevo servicio a las constantes `SERVICIOS` y `PRECIOS_REFERENCIA` de
+   `assets/js/firebase-config.js` para que aparezca en el panel de administración.
+5. Añade la palabra clave del servicio a la función de respaldo del agente IA (`getLocalResponse`
    en `assets/js/main.js`) si quieres que el asesor lo mencione.
+6. Ejecuta `node herramientas/verificar-sitio.js` para confirmar que no rompiste ningún enlace.
 
 ---
 
-## 6. Despliegue en GitHub Pages
+## 6. Panel de administración de clientes (Firebase)
+
+El panel vive en **`admin.html`** y es una aplicación de una sola página que habla directamente
+con Firestore desde el navegador (SDK modular v10 por CDN, sin build step).
+
+### 6.1 Qué hace
+
+| Función | Detalle |
+|---|---|
+| Autenticación | Email/contraseña con Firebase Auth + lista blanca en la colección `admins` |
+| Dashboard | Clientes activos, por vencer (≤15 días) e inactivos; ingresos del mes; clientes por servicio; próximos vencimientos a 30 días |
+| Tabla de clientes | Filtros por estado, servicio y categoría + búsqueda por nombre, correo, teléfono o empresa; orden por vencimiento, nombre o precio |
+| CRUD | Crear, editar, eliminar y ver detalle de cada cliente |
+| Renovación | Botón que recalcula el vencimiento +12 meses y reinicia los avisos del nuevo ciclo |
+| Pagos | Subcolección `pagos` con historial por cliente y total acumulado |
+| Exportación | CSV compatible con Excel (separador `;` y BOM UTF-8) de lo que esté filtrado |
+| Push | Suscripción del navegador a FCM y guardado del token en la ficha del cliente |
+| Recordatorio manual | Invoca la Cloud Function `enviarRecordatorio` para un cliente concreto |
+
+### 6.2 Configuración inicial en Firebase Console (paso a paso)
+
+1. **Crear el proyecto** en https://console.firebase.google.com (o usa el existente de KONFÍO ZINC).
+2. **Registrar una app web:** ⚙️ Configuración del proyecto → *Tus apps* → `</>` → copia el objeto
+   `firebaseConfig`.
+3. **Pegar la configuración en dos archivos** (deben quedar idénticos):
+   - `assets/js/firebase-config.js` → `firebaseConfig` y `vapidKey`
+   - `firebase-messaging-sw.js` (raíz) → `firebaseConfig`
+4. **Activar Authentication:** *Compilación* → Authentication → Comenzar → habilitar
+   **Correo electrónico/contraseña**. Luego en *Usuarios* → **Agregar usuario** con el correo del
+   administrador (por ejemplo `konfiozinc@gmail.com`) y una contraseña robusta.
+5. **Autorizar el dominio:** Authentication → *Configuración* → **Dominios autorizados** → agregar
+   `konfiozinc.github.io`. Sin esto, el inicio de sesión falla desde GitHub Pages.
+6. **Crear Firestore:** *Compilación* → Firestore Database → Crear base de datos → modo producción.
+7. **Nombrar administradores:** en Firestore, crea la colección `admins` y un documento cuyo **ID
+   sea el UID** del usuario creado en el paso 4 (Authentication → Usuarios → columna *UID*). El
+   documento puede quedar vacío; lo que importa es que exista. Sin esto, el panel cierra la sesión
+   automáticamente por seguridad.
+8. **Desplegar reglas e índices:**
+   ```powershell
+   npm install -g firebase-tools
+   firebase login
+   firebase use --add          # selecciona tu proyecto y asígnale el alias "default"
+   firebase deploy --only firestore:rules,firestore:indexes
+   ```
+9. **Activar Cloud Messaging:** *Compilación* → Messaging → en *Configuración web* → **Certificados
+   push web** → genera el par de claves y copia la **clave VAPID** en `assets/js/firebase-config.js`.
+10. **Verificar:** abre `https://konfiozinc.github.io/card/admin.html`, inicia sesión y comprueba que
+    carga el dashboard. Si ves el aviso azul de "Firebase está sin configurar", los placeholders
+    `PENDIENTE…` siguen en su sitio.
+
+### 6.3 Modelo de datos en Firestore
+
+**Colección `clientes`** — un documento por cliente:
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `nombre` | string | Nombre completo del cliente |
+| `email` | string | Correo electrónico |
+| `telefono` | string | Teléfono / WhatsApp |
+| `empresa` | string | Nombre del negocio |
+| `servicio` | string | Uno de los 6 servicios reales |
+| `categoria` | string | `Star`, `Pro` o `Elite` (solo Tarjetas Digitales) |
+| `descripcion` | string | Detalle del proyecto contratado |
+| `fechaActivacion` | timestamp | Inicio del servicio |
+| `fechaVencimiento` | timestamp | `fechaActivacion` + 12 meses por defecto |
+| `estado` | string | `activo` · `por_vencer` · `inactivo` |
+| `precio` | number | Valor pagado en COP |
+| `metodoPago` | string | Nequi · Daviplata · Transferencia · Efectivo |
+| `fcmToken` | string | Token del dispositivo para notificaciones push |
+| `notificacionesEnviadas` | array | `[{ tipo, diasRestantes, fecha }]` de avisos ya enviados |
+| `notas` | string | Observaciones internas |
+| `creadoEn` / `actualizadoEn` | timestamp | Auditoría |
+
+**Subcolección `clientes/{clienteId}/pagos`** — historial de pagos: `fecha` (timestamp),
+`monto` (number), `metodo` (string), `notas` (string), `registradoEn` (timestamp).
+
+**Colección `admins`** — un documento por administrador, con el **UID** como id.
+
+**Colección `notificaciones_log`** — auditoría de cada aviso enviado por la Cloud Function.
+
+### 6.4 Cómo agregar o renovar un cliente
+
+**Agregar:** pestaña **Nuevo / editar** → completa identificación, servicio (la categoría se
+habilita solo para Tarjetas Digitales), fechas, precio y método de pago → **Guardar cliente**. Al
+elegir la fecha de activación, el vencimiento se calcula solo a 12 meses (puedes cambiarlo).
+El precio se autocompleta con el valor de referencia del servicio elegido.
+
+**Renovar:** en la pestaña **Clientes**, botón <i class="fas fa-rotate"></i> de la fila. Toma como
+base el vencimiento actual si todavía es futuro (no se pierden días pagados) o la fecha de hoy si
+ya venció, suma 12 meses, pone el estado en `activo` y **reinicia el historial de avisos** para el
+nuevo ciclo.
+
+### 6.5 Desplegar las Cloud Functions (notificaciones push)
+
+```powershell
+cd functions
+npm install
+cd ..
+firebase deploy --only functions
+```
+
+Se despliegan tres funciones:
+
+| Función | Tipo | Qué hace |
+|---|---|---|
+| `verificarVencimientos` | programada (cron) | Corre todos los días a las **8:00 a.m. (America/Bogota)**. Envía los avisos de **10, 5, 3 y 1 día** antes del vencimiento, marca como `inactivo` a quien ya venció y actualiza `por_vencer` a ≤15 días |
+| `enviarRecordatorio` | callable | Recordatorio inmediato a un cliente; lo usa el botón 🔔 de la tabla |
+| `recalcularVencimientos` | callable | Recalcula `fechaActivacion + 12 meses` y reinicia avisos (útil en lote) |
+
+> ⚠️ Las funciones programadas requieren el **plan Blaze** (pago por uso). Para este volumen de
+> datos el costo es de centavos al mes. Si no quieres activarlo, el panel sigue funcionando: solo
+> se pierden los envíos automáticos (los recordatorios manuales también, porque son una función).
+
+**Ver logs:** `firebase functions:log` o la pestaña *Registros* en la consola.
+
+### 6.6 Cómo funciona el push en un sitio estático
+
+El sitio no tiene backend propio, así que no hay "cliente logueado" al que asociar un dispositivo.
+Por eso el panel pide elegir a qué cliente pertenece el navegador antes de suscribirlo: así se
+vincula un celular concreto (el del dueño del negocio, por ejemplo) con su ficha, y el token se
+guarda en `fcmToken`.
+
+**Requisitos:** HTTPS (GitHub Pages ya lo da), permiso concedido por el usuario y la **clave VAPID**
+configurada. Alternativa futura documentada: una página pública de suscripción que reciba el id del
+cliente por enlace.
+
+### 6.7 Seguridad: por qué el panel es privado de verdad
+
+Tres capas independientes, y las tres son necesarias:
+
+1. **`admin.html` con `noindex, nofollow`** y fuera del sitemap y del menú público (no aparece en
+   buscadores, pero la URL es adivinable: **esto no protege nada por sí solo**).
+2. **Firebase Authentication:** sin sesión válida no se cargan datos.
+3. **`firestore.rules`:** deniega todo por defecto y solo permite leer/escribir a usuarios
+   autenticados que además existan en la colección `admins`. La validación ocurre **en el servidor
+   de Google**, así que aunque alguien copie la configuración pública de Firebase desde el HTML, no
+   puede leer nada.
+
+> La configuración de una app web de Firebase (`apiKey`, `projectId`, etc.) **no es un secreto**:
+> está diseñada para viajar al navegador. Lo que nunca debe subirse al repositorio son las claves de
+> servicio (*service account*), que van en las variables de entorno de Cloud Functions.
+
+### 6.8 Modelo de suscripción
+
+Los servicios son de **pago único con vigencia de 12 meses**. A los 12 meses se ofrece la renovación
+(anual) y, opcionalmente, el plan de mantenimiento **KZ Activo**. Los avisos de vencimiento se envían
+10, 5, 3 y 1 día antes para que la renovación se gestione a tiempo.
+
+---
+
+## 7. Despliegue en GitHub Pages
 
 El repositorio ya está conectado: GitHub Pages publica la rama `main` en la raíz del repo, por lo
 que la URL es `https://konfiozinc.github.io/card/`.
@@ -255,7 +441,7 @@ $repo = "C:\Users\PC\Documents\KONFIO_ZINC\0-Agencia y Recursos\Agencia_Konfio_Z
 
 ---
 
-## 7. Configuración pendiente después del despliegue (placeholders)
+## 8. Configuración pendiente después del despliegue (placeholders)
 
 | # | Qué | Dónde |
 |---|---|---|
@@ -281,7 +467,7 @@ no pasa nada: la función `track()` no falla):
 
 ---
 
-## 8. Mantenimiento y buenas prácticas
+## 9. Mantenimiento y buenas prácticas
 
 - **No cambies la identidad visual** (colores, tipografías, radios): está centralizada en los
   tokens `:root` de `assets/css/styles.css`.
@@ -329,11 +515,11 @@ foreach ($f in $html) {
 
 ---
 
-## 9. Contacto del responsable
+## 10. Contacto del responsable
 
 **Darwin Montalvo** — Fundador y Director de Estrategia Digital · KONFÍO ZINC
 
-- Email: [confiotv@gmail.com](mailto:confiotv@gmail.com)
+- Email: [konfiozinc@gmail.com](mailto:konfiozinc@gmail.com)
 - WhatsApp: [+57 320 641 1340](https://wa.me/573206411340)
 - Facebook: https://www.facebook.com/profile.php?id=61589654555930
 - Instagram: https://www.instagram.com/konfiozinc
