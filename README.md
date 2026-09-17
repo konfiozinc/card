@@ -523,6 +523,6 @@ foreach ($f in $html) {
 
 - Email: [konfiozinc@gmail.com](mailto:konfiozinc@gmail.com)
 - WhatsApp: [+57 320 641 1340](https://wa.me/573206411340)
-- Facebook: https://www.facebook.com/profile.php?id=61589654555930
-- Instagram: https://www.instagram.com/konfiozinc
-- TikTok: https://www.tiktok.com/@konfiozinc
+- Facebook: https://www.facebook.com/share/1DRqH4Vvrt/
+- Instagram: https://www.instagram.com/konfio_zinc
+- TikTok: https://www.tiktok.com/@tarjetaszinc

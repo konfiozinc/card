@@ -73,13 +73,13 @@ const PROTECCIONES = [
 /* ── 3. Bloque HTML de redes sociales ──────────────────────────────── */
 const SOCIAL_HTML = `    <!-- ══ REDES SOCIALES (colores oficiales de cada red) ══ -->
     <div class="social-links">
-      <a href="https://www.facebook.com/profile.php?id=61589654555930" target="_blank" rel="noopener noreferrer" class="social-btn fb" aria-label="Facebook de KONFÍO ZINC">
+      <a href="https://www.facebook.com/share/1DRqH4Vvrt/" target="_blank" rel="noopener noreferrer" class="social-btn fb" aria-label="Facebook de KONFÍO ZINC">
         <i class="fab fa-facebook-f" aria-hidden="true"></i>
       </a>
-      <a href="https://www.instagram.com/konfiozinc" target="_blank" rel="noopener noreferrer" class="social-btn ig" aria-label="Instagram de KONFÍO ZINC">
+      <a href="https://www.instagram.com/konfio_zinc" target="_blank" rel="noopener noreferrer" class="social-btn ig" aria-label="Instagram de KONFÍO ZINC">
         <i class="fab fa-instagram" aria-hidden="true"></i>
       </a>
-      <a href="https://www.tiktok.com/@konfiozinc" target="_blank" rel="noopener noreferrer" class="social-btn tk" aria-label="TikTok de KONFÍO ZINC">
+      <a href="https://www.tiktok.com/@tarjetaszinc" target="_blank" rel="noopener noreferrer" class="social-btn tk" aria-label="TikTok de KONFÍO ZINC">
         <i class="fab fa-tiktok" aria-hidden="true"></i>
       </a>
     </div>
