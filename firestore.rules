@@ -1,99 +1,106 @@
 rules_version = '2';
-
 // ═══════════════════════════════════════════════════════════════════
-// firestore.rules · KONFÍO ZINC
-// Reglas de seguridad de Cloud Firestore para la base de datos de clientes.
+// KONFÍO ZINC · Reglas de Firestore — panel con roles
 //
-// Principio de diseño: DENEGAR POR DEFECTO.
-// Solo los usuarios autenticados (el equipo de KONFÍO ZINC dado de alta en
-// Firebase Authentication) pueden leer o escribir la colección `clientes` y
-// su subcolección `pagos`. Cualquier visitante anónimo del sitio —incluido
-// quien abra admin.html— queda bloqueado a nivel de base de datos, aunque
-// conozca la configuración pública de Firebase.
+// Principio: DENEGAR POR DEFECTO. El rol se lee de `usuarios/{uid}.rol`
+// (nunca del frontend). La autoridad real de negocio son las Cloud
+// Functions (que corren con Admin SDK y se saltan estas reglas), por lo
+// que las ESCRITURAS de negocio están cerradas desde el cliente: así se
+// garantiza auditoría, historial de estados y anti-duplicado de avisos.
 //
-// Desplegar con:  firebase deploy --only firestore:rules
+// Roles: OPERADOR(1) < ADMIN(2) < SUPERADMIN(3)
 // ═══════════════════════════════════════════════════════════════════
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Función auxiliar: ¿hay sesión iniciada? ──────────────────────
-    function estaAutenticado() {
-      return request.auth != null;
+    // ── Helpers ─────────────────────────────────────────────────────
+    function estaAutenticado() { return request.auth != null; }
+
+    function fichaUsuario() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
     }
 
-    // ── Función auxiliar: ¿el usuario está en la lista blanca de admins? ──
-    // El panel comprueba el rol, pero la regla es la que manda:
-    // existe un documento por administrador en la colección `admins`.
-    function esAdmin() {
-      return estaAutenticado()
-        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    function rol() {
+      return estaAutenticado() ? fichaUsuario().rol : '';
     }
 
-    // ── Colección principal: clientes ────────────────────────────────
+    function estaActivo() {
+      return estaAutenticado() && fichaUsuario().activo == true;
+    }
+
+    function esOperador() { return estaActivo() && rol() in ['OPERADOR', 'ADMIN', 'SUPERADMIN']; }
+    function esAdmin() { return estaActivo() && rol() in ['ADMIN', 'SUPERADMIN']; }
+    function esSuperadmin() { return estaActivo() && rol() == 'SUPERADMIN'; }
+
+    // ── usuarios (administradores) ──────────────────────────────────
+    // Lectura: cada uno se ve a sí mismo; el resto lo ve un SUPERADMIN.
+    // Escritura: cerrada al cliente — los cambios los hace crearUsuario /
+    // actualizarUsuario (Cloud Functions con Admin SDK).
+    match /usuarios/{uid} {
+      allow read: if (estaAutenticado() && request.auth.uid == uid) || esSuperadmin();
+      allow write: if false;
+    }
+
+    // ── clientes ────────────────────────────────────────────────────
     match /clientes/{clienteId} {
+      allow read: if esOperador();
+      allow write: if false; // pasa por crearCliente / actualizarCliente
+    }
 
-      // Lectura: cualquier administrador autenticado
+    // ── servicios (instancias por cliente) ──────────────────────────
+    match /servicios/{servicioId} {
+      allow read: if esOperador();
+      allow write: if false; // pasa por las funciones de ciclo de vida
+    }
+
+    // ── pagos ───────────────────────────────────────────────────────
+    match /pagos/{pagoId} {
+      allow read: if esOperador();
+      allow write: if false; // pasa por registrarPago / confirmarPago / anularPago
+    }
+
+    // ── planes ──────────────────────────────────────────────────────
+    match /planes/{planId} {
+      allow read: if esOperador();
+      allow write: if false; // el catálogo lo gestiona ADMIN+ vía Admin SDK
+    }
+
+    // ── notificaciones ──────────────────────────────────────────────
+    match /notificaciones/{notificacionId} {
       allow read: if esAdmin();
+      allow write: if false; // solo el motor y enviarNotificacion
+    }
 
-      // Creación: validando los campos mínimos y que el estado sea válido
-      allow create: if esAdmin()
-        && request.resource.data.nombre is string
-        && request.resource.data.nombre.size() > 1
-        && request.resource.data.email is string
-        && request.resource.data.servicio in [
-             'Tarjetas Digitales', 'Catálogos Digitales', 'Menús Digitales',
-             'Landing Pages', 'Códigos QR', 'Agentes IA'
-           ]
-        && request.resource.data.estado in ['activo', 'por_vencer', 'inactivo']
-        && request.resource.data.fechaVencimiento is timestamp;
-
-      // Actualización: no se permite cambiar el creador ni dejar campos clave vacíos
-      allow update: if esAdmin()
-        && request.resource.data.nombre is string
-        && request.resource.data.servicio is string
-        && request.resource.data.estado in ['activo', 'por_vencer', 'inactivo'];
-
-      // Borrado: solo administradores
+    // ── tokens_notificacion ─────────────────────────────────────────
+    // El panel registra el token de SU dispositivo, con el id del token
+    // como documento para que sea idempotente.
+    match /tokens_notificacion/{token} {
+      allow read: if esOperador();
+      allow create, update: if estaAutenticado()
+        && request.resource.data.clienteId is string
+        && request.resource.data.token is string;
       allow delete: if esAdmin();
-
-      // ── Subcolección: historial de pagos ───────────────────────────
-      match /pagos/{pagoId} {
-        allow read: if esAdmin();
-        allow create: if esAdmin()
-          && request.resource.data.monto is number
-          && request.resource.data.monto > 0
-          && request.resource.data.fecha is timestamp;
-        allow update, delete: if esAdmin();
-      }
     }
 
-    // ── Colección de administradores ─────────────────────────────────
-    // Un documento por administrador, con el UID de Authentication como id.
-    //
-    // Los administradores se crean SIEMPRE fuera del navegador: en la consola
-    // de Firestore (colección `admins` + documento cuyo id es el UID) o con el
-    // Admin SDK. Nunca se permite la escritura desde el cliente.
-    //
-    // ¿Por qué no hay auto-registro del primer administrador?
-    // Se evaluó y se descartó: cualquier regla que permita al primer usuario
-    // autenticado promoverse a sí mismo abre una ventana en la que un tercero
-    // con la configuración pública podría registrarse antes que tú. La
-    // comodidad de ahorrarte dos clics en la consola no compensa dejar un
-    // backdoor permanente en el panel de clientes.
-    match /admins/{uid} {
-      allow read: if estaAutenticado() && request.auth.uid == uid;
-      allow write: if false;
+    // ── historial_estados ───────────────────────────────────────────
+    match /historial_estados/{id} {
+      allow read: if esOperador();
+      allow write: if false; // lo escribe el Admin SDK
     }
 
-    // ── Registro de notificaciones enviadas (auditoría del backend) ───
-    // Lo escribe la Cloud Function con privilegios de administrador.
-    match /notificaciones_log/{docId} {
+    // ── auditoria ───────────────────────────────────────────────────
+    match /auditoria/{id} {
+      allow read: if esSuperadmin();
+      allow write: if false; // lo escribe el Admin SDK
+    }
+
+    // ── configuracion ───────────────────────────────────────────────
+    match /configuracion/{clave} {
       allow read: if esAdmin();
-      allow write: if false;
+      allow write: if false; // solo SUPERADMIN vía Admin SDK
     }
 
-    // ── Cualquier otra ruta: denegada ────────────────────────────────
+    // ── Denegar todo lo demás ───────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
     }

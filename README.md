@@ -6,7 +6,7 @@ portafolio con casos de estudio, blog, nosotros, contacto y un **panel privado d
 clientes** con base de datos en Firebase Firestore y notificaciones push automáticas.
 
 - **URL en producción:** https://konfiozinc.github.io/card/
-- **Panel de administración:** https://konfiozinc.github.io/card/admin.html (privado)
+- **Panel de administración:** https://konfiozinc.github.io/card/admin/ (privado)
 - **Repositorio:** https://github.com/konfiozinc/card
 - **Rama de despliegue:** `main` (GitHub Pages, carpeta raíz `/`)
 - **Responsable:** Darwin Montalvo — Fundador · `konfiozinc@gmail.com` · WhatsApp +57 320 641 1340
@@ -288,7 +288,9 @@ Página pública que explica cómo ganar dinero vendiendo las tarjetas digitales
 
 ## 7. Panel de administración de clientes (Firebase)
 
-El panel vive en **`admin.html`** y es una aplicación de una sola página que habla directamente
+> 📘 Documentación operativa: [docs/PANEL.md](docs/PANEL.md) (modelo de datos, despliegue y plan de pruebas).
+
+El panel vive en la app multipágina **`admin/`** (una página por sección) que habla directamente
 con Firestore desde el navegador (SDK modular v10 por CDN, sin build step).
 
 ### 7.1 Qué hace
@@ -393,7 +395,7 @@ firebase deploy --only functions
 
 #### Paso 7 · Probar
 
-1. Abre `https://konfiozinc.github.io/card/admin.html` e inicia sesión.
+1. Abre `https://konfiozinc.github.io/card/admin/` e inicia sesión.
 2. Debe aparecer el **dashboard** (no el aviso azul de "Firebase está sin configurar").
 3. Crea un cliente de prueba → revisa que aparezca en la tabla → registra un pago → exporta el CSV.
 4. Pestaña *Notificaciones* → elige el cliente de prueba → **Activar notificaciones** → acepta el

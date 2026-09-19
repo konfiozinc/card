@@ -79,6 +79,9 @@ for (const file of htmlFiles) {
   const raw = fs.readFileSync(file, 'utf8');
   const hash = path.basename(dir) === 'card' ? '.' : '..';
   const esperadoBase = relPath.includes('/') ? '..' : '.';
+  /* El panel privado (admin.html y admin/*.html) tiene reglas propias:
+     son vistas de aplicación, no páginas del sitio público. */
+  const esPanel = relPath === 'admin.html' || relPath.startsWith('admin/');
 
   /* 1. Enlaces y recursos internos ---------------------------------- */
   const refRe = /(?:href|src)="(?!https?:|mailto:|tel:|data:|javascript:|#)([^"]*)"/g;
@@ -102,16 +105,18 @@ for (const file of htmlFiles) {
   }
 
   const desc = (raw.match(/<meta name="description" content="([^"]*)"/) || [])[1];
-  if (!desc) err(`SIN meta description · ${relPath}`);
-  else {
-    if (desc.length > 155) warn(`DESCRIPCIÓN LARGA (${desc.length}) · ${relPath}`);
-    if (desc.length < 70) warn(`DESCRIPCIÓN CORTA (${desc.length}) · ${relPath}`);
+  if (!esPanel) {
+    if (!desc) err(`SIN meta description · ${relPath}`);
+    else {
+      if (desc.length > 155) warn(`DESCRIPCIÓN LARGA (${desc.length}) · ${relPath}`);
+      if (desc.length < 70) warn(`DESCRIPCIÓN CORTA (${desc.length}) · ${relPath}`);
+    }
   }
 
   const canonical = (raw.match(/rel="canonical" href="([^"]*)"/) || [])[1];
   /* La página 404 y el panel privado no llevan canonical a propósito:
-     la 404 es una página de error y admin.html es una vista privada. */
-  if (relPath === '404.html' || relPath === 'admin.html') {
+     la 404 es una página de error y el panel es una vista privada. */
+  if (relPath === '404.html' || esPanel) {
     if (canonical) warn(`${relPath} NO debería llevar canonical · ${relPath}`);
   } else if (!canonical) err(`SIN canonical · ${relPath}`);
   else {
@@ -121,23 +126,25 @@ for (const file of htmlFiles) {
     canonicalsVistos.set(canonical, relPath);
   }
 
-  const base = (raw.match(/data-base="([^"]*)"/) || [])[1];
-  if (base === undefined) err(`SIN data-base en <html> · ${relPath}`);
-  else if (base !== esperadoBase) err(`data-base INCORRECTO · ${relPath} -> "${base}" (esperado "${esperadoBase}")`);
+  if (!esPanel) {
+    const base = (raw.match(/data-base="([^"]*)"/) || [])[1];
+    if (base === undefined) err(`SIN data-base en <html> · ${relPath}`);
+    else if (base !== esperadoBase) err(`data-base INCORRECTO · ${relPath} -> "${base}" (esperado "${esperadoBase}")`);
 
-  const root = (raw.match(/data-root="([^"]*)"/) || [])[1];
-  if (root === undefined) warn(`SIN data-root en <html> · ${relPath}`);
+    const root = (raw.match(/data-root="([^"]*)"/) || [])[1];
+    if (root === undefined) warn(`SIN data-root en <html> · ${relPath}`);
+  }
 
-  /* El panel privado (admin.html) tiene reglas propias: no lleva los
-     componentes del sitio público porque es una vista de aplicación. */
-  const esPanel = relPath === 'admin.html';
-
-  if (!/name="google-site-verification"/.test(raw)) warn(`SIN meta de Search Console · ${relPath}`);
-  if (!/og:title/.test(raw)) warn(`SIN Open Graph · ${relPath}`);
-  if (!/og:image/.test(raw)) warn(`SIN og:image · ${relPath}`);
-  if (!/twitter:card/.test(raw)) warn(`SIN Twitter Card · ${relPath}`);
-  if (!/rel="icon"/.test(raw)) warn(`SIN favicon · ${relPath}`);
-  if (!/apple-touch-icon/.test(raw)) warn(`SIN apple-touch-icon · ${relPath}`);
+  /* El panel privado (admin.html y admin/*.html) tiene reglas propias:
+     son vistas de aplicación, no páginas del sitio público. */
+  if (!esPanel) {
+    if (!/name="google-site-verification"/.test(raw)) warn(`SIN meta de Search Console · ${relPath}`);
+    if (!/og:title/.test(raw)) warn(`SIN Open Graph · ${relPath}`);
+    if (!/og:image/.test(raw)) warn(`SIN og:image · ${relPath}`);
+    if (!/twitter:card/.test(raw)) warn(`SIN Twitter Card · ${relPath}`);
+    if (!/rel="icon"/.test(raw)) warn(`SIN favicon · ${relPath}`);
+    if (!/apple-touch-icon/.test(raw)) warn(`SIN apple-touch-icon · ${relPath}`);
+  }
 
   if (!esPanel) {
     if (!/G-XXXXXXXXXX/.test(raw)) warn(`SIN placeholder de GA4 · ${relPath}`);
@@ -150,15 +157,21 @@ for (const file of htmlFiles) {
     if (!/id="modal"/.test(raw)) err(`SIN modal · ${relPath}`);
     if (!/wa\.me\/573206411340/.test(raw)) err(`SIN enlace de WhatsApp · ${relPath}`);
   } else {
-    /* Comprobaciones específicas del panel de administración */
-    if (!/noindex/.test(raw)) err(`El panel admin.html DEBE ser noindex · ${relPath}`);
-    if (!/firebase-config\.js/.test(raw)) err(`admin.html no carga firebase-config.js · ${relPath}`);
-    if (!/assets\/js\/admin\.js/.test(raw)) err(`admin.html no carga admin.js · ${relPath}`);
-    if (!/id="loginForm"/.test(raw)) err(`admin.html SIN formulario de acceso · ${relPath}`);
-    if (!/id="tablaClientes"/.test(raw)) err(`admin.html SIN tabla de clientes · ${relPath}`);
-    if (!/id="clienteForm"/.test(raw)) err(`admin.html SIN formulario de cliente · ${relPath}`);
+    /* Comprobaciones específicas de la app de administración (no del sitio
+       público). Las páginas del panel no llevan OG/Twitter/GA4/canonical:
+       son vistas privadas que no se indexan ni se comparten.
+       admin.html es SOLO una redirección: no carga módulos. */
+    if (!/noindex/.test(raw)) err(`El panel ${relPath} DEBE ser noindex · ${relPath}`);
+    if (relPath !== 'admin.html') {
+      if (!/importmap/.test(raw)) err(`${relPath} SIN importmap (los módulos de Firebase no resolverán) · ${relPath}`);
+      if (!/assets\/js\/config\.js/.test(raw)) err(`${relPath} no carga assets/js/config.js · ${relPath}`);
+      if (!/assets\/css\/admin\.css/.test(raw)) err(`${relPath} no carga assets/css/admin.css · ${relPath}`);
+      /* El login tiene layout propio (.login); el resto pinta en #app-shell. */
+      if (relPath !== 'admin/index.html' && !/id="app-shell"/.test(raw)) err(`${relPath} SIN #app-shell (el shell no puede pintarse) · ${relPath}`);
+      if (relPath === 'admin/index.html' && !/id="login-form"/.test(raw)) err(`admin/index.html SIN formulario de login · ${relPath}`);
+    }
   }
-  if (!/assets\/css\/styles\.css/.test(raw)) err(`NO CARGA styles.css · ${relPath}`);
+  if (!esPanel && !/assets\/css\/styles\.css/.test(raw)) err(`NO CARGA styles.css · ${relPath}`);
 
   /* 3. JSON-LD válido ---------------------------------------------- */
   let jsonld = 0;
@@ -168,12 +181,15 @@ for (const file of htmlFiles) {
     try { JSON.parse(m[1]); }
     catch (e) { err(`JSON-LD INVÁLIDO · ${relPath} -> ${e.message}`); }
   }
-  if (jsonld === 0) warn(`SIN datos estructurados · ${relPath}`);
+  if (jsonld === 0 && !esPanel) warn(`SIN datos estructurados · ${relPath}`);
 
   /* 4. Encabezados -------------------------------------------------- */
+  /* El panel pinta su título con el shell (no tiene <h1> estático). */
   const h1s = raw.match(/<h1[\s>]/g) || [];
-  if (h1s.length === 0) err(`SIN <h1> · ${relPath}`);
-  else if (h1s.length > 1) err(`VARIOS <h1> (${h1s.length}) · ${relPath}`);
+  if (!esPanel) {
+    if (h1s.length === 0) err(`SIN <h1> · ${relPath}`);
+    else if (h1s.length > 1) err(`VARIOS <h1> (${h1s.length}) · ${relPath}`);
+  }
 
   /* Para la jerarquía de encabezados solo se analiza el contenido principal:
      el footer (bloques de enlaces con <h4>) y el modal (diálogo con su propia
@@ -217,11 +233,12 @@ else {
   }
   /* Aviso si hay páginas indexables que no están en el sitemap.
      Se excluyen las páginas que a propósito no se indexan: gracias.html
-     (confirmación de formulario), 404.html (error) y admin.html (panel privado). */
+     (confirmación de formulario), 404.html (error) y todo el panel
+     (admin.html y admin/*). */
   const SIN_INDEXAR = ['gracias.html', '404.html', 'admin.html'];
   for (const f of htmlFiles) {
     const r = rel(f);
-    if (SIN_INDEXAR.includes(r)) continue;
+    if (SIN_INDEXAR.includes(r) || r.startsWith('admin/')) continue;
     const url = expectedCanonical(r);
     if (!locs.includes(url)) warn(`PÁGINA FUERA DEL SITEMAP · ${r}`);
   }

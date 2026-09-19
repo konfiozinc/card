@@ -44,10 +44,18 @@ const path = require('path');
 const REPO = path.resolve(__dirname, '..');
 const DRY = process.argv.includes('--dry-run');
 
+/* Los TRES archivos deben quedar con la misma configuración.
+   Motivo: el panel la lee de config.js (window.KZ_CONFIG), el sitio público
+   de firebase-config.js (módulo ES) y el service worker de push no puede
+   importar módulos ES, así que necesita su propia copia. */
 const ARCHIVOS = [
+  'assets/js/config.js',
   'assets/js/firebase-config.js',
   'firebase-messaging-sw.js'
 ];
+
+/* Archivos que además deben quedar con firebase.habilitado = true */
+const ARCHIVO_HABILITADO = 'assets/js/config.js';
 
 const CLAVES = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
 
@@ -130,6 +138,21 @@ function aplicar(config) {
 
     if (!DRY) fs.writeFileSync(file, raw, 'utf8');
     cambios.push({ archivo: rel, estado: `${n} valores` });
+  }
+
+  /* Activar Firebase en config.js: sin esto el panel muestra el aviso de
+     "Firebase todavía no está configurado" aunque las credenciales estén bien. */
+  const fHabilitado = path.join(REPO, ARCHIVO_HABILITADO);
+  if (fs.existsSync(fHabilitado)) {
+    let raw = fs.readFileSync(fHabilitado, 'utf8');
+    const antes = raw;
+    raw = raw.replace(/(firebase:\s*\{\s*\n\s*)habilitado:\s*(?:true|false)/, '$1habilitado: true');
+    if (raw !== antes) {
+      if (!DRY) fs.writeFileSync(fHabilitado, raw, 'utf8');
+      cambios.push({ archivo: ARCHIVO_HABILITADO, estado: 'habilitado: true' });
+    } else {
+      cambios.push({ archivo: ARCHIVO_HABILITADO, estado: 'habilitado ya estaba en true' });
+    }
   }
 
   /* .firebaserc: para que firebase deploy no pregunte el proyecto */

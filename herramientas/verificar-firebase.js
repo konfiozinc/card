@@ -34,8 +34,18 @@ const ok = [];
 const pendientes = [];
 const errores = [];
 
-/* ── 1. Configuración en los dos archivos ──────────────────────────── */
+/* ── 1. Configuración en los TRES archivos que deben coincidir ───────
+   · assets/js/config.js         → la lee el PANEL (window.KZ_CONFIG)
+   · assets/js/firebase-config.js → la lee el sitio público (módulo ES)
+   · firebase-messaging-sw.js    → el service worker no puede importar
+                                    módulos ES, así que lleva su copia      */
 const CLAVES = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'];
+
+const ARCHIVOS_CFG = [
+  'assets/js/config.js',
+  'assets/js/firebase-config.js',
+  'firebase-messaging-sw.js'
+];
 
 function extraerConfig(texto) {
   const out = {};
@@ -46,34 +56,47 @@ function extraerConfig(texto) {
   return out;
 }
 
-const cfgMain = extraerConfig(leer('assets/js/firebase-config.js'));
-const cfgSw = extraerConfig(leer('firebase-messaging-sw.js'));
-
-const sinPoner = (o) => Object.entries(o).filter(([, v]) => !v || v.startsWith('PENDIENTE')).map(([k]) => k);
-
-const faltanMain = CLAVES.filter((k) => !cfgMain[k] || cfgMain[k].startsWith('PENDIENTE'));
-const faltanSw = CLAVES.filter((k) => !cfgSw[k] || cfgSw[k].startsWith('PENDIENTE'));
-
-if (faltanMain.length === 0) {
-  ok.push('assets/js/firebase-config.js tiene la configuración completa');
-} else {
-  pendientes.push(`assets/js/firebase-config.js: faltan ${faltanMain.join(', ')}`);
+const configs = {};
+for (const rel of ARCHIVOS_CFG) {
+  configs[rel] = extraerConfig(leer(rel));
 }
 
-if (faltanSw.length === 0) {
-  ok.push('firebase-messaging-sw.js tiene la configuración completa');
-} else {
-  pendientes.push(`firebase-messaging-sw.js: faltan ${faltanSw.join(', ')}`);
-}
-
-/* Coherencia entre los dos archivos (si ambos están configurados) */
-if (faltanMain.length === 0 && faltanSw.length === 0) {
-  const distintos = CLAVES.filter((k) => cfgMain[k] !== cfgSw[k]);
-  if (distintos.length === 0) {
-    ok.push('Los dos archivos tienen EXACTAMENTE la misma configuración');
+for (const rel of ARCHIVOS_CFG) {
+  const faltan = CLAVES.filter((k) => !configs[rel][k] || configs[rel][k].startsWith('PENDIENTE'));
+  if (faltan.length === 0) {
+    ok.push(`${rel} tiene la configuración completa`);
+  } else if (existe(rel)) {
+    pendientes.push(`${rel}: faltan ${faltan.join(', ')}`);
   } else {
-    errores.push(`Los dos archivos difieren en: ${distintos.join(', ')} (deben ser idénticos)`);
+    errores.push(`${rel} NO EXISTE`);
   }
+}
+
+/* Coherencia entre los tres (si todos están configurados) */
+const configurados = ARCHIVOS_CFG.filter((rel) =>
+  CLAVES.every((k) => configs[rel][k] && !configs[rel][k].startsWith('PENDIENTE')));
+
+if (configurados.length === ARCHIVOS_CFG.length) {
+  const base = configs[ARCHIVOS_CFG[0]];
+  const distintos = [];
+  for (const rel of ARCHIVOS_CFG.slice(1)) {
+    for (const k of CLAVES) if (configs[rel][k] !== base[k]) distintos.push(`${k} en ${rel}`);
+  }
+  if (distintos.length === 0) {
+    ok.push('Los 3 archivos tienen EXACTAMENTE la misma configuración');
+  } else {
+    errores.push(`Los archivos de configuración difieren: ${distintos.join(', ')} (deben ser idénticos)`);
+  }
+}
+
+/* La bandera que enciende el panel */
+const cfgJs = leer('assets/js/config.js');
+if (/firebase:\s*\{\s*\n\s*habilitado:\s*true/.test(cfgJs)) {
+  ok.push('config.js tiene firebase.habilitado = true');
+} else if (configurados.length === ARCHIVOS_CFG.length) {
+  pendientes.push('config.js tiene la configuración pero firebase.habilitado sigue en false → el panel mostrará el aviso de "sin configurar"');
+} else {
+  pendientes.push('config.js: firebase.habilitado en false (correcto mientras falten credenciales)');
 }
 
 /* ── 2. Clave VAPID (push) ─────────────────────────────────────────── */
@@ -130,36 +153,86 @@ if (existe('firestore.rules')) {
   }
 }
 
-/* ── 5. Cloud Functions ────────────────────────────────────────────── */
-if (existe('functions/index.js')) {
-  ok.push('functions/index.js presente');
+/* ── 5. Cloud Functions (viven en functions/src/index.js) ──────────── */
+const RUTA_FUNCS = 'functions/src/index.js';
+if (existe(RUTA_FUNCS)) {
+  const idx = leer(RUTA_FUNCS);
+  ok.push(`${RUTA_FUNCS} presente (${Math.round(idx.length / 1024)} KB)`);
+
   const pkg = leer('functions/package.json');
   if (/firebase-admin/.test(pkg) && /firebase-functions/.test(pkg)) {
     ok.push('functions/package.json declara firebase-admin y firebase-functions');
   } else {
     errores.push('functions/package.json sin las dependencias necesarias');
   }
-  const idx = leer('functions/index.js');
-  for (const fn of ['verificarVencimientos', 'enviarRecordatorio']) {
-    if (idx.includes(`exports.${fn}`)) ok.push(`Cloud Function exportada: ${fn}`);
-    else errores.push(`Falta la Cloud Function ${fn}`);
+  if (/"main"\s*:\s*"src\/index\.js"/.test(pkg)) {
+    ok.push('functions/package.json apunta a src/index.js');
+  } else {
+    pendientes.push('functions/package.json: "main" no apunta a src/index.js');
+  }
+
+  /* Callables que el panel invoca: deben existir o el panel falla en runtime */
+  const CALLABLES = [
+    'crearCliente', 'actualizarCliente', 'registrarPago', 'confirmarPago', 'anularPago',
+    'activarServicio', 'suspenderServicio', 'desactivarServicio', 'reactivarServicio',
+    'enviarNotificacion', 'registrarToken', 'crearUsuario', 'actualizarUsuario',
+    'seedInicial', 'recalcularEstados'
+  ];
+  const faltanFuncs = CALLABLES.filter((fn) => !new RegExp(`exports\\.${fn}\\b`).test(idx));
+  if (faltanFuncs.length === 0) {
+    ok.push(`Los ${CALLABLES.length} callables del panel están exportados`);
+  } else {
+    errores.push(`Callables que el panel invoca y NO existen: ${faltanFuncs.join(', ')}`);
+  }
+  if (/exports\.processDueDates\b/.test(idx)) {
+    ok.push('Función programada processDueDates exportada (motor de vencimientos)');
+  } else {
+    errores.push('Falta la función programada processDueDates');
+  }
+  if (/claveDedup/.test(idx)) {
+    ok.push('Anti-duplicado de notificaciones implementado (claveDedup)');
+  } else {
+    errores.push('Sin anti-duplicado de notificaciones: se repetirían los avisos');
   }
   if (existe('functions/node_modules')) {
     ok.push('functions/node_modules presente (npm install hecho)');
   } else {
     pendientes.push('functions/node_modules ausente → ejecuta "cd functions && npm install"');
   }
+
+  /* El archivo antiguo no debe quedarse compitiendo */
+  if (existe('functions/index.js')) {
+    pendientes.push('functions/index.js sigue existiendo (versión anterior). Bórralo o renómbralo: puede confundir el despliegue');
+  }
 } else {
-  errores.push('functions/index.js FALTA');
+  errores.push(`${RUTA_FUNCS} FALTA (las Cloud Functions del panel)`);
 }
 
-/* ── 6. Panel y service worker ─────────────────────────────────────── */
+/* ── 6. Panel multipágina y service worker ─────────────────────────── */
+const PAGINAS_PANEL = [
+  'admin/index.html', 'admin/dashboard.html', 'admin/clientes.html', 'admin/servicios.html',
+  'admin/pagos.html', 'admin/planes.html', 'admin/notificaciones.html',
+  'admin/configuracion.html', 'admin/usuarios.html', 'admin/auditoria.html'
+];
+const faltanPaginas = PAGINAS_PANEL.filter((p) => !existe(p));
+if (faltanPaginas.length === 0) {
+  ok.push(`Panel completo: ${PAGINAS_PANEL.length} páginas en /admin/`);
+} else {
+  pendientes.push(`Páginas del panel que faltan: ${faltanPaginas.join(', ')}`);
+}
+if (existe('admin/index.html')) {
+  const a = leer('admin/index.html');
+  if (/noindex/.test(a)) ok.push('admin/index.html marcado como noindex');
+  else pendientes.push('admin/index.html sin noindex: el login podría indexarse');
+}
+/* El panel antiguo debe quedar como redirección, no como app duplicada */
 if (existe('admin.html')) {
-  const a = leer('admin.html');
-  if (/assets\/js\/admin\.js/.test(a)) ok.push('admin.html carga admin.js');
-  else errores.push('admin.html no carga assets/js/admin.js');
-  if (/noindex/.test(a)) ok.push('admin.html marcado como noindex');
-  else pendientes.push('admin.html sin noindex: podría indexarse');
+  const viejo = leer('admin.html');
+  if (/http-equiv="refresh"|location\.replace/.test(viejo)) {
+    ok.push('admin.html es una redirección al panel nuevo (correcto)');
+  } else if (/id="panelView"|id="loginForm"/.test(viejo)) {
+    pendientes.push('admin.html sigue siendo el panel ANTIGUO: sustitúyelo por una redirección a admin/');
+  }
 }
 if (existe('firebase-messaging-sw.js')) ok.push('firebase-messaging-sw.js presente (push en segundo plano)');
 
