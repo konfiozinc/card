@@ -18,12 +18,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-com
 
 /* ── Configuración de Firebase (duplicada de assets/js/firebase-config.js) ── */
 const firebaseConfig = {
-  apiKey: 'PENDIENTE_API_KEY',
-  authDomain: 'PENDIENTE_PROJECT_ID.firebaseapp.com',
-  projectId: 'PENDIENTE_PROJECT_ID',
-  storageBucket: 'PENDIENTE_PROJECT_ID.firebasestorage.app',
-  messagingSenderId: 'PENDIENTE_SENDER_ID',
-  appId: 'PENDIENTE_APP_ID'
+  apiKey: 'AIzaSyDbwAk9APwP2SeaEfWxeQG_bdL9eatciEA',
+  authDomain: 'konfio-zinc.firebaseapp.com',
+  projectId: 'konfio-zinc',
+  storageBucket: 'konfio-zinc.firebasestorage.app',
+  messagingSenderId: '1096915735255',
+  appId: '1:1096915735255:web:00e3d896c266293cced692'
 };
 
 /* Rutas absolutas del sitio (un service worker no tiene rutas relativas claras) */

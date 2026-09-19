@@ -49,12 +49,11 @@ window.KZ_CONFIG = {
     { codigo: 'ELITE', etiqueta: 'Elite', precio: 149900, para: 'Marcas con agenda, formularios, varias sedes y agente IA' }
   ],
 
-  /* ── Paquetes todo en uno (catálogo de `planes`) ────────────────── */
+  /* ── Planes de tarjeta (catálogo de `planes`) ────────────────────── */
   paquetes: [
-    { nombre: 'KZ Inicio',      precio: 59900,  servicio: 'tarjetas',  duracionMeses: 12, incluye: ['Tarjeta digital Star', 'Código QR con tu marca', 'Contacto, WhatsApp y redes', 'Ubicación con mapa'] },
-    { nombre: 'KZ Negocio',     precio: 179900, servicio: 'tarjetas',  duracionMeses: 12, incluye: ['Tarjeta digital Pro', 'Catálogo o menú digital', 'Código QR con tu marca', 'Galería y botón de pedido'] },
-    { nombre: 'KZ Profesional', precio: 279900, servicio: 'tarjetas',  duracionMeses: 12, incluye: ['Tarjeta digital Elite', 'Mini landing page', 'Catálogo o menú digital', 'Agenda de citas'] },
-    { nombre: 'KZ Premium',     precio: 479900, servicio: 'agentes',   duracionMeses: 12, incluye: ['Todo lo del paquete Profesional', 'Agente IA 24/7 (1 año)', 'Entrenado con tu información'] }
+    { nombre: 'Star',   precio: 49900,  servicio: 'tarjetas', duracionMeses: 12, incluye: ['Contacto, WhatsApp y redes', 'Ubicación con mapa', 'Código QR con tu marca'] },
+    { nombre: 'Pro',    precio: 99900,  servicio: 'tarjetas', duracionMeses: 12, incluye: ['Todo lo de Star', 'Catálogo o menú digital', 'Galería y botón de pedido'] },
+    { nombre: 'Elite',  precio: 149900, servicio: 'tarjetas', duracionMeses: 12, incluye: ['Todo lo de Pro', 'Agenda de citas', 'Formularios', 'Agente IA integrado'] }
   ],
 
   /* ── Catálogos de apoyo ─────────────────────────────────────────── */
@@ -106,14 +105,14 @@ window.KZ_CONFIG = {
      La configuración de una app web de Firebase NO es un secreto: la
      seguridad la dan Authentication y firestore.rules.               */
   firebase: {
-    habilitado: false,
+    habilitado: true,
     config: {
-      apiKey: 'PENDIENTE_API_KEY',
-      authDomain: 'PENDIENTE_PROJECT_ID.firebaseapp.com',
-      projectId: 'PENDIENTE_PROJECT_ID',
-      storageBucket: 'PENDIENTE_PROJECT_ID.firebasestorage.app',
-      messagingSenderId: 'PENDIENTE_SENDER_ID',
-      appId: 'PENDIENTE_APP_ID'
+      apiKey: 'AIzaSyDbwAk9APwP2SeaEfWxeQG_bdL9eatciEA',
+      authDomain: 'konfio-zinc.firebaseapp.com',
+      projectId: 'konfio-zinc',
+      storageBucket: 'konfio-zinc.firebasestorage.app',
+      messagingSenderId: '1096915735255',
+      appId: '1:1096915735255:web:00e3d896c266293cced692'
     },
     vapidKey: 'PENDIENTE_VAPID_KEY',
     region: 'us-central1'

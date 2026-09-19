@@ -14,7 +14,7 @@
 |---|---|
 | **Nombre comercial** | **KONFÍO ZINC** |
 | **Variantes aceptadas** | Konfio Zinc · KONFIO ZINC (sin tilde, cuando el sistema no la soporta) |
-| **Abreviatura interna** | **KZ** (nombres de paquetes: KZ Inicio, KZ Negocio, KZ Profesional, KZ Premium, KZ Activo) |
+| **Abreviatura interna** | **KZ** (abreviatura de la marca; los productos son las tarjetas Star, Pro y Elite) |
 | **Nunca usar** | "Konfio" solo, "Zinc", "KonfioZinc" (sin espacio), "Konfío" (tilde en la i equivocada) |
 | **Fundador** | Darwin Montalvo |
 
@@ -85,8 +85,8 @@ como `KONFÍO ZINC · Soluciones Digitales`. El handle se queda.
 | Tarjetas físicas y QR impresos | KONFÍO ZINC + el enlace del sitio (no el handle) |
 | Correos del agente IA | "Asesor KONFÍO ZINC" |
 
-**Regla de oro:** el nombre público es siempre **KONFÍO ZINC**. "KZ" se usa solo dentro de los
-nombres de producto (KZ Negocio) y en el panel interno, nunca como nombre de marca hacia el cliente.
+**Regla de oro:** el nombre público es siempre **KONFÍO ZINC**. "KZ" se usa solo como abreviatura
+interna de la marca, nunca como nombre de producto ni hacia el cliente.
 
 ---
 

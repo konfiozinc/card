@@ -92,7 +92,7 @@ Las fechas de negocio van como string `YYYY-MM-DD`; `createdAt`/`updatedAt` con 
 ### `planes` — paquetes y productos (catálogo)
 | Campo | Tipo | Notas |
 |---|---|---|
-| nombre | string | KZ Inicio, KZ Negocio, KZ Profesional, KZ Premium, o un servicio suelto |
+| nombre | string | Star, Pro, Elite, o un servicio suelto |
 | descripcion | string | |
 | servicio | string | servicio principal que incluye |
 | categoria | string \| null | STAR/PRO/ELITE si es tarjeta |

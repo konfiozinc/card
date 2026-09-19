@@ -343,10 +343,9 @@ exports.actualizarUsuario = onCall({ region: 'us-central1' }, async (request) =>
 exports.seedInicial = onCall({ region: 'us-central1' }, async (request) => {
   await requerir(request, 'SUPERADMIN');
   const planes = [
-    { nombre: 'KZ Inicio', precio: 59900, servicio: 'tarjetas', categoria: 'STAR', duracionMeses: 12, orden: 1, estado: 'ACTIVO', incluye: ['Tarjeta Star', 'Código QR', 'Contacto y redes'] },
-    { nombre: 'KZ Negocio', precio: 179900, servicio: 'tarjetas', categoria: 'PRO', duracionMeses: 12, orden: 2, estado: 'ACTIVO', incluye: ['Tarjeta Pro', 'Catálogo o menú', 'Código QR'] },
-    { nombre: 'KZ Profesional', precio: 279900, servicio: 'tarjetas', categoria: 'ELITE', duracionMeses: 12, orden: 3, estado: 'ACTIVO', incluye: ['Tarjeta Elite', 'Mini landing', 'Agenda de citas'] },
-    { nombre: 'KZ Premium', precio: 479900, servicio: 'agentes', categoria: null, duracionMeses: 12, orden: 4, estado: 'ACTIVO', incluye: ['Todo Profesional', 'Agente IA 24/7'] }
+    { nombre: 'Star', precio: 49900, servicio: 'tarjetas', categoria: 'STAR', duracionMeses: 12, orden: 1, estado: 'ACTIVO', incluye: ['Contacto y redes', 'Ubicación', 'Código QR'] },
+    { nombre: 'Pro', precio: 99900, servicio: 'tarjetas', categoria: 'PRO', duracionMeses: 12, orden: 2, estado: 'ACTIVO', incluye: ['Todo Star', 'Catálogo o menú', 'Código QR'] },
+    { nombre: 'Elite', precio: 149900, servicio: 'tarjetas', categoria: 'ELITE', duracionMeses: 12, orden: 3, estado: 'ACTIVO', incluye: ['Todo Pro', 'Mini landing', 'Agenda de citas'] }
   ];
   for (const p of planes) {
     const exist = await db.collection('planes').where('nombre', '==', p.nombre).limit(1).get();

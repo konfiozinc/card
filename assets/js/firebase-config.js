@@ -24,12 +24,12 @@
 
 /* Configuración pública de la app web de Firebase */
 export const firebaseConfig = {
-  apiKey: 'PENDIENTE_API_KEY',
-  authDomain: 'PENDIENTE_PROJECT_ID.firebaseapp.com',
-  projectId: 'PENDIENTE_PROJECT_ID',
-  storageBucket: 'PENDIENTE_PROJECT_ID.firebasestorage.app',
-  messagingSenderId: 'PENDIENTE_SENDER_ID',
-  appId: 'PENDIENTE_APP_ID'
+  apiKey: 'AIzaSyDbwAk9APwP2SeaEfWxeQG_bdL9eatciEA',
+  authDomain: 'konfio-zinc.firebaseapp.com',
+  projectId: 'konfio-zinc',
+  storageBucket: 'konfio-zinc.firebasestorage.app',
+  messagingSenderId: '1096915735255',
+  appId: '1:1096915735255:web:00e3d896c266293cced692'
 };
 
 /* Clave pública VAPID para Web Push (Cloud Messaging → Configuración web →
@@ -63,7 +63,7 @@ export const DIAS_AVISO = [10, 5, 3, 1];
 
 /* Precios de referencia por servicio (COP) para autocompletar el formulario */
 export const PRECIOS_REFERENCIA = {
-  'Tarjetas Digitales': 70000,
+  'Tarjetas Digitales': 49900,
   'Catálogos Digitales': 120000,
   'Menús Digitales': 150000,
   'Landing Pages': 350000,

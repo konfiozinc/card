@@ -20,7 +20,7 @@ import {
   activarServicio, suspenderServicio, desactivarServicio, reactivarServicio,
   enviarNotificacion, registrarToken, crearUsuario, actualizarUsuario,
   seedInicial, recalcularEstados
-} from './callables.js';
+} from './escrituras-local.js';
 
 const CFG = window.KZ_CONFIG || {};
 const NEG = CFG.negocio || { mesesSuscripcion: 12, diasAntes: [10, 5, 3, 1], diasPorVencer: 15, diasGracia: 5 };

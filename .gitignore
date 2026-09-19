@@ -44,3 +44,7 @@ PROMPT_GEMINI_MENU.txt
 ESPECIFICACION_SITIO.md
 # Guia interna de WhatsApp Business (endpoints y criterios internos)
 WHATSAPP_BUSINESS.md
+
+# Clave de cuenta de servicio de Firebase (NO se sube nunca)
+serviceAccount.json
+serviceAccount.json.json

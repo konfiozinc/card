@@ -1,79 +1,107 @@
 rules_version = '2';
 // ═══════════════════════════════════════════════════════════════════
-// KONFÍO ZINC · Reglas de Firestore — panel con roles
+// KONFÍO ZINC · Reglas de Firestore — panel en MODO SPARK
 //
-// Principio: DENEGAR POR DEFECTO. El rol se lee de `usuarios/{uid}.rol`
-// (nunca del frontend). La autoridad real de negocio son las Cloud
-// Functions (que corren con Admin SDK y se saltan estas reglas), por lo
-// que las ESCRITURAS de negocio están cerradas desde el cliente: así se
-// garantiza auditoría, historial de estados y anti-duplicado de avisos.
+// El proyecto está en el plan gratuito Spark, que NO permite Cloud
+// Functions. Por eso el panel escribe directo en Firestore, y la
+// autorización se hace con estas reglas + el rol leído de
+// usuarios/{uid}.rol (que es un campo del servidor, no una variable
+// manipulable desde el cliente).
 //
-// Roles: OPERADOR(1) < ADMIN(2) < SUPERADMIN(3)
+// Garantías que se mantienen sin funciones:
+//   - Solo usuarios autenticados y ACTIVOS pueden leer/escribir.
+//   - El rol se lee de Firestore, nunca se envía desde el navegador.
+//   - Confirmar/Anular un pago exige rol ADMIN o SUPERADMIN.
+//   - Un usuario no puede editar su propio documento de `usuarios`.
+//
+// Garantías que se pierden sin Cloud Functions (las dará el motor
+// programado si algún día se activa Blaze):
+//   - Auditoría e historial de estados automáticos.
+//   - Avisos de vencimiento 10/5/3/1 día programados a las 8:00 a.m.
+//   El estado de cada cliente se calcula en el panel al cargar
+//   (por fecha de vencimiento), no depende de un job nocturno.
 // ═══════════════════════════════════════════════════════════════════
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Helpers ─────────────────────────────────────────────────────
     function estaAutenticado() { return request.auth != null; }
 
-    function fichaUsuario() {
+    function ficha() {
       return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
     }
 
     function rol() {
-      return estaAutenticado() ? fichaUsuario().rol : '';
+      return estaAutenticado() ? ficha().rol : '';
     }
 
-    function estaActivo() {
-      return estaAutenticado() && fichaUsuario().activo == true;
+    function activo() {
+      return estaAutenticado() && ficha().activo == true;
     }
 
-    function esOperador() { return estaActivo() && rol() in ['OPERADOR', 'ADMIN', 'SUPERADMIN']; }
-    function esAdmin() { return estaActivo() && rol() in ['ADMIN', 'SUPERADMIN']; }
-    function esSuperadmin() { return estaActivo() && rol() == 'SUPERADMIN'; }
+    function esOperador() { return activo() && rol() in ['OPERADOR', 'ADMIN', 'SUPERADMIN']; }
+    function esAdmin() { return activo() && rol() in ['ADMIN', 'SUPERADMIN']; }
+    function esSuperadmin() { return activo() && rol() == 'SUPERADMIN'; }
 
-    // ── usuarios (administradores) ──────────────────────────────────
-    // Lectura: cada uno se ve a sí mismo; el resto lo ve un SUPERADMIN.
-    // Escritura: cerrada al cliente — los cambios los hace crearUsuario /
-    // actualizarUsuario (Cloud Functions con Admin SDK).
+    // ── usuarios ────────────────────────────────────────────────────
+    // Lectura: cada uno se ve a sí mismo; los SUPERADMIN ven a todos.
+    // Escritura: NADIE desde el cliente (evita auto-promoción de rol).
     match /usuarios/{uid} {
       allow read: if (estaAutenticado() && request.auth.uid == uid) || esSuperadmin();
       allow write: if false;
     }
 
     // ── clientes ────────────────────────────────────────────────────
+    // OPERADOR+ puede leer y crear/editar. Borrado denegado (se usa INACTIVO).
     match /clientes/{clienteId} {
       allow read: if esOperador();
-      allow write: if false; // pasa por crearCliente / actualizarCliente
+      allow create: if esOperador()
+        && request.resource.data.nombre is string
+        && request.resource.data.servicio is string;
+      allow update: if esOperador();
+      allow delete: if false;
     }
 
-    // ── servicios (instancias por cliente) ──────────────────────────
+    // ── servicios ───────────────────────────────────────────────────
     match /servicios/{servicioId} {
       allow read: if esOperador();
-      allow write: if false; // pasa por las funciones de ciclo de vida
+      allow create, update: if esOperador();
+      allow delete: if esAdmin();
     }
 
     // ── pagos ───────────────────────────────────────────────────────
+    // Registrar un pago lo puede hacer OPERADOR+; CAMBIAR su estado a
+    // CONFIRMADO o ANULADO solo ADMIN+. La regla valida el cambio de
+    // estado: si el campo estado cambia, exige rol ADMIN.
     match /pagos/{pagoId} {
       allow read: if esOperador();
-      allow write: if false; // pasa por registrarPago / confirmarPago / anularPago
+      allow create: if esOperador()
+        && request.resource.data.estado == 'PENDIENTE'
+        && request.resource.data.monto is number
+        && request.resource.data.monto > 0;
+      allow update: if esOperador()
+        && (request.resource.data.estado == resource.data.estado
+            || esAdmin());
+      allow delete: if false;
     }
 
     // ── planes ──────────────────────────────────────────────────────
     match /planes/{planId} {
       allow read: if esOperador();
-      allow write: if false; // el catálogo lo gestiona ADMIN+ vía Admin SDK
+      allow create, update: if esAdmin();
+      allow delete: if esAdmin();
     }
 
     // ── notificaciones ──────────────────────────────────────────────
+    // En Spark no hay motor programado; se permite registrar avisos
+    // manuales (ADMIN+) para llevar el historial desde el panel.
     match /notificaciones/{notificacionId} {
-      allow read: if esAdmin();
-      allow write: if false; // solo el motor y enviarNotificacion
+      allow read: if esOperador();
+      allow create: if esAdmin();
+      allow update: if esAdmin();
+      allow delete: if false;
     }
 
     // ── tokens_notificacion ─────────────────────────────────────────
-    // El panel registra el token de SU dispositivo, con el id del token
-    // como documento para que sea idempotente.
     match /tokens_notificacion/{token} {
       allow read: if esOperador();
       allow create, update: if estaAutenticado()
@@ -85,19 +113,21 @@ service cloud.firestore {
     // ── historial_estados ───────────────────────────────────────────
     match /historial_estados/{id} {
       allow read: if esOperador();
-      allow write: if false; // lo escribe el Admin SDK
+      allow create: if esOperador();
+      allow update, delete: if false;
     }
 
     // ── auditoria ───────────────────────────────────────────────────
     match /auditoria/{id} {
       allow read: if esSuperadmin();
-      allow write: if false; // lo escribe el Admin SDK
+      allow create: if esOperador();
+      allow update, delete: if false;
     }
 
     // ── configuracion ───────────────────────────────────────────────
     match /configuracion/{clave} {
-      allow read: if esAdmin();
-      allow write: if false; // solo SUPERADMIN vía Admin SDK
+      allow read: if esOperador();
+      allow write: if esSuperadmin();
     }
 
     // ── Denegar todo lo demás ───────────────────────────────────────

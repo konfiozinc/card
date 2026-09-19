@@ -612,7 +612,7 @@
         return { text: 'Las tarjetas digitales van desde $49.900 💳:\n\n• STAR $49.900 — tu presentación: contacto, WhatsApp, redes, ubicación y QR.\n• PRO $99.900 — añade catálogo o menú, precios y galería.\n• ELITE $149.900 — suma agenda de citas, formularios, varias sedes y agente IA.\n\n¿Te recomiendo una según tu negocio?', cta: true };
       }
       if (has(['paquete', 'paquetes', 'todo en uno', 'combo'])) {
-        return { text: 'Tenemos 4 paquetes todo en uno 📦:\n\n• KZ Inicio $59.900 — tarjeta Star + QR.\n• KZ Negocio $179.900 ⭐ el más pedido — tarjeta Pro + catálogo o menú + QR.\n• KZ Profesional $279.900 — tarjeta Elite + mini landing + catálogo/menú + QR.\n• KZ Premium desde $479.900 — todo lo anterior + agente IA 24/7.\n\nPago único, con dominio incluido el primer año.\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
+        return { text: 'Tenemos 3 tarjetas digitales 🎯:\n\n• Star $49.900 — contacto, redes, ubicación y QR.\n• Pro $99.900 ⭐ la más pedida — catálogo o menú, galería y botón de pedido.\n• Elite $149.900 — agenda de citas, formularios y mini landing.\n\n\nPago único, con dominio incluido el primer año. Otros servicios (landing, catálogo, menú, QR o agente IA) se cotizan.\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
       }
 
       /* ── Programa de aliados ────────────────────────────────────────
