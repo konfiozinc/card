@@ -48,3 +48,5 @@ WHATSAPP_BUSINESS.md
 # Clave de cuenta de servicio de Firebase (NO se sube nunca)
 serviceAccount.json
 serviceAccount.json.json
+
+herramientas/config-publica.json
