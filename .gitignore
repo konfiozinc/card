@@ -16,6 +16,9 @@ BASE_CONOCIMIENTO_ENLACES.txt
 # Dependencias de Cloud Functions (se reinstalan con `npm install`)
 functions/node_modules/
 
+# Dependencias del generador de imágenes OG (sharp falló; no necesarias)
+herramientas/og-generator/node_modules/
+
 # Caché local de la CLI de Firebase
 .firebase/
 firebase-debug.log
