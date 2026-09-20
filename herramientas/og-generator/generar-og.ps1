@@ -1,4 +1,4 @@
-Add-Type -AssemblyName System.Drawing
+﻿Add-Type -AssemblyName System.Drawing
 
 $ErrorActionPreference = 'Stop'
 $root = 'C:\Users\PC\Documents\KONFIO_ZINC\0-Agencia y Recursos\Agencia_Konfio_Zinc'
