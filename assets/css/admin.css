@@ -247,13 +247,61 @@ code { font-family: ui-monospace, Consolas, monospace; color: var(--gold); font-
 .toast.is-out { opacity: 0; transform: translateY(8px); transition: all .3s; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
-/* ── Modal de confirmación ─────────────────────────────────────────── */
-.modal { position: fixed; inset: 0; z-index: 9998; display: none; align-items: center; justify-content: center; padding: 1rem; background: rgba(0,0,0,.82); }
+/* ── Modal (overlay + caja con header/body/footer fijos) ───────────── */
+.modal {
+  position: fixed; inset: 0; z-index: 9998; display: none;
+  align-items: center; justify-content: center; padding: 1rem;
+  background: rgba(0,0,0,.82);
+}
 .modal.is-open { display: flex; }
-.modal__box { background: var(--surface); border: 1px solid var(--border-gold); border-radius: var(--radius); padding: 1.6rem; max-width: 480px; width: 100%; }
-.modal__msg { margin: 0 0 1.3rem; font-size: .95rem; }
+
+/* La caja es una columna flex: solo el body hace scroll. */
+.modal__box {
+  background: var(--surface); border: 1px solid var(--border-gold);
+  border-radius: var(--radius); padding: 0; width: 100%; max-width: 480px;
+  max-height: calc(100vh - 40px);
+  display: flex; flex-direction: column; overflow: hidden;
+}
+.modal--ancho .modal__box { max-width: 760px; }
+
+/* Confirmaciones cortas (sin estructura head/body/foot) conservan su espaciado */
+.modal__msg { margin: 0; font-size: .95rem; }
+.modal__box > .modal__msg { margin: 1.6rem 1.6rem 1.1rem; }
+.modal__box > .modal__actions { padding: 0 1.6rem 1.4rem; }
+
+.modal__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 1rem 1.2rem; border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.modal__head h3 { margin: 0; font-size: .95rem; letter-spacing: 1px; }
+.modal__close {
+  background: none; border: none; color: var(--muted); font-size: 1.25rem;
+  line-height: 1; padding: .1rem .2rem; cursor: pointer;
+}
+.modal__close:hover { color: var(--gold); }
+
+.modal__body {
+  flex: 1 1 auto; overflow-y: auto; padding: 1.4rem;
+  -webkit-overflow-scrolling: touch; scrollbar-gutter: stable;
+}
+.modal__body > :first-child { margin-top: 0; }
+.modal__body > :last-child { margin-bottom: 0; }
+
+.modal__foot {
+  flex-shrink: 0; padding: .95rem 1.2rem;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.modal__foot .modal__actions { border: 0; padding: 0; }
+
 .modal__actions { display: flex; gap: .6rem; justify-content: flex-end; flex-wrap: wrap; }
-.modal--ancho .modal__box { max-width: 760px; max-height: 88vh; overflow-y: auto; }
+
+/* Móvil: el modal ocupa casi toda la pantalla */
+@media (max-width: 768px) {
+  .modal { padding: .6rem; }
+  .modal__box { max-width: 95vw; max-height: 95vh; }
+}
 
 /* ── Detalle de cliente / ficha ────────────────────────────────────── */
 .detalle { display: grid; gap: .55rem; margin-bottom: 1.2rem; }

@@ -160,8 +160,11 @@ function abrirEditor(c) {
   const p = planes.map(x => `<option value="${x.id}" ${c && c.planId === x.id ? 'selected' : ''}>${esc(x.nombre)}</option>`).join('');
   document.getElementById('modal-editor').classList.add('is-open');
   document.querySelector('#modal-editor .modal__box').innerHTML = `
-    <h3>${c ? 'Editar cliente' : 'Nuevo cliente'}</h3>
-    <form id="editor-form">
+    <div class="modal__head">
+      <h3>${c ? 'Editar cliente' : 'Nuevo cliente'}</h3>
+      <button type="button" class="modal__close" data-cerrar aria-label="Cerrar"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <form id="editor-form" class="modal__body">
       <div class="grid-2">
         <div class="campo"><label>Nombre *</label><input id="e-nombre" required value="${esc(c ? c.nombre : '')}"></div>
         <div class="campo"><label>Empresa</label><input id="e-empresa" value="${esc(c ? c.empresa : '')}"></div>
@@ -182,11 +185,13 @@ function abrirEditor(c) {
       </div>
       <div class="campo"><label>Observaciones</label><textarea id="e-obs" rows="2">${esc(c ? c.observaciones : '')}</textarea></div>
       <div class="aviso aviso--error" id="e-error" hidden></div>
+    </form>
+    <div class="modal__foot">
       <div class="modal__actions">
         <button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button>
-        <button type="submit" class="btn btn--primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
+        <button type="submit" form="editor-form" class="btn btn--primary"><i class="fas fa-floppy-disk" aria-hidden="true"></i> Guardar</button>
       </div>
-    </form>`;
+    </div>`;
 
   const sel = document.getElementById('e-servicio');
   const cat = document.getElementById('e-categoria');
@@ -209,7 +214,7 @@ function abrirEditor(c) {
   cat.addEventListener('change', () => { if (!prec.value) prec.value = precioSugerido(sel.value, cat.value); });
   if (c && !c.categoria) cat.disabled = c.servicio !== 'Tarjetas Digitales';
 
-  document.querySelector('#modal-editor [data-cerrar]').addEventListener('click', cerrarEditor);
+  document.querySelectorAll('#modal-editor [data-cerrar]').forEach(b => b.addEventListener('click', cerrarEditor));
   document.getElementById('editor-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     err.hidden = true;
@@ -238,8 +243,11 @@ function cerrarEditor() { document.getElementById('modal-editor').classList.remo
 function abrirPago(c) {
   document.getElementById('modal-detalle').classList.add('is-open');
   document.querySelector('#modal-detalle .modal__box').innerHTML = `
-    <h3>Registrar pago — ${esc(c.nombre)}</h3>
-    <form id="pago-form">
+    <div class="modal__head">
+      <h3>Registrar pago — ${esc(c.nombre)}</h3>
+      <button type="button" class="modal__close" data-cerrar aria-label="Cerrar"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <form id="pago-form" class="modal__body">
       <div class="grid-2">
         <div class="campo"><label>Monto (COP) *</label><input id="p-monto" type="number" value="${c.precio || ''}"></div>
         <div class="campo"><label>Método *</label><select id="p-metodo">${METODOS.map(m => `<option>${esc(m)}</option>`).join('')}</select></div>
@@ -248,13 +256,15 @@ function abrirPago(c) {
         <div class="campo"><label>Comprobante (URL)</label><input id="p-comp"></div>
       </div>
       <div class="aviso aviso--error" id="p-error" hidden></div>
+    </form>
+    <div class="modal__foot">
       <div class="modal__actions">
         <button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button>
-        <button type="submit" class="btn btn--primary">Registrar pago</button>
+        <button type="submit" form="pago-form" class="btn btn--primary">Registrar pago</button>
       </div>
-    </form>`;
+    </div>`;
   const err = document.getElementById('p-error');
-  document.querySelector('#modal-detalle [data-cerrar]').addEventListener('click', cerrarDetalle);
+  document.querySelectorAll('#modal-detalle [data-cerrar]').forEach(b => b.addEventListener('click', cerrarDetalle));
   document.getElementById('pago-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const monto = Number(document.getElementById('p-monto').value);
@@ -277,24 +287,31 @@ async function verDetalle(c) {
   const [pagos, hist] = await Promise.all([pagosDe(c.id), historialDe(c.id)]);
   document.getElementById('modal-detalle').classList.add('is-open');
   document.querySelector('#modal-detalle .modal__box').innerHTML = `
-    <h3>${esc(c.nombre)}</h3>
-    <dl class="detalle">
-      <div class="detalle__fila"><dt>Empresa</dt><dd>${esc(c.empresa || '—')}</dd></div>
-      <div class="detalle__fila"><dt>Servicio</dt><dd>${esc(c.servicio)}${c.categoria ? ' · ' + esc(c.categoria) : ''}</dd></div>
-      <div class="detalle__fila"><dt>Contacto</dt><dd>${esc(c.telefono)} · ${esc(c.email || '—')}</dd></div>
-      <div class="detalle__fila"><dt>Vencimiento</dt><dd>${fechaLarga(c.fechaVencimiento)} (${c.dias >= 0 ? 'en ' + c.dias + ' d' : 'vencido ' + Math.abs(c.dias) + ' d'})</dd></div>
-      <div class="detalle__fila"><dt>Precio</dt><dd>${cop(c.precio)} ${c.metodoPagoPreferido ? '· ' + esc(c.metodoPagoPreferido) : ''}</dd></div>
-      <div class="detalle__fila"><dt>URL / Proyecto</dt><dd>${c.urlServicio ? esc(c.urlServicio) : '—'} ${c.proyectoId ? '· ' + esc(c.proyectoId) : ''}</dd></div>
-      <div class="detalle__fila"><dt>Observaciones</dt><dd>${esc(c.observaciones || '—')}</dd></div>
-    </dl>
-    <h4>Pagos</h4>
-    ${pagos.length ? `<table class="tabla"><thead><tr><th>Fecha</th><th>Monto</th><th>Método</th><th>Estado</th></tr></thead><tbody>
-      ${pagos.map(p => `<tr><td>${fechaLarga(p.fechaPago)}</td><td>${cop(p.monto)}</td><td>${esc(p.metodoPago)}</td><td>${badgeEstado(p.estado)}</td></tr>`).join('')}
-    </tbody></table>` : '<p class="celda-suave">Sin pagos registrados.</p>'}
-    <h4>Historial de estados</h4>
-    ${hist.length ? hist.map(h => `<div class="celda-suave">${fechaLarga(h.fecha)} — ${esc(h.estadoAnterior || '—')} → ${esc(h.estadoNuevo)} (${esc(h.motivo || '')})</div>`).join('') : '<p class="celda-suave">Sin cambios registrados.</p>'}
-    <div class="modal__actions"><button type="button" class="btn btn--ghost" data-cerrar>Cerrar</button></div>`;
-  document.querySelector('#modal-detalle [data-cerrar]').addEventListener('click', cerrarDetalle);
+    <div class="modal__head">
+      <h3>${esc(c.nombre)}</h3>
+      <button type="button" class="modal__close" data-cerrar aria-label="Cerrar"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal__body">
+      <dl class="detalle">
+        <div class="detalle__fila"><dt>Empresa</dt><dd>${esc(c.empresa || '—')}</dd></div>
+        <div class="detalle__fila"><dt>Servicio</dt><dd>${esc(c.servicio)}${c.categoria ? ' · ' + esc(c.categoria) : ''}</dd></div>
+        <div class="detalle__fila"><dt>Contacto</dt><dd>${esc(c.telefono)} · ${esc(c.email || '—')}</dd></div>
+        <div class="detalle__fila"><dt>Vencimiento</dt><dd>${fechaLarga(c.fechaVencimiento)} (${c.dias >= 0 ? 'en ' + c.dias + ' d' : 'vencido ' + Math.abs(c.dias) + ' d'})</dd></div>
+        <div class="detalle__fila"><dt>Precio</dt><dd>${cop(c.precio)} ${c.metodoPagoPreferido ? '· ' + esc(c.metodoPagoPreferido) : ''}</dd></div>
+        <div class="detalle__fila"><dt>URL / Proyecto</dt><dd>${c.urlServicio ? esc(c.urlServicio) : '—'} ${c.proyectoId ? '· ' + esc(c.proyectoId) : ''}</dd></div>
+        <div class="detalle__fila"><dt>Observaciones</dt><dd>${esc(c.observaciones || '—')}</dd></div>
+      </dl>
+      <h4>Pagos</h4>
+      ${pagos.length ? `<table class="tabla"><thead><tr><th>Fecha</th><th>Monto</th><th>Método</th><th>Estado</th></tr></thead><tbody>
+        ${pagos.map(p => `<tr><td>${fechaLarga(p.fechaPago)}</td><td>${cop(p.monto)}</td><td>${esc(p.metodoPago)}</td><td>${badgeEstado(p.estado)}</td></tr>`).join('')}
+      </tbody></table>` : '<p class="celda-suave">Sin pagos registrados.</p>'}
+      <h4>Historial de estados</h4>
+      ${hist.length ? hist.map(h => `<div class="celda-suave">${fechaLarga(h.fecha)} — ${esc(h.estadoAnterior || '—')} → ${esc(h.estadoNuevo)} (${esc(h.motivo || '')})</div>`).join('') : '<p class="celda-suave">Sin cambios registrados.</p>'}
+    </div>
+    <div class="modal__foot">
+      <div class="modal__actions"><button type="button" class="btn btn--ghost" data-cerrar>Cerrar</button></div>
+    </div>`;
+  document.querySelectorAll('#modal-detalle [data-cerrar]').forEach(b => b.addEventListener('click', cerrarDetalle));
 }
 function cerrarDetalle() { document.getElementById('modal-detalle').classList.remove('is-open'); }
 

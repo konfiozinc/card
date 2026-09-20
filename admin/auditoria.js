@@ -29,9 +29,16 @@ cont.querySelector('tbody').addEventListener('click', (e) => {
   const a = filas.find(x => x.id === b.dataset.ver);
   document.getElementById('modal-aud').classList.add('is-open');
   document.querySelector('#modal-aud .modal__box').innerHTML = `
-    <h3>${esc(a.accion)} — ${esc(a.entidad)}</h3>
-    <h4>Antes</h4><pre class="celda-suave" style="white-space:pre-wrap">${esc(JSON.stringify(a.datosAnteriores || {}, null, 2))}</pre>
-    <h4>Después</h4><pre class="celda-suave" style="white-space:pre-wrap">${esc(JSON.stringify(a.datosNuevos || {}, null, 2))}</pre>
-    <div class="modal__actions"><button class="btn btn--ghost" id="btn-cerrar-aud">Cerrar</button></div>`;
-  document.getElementById('btn-cerrar-aud').addEventListener('click', () => document.getElementById('modal-aud').classList.remove('is-open'));
+    <div class="modal__head">
+      <h3>${esc(a.accion)} — ${esc(a.entidad)}</h3>
+      <button type="button" class="modal__close" data-cerrar aria-label="Cerrar"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal__body">
+      <h4>Antes</h4><pre class="celda-suave" style="white-space:pre-wrap">${esc(JSON.stringify(a.datosAnteriores || {}, null, 2))}</pre>
+      <h4>Después</h4><pre class="celda-suave" style="white-space:pre-wrap">${esc(JSON.stringify(a.datosNuevos || {}, null, 2))}</pre>
+    </div>
+    <div class="modal__foot">
+      <div class="modal__actions"><button class="btn btn--ghost" data-cerrar>Cerrar</button></div>
+    </div>`;
+  document.querySelectorAll('#modal-aud [data-cerrar]').forEach(b => b.addEventListener('click', () => document.getElementById('modal-aud').classList.remove('is-open')));
 });

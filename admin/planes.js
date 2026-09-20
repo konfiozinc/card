@@ -50,16 +50,22 @@ async function pintar() {
 
 function editarPlan(p) {
   cont.insertAdjacentHTML('beforeend', `<div class="modal is-open"><div class="modal__box">
-    <h3>Editar plan</h3>
-    <form id="plan-form">
+    <div class="modal__head">
+      <h3>Editar plan</h3>
+      <button type="button" class="modal__close" data-cerrar aria-label="Cerrar"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <form id="plan-form" class="modal__body">
       <div class="campo"><label>Nombre</label><input id="pl-nombre" value="${esc(p.nombre)}"></div>
       <div class="campo"><label>Precio (COP)</label><input id="pl-precio" type="number" value="${p.precio}"></div>
       <div class="campo"><label>Descripción</label><textarea id="pl-desc">${esc(p.descripcion || '')}</textarea></div>
+    </form>
+    <div class="modal__foot">
       <div class="modal__actions"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button>
-      <button type="submit" class="btn btn--primary">Guardar</button></div>
-    </form></div></div>`);
+      <button type="submit" form="plan-form" class="btn btn--primary">Guardar</button></div>
+    </div>
+  </div></div>`);
   const modal = cont.querySelector('.modal');
-  modal.querySelector('[data-cerrar]').addEventListener('click', () => modal.remove());
+  modal.querySelectorAll('[data-cerrar]').forEach(b => b.addEventListener('click', () => modal.remove()));
   modal.querySelector('form').addEventListener('submit', async (e) => {
     e.preventDefault();
     await setDoc(doc(db, 'planes', p.id), {

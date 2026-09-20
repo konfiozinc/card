@@ -48,18 +48,24 @@ async function pintar() {
 
 function nuevoUsuario() {
   cont.insertAdjacentHTML('beforeend', `<div class="modal is-open"><div class="modal__box">
-    <h3>Nuevo usuario</h3>
-    <form id="usr-form">
+    <div class="modal__head">
+      <h3>Nuevo usuario</h3>
+      <button type="button" class="modal__close" data-cerrar aria-label="Cerrar"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <form id="usr-form" class="modal__body">
       <div class="campo"><label>Nombre</label><input id="u-nombre" required></div>
       <div class="campo"><label>Email</label><input id="u-email" type="email" required></div>
       <div class="campo"><label>Contraseña (mín. 6)</label><input id="u-pass" type="password" required></div>
       <div class="campo"><label>Rol</label><select id="u-rol">${ROLES.map(r => `<option>${r}</option>`).join('')}</select></div>
       <div class="aviso aviso--error" id="u-error" hidden></div>
+    </form>
+    <div class="modal__foot">
       <div class="modal__actions"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button>
-      <button type="submit" class="btn btn--primary">Crear usuario</button></div>
-    </form></div></div>`);
+      <button type="submit" form="usr-form" class="btn btn--primary">Crear usuario</button></div>
+    </div>
+  </div></div>`);
   const modal = cont.querySelector('.modal');
-  modal.querySelector('[data-cerrar]').addEventListener('click', () => modal.remove());
+  modal.querySelectorAll('[data-cerrar]').forEach(b => b.addEventListener('click', () => modal.remove()));
   modal.querySelector('form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const err = document.getElementById('u-error');

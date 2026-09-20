@@ -105,10 +105,14 @@ export function confirmar(mensaje, textoBoton) {
     overlay.className = 'modal is-open';
     overlay.innerHTML = `
       <div class="modal__box" role="dialog" aria-modal="true">
-        <p class="modal__msg">${esc(mensaje)}</p>
-        <div class="modal__actions">
-          <button class="btn btn--ghost" data-r="0" type="button">Cancelar</button>
-          <button class="btn btn--primary" data-r="1" type="button">${esc(textoBoton || 'Confirmar')}</button>
+        <div class="modal__body">
+          <p class="modal__msg">${esc(mensaje)}</p>
+        </div>
+        <div class="modal__foot">
+          <div class="modal__actions">
+            <button class="btn btn--ghost" data-r="0" type="button">Cancelar</button>
+            <button class="btn btn--primary" data-r="1" type="button">${esc(textoBoton || 'Confirmar')}</button>
+          </div>
         </div>
       </div>`;
     document.body.appendChild(overlay);
