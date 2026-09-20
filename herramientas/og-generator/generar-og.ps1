@@ -70,17 +70,18 @@ function New-OgImage($def) {
   $g.FillRectangle($brush, $rect)
   $brush.Dispose()
 
-  # Partículas sutiles doradas y cian
-  for ($i = 0; $i -lt 90; $i++) {
-    $x = $random.Next(0, $W); $y = $random.Next(0, $H)
-    $r = $random.Next(1, 3)
-    $col = if ($i % 3 -eq 0) { $cyan } else { $gold }
-    $alpha = $random.Next(28, 90)
-    $pc = [System.Drawing.Color]::FromArgb($alpha, $col.R, $col.G, $col.B)
-    $pb = New-Object System.Drawing.SolidBrush $pc
-    $g.FillEllipse($pb, $x, $y, $r, $r)
-    $pb.Dispose()
+  # Resplandor suave en las esquinas (sin puntitos dispersos)
+  function Add-Glow($gr, $color, $cx, $cy, $r, $alpha) {
+    $gp = New-Object System.Drawing.Drawing2D.GraphicsPath
+    $gp.AddEllipse(($cx - $r), ($cy - $r), ($r * 2), ($r * 2))
+    $pgb = New-Object System.Drawing.Drawing2D.PathGradientBrush $gp
+    $pgb.CenterColor = [System.Drawing.Color]::FromArgb($alpha, $color.R, $color.G, $color.B)
+    $pgb.SurroundColors = [System.Drawing.Color[]]@([System.Drawing.Color]::FromArgb(0, $color.R, $color.G, $color.B))
+    $gr.FillEllipse($pgb, ($cx - $r), ($cy - $r), ($r * 2), ($r * 2))
+    $pgb.Dispose(); $gp.Dispose()
   }
+  Add-Glow $g $gold 1080 120 280 44
+  Add-Glow $g $cyan 90 560 320 40
 
   # Logo circular arriba a la izquierda
   $logo = [System.Drawing.Image]::FromFile($logoPath)
