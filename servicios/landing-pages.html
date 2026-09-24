@@ -52,9 +52,6 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="../assets/css/styles.css">
 
-<!-- reCAPTCHA v2 (clave de PRUEBA de Google: siempre valida).
-     ⚠️ Reemplaza data-sitekey por tu clave real de https://www.google.com/recaptcha/admin -->
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
 <!-- Estilos propios de esta página: planes de 3 columnas + formulario con iconos -->
 <style>
@@ -62,46 +59,6 @@
   .plan-eco   { border-color: rgba(0,229,255,.28); }
   .plan-power { border-color: rgba(249,115,22,.4); }
   .plan-aco   { display: flex; flex-direction: column; gap: .55rem; margin-top: auto; }
-  .plan-libre { font-size: .74rem; color: var(--muted); text-align: center; margin: 0; }
-
-  .form-card {
-    background: var(--surface); border: 1px solid var(--border-gold); border-radius: var(--radius);
-    padding: 2rem; max-width: 860px; margin: 0 auto;
-  }
-  .form-card h3 { font-family: var(--font-title); font-size: 1.35rem; margin-bottom: .4rem; }
-  .form-card > p.solicitar-sub { color: var(--muted); font-size: .9rem; margin-bottom: 1.6rem; }
-
-  .campo-icono { position: relative; }
-  .campo-icono > i {
-    position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
-    color: var(--cyan); font-size: .95rem; pointer-events: none; z-index: 1;
-  }
-  .campo-icono input, .campo-icono select, .campo-icono textarea { padding-left: 2.8rem; }
-  .campo-icono > i.arriba { top: 1.35rem; transform: none; }
-
-  .grupo-radio { display: flex; flex-wrap: wrap; gap: .8rem 1.6rem; margin-top: .35rem; }
-  .grupo-radio label {
-    display: flex; align-items: center; gap: .55rem; font-size: .88rem;
-    color: var(--fg); cursor: pointer; font-weight: 400; margin: 0;
-  }
-  .grupo-radio input[type="radio"] { accent-color: var(--gold); width: 1.05rem; height: 1.05rem; margin: 0; }
-
-  .campo-check {
-    display: flex; align-items: flex-start; gap: .65rem;
-    font-size: .86rem; color: var(--fg); cursor: pointer; margin-bottom: 1rem; font-weight: 400;
-  }
-  .campo-check input[type="checkbox"] {
-    accent-color: var(--gold); width: 1.1rem; height: 1.1rem; margin: .1rem 0 0; flex-shrink: 0;
-  }
-  .campo-check a { color: var(--cyan); text-decoration: underline; }
-  .recaptcha-wrap { margin: .4rem 0 1.2rem; }
-  .captcha-nota { font-size: .74rem; color: var(--muted); margin-top: .4rem; }
-
-  .info-grid { display: grid; gap: 1.4rem; }
-  @media (min-width: 940px) { .info-grid { grid-template-columns: 1.4fr 1fr; align-items: start; } }
-  .check-list { list-style: none; margin: 0; padding: 0; }
-  .check-list li { position: relative; padding-left: 1.7rem; margin-bottom: .7rem; color: var(--muted); font-size: .9rem; }
-  .check-list li::before { content: '✓'; position: absolute; left: 0; color: var(--gold); font-weight: 700; }
 </style>
 
 <!-- Datos estructurados: Organización + Migas de pan + Página + Servicio + FAQ -->
@@ -443,103 +400,9 @@
       <div class="section-head reveal">
         <span class="eyebrow">Solicitar información</span>
         <h2 class="section-title">Cuéntanos qué necesitas y <span class="text-gradient">te contactamos hoy</span></h2>
+        <p class="section-sub">Diligencia el formulario y nuestro equipo atenderá tu solicitud. Si prefieres, también puedes escribirnos por WhatsApp.</p>
       </div>
-
-      <div class="form-card reveal">
-        <h3>Solicitar información</h3>
-        <p class="solicitar-sub">Si está interesado en nuestros planes, diligencie el formulario y nuestro equipo atenderá su solicitud.</p>
-
-        <form id="contactForm" data-thanks="../gracias.html" novalidate>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="nombre">Nombre y apellido *</label>
-              <div class="campo-icono">
-                <i class="fas fa-user" aria-hidden="true"></i>
-                <input type="text" id="nombre" name="nombre" placeholder="Tu nombre completo" required autocomplete="name">
-              </div>
-              <span class="field-error"></span>
-            </div>
-
-            <div class="form-group">
-              <label for="email">Correo electrónico *</label>
-              <div class="campo-icono">
-                <i class="fas fa-envelope" aria-hidden="true"></i>
-                <input type="email" id="email" name="email" placeholder="tucorreo@ejemplo.com" required autocomplete="email">
-              </div>
-              <span class="field-error"></span>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="telefono">Teléfono *</label>
-              <div class="campo-icono">
-                <i class="fas fa-phone" aria-hidden="true"></i>
-                <input type="tel" id="telefono" name="telefono" placeholder="+57 300 000 0000" required autocomplete="tel">
-              </div>
-              <span class="field-error"></span>
-            </div>
-
-            <div class="form-group">
-              <label for="servicio">Tipo de servicio *</label>
-              <div class="campo-icono">
-                <i class="fas fa-list-check" aria-hidden="true"></i>
-                <select id="servicio" name="servicio" required>
-                  <option value="">--- Selecciona ---</option>
-                  <option value="Landing Page ECO">Landing Page ECO — $699.000</option>
-                  <option value="Landing Page SMART">Landing Page SMART — $1.099.000</option>
-                  <option value="Landing Page POWER">Landing Page POWER — $1.399.000</option>
-                  <option value="Tarjeta Digital Star">Tarjeta Digital Star</option>
-                  <option value="Tarjeta Digital Pro">Tarjeta Digital Pro</option>
-                  <option value="Tarjeta Digital Elite">Tarjeta Digital Elite</option>
-                  <option value="Catálogo Digital">Catálogo Digital</option>
-                  <option value="Menú Digital">Menú Digital</option>
-                  <option value="Código QR">Código QR</option>
-                  <option value="Agente IA">Agente IA</option>
-                </select>
-              </div>
-              <span class="field-error"></span>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label id="lbl-tipo-cliente">Tipo de cliente *</label>
-            <div class="grupo-radio" role="radiogroup" aria-labelledby="lbl-tipo-cliente">
-              <label><input type="radio" name="tipo_cliente" value="Emprendedor" required> Emprendedor</label>
-              <label><input type="radio" name="tipo_cliente" value="Empresa"> Empresa</label>
-              <label><input type="radio" name="tipo_cliente" value="Organización y/o institución"> Organización y/o institución</label>
-            </div>
-            <span class="field-error"></span>
-          </div>
-
-          <div class="form-group">
-            <label for="mensaje">Mensaje *</label>
-            <div class="campo-icono">
-              <i class="fas fa-comment-dots arriba" aria-hidden="true"></i>
-              <textarea id="mensaje" name="mensaje" rows="4" placeholder="Cuéntanos qué quieres promocionar, a quién le vendes y si ya tienes dominio o redes sociales." required></textarea>
-            </div>
-            <span class="field-error"></span>
-          </div>
-
-          <label class="campo-check">
-            <input type="checkbox" name="acepto" required>
-            <span>He leído y acepto los <a href="../politica-privacidad.html">términos y condiciones de uso</a> y el tratamiento de mis datos personales.</span>
-          </label>
-
-          <div class="recaptcha-wrap">
-            <!-- ⚠️ Clave de PRUEBA de Google (siempre valida). Reemplázala por la tuya real. -->
-            <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
-            <p class="captcha-nota">Marca la casilla «No soy un robot» para poder enviar el formulario.</p>
-          </div>
-
-          <button type="submit" class="btn btn-wa btn-lg btn-block"><i class="fas fa-paper-plane"></i> Enviar solicitud</button>
-
-          <p class="form-note">También puedes escribirnos directo por <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20los%20planes%20de%20landing%20page" target="_blank" rel="noopener noreferrer">WhatsApp</a> al +57 320 641 1340 o al correo <a href="mailto:konfiozinc@gmail.com">konfiozinc@gmail.com</a>. Al enviar el formulario serás redirigido a nuestra página de confirmación; tus datos solo se usan para contactarte y nunca los compartimos con terceros.</p>
-
-          <div class="form-success" role="status"></div>
-          <div class="form-error-box" role="alert"></div>
-        </form>
-      </div>
+      <div id="kz-solicitar" data-prioritarios="Landing Page ECO|Landing Page SMART|Landing Page POWER"></div>
     </div>
   </section>
 
@@ -914,41 +777,8 @@
   </div>
 </div>
 
+<script src="../assets/js/solicitar.js"></script>
 <script src="../assets/js/main.js" defer></script>
 
-<!-- Validación extra del formulario "Solicitar información":
-     tipo de cliente (radio) + reCAPTCHA, antes de que main.js procese el envío. -->
-<script>
-(function () {
-  var form = document.getElementById('contactForm');
-  if (!form) return;
-  form.addEventListener('submit', function (e) {
-    var tipo = form.querySelector('input[name="tipo_cliente"]:checked');
-    var acepto = form.querySelector('input[name="acepto"]');
-    var captcha = form.querySelector('.g-recaptcha-response');
-    var errores = [];
-
-    if (!tipo) errores.push('Selecciona el tipo de cliente.');
-    if (acepto && !acepto.checked) errores.push('Debes aceptar los términos y condiciones de uso.');
-
-    /* El widget de reCAPTCHA llena este textarea; si no existe, no lo exigimos. */
-    if (captcha && !captcha.value) errores.push('Marca la casilla «No soy un robot».');
-
-    if (errores.length) {
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      var box = form.querySelector('.form-error-box');
-      if (box) { box.innerHTML = '⚠️ ' + errores.join(' '); box.classList.add('show'); }
-      var grupo = form.querySelector('.grupo-radio');
-      if (!tipo && grupo) {
-        var g = grupo.closest('.form-group');
-        if (g) { g.classList.add('has-error'); var fe = g.querySelector('.field-error'); if (fe) fe.textContent = 'Selecciona el tipo de cliente.'; }
-        grupo.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-      return false;
-    }
-  }, true); /* captura: se ejecuta antes del handler de main.js */
-})();
-</script>
 </body>
 </html>

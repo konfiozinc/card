@@ -1101,3 +1101,52 @@ strong { color: var(--fg); }
 @media (max-width: 480px) {
   .social-btn { width: 44px; height: 44px; font-size: 1.15rem; }
 }
+
+/* ═══════════════════════════════════════════════════════════════════
+   FORMULARIO "SOLICITAR INFORMACIÓN" (páginas de servicio)
+   Se inyecta con assets/js/solicitar.js en los 6 servicios.
+   ═══════════════════════════════════════════════════════════════════ */
+.form-card {
+  background: var(--surface); border: 1px solid var(--border-gold); border-radius: var(--radius);
+  padding: 2rem; max-width: 860px; margin: 0 auto;
+}
+.form-card h3 { font-family: var(--font-title); font-size: 1.35rem; margin-bottom: .4rem; }
+.form-card .solicitar-sub { color: var(--muted); font-size: .9rem; margin-bottom: 1.6rem; }
+
+/* Icono cian dentro del campo */
+.campo-icono { position: relative; }
+.campo-icono > i {
+  position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+  color: var(--cyan); font-size: .95rem; pointer-events: none; z-index: 1;
+}
+.campo-icono input, .campo-icono select, .campo-icono textarea { padding-left: 2.8rem; }
+.campo-icono > i.arriba { top: 1.35rem; transform: none; }
+
+/* Radios de tipo de cliente */
+.grupo-radio { display: flex; flex-wrap: wrap; gap: .8rem 1.6rem; margin-top: .35rem; }
+.grupo-radio label {
+  display: flex; align-items: center; gap: .55rem; font-size: .88rem;
+  color: var(--fg); cursor: pointer; font-weight: 400; margin: 0;
+}
+.grupo-radio input[type="radio"] { accent-color: var(--gold); width: 1.05rem; height: 1.05rem; margin: 0; }
+
+/* Checkbox de términos */
+.campo-check {
+  display: flex; align-items: flex-start; gap: .65rem;
+  font-size: .86rem; color: var(--fg); cursor: pointer; margin-bottom: 1rem; font-weight: 400;
+}
+.campo-check input[type="checkbox"] {
+  accent-color: var(--gold); width: 1.1rem; height: 1.1rem; margin: .1rem 0 0; flex-shrink: 0;
+}
+.campo-check a { color: var(--cyan); text-decoration: underline; }
+
+/* reCAPTCHA */
+.recaptcha-wrap { margin: .4rem 0 1.2rem; }
+.captcha-nota { font-size: .74rem; color: var(--muted); margin-top: .4rem; }
+
+/* Bloque informativo de 2 columnas (¿Qué es…? + diferenciales) */
+.info-grid { display: grid; gap: 1.4rem; }
+@media (min-width: 940px) { .info-grid { grid-template-columns: 1.4fr 1fr; align-items: start; } }
+.check-list { list-style: none; margin: 0; padding: 0; }
+.check-list li { position: relative; padding-left: 1.7rem; margin-bottom: .7rem; color: var(--muted); font-size: .9rem; }
+.check-list li::before { content: '✓'; position: absolute; left: 0; color: var(--gold); font-weight: 700; }
