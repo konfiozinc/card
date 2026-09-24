@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Landing Pages que Convierten Visitantes</title>
-<meta name="description" content="Landing pages enfocadas en convertir visitas en clientes desde $350.000. Diseño a la medida, rápida en móvil y con medición de resultados.">
-<meta name="keywords" content="landing page, página de aterrizaje, landing page para campañas, página de conversión, landing page con formulario y WhatsApp">
+<title>Landing Pages ECO, SMART y POWER | KONFÍO ZINC</title>
+<meta name="description" content="Landing pages profesionales desde $699.000: planes ECO, SMART y POWER con hosting y dominio 1 año, formulario, WhatsApp, SEO y medición.">
+<meta name="keywords" content="landing page, página de aterrizaje, landing page para campañas, página de conversión, landing page con formulario y WhatsApp, landing page Colombia">
 <meta name="author" content="KONFÍO ZINC">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="theme-color" content="#000000">
@@ -28,8 +28,8 @@
 <meta property="og:site_name" content="KONFÍO ZINC">
 <meta property="og:locale" content="es_CO">
 <meta property="og:url" content="https://konfiozinc.github.io/card/servicios/landing-pages.html">
-<meta property="og:title" content="Landing Pages que Convierten Visitantes">
-<meta property="og:description" content="Landing pages enfocadas en convertir visitas en clientes desde $350.000. Diseño a la medida, rápida en móvil y con medición de resultados.">
+<meta property="og:title" content="Landing Pages ECO, SMART y POWER | KONFÍO ZINC">
+<meta property="og:description" content="Landing pages profesionales desde $699.000 con hosting y dominio incluido 1 año, formulario, WhatsApp, SEO y medición de resultados.">
 <meta property="og:image" content="https://konfiozinc.github.io/card/assets/img/og/og-landing-pages.png" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
@@ -37,8 +37,8 @@
 
 <!-- Twitter Cards -->
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Landing Pages que Convierten Visitantes">
-<meta name="twitter:description" content="Landing pages desde $350.000, rápidas en móvil, con formulario, WhatsApp y medición de resultados. Entrega en 5–10 días hábiles.">
+<meta name="twitter:title" content="Landing Pages ECO, SMART y POWER | KONFÍO ZINC">
+<meta name="twitter:description" content="Tres planes de landing page desde $699.000: hosting y dominio incluido 1 año, formulario, WhatsApp, SEO y medición. Entrega en 5–10 días hábiles.">
 <meta name="twitter:image" content="https://konfiozinc.github.io/card/assets/img/og/og-landing-pages.png" />
 
 <!-- Favicon y apple-touch-icon -->
@@ -51,6 +51,58 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <link rel="stylesheet" href="../assets/css/styles.css">
+
+<!-- reCAPTCHA v2 (clave de PRUEBA de Google: siempre valida).
+     ⚠️ Reemplaza data-sitekey por tu clave real de https://www.google.com/recaptcha/admin -->
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+<!-- Estilos propios de esta página: planes de 3 columnas + formulario con iconos -->
+<style>
+  @media (min-width: 1060px) { .pricing-grid.planes-3 { grid-template-columns: repeat(3, 1fr); } }
+  .plan-eco   { border-color: rgba(0,229,255,.28); }
+  .plan-power { border-color: rgba(249,115,22,.4); }
+  .plan-aco   { display: flex; flex-direction: column; gap: .55rem; margin-top: auto; }
+  .plan-libre { font-size: .74rem; color: var(--muted); text-align: center; margin: 0; }
+
+  .form-card {
+    background: var(--surface); border: 1px solid var(--border-gold); border-radius: var(--radius);
+    padding: 2rem; max-width: 860px; margin: 0 auto;
+  }
+  .form-card h3 { font-family: var(--font-title); font-size: 1.35rem; margin-bottom: .4rem; }
+  .form-card > p.solicitar-sub { color: var(--muted); font-size: .9rem; margin-bottom: 1.6rem; }
+
+  .campo-icono { position: relative; }
+  .campo-icono > i {
+    position: absolute; left: 1rem; top: 50%; transform: translateY(-50%);
+    color: var(--cyan); font-size: .95rem; pointer-events: none; z-index: 1;
+  }
+  .campo-icono input, .campo-icono select, .campo-icono textarea { padding-left: 2.8rem; }
+  .campo-icono > i.arriba { top: 1.35rem; transform: none; }
+
+  .grupo-radio { display: flex; flex-wrap: wrap; gap: .8rem 1.6rem; margin-top: .35rem; }
+  .grupo-radio label {
+    display: flex; align-items: center; gap: .55rem; font-size: .88rem;
+    color: var(--fg); cursor: pointer; font-weight: 400; margin: 0;
+  }
+  .grupo-radio input[type="radio"] { accent-color: var(--gold); width: 1.05rem; height: 1.05rem; margin: 0; }
+
+  .campo-check {
+    display: flex; align-items: flex-start; gap: .65rem;
+    font-size: .86rem; color: var(--fg); cursor: pointer; margin-bottom: 1rem; font-weight: 400;
+  }
+  .campo-check input[type="checkbox"] {
+    accent-color: var(--gold); width: 1.1rem; height: 1.1rem; margin: .1rem 0 0; flex-shrink: 0;
+  }
+  .campo-check a { color: var(--cyan); text-decoration: underline; }
+  .recaptcha-wrap { margin: .4rem 0 1.2rem; }
+  .captcha-nota { font-size: .74rem; color: var(--muted); margin-top: .4rem; }
+
+  .info-grid { display: grid; gap: 1.4rem; }
+  @media (min-width: 940px) { .info-grid { grid-template-columns: 1.4fr 1fr; align-items: start; } }
+  .check-list { list-style: none; margin: 0; padding: 0; }
+  .check-list li { position: relative; padding-left: 1.7rem; margin-bottom: .7rem; color: var(--muted); font-size: .9rem; }
+  .check-list li::before { content: '✓'; position: absolute; left: 0; color: var(--gold); font-weight: 700; }
+</style>
 
 <!-- Datos estructurados: Organización + Migas de pan + Página + Servicio + FAQ -->
 <script type="application/ld+json">
@@ -86,8 +138,8 @@
       "@type": "WebPage",
       "@id": "https://konfiozinc.github.io/card/servicios/landing-pages.html#webpage",
       "url": "https://konfiozinc.github.io/card/servicios/landing-pages.html",
-      "name": "Landing Pages que Convierten Visitantes",
-      "description": "Landing pages enfocadas en convertir visitas en clientes desde $350.000. Diseño a la medida, rápida en móvil y con medición de resultados.",
+      "name": "Landing Pages ECO, SMART y POWER | KONFÍO ZINC",
+      "description": "Landing pages profesionales desde $699.000: planes ECO, SMART y POWER con hosting y dominio incluido 1 año, formulario, botón WhatsApp, SEO y medición de resultados.",
       "inLanguage": "es-CO",
       "isPartOf": { "@id": "https://konfiozinc.github.io/card/#website" }
     },
@@ -96,7 +148,7 @@
       "@id": "https://konfiozinc.github.io/card/servicios/landing-pages.html#servicio",
       "name": "Landing pages",
       "serviceType": "Diseño de landing pages orientadas a conversión",
-      "description": "Landing pages de un solo objetivo, con estructura de conversión, copywriting de la oferta, formulario y WhatsApp, optimización técnica para buscadores, medición con GA4 y versión móvil rápida, en tres planes: Landing Simple, Landing Completa y Landing + Campaña.",
+      "description": "Landing pages profesionales administrables en tres planes: ECO, SMART y POWER. Incluyen diseño de landing page, hosting y dominio por 1 año, certificado SSL, formulario de contacto, Google Maps, botón de WhatsApp, correos corporativos, adaptación a móvil, tablets y computadores, y soporte con capacitación.",
       "url": "https://konfiozinc.github.io/card/servicios/landing-pages.html",
       "provider": { "@id": "https://konfiozinc.github.io/card/#organizacion" },
       "areaServed": { "@type": "Country", "name": "Colombia" },
@@ -108,28 +160,28 @@
       "offers": [
         {
           "@type": "Offer",
-          "name": "Landing Simple",
-          "price": "350000",
+          "name": "Landing Page ECO",
+          "price": "699000",
           "priceCurrency": "COP",
-          "description": "Una sección de conversión con diseño a la medida, copywriting de la oferta, formulario conectado a tu correo, botón de WhatsApp, versión móvil optimizada, base técnica para buscadores, instalación de medición y entrega en 5–7 días hábiles.",
+          "description": "Página web administrable con diseño landing page, línea gráfica web estándar, banner estático, hasta 5 bloques navegables, adaptable a móvil, tablets y computadores, links a redes sociales, formulario de contacto básico, Google Maps, enlaces a sitios externos, certificado SSL, soporte y capacitación, 1 cuenta de correo corporativo, botón de WhatsApp, e incluye hosting y dominio por 1 año.",
           "availability": "https://schema.org/InStock",
           "url": "https://konfiozinc.github.io/card/servicios/landing-pages.html"
         },
         {
           "@type": "Offer",
-          "name": "Landing Completa",
-          "price": "550000",
+          "name": "Landing Page SMART",
+          "price": "1099000",
           "priceCurrency": "COP",
-          "description": "Todo lo de la Landing Simple más varias secciones (oferta, beneficios, prueba social, preguntas frecuentes), hasta 3 formularios con distintos objetivos, galería o video, testimonios, eventos de conversión configurados, textos y datos estructurados, entrega en 7–10 días hábiles y soporte prioritario.",
+          "description": "Todo lo de la Landing Page ECO con línea gráfica web profesional, banner imagen dinámico, hasta 10 bloques navegables, formulario de contacto personalizado, 5 cuentas de correo corporativo, sitio amigable con el SEO, e incluye hosting y dominio por 1 año.",
           "availability": "https://schema.org/InStock",
           "url": "https://konfiozinc.github.io/card/servicios/landing-pages.html"
         },
         {
           "@type": "Offer",
-          "name": "Landing + Campaña",
-          "price": "850000",
+          "name": "Landing Page POWER",
+          "price": "1399000",
           "priceCurrency": "COP",
-          "description": "Todo lo de la Landing Completa más creatividades para la campaña (3 piezas), configuración de la campaña de pauta dentro de la plataforma, público y presupuesto sugeridos, página de gracias y seguimiento de conversiones, informe de resultados del primer mes y sesión de 30 minutos para enseñarte a leer las métricas.",
+          "description": "Todo lo de la Landing Page SMART con línea gráfica web personalizada exclusiva, banner imagen dinámico con animaciones, formulario de contacto personalizado con reCAPTCHA, integración con Google Analytics 4, panel de administración de contenido, e incluye hosting y dominio por 1 año.",
           "availability": "https://schema.org/InStock",
           "url": "https://konfiozinc.github.io/card/servicios/landing-pages.html"
         }
@@ -146,28 +198,33 @@
         },
         {
           "@type": "Question",
+          "name": "¿Cuál es la diferencia entre los planes ECO, SMART y POWER?",
+          "acceptedAnswer": { "@type": "Answer", "text": "ECO es la landing page de entrada: diseño estándar, banner estático, hasta 5 bloques y 1 correo corporativo. SMART añade línea gráfica profesional, banner dinámico, hasta 10 bloques, formulario personalizado, 5 correos corporativos y optimización SEO. POWER añade diseño exclusivo, animaciones, formulario con reCAPTCHA, integración con Google Analytics 4 y panel de administración de contenido. Los tres incluyen hosting y dominio por 1 año." }
+        },
+        {
+          "@type": "Question",
           "name": "¿Cuánto tarda en estar lista mi landing page?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Entre 5 y 10 días hábiles desde que confirmas el pago y nos entregas la información. La Landing Simple queda en 5–7 días hábiles y la Landing Completa o la Landing + Campaña en 7–10 días hábiles, porque incluyen más secciones, formularios y configuración de medición. El calendario arranca cuando tenemos tu contenido aprobado." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Entre 5 y 10 días hábiles desde que confirmas el pago y nos entregas la información. La Landing Page ECO queda en 5–7 días hábiles y la SMART o la POWER en 7–10 días hábiles, porque incluyen diseño más elaborado, más bloques y configuración de medición. El calendario arranca cuando tenemos tu contenido aprobado." }
         },
         {
           "@type": "Question",
           "name": "¿El precio incluye el dominio y el alojamiento?",
-          "acceptedAnswer": { "@type": "Answer", "text": "No. El dominio y el alojamiento se cotizan aparte, porque son servicios anuales de terceros que se pagan a nombre del cliente. Si ya tienes dominio y hosting, publicamos tu landing page ahí mismo sin costo adicional y te ayudamos con la conexión. Si no tienes, te decimos exactamente qué comprar y cuánto cuesta antes de que pagues nada. Puedes escribirnos aquí y te pasamos la cotización completa." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Sí. Los tres planes incluyen hosting y dominio por 1 año, además del certificado SSL. Al cumplir el año, la renovación del hosting y del dominio se paga directamente al proveedor y te avisamos con antelación cuánto cuesta, para que no haya sorpresas. Si ya tienes dominio propio, lo conectamos a tu nueva landing page sin costo adicional." }
         },
         {
           "@type": "Question",
           "name": "¿Puedo editar la landing page yo mismo después?",
-          "acceptedAnswer": { "@type": "Answer", "text": "El proyecto se entrega publicado y funcionando, pero no incluye un panel de edición propio. Las ediciones de contenido menores —cambiar un precio, un teléfono, un texto o una imagen— se piden por WhatsApp y las hace nuestro equipo; si contratas actualizaciones incluidas, entran dentro de ese acompañamiento. Los cambios estructurales, como agregar secciones nuevas o rediseñar, se cotizan aparte." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Sí. Las páginas de los tres planes son administrables: puedes editar textos, imágenes y contenido sin programar. En el plan POWER además incluimos un panel de administración de contenido para que gestiones tus bloques de forma autónoma. Igual te damos soporte y capacitación para que aprendas a hacer los cambios básicos, y si prefieres que lo hagamos nosotros, también se puede." }
         },
         {
           "@type": "Question",
           "name": "¿Una landing page sirve para pauta?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Sí, es justamente el destino que más rinde para una campaña de pauta: en lugar de mandar el clic a una web con muchos enlaces, lo mandas a una página con una sola oferta y un solo formulario, y así es más fácil medir cuántos contactos generó cada anuncio. En el plan Landing + Campaña nosotros creamos las creatividades, configuramos la campaña dentro de la plataforma y dejamos el seguimiento de conversiones activo con una página de gracias e informe del primer mes." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Sí, es justamente el destino que más rinde para una campaña de pauta: en lugar de mandar el clic a una web con muchos enlaces, lo mandas a una página con una sola oferta y un solo formulario, y así es más fácil medir cuántos contactos generó cada anuncio. Los tres planes traen botón de WhatsApp y formulario listos para recibir tráfico de campañas; el plan POWER suma la integración con Google Analytics 4 para seguir las conversiones con precisión." }
         },
         {
           "@type": "Question",
           "name": "¿Ustedes escriben los textos de la página?",
-          "acceptedAnswer": { "@type": "Answer", "text": "Sí. La redacción de los textos está incluida en todos los planes: escribimos la promesa, la oferta, los beneficios, las respuestas de las preguntas frecuentes y los llamados a la acción, y te los enviamos sección por sección para tu aprobación antes de montar la página. Nos apoyamos en lo que nos cuentas de tu negocio y en la información que ya tienes publicada; solo pedimos que revises que los datos y precios sean correctos. Los detalles del proceso están en nuestra página de contacto." }
+          "acceptedAnswer": { "@type": "Answer", "text": "Sí. La redacción de los textos está incluida en todos los planes: escribimos la promesa, la oferta, los beneficios, las respuestas de las preguntas frecuentes y los llamados a la acción, y te los enviamos sección por sección para tu aprobación antes de montar la página. Nos apoyamos en lo que nos cuentas de tu negocio y en la información que ya tienes publicada; solo pedimos que revises que los datos y precios sean correctos." }
         }
       ]
     }
@@ -230,10 +287,10 @@
     <div class="container">
       <span class="eyebrow reveal">Landing Pages · Conversión · Medición</span>
       <h1 class="page-hero-title reveal">Landing pages que <span class="text-gradient">convierten visitantes en clientes</span></h1>
-      <p class="page-hero-sub reveal">Una página enfocada en un solo objetivo, con oferta clara, prueba social y un botón de acción en cada sección. Rápida en móvil, con formulario y WhatsApp a la vista, y con medición de resultados para saber qué canal te trae los contactos. Desde $350.000 con entrega en 5–10 días hábiles.</p>
+      <p class="page-hero-sub reveal">Una página enfocada en un solo objetivo, con oferta clara, prueba social y un botón de acción en cada sección. Rápida en móvil, con formulario y WhatsApp a la vista. Tres planes con hosting y dominio incluido por 1 año, desde $699.000.</p>
       <div class="hero-actions reveal">
-        <a href="../contacto.html" class="btn btn-primary btn-lg"><i class="fas fa-calendar-check"></i> Agenda tu diagnóstico gratis</a>
-        <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20una%20landing%20page%20KONF%C3%8DO%20ZINC" target="_blank" rel="noopener noreferrer" class="btn btn-wa btn-lg"><i class="fab fa-whatsapp"></i> Quiero mi landing page</a>
+        <a href="#planes" class="btn btn-primary btn-lg"><i class="fas fa-layer-group"></i> Ver los 3 planes</a>
+        <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20una%20landing%20page%20KONF%C3%8DO%20ZINC" target="_blank" rel="noopener noreferrer" class="btn btn-wa btn-lg"><i class="fab fa-whatsapp"></i> Hablar con un asesor</a>
       </div>
     </div>
   </section>
@@ -267,7 +324,7 @@
             <li>Estructura de conversión probada: promesa clara, prueba social, oferta y un CTA único repetido por sección.</li>
             <li>Carga en menos de 2 segundos en móvil, con imágenes optimizadas y una versión móvil depurada.</li>
             <li>Formulario y botón de WhatsApp visibles en pantalla, conectados a tu correo y a tu celular.</li>
-            <li>Eventos medidos en GA4 para saber qué canal trae los contactos que sí convierten.</li>
+            <li>Medición de resultados para saber qué canal trae los contactos que sí convierten.</li>
             <li>Copywriting orientado a la acción, escrito para que el visitante decida y no solo lea.</li>
           </ul>
         </div>
@@ -275,75 +332,250 @@
     </div>
   </section>
 
-  <!-- ══════════════ PLANES ══════════════ -->
+  <!-- ══════════════ PLANES (ECO · SMART · POWER) ══════════════ -->
   <section class="section section-alt" id="planes">
     <div class="container">
       <div class="section-head reveal">
         <span class="eyebrow">Planes</span>
-        <h2 class="section-title">Elige tu landing: <span class="text-gradient">Simple, Completa o + Campaña</span></h2>
-        <p class="section-sub">Los tres planes incluyen diseño a la medida, redacción de los textos, formulario, botón de WhatsApp, versión móvil optimizada y una ronda de ajustes. La diferencia está en cuántas secciones necesitas y si quieres que la campaña de pauta quede montada y medida.</p>
+        <h2 class="section-title">Elige tu landing: <span class="text-gradient">ECO, SMART o POWER</span></h2>
+        <p class="section-sub">Los tres planes incluyen hosting y dominio por 1 año, certificado SSL, página administrable, diseño de landing page, adaptable a móvil, tablets y computadores, botón de WhatsApp, Google Maps, enlaces a redes sociales, formulario de contacto, soporte y capacitación. La diferencia está en el nivel de diseño, la cantidad de bloques y las funciones avanzadas.</p>
       </div>
 
-      <div class="pricing-grid">
-        <!-- Plan Landing Simple -->
-        <article class="plan reveal">
-          <h3 class="plan-name">LANDING SIMPLE</h3>
-          <div class="plan-price">$350.000 <small>COP · pago único</small></div>
-          <p class="plan-for">Para quien necesita una sola página que reciba tráfico y genere contactos ya.</p>
+      <div class="pricing-grid planes-3">
+        <!-- ── Plan ECO ── -->
+        <article class="plan plan-eco reveal">
+          <h3 class="plan-name">LANDING PAGE <span class="text-gold">ECO</span></h3>
+          <div class="plan-price">$699.000 <small>COP · pago único</small></div>
+          <p class="plan-for">Para quien necesita su primera página profesional funcionando ya, con todo lo esencial incluido.</p>
           <ul>
-            <li>Una sección de conversión enfocada en un objetivo</li>
-            <li>Diseño a la medida de tu marca</li>
-            <li>Copywriting de la oferta y los llamados a la acción</li>
-            <li>Formulario conectado a tu correo</li>
-            <li>Botón de WhatsApp visible</li>
-            <li>Versión móvil optimizada</li>
-            <li>Base técnica para buscadores y carga rápida</li>
-            <li>Instalación de medición</li>
-            <li>Entrega en 5–7 días hábiles</li>
+            <li>Página web administrable</li>
+            <li>Diseño landing page</li>
+            <li>Línea gráfica web estándar</li>
+            <li>Banner estático</li>
+            <li>Hasta 5 bloques navegables</li>
+            <li>Adaptable a móvil, tablets y computadores</li>
+            <li>Links a redes sociales</li>
+            <li>Formulario de contacto (básico)</li>
+            <li>Google Maps</li>
+            <li>Enlaces a sitios externos</li>
+            <li>Certificado SSL</li>
+            <li>Soporte y capacitación</li>
+            <li>1 cuenta de correo corporativo</li>
+            <li>Botón WhatsApp</li>
+            <li><strong>Incluye hosting y dominio por 1 año</strong></li>
           </ul>
-          <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20una%20landing%20page%20KONF%C3%8DO%20ZINC%20plan%20LANDING%20SIMPLE" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-block"><i class="fab fa-whatsapp"></i> Pedir Landing Simple</a>
+          <div class="plan-aco">
+            <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20info%20del%20plan%20Landing%20Page%20ECO" target="_blank" rel="noopener noreferrer" class="btn btn-wa btn-block"><i class="fab fa-whatsapp"></i> Hablar con un asesor</a>
+            <a href="#solicitar" class="btn btn-primary btn-block">Solicitar información <i class="fas fa-arrow-right"></i></a>
+          </div>
         </article>
 
-        <!-- Plan Landing Completa (el más solicitado) -->
-        <article class="plan featured reveal">
-          <span class="plan-flag">El más solicitado</span>
-          <h3 class="plan-name">LANDING COMPLETA</h3>
-          <div class="plan-price">$550.000 <small>COP · pago único</small></div>
-          <p class="plan-for">Para negocios que necesitan explicar la oferta a fondo y captar contactos con distintos objetivos.</p>
+        <!-- ── Plan SMART (destacado) ── -->
+        <article class="plan plan-featured featured reveal">
+          <span class="plan-flag">MÁS POPULAR</span>
+          <h3 class="plan-name">LANDING PAGE <span class="text-gold">SMART</span></h3>
+          <div class="plan-price">$1.099.000 <small>COP · pago único</small></div>
+          <p class="plan-for">Para negocios que quieren una imagen profesional, más contenido y aparecer mejor en Google.</p>
           <ul>
-            <li><strong>Todo lo de la Landing Simple</strong></li>
-            <li>Varias secciones: oferta, beneficios, prueba social y preguntas frecuentes</li>
-            <li>Hasta 3 formularios con distintos objetivos</li>
-            <li>Galería o video</li>
-            <li>Testimonios de clientes</li>
-            <li>Eventos de conversión configurados</li>
-            <li>Sección de preguntas frecuentes</li>
-            <li>Textos y datos estructurados</li>
-            <li>Entrega en 7–10 días hábiles</li>
-            <li>Soporte prioritario</li>
+            <li>Página web administrable</li>
+            <li>Diseño landing page</li>
+            <li>Línea gráfica web profesional</li>
+            <li>Banner imagen dinámico</li>
+            <li>Hasta 10 bloques navegables</li>
+            <li>Adaptable a móvil, tablets y computadores</li>
+            <li>Links a redes sociales</li>
+            <li>Formulario de contacto (personalizado)</li>
+            <li>Google Maps</li>
+            <li>Enlaces a sitios externos</li>
+            <li>Certificado SSL</li>
+            <li>Soporte y capacitación</li>
+            <li>5 cuentas de correo corporativo</li>
+            <li>Botón WhatsApp</li>
+            <li>Amigable con el SEO</li>
+            <li><strong>Incluye hosting y dominio por 1 año</strong></li>
           </ul>
-          <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20una%20landing%20page%20KONF%C3%8DO%20ZINC%20plan%20LANDING%20COMPLETA" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-block"><i class="fas fa-star"></i> Pedir Landing Completa</a>
+          <div class="plan-aco">
+            <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20info%20del%20plan%20Landing%20Page%20SMART" target="_blank" rel="noopener noreferrer" class="btn btn-wa btn-block"><i class="fab fa-whatsapp"></i> Hablar con un asesor</a>
+            <a href="#solicitar" class="btn btn-primary btn-block">Solicitar información <i class="fas fa-arrow-right"></i></a>
+          </div>
         </article>
 
-        <!-- Plan Landing + Campaña -->
-        <article class="plan reveal">
-          <h3 class="plan-name">LANDING + CAMPAÑA</h3>
-          <div class="plan-price">$850.000 <small>COP · pago único</small></div>
-          <p class="plan-for">Para quien quiere la página funcionando y la campaña de pauta montada desde el primer día.</p>
+        <!-- ── Plan POWER ── -->
+        <article class="plan plan-power reveal">
+          <span class="plan-flag">PREMIUM</span>
+          <h3 class="plan-name">LANDING PAGE <span class="text-orange">POWER</span></h3>
+          <div class="plan-price">$1.399.000 <small>COP · pago único</small></div>
+          <p class="plan-for">Para quien quiere diseño exclusivo, panel de administración y medición avanzada desde el primer día.</p>
           <ul>
-            <li><strong>Todo lo de la Landing Completa</strong></li>
-            <li>Creatividades para la campaña (3 piezas)</li>
-            <li>Configuración de la campaña de pauta dentro de la plataforma</li>
-            <li>Público y presupuesto sugeridos</li>
-            <li>Página de gracias y seguimiento de conversiones</li>
-            <li>Informe de resultados del primer mes</li>
-            <li>Sesión de 30 minutos para enseñarte a leer las métricas</li>
+            <li>Página web administrable</li>
+            <li>Diseño landing page</li>
+            <li>Línea gráfica web personalizada (exclusiva)</li>
+            <li>Banner imagen dinámico con animaciones</li>
+            <li>Hasta 10 bloques navegables</li>
+            <li>Adaptable a móvil, tablets y computadores</li>
+            <li>Links a redes sociales</li>
+            <li>Formulario de contacto (personalizado con reCAPTCHA)</li>
+            <li>Google Maps</li>
+            <li>Enlaces a sitios externos</li>
+            <li>Certificado SSL</li>
+            <li>Soporte y capacitación</li>
+            <li>5 cuentas de correo corporativo</li>
+            <li>Botón WhatsApp</li>
+            <li>Amigable con el SEO</li>
+            <li>Integración con Google Analytics 4</li>
+            <li>Panel de administración de contenido</li>
+            <li><strong>Incluye hosting y dominio por 1 año</strong></li>
           </ul>
-          <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20una%20landing%20page%20KONF%C3%8DO%20ZINC%20plan%20LANDING%20Y%20CAMPA%C3%91A" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-block"><i class="fas fa-bullhorn"></i> Pedir Landing + Campaña</a>
+          <div class="plan-aco">
+            <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20info%20del%20plan%20Landing%20Page%20POWER" target="_blank" rel="noopener noreferrer" class="btn btn-wa btn-block"><i class="fab fa-whatsapp"></i> Hablar con un asesor</a>
+            <a href="#solicitar" class="btn btn-primary btn-block">Solicitar información <i class="fas fa-arrow-right"></i></a>
+          </div>
         </article>
       </div>
 
       <p class="form-note text-center reveal">¿No sabes cuál elegir? Escríbenos por WhatsApp, cuéntanos a quién le vas a mandar el tráfico y en 5 minutos te decimos qué plan te sirve, sin compromiso.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════ FORMULARIO SOLICITAR INFORMACIÓN ══════════════ -->
+  <section class="section" id="solicitar">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Solicitar información</span>
+        <h2 class="section-title">Cuéntanos qué necesitas y <span class="text-gradient">te contactamos hoy</span></h2>
+      </div>
+
+      <div class="form-card reveal">
+        <h3>Solicitar información</h3>
+        <p class="solicitar-sub">Si está interesado en nuestros planes, diligencie el formulario y nuestro equipo atenderá su solicitud.</p>
+
+        <form id="contactForm" data-thanks="../gracias.html" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nombre">Nombre y apellido *</label>
+              <div class="campo-icono">
+                <i class="fas fa-user" aria-hidden="true"></i>
+                <input type="text" id="nombre" name="nombre" placeholder="Tu nombre completo" required autocomplete="name">
+              </div>
+              <span class="field-error"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="email">Correo electrónico *</label>
+              <div class="campo-icono">
+                <i class="fas fa-envelope" aria-hidden="true"></i>
+                <input type="email" id="email" name="email" placeholder="tucorreo@ejemplo.com" required autocomplete="email">
+              </div>
+              <span class="field-error"></span>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="telefono">Teléfono *</label>
+              <div class="campo-icono">
+                <i class="fas fa-phone" aria-hidden="true"></i>
+                <input type="tel" id="telefono" name="telefono" placeholder="+57 300 000 0000" required autocomplete="tel">
+              </div>
+              <span class="field-error"></span>
+            </div>
+
+            <div class="form-group">
+              <label for="servicio">Tipo de servicio *</label>
+              <div class="campo-icono">
+                <i class="fas fa-list-check" aria-hidden="true"></i>
+                <select id="servicio" name="servicio" required>
+                  <option value="">--- Selecciona ---</option>
+                  <option value="Landing Page ECO">Landing Page ECO — $699.000</option>
+                  <option value="Landing Page SMART">Landing Page SMART — $1.099.000</option>
+                  <option value="Landing Page POWER">Landing Page POWER — $1.399.000</option>
+                  <option value="Tarjeta Digital Star">Tarjeta Digital Star</option>
+                  <option value="Tarjeta Digital Pro">Tarjeta Digital Pro</option>
+                  <option value="Tarjeta Digital Elite">Tarjeta Digital Elite</option>
+                  <option value="Catálogo Digital">Catálogo Digital</option>
+                  <option value="Menú Digital">Menú Digital</option>
+                  <option value="Código QR">Código QR</option>
+                  <option value="Agente IA">Agente IA</option>
+                </select>
+              </div>
+              <span class="field-error"></span>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label id="lbl-tipo-cliente">Tipo de cliente *</label>
+            <div class="grupo-radio" role="radiogroup" aria-labelledby="lbl-tipo-cliente">
+              <label><input type="radio" name="tipo_cliente" value="Emprendedor" required> Emprendedor</label>
+              <label><input type="radio" name="tipo_cliente" value="Empresa"> Empresa</label>
+              <label><input type="radio" name="tipo_cliente" value="Organización y/o institución"> Organización y/o institución</label>
+            </div>
+            <span class="field-error"></span>
+          </div>
+
+          <div class="form-group">
+            <label for="mensaje">Mensaje *</label>
+            <div class="campo-icono">
+              <i class="fas fa-comment-dots arriba" aria-hidden="true"></i>
+              <textarea id="mensaje" name="mensaje" rows="4" placeholder="Cuéntanos qué quieres promocionar, a quién le vendes y si ya tienes dominio o redes sociales." required></textarea>
+            </div>
+            <span class="field-error"></span>
+          </div>
+
+          <label class="campo-check">
+            <input type="checkbox" name="acepto" required>
+            <span>He leído y acepto los <a href="../politica-privacidad.html">términos y condiciones de uso</a> y el tratamiento de mis datos personales.</span>
+          </label>
+
+          <div class="recaptcha-wrap">
+            <!-- ⚠️ Clave de PRUEBA de Google (siempre valida). Reemplázala por la tuya real. -->
+            <div class="g-recaptcha" data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"></div>
+            <p class="captcha-nota">Marca la casilla «No soy un robot» para poder enviar el formulario.</p>
+          </div>
+
+          <button type="submit" class="btn btn-wa btn-lg btn-block"><i class="fas fa-paper-plane"></i> Enviar solicitud</button>
+
+          <p class="form-note">También puedes escribirnos directo por <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20los%20planes%20de%20landing%20page" target="_blank" rel="noopener noreferrer">WhatsApp</a> al +57 320 641 1340 o al correo <a href="mailto:konfiozinc@gmail.com">konfiozinc@gmail.com</a>. Al enviar el formulario serás redirigido a nuestra página de confirmación; tus datos solo se usan para contactarte y nunca los compartimos con terceros.</p>
+
+          <div class="form-success" role="status"></div>
+          <div class="form-error-box" role="alert"></div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ INFORMACIÓN ADICIONAL (3 BLOQUES) ══════════════ -->
+  <section class="section section-alt">
+    <div class="container">
+      <div class="info-grid">
+        <!-- Bloque A -->
+        <div class="reveal">
+          <h2 class="section-title">¿Qué es una <span class="text-gradient">landing page</span>?</h2>
+          <p>Un landing page es una página web que tiene como intención principal la conversión de usuarios o visitantes. Son páginas que nos permiten promocionar artículos, servicios, marcas personales, productos o empresas. La información redactada es puntual y comprimida, con el objetivo de generar cápsulas de contenido que permitan al usuario entender de forma rápida la orientación del sitio web.</p>
+          <p>Por eso una landing page no compite con tu sitio web completo: lo complementa. Tu web explica quién eres; la landing page convierte a quien ya mostró interés en una oferta concreta y lo lleva al formulario o al WhatsApp en el menor número de pasos posible.</p>
+        </div>
+
+        <!-- Bloque B -->
+        <div class="reveal">
+          <h3 class="card-title">¿Por qué elegir KONFÍO ZINC?</h3>
+          <ul class="check-list">
+            <li>Diseño 100 % responsive (móvil, tablets y computadores).</li>
+            <li>Optimización SEO incluida en los planes SMART y POWER.</li>
+            <li>Soporte y capacitación post-lanzamiento.</li>
+            <li>Hosting y dominio incluidos por 1 año.</li>
+            <li>Certificado SSL y botón de WhatsApp desde el primer día.</li>
+            <li>Entrega en 5–10 días hábiles con textos escritos por nosotros.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="cta-final reveal mt-2">
+        <h2>¿Listo para lanzar tu <span class="text-gradient">landing page</span>?</h2>
+        <p>Cuéntanos qué quieres promocionar y a quién le vas a mandar el tráfico. Definimos el objetivo, escribimos la oferta y te entregamos la página publicada, con formulario probado y medición funcionando.</p>
+        <div class="cta-actions">
+          <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20info%20de%20los%20planes%20de%20landing%20page" target="_blank" rel="noopener noreferrer" class="btn btn-wa btn-lg"><i class="fab fa-whatsapp"></i> Hablar con un asesor</a>
+          <a href="../servicios.html" class="btn btn-ghost btn-lg"><i class="fas fa-layer-group"></i> Volver a servicios</a>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -379,7 +611,7 @@
           <div class="step-num" aria-hidden="true">04</div>
           <div class="step-icon" aria-hidden="true"><i class="fas fa-chart-line"></i></div>
           <h3 class="step-title">Publicamos y medimos</h3>
-          <p class="step-desc">Conectamos el dominio, probamos el formulario y el botón de WhatsApp, e instalamos la medición con GA4 y los eventos de conversión para que veas qué canal trae los contactos. Entregable: página en vivo, formularios probados y panel de medición.</p>
+          <p class="step-desc">Conectamos el dominio, probamos el formulario y el botón de WhatsApp, e instalamos la medición para que veas qué canal trae los contactos. Entregable: página en vivo, formularios probados y panel de medición.</p>
         </div>
       </div>
     </div>
@@ -412,7 +644,7 @@
         <article class="card reveal">
           <div class="card-icon" aria-hidden="true"><i class="fas fa-chart-line"></i></div>
           <h3 class="card-title">Medición de resultados</h3>
-          <p class="card-text">Instalamos GA4 y los eventos de conversión para que sepas cuántas visitas llegaron, cuántos formularios se enviaron y qué canal rinde más.</p>
+          <p class="card-text">Con el plan POWER integramos Google Analytics 4 para que sepas cuántas visitas llegaron, cuántos formularios se enviaron y qué canal rinde más.</p>
         </article>
         <article class="card reveal">
           <div class="card-icon" aria-hidden="true"><i class="fas fa-palette"></i></div>
@@ -420,9 +652,9 @@
           <p class="card-text">Nada de plantillas repetidas: usamos tus colores, tu logo y tu tono, con una estructura pensada para guiar la lectura hasta la oferta.</p>
         </article>
         <article class="card reveal">
-          <div class="card-icon" aria-hidden="true"><i class="fas fa-pen-fancy"></i></div>
-          <h3 class="card-title">Textos que venden sin sonar a catálogo</h3>
-          <p class="card-text">Escribimos la oferta en beneficio del cliente: qué gana, cuánto le cuesta y qué debe hacer. Claro, concreto y sin párrafos de relleno.</p>
+          <div class="card-icon" aria-hidden="true"><i class="fas fa-server"></i></div>
+          <h3 class="card-title">Hosting, dominio y SSL incluidos</h3>
+          <p class="card-text">Los tres planes incluyen hosting y dominio por 1 año y certificado SSL, para que no tengas que contratar nada aparte el primer año.</p>
         </article>
       </div>
     </div>
@@ -509,20 +741,24 @@
           <div class="faq-answer"><p>Una página web normal presenta todo el negocio: quién eres, historia, servicios, blog y contacto. Una <strong>landing page</strong> tiene un solo objetivo: que el visitante haga una acción concreta, sea dejar sus datos, escribir por WhatsApp o comprar. Por eso tiene una sola promesa, una oferta clara, prueba social y un botón de acción repetido en cada sección, sin menús que distraigan. Si lo que necesitas es mostrar tu portafolio completo, quizá te sirva más un <a href="catalogos-digitales.html">catálogo digital</a> o una <a href="tarjetas-digitales.html">tarjeta digital</a>.</p></div>
         </div>
         <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">¿Cuál es la diferencia entre los planes ECO, SMART y POWER? <span class="faq-icon" aria-hidden="true">+</span></button>
+          <div class="faq-answer"><p><strong>ECO ($699.000)</strong> es la landing de entrada: diseño estándar, banner estático, hasta 5 bloques y 1 correo corporativo. <strong>SMART ($1.099.000)</strong> añade línea gráfica profesional, banner dinámico, hasta 10 bloques, formulario personalizado, 5 correos corporativos y sitio amigable con el SEO. <strong>POWER ($1.399.000)</strong> añade diseño exclusivo, animaciones, formulario con reCAPTCHA, integración con Google Analytics 4 y panel de administración de contenido. Los tres incluyen hosting y dominio por 1 año.</p></div>
+        </div>
+        <div class="faq-item reveal">
           <button class="faq-question" aria-expanded="false">¿Cuánto tarda en estar lista mi landing page? <span class="faq-icon" aria-hidden="true">+</span></button>
-          <div class="faq-answer"><p>Entre <strong>5 y 10 días hábiles</strong> desde que confirmas el pago y nos entregas la información. La Landing Simple queda en 5–7 días hábiles y la Landing Completa o la Landing + Campaña en 7–10 días hábiles, porque incluyen más secciones, formularios y configuración de medición. El calendario arranca cuando tenemos tu contenido aprobado.</p></div>
+          <div class="faq-answer"><p>Entre <strong>5 y 10 días hábiles</strong> desde que confirmas el pago y nos entregas la información. La <strong>Landing Page ECO</strong> queda en 5–7 días hábiles y la <strong>SMART</strong> o la <strong>POWER</strong> en 7–10 días hábiles, porque incluyen diseño más elaborado, más bloques y configuración de medición. El calendario arranca cuando tenemos tu contenido aprobado.</p></div>
         </div>
         <div class="faq-item reveal">
           <button class="faq-question" aria-expanded="false">¿El precio incluye el dominio y el alojamiento? <span class="faq-icon" aria-hidden="true">+</span></button>
-          <div class="faq-answer"><p>No. El dominio y el alojamiento se cotizan aparte, porque son servicios anuales de terceros que se pagan a nombre del cliente. Si ya tienes dominio y hosting, publicamos tu landing page ahí mismo sin costo adicional y te ayudamos con la conexión. Si no tienes, te decimos exactamente qué comprar y cuánto cuesta antes de que pagues nada. Puedes <a href="../contacto.html">escribirnos aquí</a> y te pasamos la cotización completa.</p></div>
+          <div class="faq-answer"><p><strong>Sí.</strong> Los tres planes incluyen <strong>hosting y dominio por 1 año</strong>, además del certificado SSL. Al cumplir el año, la renovación se paga directamente al proveedor y te avisamos con antelación cuánto cuesta, para que no haya sorpresas. Si ya tienes un dominio propio, lo conectamos a tu nueva landing page sin costo adicional.</p></div>
         </div>
         <div class="faq-item reveal">
           <button class="faq-question" aria-expanded="false">¿Puedo editar la landing page yo mismo después? <span class="faq-icon" aria-hidden="true">+</span></button>
-          <div class="faq-answer"><p>El proyecto se entrega publicado y funcionando, pero no incluye un panel de edición propio. Las ediciones de contenido menores —cambiar un precio, un teléfono, un texto o una imagen— se piden por WhatsApp y las hace nuestro equipo; si contratas actualizaciones incluidas, entran dentro de ese acompañamiento. Los cambios estructurales, como agregar secciones nuevas o rediseñar, se cotizan aparte.</p></div>
+          <div class="faq-answer"><p><strong>Sí.</strong> Las páginas de los tres planes son administrables: puedes editar textos, imágenes y contenido sin programar. En el plan <strong>POWER</strong> además incluimos un <strong>panel de administración de contenido</strong> para que gestiones tus bloques de forma autónoma. Igual te damos soporte y capacitación para que hagas los cambios básicos, y si prefieres que los hagamos nosotros, también se puede.</p></div>
         </div>
         <div class="faq-item reveal">
           <button class="faq-question" aria-expanded="false">¿Una landing page sirve para pauta? <span class="faq-icon" aria-hidden="true">+</span></button>
-          <div class="faq-answer"><p>Sí, es justamente el destino que más rinde para una campaña de pauta: en lugar de mandar el clic a una web con muchos enlaces, lo mandas a una página con una sola oferta y un solo formulario, y así es más fácil medir cuántos contactos generó cada anuncio. En el plan <strong>Landing + Campaña</strong> nosotros creamos las creatividades, configuramos la campaña dentro de la plataforma y dejamos el seguimiento de conversiones activo con una página de gracias e informe del primer mes.</p></div>
+          <div class="faq-answer"><p>Sí, es justamente el destino que más rinde para una campaña de pauta: en lugar de mandar el clic a una web con muchos enlaces, lo mandas a una página con una sola oferta y un solo formulario, y así es más fácil medir cuántos contactos generó cada anuncio. Los tres planes traen formulario y botón de WhatsApp listos para recibir tráfico; el plan <strong>POWER</strong> suma la integración con <strong>Google Analytics 4</strong> para seguir las conversiones con precisión.</p></div>
         </div>
         <div class="faq-item reveal">
           <button class="faq-question" aria-expanded="false">¿Ustedes escriben los textos de la página? <span class="faq-icon" aria-hidden="true">+</span></button>
@@ -563,9 +799,9 @@
     <div class="container">
       <div class="cta-final reveal">
         <h2>Tu landing page lista <span class="text-gradient">en menos de 10 días hábiles</span></h2>
-        <p>Cuéntanos qué quieres promocionar y a quién le vas a mandar el tráfico. Definimos el objetivo, escribimos la oferta y te entregamos la página publicada, con formulario probado y medición funcionando.</p>
+        <p>Cuéntanos qué quieres promocionar y a quién le vas a mandar el tráfico. Definimos el objetivo, escribimos la oferta y te entregamos la página publicada, con hosting, dominio, formulario probado y WhatsApp funcionando.</p>
         <div class="cta-actions">
-          <a href="../contacto.html" class="btn btn-primary btn-lg"><i class="fas fa-calendar-check"></i> Agenda tu diagnóstico gratis</a>
+          <a href="#solicitar" class="btn btn-primary btn-lg"><i class="fas fa-envelope-open-text"></i> Solicitar información</a>
           <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20una%20landing%20page%20KONF%C3%8DO%20ZINC" target="_blank" rel="noopener noreferrer" class="btn btn-wa btn-lg"><i class="fab fa-whatsapp"></i> Escribir por WhatsApp</a>
         </div>
       </div>
@@ -679,5 +915,40 @@
 </div>
 
 <script src="../assets/js/main.js" defer></script>
+
+<!-- Validación extra del formulario "Solicitar información":
+     tipo de cliente (radio) + reCAPTCHA, antes de que main.js procese el envío. -->
+<script>
+(function () {
+  var form = document.getElementById('contactForm');
+  if (!form) return;
+  form.addEventListener('submit', function (e) {
+    var tipo = form.querySelector('input[name="tipo_cliente"]:checked');
+    var acepto = form.querySelector('input[name="acepto"]');
+    var captcha = form.querySelector('.g-recaptcha-response');
+    var errores = [];
+
+    if (!tipo) errores.push('Selecciona el tipo de cliente.');
+    if (acepto && !acepto.checked) errores.push('Debes aceptar los términos y condiciones de uso.');
+
+    /* El widget de reCAPTCHA llena este textarea; si no existe, no lo exigimos. */
+    if (captcha && !captcha.value) errores.push('Marca la casilla «No soy un robot».');
+
+    if (errores.length) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      var box = form.querySelector('.form-error-box');
+      if (box) { box.innerHTML = '⚠️ ' + errores.join(' '); box.classList.add('show'); }
+      var grupo = form.querySelector('.grupo-radio');
+      if (!tipo && grupo) {
+        var g = grupo.closest('.form-group');
+        if (g) { g.classList.add('has-error'); var fe = g.querySelector('.field-error'); if (fe) fe.textContent = 'Selecciona el tipo de cliente.'; }
+        grupo.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return false;
+    }
+  }, true); /* captura: se ejecuta antes del handler de main.js */
+})();
+</script>
 </body>
 </html>

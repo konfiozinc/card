@@ -637,7 +637,7 @@
         return { text: 'La tarjeta digital es tu presentación en un solo enlace 💳: contacto, WhatsApp, redes, ubicación, servicios y galería. Se actualiza al instante y reemplaza el papel.\n\nHay tres planes: Star $49.900, Pro $99.900 y Elite $149.900.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
       }
       if (has(['landing', 'pagina', 'landing page', 'landing pages'])) {
-        return { text: 'Creamos landing pages rápidas y enfocadas en conversión 🚀 desde $350.000: promesa clara, prueba social, formulario, WhatsApp y medición de resultados.\n\nCuéntame qué quieres promocionar y te cotizo.', cta: true };
+        return { text: 'Creamos landing pages profesionales en 3 planes 🚀:\n\n• *ECO $699.000* — diseño estándar, banner estático, hasta 5 bloques y 1 correo corporativo.\n• *SMART $1.099.000* ⭐ la más pedida — diseño profesional, hasta 10 bloques, formulario personalizado, 5 correos y SEO.\n• *POWER $1.399.000* — diseño exclusivo, animaciones, reCAPTCHA, panel de administración y Google Analytics 4.\n\nLos tres incluyen hosting y dominio por 1 año ✅\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
       }
       if (has(['catalogo', 'catalogos'])) {
         return { text: 'Tu catálogo digital te permite mostrar productos con fotos y precios actualizables, y compartirlo por WhatsApp o redes 📖. Desde $120.000.\n\n¿Qué tipo de productos o servicios ofreces?', cta: true };
