@@ -37,7 +37,7 @@ window.KZ_CONFIG = {
     { slug: 'tarjetas',  etiqueta: 'Tarjetas Digitales',  icono: 'fa-id-card',        precioDesde: 49900,  url: 'servicios/tarjetas-digitales.html',  tieneCategorias: true },
     { slug: 'catalogos', etiqueta: 'Catálogos Digitales', icono: 'fa-book-open',      precioDesde: 120000, url: 'servicios/catalogos-digitales.html', tieneCategorias: false },
     { slug: 'menus',     etiqueta: 'Menús Digitales',     icono: 'fa-utensils',       precioDesde: 150000, url: 'servicios/menus-digitales.html',     tieneCategorias: false },
-    { slug: 'landing',   etiqueta: 'Landing Pages',       icono: 'fa-window-maximize',precioDesde: 350000, url: 'servicios/landing-pages.html',       tieneCategorias: false },
+    { slug: 'landing',   etiqueta: 'Landing Pages',       icono: 'fa-window-maximize',precioDesde: 699000, url: 'servicios/landing-pages.html',       tieneCategorias: false },
     { slug: 'qr',        etiqueta: 'Códigos QR',          icono: 'fa-qrcode',         precioDesde: 50000,  url: 'servicios/codigos-qr.html',          tieneCategorias: false },
     { slug: 'agentes',   etiqueta: 'Agentes IA',          icono: 'fa-robot',          precioDesde: 250000, url: 'servicios/agentes-ia.html',          tieneCategorias: false }
   ],
