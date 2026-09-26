@@ -130,6 +130,21 @@ service cloud.firestore {
       allow write: if esSuperadmin();
     }
 
+    // ── contactos (formulario público del sitio) ──────────────────
+    // Cualquier visitante puede ENVIAR su consulta (create público).
+    // Solo el equipo (OPERADOR+) puede LEER; ADMIN+ edita/borra.
+    match /contactos/{contactoId} {
+      allow create: if true
+        && request.resource.data.nombre is string
+        && request.resource.data.nombre.size() > 1
+        && request.resource.data.email is string
+        && request.resource.data.email.size() > 3
+        && request.resource.data.mensaje is string
+        && request.resource.data.mensaje.size() > 1;
+      allow read: if esOperador();
+      allow update, delete: if esAdmin();
+    }
+
     // ── Denegar todo lo demás ───────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

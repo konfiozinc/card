@@ -533,6 +533,26 @@
   </div>
 </div>
 
+<!-- Firebase (formulario de contacto → colección `contactos`) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script>
+  (function () {
+    try {
+      firebase.initializeApp({
+        apiKey: 'AIzaSyDbwAk9APwP2SeaEfWxeQG_bdL9eatciEA',
+        authDomain: 'konfio-zinc.firebaseapp.com',
+        projectId: 'konfio-zinc',
+        storageBucket: 'konfio-zinc.firebasestorage.app',
+        messagingSenderId: '1096915735255',
+        appId: '1:1096915735255:web:00e3d896c266293cced692'
+      });
+      window.KZ_DB = firebase.firestore();
+    } catch (e) {
+      window.KZ_DB = null;
+    }
+  })();
+</script>
 <script src="assets/js/main.js" defer></script>
 </body>
 </html>

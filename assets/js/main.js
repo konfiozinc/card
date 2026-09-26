@@ -509,31 +509,57 @@
         return;
       }
 
-      /* Envío simulado (Formspree aún no configurado): guarda el lead y confirma */
-      try {
-        var lead = {
-          fecha: new Date().toISOString(),
-          nombre: (document.getElementById('nombre') || {}).value || '',
-          email: (document.getElementById('email') || {}).value || '',
-          telefono: (document.getElementById('telefono') || {}).value || '',
-          servicio: (document.getElementById('servicio') || {}).value || '',
-          mensaje: (document.getElementById('mensaje') || {}).value || ''
-        };
-        var prev = JSON.parse(localStorage.getItem('kz_leads') || '[]');
-        prev.push(lead);
-        localStorage.setItem('kz_leads', JSON.stringify(prev));
-      } catch (err) { /* almacenamiento no disponible: continuamos igual */ }
+      /* Envío a Firebase (colección `contactos`) con respaldo local */
+      var lead = {
+        fecha: new Date().toISOString(),
+        nombre: (document.getElementById('nombre') || {}).value || '',
+        email: (document.getElementById('email') || {}).value || '',
+        telefono: (document.getElementById('telefono') || {}).value || '',
+        servicio: (document.getElementById('servicio') || {}).value || '',
+        mensaje: (document.getElementById('mensaje') || {}).value || ''
+      };
 
-      setTimeout(function () {
-        if (btn) { btn.disabled = false; btn.innerHTML = original; }
-        showBox(successBox, '✅ ¡Mensaje enviado! Te contactaremos muy pronto. También puedes escribirnos ya por <a href="' + WHATSAPP + '" target="_blank" rel="noopener noreferrer">WhatsApp</a>.');
-        track('form_submit', { form: 'contacto', method: 'simulado' });
-        form.reset();
-        /* Redirige a la página de confirmación (configurable con data-redirect="false") */
-        if (form.getAttribute('data-redirect') !== 'false') {
-          setTimeout(function () { window.location.href = next; }, 1400);
-        }
-      }, 900);
+      function guardarLocal() {
+        try {
+          var prev = JSON.parse(localStorage.getItem('kz_leads') || '[]');
+          prev.push(lead);
+          localStorage.setItem('kz_leads', JSON.stringify(prev));
+        } catch (err) { /* sin almacenamiento: continuamos */ }
+      }
+
+      var envio = Promise.resolve();
+      if (window.KZ_DB && window.firebase) {
+        envio = window.KZ_DB.collection('contactos').add({
+          nombre: lead.nombre,
+          email: lead.email,
+          telefono: lead.telefono,
+          servicio: lead.servicio,
+          mensaje: lead.mensaje,
+          origen: 'contacto',
+          estado: 'NUEVO',
+          createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
+        }).then(function () {
+          track('form_submit', { form: 'contacto', method: 'firebase' });
+        }).catch(function () {
+          guardarLocal();
+          track('form_submit', { form: 'contacto', method: 'local' });
+        });
+      } else {
+        guardarLocal();
+        track('form_submit', { form: 'contacto', method: 'local' });
+      }
+
+      envio.then(function () {
+        setTimeout(function () {
+          if (btn) { btn.disabled = false; btn.innerHTML = original; }
+          showBox(successBox, '✅ ¡Mensaje enviado! Te contactaremos muy pronto. También puedes escribirnos ya por <a href="' + WHATSAPP + '" target="_blank" rel="noopener noreferrer">WhatsApp</a>.');
+          form.reset();
+          /* Redirige a la página de confirmación (configurable con data-redirect="false") */
+          if (form.getAttribute('data-redirect') !== 'false') {
+            setTimeout(function () { window.location.href = next; }, 1400);
+          }
+        }, 500);
+      });
     });
   }
 
