@@ -147,7 +147,8 @@ for (const file of htmlFiles) {
   }
 
   if (!esPanel) {
-    if (!/G-XXXXXXXXXX/.test(raw)) warn(`SIN placeholder de GA4 · ${relPath}`);
+    if (!/googletagmanager\.com\/gtag\/js\?id=G-0JKTZNMPWX/.test(raw)) warn(`SIN GA4 (ID G-0JKTZNMPWX) · ${relPath}`);
+    if (/G-XXXXXXXXXX/.test(raw)) err(`PLACEHOLDER de GA4 sin reemplazar · ${relPath}`);
     if (!/assets\/js\/main\.js/.test(raw)) err(`NO CARGA main.js · ${relPath}`);
     if (!/id="navToggle"/.test(raw)) err(`SIN botón de menú móvil (#navToggle) · ${relPath}`);
     if (!/id="navLinks"/.test(raw)) err(`SIN lista de navegación (#navLinks) · ${relPath}`);
