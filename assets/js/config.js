@@ -114,7 +114,7 @@ window.KZ_CONFIG = {
       messagingSenderId: '1096915735255',
       appId: '1:1096915735255:web:00e3d896c266293cced692'
     },
-    vapidKey: 'PENDIENTE_VAPID_KEY',
+    vapidKey: 'BPndo_kPLxKCCLHPR7w0qoFIWLRm78IGx6p5O-15jVDLgDuA3m5PAh0n_qfh4kG4YsM5Q_aSaJ0QWfB5vOWxpbs',
     region: 'us-central1'
   },
 

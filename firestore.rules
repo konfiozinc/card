@@ -145,6 +145,27 @@ service cloud.firestore {
       allow update, delete: if esAdmin();
     }
 
+    // ── suscriptores_web (avisos push de los visitantes) ───────────
+    // El visitante anónimo puede CREAR su suscripción: el id del documento
+    // es su propio token FCM y solo se aceptan los campos esperados.
+    // Nadie puede listar ni leer los tokens desde el navegador; solo el
+    // equipo autenticado (OPERADOR+) puede leerlos y desactivarlos.
+    match /suscriptores_web/{token} {
+      allow create: if true
+        && request.resource.data.token is string
+        && request.resource.data.token == token
+        && request.resource.data.token.size() > 40
+        && request.resource.data.keys().hasOnly(
+             ['token','creadoEn','origen','pagina','idioma','plataforma','activo']
+           );
+      allow update: if true
+        && request.resource.data.token == token
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['creadoEn','pagina','idioma','plataforma','activo']);
+      allow read: if esOperador();
+      allow delete: if esAdmin();
+    }
+
     // ── Denegar todo lo demás ───────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;

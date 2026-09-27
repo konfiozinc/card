@@ -34,7 +34,7 @@ export const firebaseConfig = {
 
 /* Clave pública VAPID para Web Push (Cloud Messaging → Configuración web →
    "Certificados push web"). Sin ella no se pueden pedir tokens FCM. */
-export const vapidKey = 'PENDIENTE_VAPID_KEY';
+export const vapidKey = 'BPndo_kPLxKCCLHPR7w0qoFIWLRm78IGx6p5O-15jVDLgDuA3m5PAh0n_qfh4kG4YsM5Q_aSaJ0QWfB5vOWxpbs';
 
 /* Identificador de la colección principal en Firestore */
 export const COLECCION_CLIENTES = 'clientes';
