@@ -587,16 +587,37 @@
 
     /* ── Identidad del widget ── */
     var nameEl = document.querySelector('#kzFabChat .kz-name');
-    if (nameEl) nameEl.innerHTML = 'KZ — Asistente KONFÍO ZINC';
+    if (nameEl) nameEl.innerHTML = 'KONFI — Tu asesor KONFÍO ZINC';
+    var avatarEl = document.querySelector('#kzFabChat .kz-avatar');
+    if (avatarEl) avatarEl.textContent = 'KO';
 
     /* Papelera en lugar de reiniciar */
     if (resetBtn) { resetBtn.innerHTML = '<i class="fas fa-trash" aria-hidden="true"></i>'; resetBtn.setAttribute('aria-label', 'Borrar historial'); resetBtn.setAttribute('title', 'Borrar historial'); }
 
-    /* Chips de respuesta rápida (8) */
-    var CHIPS = ['Ver precios y planes', 'Quiero una tarjeta digital', 'Quiero un menú digital', 'Quiero un catálogo digital', 'Quiero una landing page', 'Quiero un código QR', 'Quiero un agente IA', 'Hablar con un asesor humano'];
-    if (chatChips) {
-      chatChips.innerHTML = CHIPS.map(function (c) { return '<button type="button" data-msg="' + c + '">' + c + '</button>'; }).join('');
+    /* Chips de respuesta rápida: etiqueta corta visible, mensaje completo en data-msg */
+    var CHIPS = [
+      { label: '💰 Ver precios',      msg: 'Ver precios y planes' },
+      { label: '🪪 Tarjeta digital',  msg: 'Quiero una tarjeta digital' },
+      { label: '🍽️ Menú digital',     msg: 'Quiero un menú digital' },
+      { label: '📖 Catálogo',          msg: 'Quiero un catálogo digital' },
+      { label: '🚀 Landing page',      msg: 'Quiero una landing page' },
+      { label: '📱 Código QR',         msg: 'Quiero un código QR' },
+      { label: '🤖 Agente IA',         msg: 'Quiero un agente IA' },
+      { label: '👤 Asesor humano',     msg: 'Hablar con un asesor humano' }
+    ];
+    function renderChips() {
+      if (!chatChips) return;
+      chatChips.classList.remove('is-collapsed');
+      chatChips.innerHTML = CHIPS.map(function (c) {
+        return '<button type="button" data-msg="' + c.msg + '">' + c.label + '</button>';
+      }).join('') + '<button type="button" class="kz-chips-more" data-more>Ver más opciones</button>';
     }
+    function updateChips() {
+      if (!chatChips) return;
+      var left = chatChips.querySelectorAll('button[data-msg]').length;
+      chatChips.classList.toggle('is-collapsed', left < 4);
+    }
+    renderChips();
 
     /* Anillo pulsante + burbuja "¿Te ayudo?" */
     if (toggleBtn) {
@@ -785,7 +806,7 @@
         return { text: '📞 Contáctanos por:\n• WhatsApp: +57 320 641 1340\n• Email: konfiozinc@gmail.com\n\nO usa el botón verde de WhatsApp. ¡Te respondemos al instante!', cta: true };
       }
       if (has(['hola', 'buenas', 'buenos dias', 'saludo', 'hey'])) {
-        return { text: '¡Hola! 👋 Soy el asesor de KONFÍO ZINC.\n\nTe ayudo con nuestras seis soluciones:\n• Tarjetas Digitales (Star, Pro y Elite)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nY si quieres ganar dinero recomendándonos, tengo el programa de aliados.\n\nCuéntame, ¿qué necesitas?', cta: false };
+        return { text: '¡Hola! 👋 Soy KONFI, tu asesor de KONFÍO ZINC.\n\nTe ayudo con nuestras seis soluciones:\n• Tarjetas Digitales (Star, Pro y Elite)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nY si quieres ganar dinero recomendándonos, tengo el programa de aliados.\n\nCuéntame, ¿qué necesitas?', cta: false };
       }
       return { text: 'Buena pregunta 😊. Para darte una respuesta exacta, escríbeme por WhatsApp y te atiendo al instante.\n\nAquí puedo ayudarte con: servicios, precios, programa de aliados, portafolio o cotizar tu proyecto. Toca un botón de abajo 👇', cta: true };
     }
@@ -843,7 +864,7 @@
     }
 
     function showWelcome() {
-      var welcome = '¡Hola! 👋 Soy KZ, tu asistente virtual de KONFÍO ZINC. Creamos tarjetas digitales, menús, catálogos, landing pages, códigos QR y agentes IA. ¿En qué te ayudo?';
+      var welcome = '¡Hola! 👋 Soy KONFI, tu asesor virtual de KONFÍO ZINC. Creamos tarjetas digitales, menús, catálogos, landing pages, códigos QR y agentes IA. ¿En qué te ayudo?';
       addMessage(welcome, 'bot');
       history.push({ role: 'assistant', content: welcome });
       saveHistory();
@@ -874,9 +895,13 @@
       chatChips.addEventListener('click', function (e) {
         var btn = e.target.closest('button');
         if (!btn) return;
+        if (btn.hasAttribute('data-more')) { renderChips(); return; }
         var msg = btn.getAttribute('data-msg');
+        if (!msg) return;
         if (!isOpen) toggleChat(true);
-        setTimeout(function () { sendMessage(msg); btn.remove(); }, 300);
+        btn.remove();
+        updateChips();
+        setTimeout(function () { sendMessage(msg); }, 300);
       });
     }
     document.addEventListener('keydown', function (e) {

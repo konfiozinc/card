@@ -758,7 +758,7 @@ strong { color: var(--fg); }
 
 /* Ventana de chat */
 .kz-fab-chat {
-  width: 380px; max-width: calc(100vw - 32px); height: 520px; max-height: calc(100vh - 130px);
+  width: 380px; max-width: calc(100vw - 32px); height: 560px; max-height: calc(100vh - 130px);
   background: #0a0a0a; border-radius: 18px; border: 1px solid #2a2a2a;
   box-shadow: 0 24px 80px rgba(0,0,0,.9); display: none; flex-direction: column; overflow: hidden;
   transform-origin: bottom right;
@@ -770,7 +770,8 @@ strong { color: var(--fg); }
 .kz-chat-header { padding: 14px 16px; background: #0a0a0a; border-bottom: 2px solid #F0B429; display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 .kz-avatar { width: 40px; height: 40px; border-radius: 50%; background: #0a0a0a; border: 2px solid #F0B429; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 13px; color: #F0B429; flex-shrink: 0; }
 .kz-info { flex: 1; min-width: 0; }
-.kz-name { font-family: 'Orbitron', sans-serif; font-weight: 600; font-size: 13px; color: #fff; display: flex; align-items: center; gap: 8px; }
+.kz-name { font-family: 'Orbitron', sans-serif; font-weight: 600; font-size: 12.5px; color: #fff; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 480px) { .kz-name { font-size: 11.5px; } }
 .kz-badge { font-size: 9px; background: rgba(240,180,41,.2); color: #F0B429; padding: 2px 8px; border-radius: 20px; font-weight: 500; }
 .kz-status { font-size: 11px; color: #888; display: flex; align-items: center; gap: 6px; margin-top: 2px; }
 .kz-status .kz-dot { width: 6px; height: 6px; border-radius: 50%; background: #25D366; box-shadow: 0 0 6px #25D366; animation: pulse 2.2s infinite; }
@@ -778,7 +779,7 @@ strong { color: var(--fg); }
 .kz-close:hover, .kz-reset:hover { color: #F0B429; }
 
 /* Cuerpo del chat */
-.kz-chat-body { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #0a0a0a; }
+.kz-chat-body { flex: 1; min-height: 200px; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; background: #0a0a0a; }
 .kz-msg { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 13px; line-height: 1.55; word-wrap: break-word; }
 .kz-msg-bot { align-self: flex-start; background: #1a1a1a; border: 1px solid #2a2a2a; color: #fff; border-bottom-left-radius: 4px; }
 .kz-msg-bot a { color: #00E5FF; text-decoration: underline; }
@@ -792,10 +793,13 @@ strong { color: var(--fg); }
 .kz-msg-typing span:nth-child(3) { animation-delay: .4s; }
 @keyframes typing { 0%,60%,100% { transform: translateY(0); opacity: .4; } 30% { transform: translateY(-6px); opacity: 1; } }
 
-/* Chips de respuesta rápida */
-.kz-chips { padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px; border-top: 1px solid #2a2a2a; flex-shrink: 0; }
-.kz-chips button { background: #1a1a1a; border: 1px solid #F0B429; border-radius: 20px; padding: 8px 14px; font-size: 12px; color: #F0B429; transition: all .2s; white-space: normal; cursor: pointer; }
+/* Chips de respuesta rápida (2 columnas, compactos) */
+.kz-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 10px 12px; border-top: 1px solid #2a2a2a; flex-shrink: 0; max-height: 150px; overflow-y: auto; }
+.kz-chips button { background: #1a1a1a; border: 1px solid #F0B429; border-radius: 16px; padding: 7px 10px; font-size: 11.5px; color: #F0B429; transition: all .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; cursor: pointer; }
 .kz-chips button:hover { background: #F0B429; border-color: #F0B429; color: #0a0a0a; }
+.kz-chips .kz-chips-more { grid-column: 1 / -1; display: none; }
+.kz-chips.is-collapsed button[data-msg] { display: none; }
+.kz-chips.is-collapsed .kz-chips-more { display: block; }
 
 /* Input inferior */
 .kz-chat-input { padding: 10px 14px 14px; border-top: 1px solid #2a2a2a; display: flex; gap: 8px; align-items: flex-end; flex-shrink: 0; }
@@ -805,7 +809,7 @@ strong { color: var(--fg); }
 .kz-chat-input button { width: 40px; height: 40px; border-radius: 50%; background: #F0B429; border: none; color: #0a0a0f; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; cursor: pointer; transition: background .2s, transform .2s; }
 .kz-chat-input button:hover { background: #F97316; transform: scale(1.05); }
 .kz-wa-btn { display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: #fff; padding: 8px 18px; border-radius: 30px; font-weight: 600; font-size: 13px; margin-top: 6px; }
-@media (max-width: 480px) { .kz-fab-btn { width: 56px; height: 56px; font-size: 22px; } .kz-fab-chat { width: 95vw; max-width: 400px; height: 80vh; max-height: 560px; } }
+@media (max-width: 480px) { .kz-fab-btn { width: 56px; height: 56px; font-size: 22px; } .kz-fab-chat { width: 95vw; max-width: 400px; height: 85vh; max-height: 620px; } .kz-chips { max-height: 170px; } }
 
 /* ─── 26. MODAL ──────────────────────────────────────────────────────── */
 .modal {
