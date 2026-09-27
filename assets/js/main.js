@@ -583,6 +583,49 @@
     var history = [];
     var WA_URL = WHATSAPP + '?text=Hola%2C%20quiero%20una%20cotizaci%C3%B3n%20gratis%20para%20mi%20negocio';
     var BACKEND_URL = 'https://calm-heart-6828.konfiozinc.workers.dev';
+    var LS_KEY = 'kz_chat_history_v1';
+
+    /* ── Identidad del widget ── */
+    var nameEl = document.querySelector('#kzFabChat .kz-name');
+    if (nameEl) nameEl.innerHTML = 'KZ — Asistente KONFÍO ZINC';
+
+    /* Papelera en lugar de reiniciar */
+    if (resetBtn) { resetBtn.innerHTML = '<i class="fas fa-trash" aria-hidden="true"></i>'; resetBtn.setAttribute('aria-label', 'Borrar historial'); resetBtn.setAttribute('title', 'Borrar historial'); }
+
+    /* Chips de respuesta rápida (8) */
+    var CHIPS = ['Ver precios y planes', 'Quiero una tarjeta digital', 'Quiero un menú digital', 'Quiero un catálogo digital', 'Quiero una landing page', 'Quiero un código QR', 'Quiero un agente IA', 'Hablar con un asesor humano'];
+    if (chatChips) {
+      chatChips.innerHTML = CHIPS.map(function (c) { return '<button type="button" data-msg="' + c + '">' + c + '</button>'; }).join('');
+    }
+
+    /* Anillo pulsante + burbuja "¿Te ayudo?" */
+    if (toggleBtn) {
+      var ring = document.createElement('span');
+      ring.className = 'kz-ring';
+      ring.setAttribute('aria-hidden', 'true');
+      toggleBtn.appendChild(ring);
+      var bubble = document.createElement('span');
+      bubble.className = 'kz-bubble';
+      bubble.textContent = '¿Te ayudo?';
+      toggleBtn.appendChild(bubble);
+      setTimeout(function () { bubble.classList.add('show'); }, 500);
+      setTimeout(function () { bubble.classList.remove('show'); }, 3500);
+    }
+
+    /* Persistencia en localStorage */
+    function saveHistory() {
+      try { localStorage.setItem(LS_KEY, JSON.stringify(history)); } catch (e) {}
+    }
+    function loadHistory() {
+      try {
+        var data = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
+        if (Array.isArray(data) && data.length) {
+          data.forEach(function (m) { if (m && m.role && m.content) addMessage(m.content, m.role === 'user' ? 'user' : 'bot'); });
+          history = data;
+        }
+      } catch (e) {}
+    }
+    loadHistory();
 
     function formatBotText(text) {
       var s = escapeHtml(text);
@@ -597,6 +640,10 @@
       div.className = 'kz-msg ' + (sender === 'user' ? 'kz-msg-user' : 'kz-msg-bot');
       if (sender === 'bot') { div.innerHTML = formatBotText(text); }
       else { div.textContent = text; }
+      var t = document.createElement('div');
+      t.className = 'kz-msg-time';
+      t.textContent = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+      div.appendChild(t);
       chatBody.appendChild(div);
       chatBody.scrollTop = chatBody.scrollHeight;
     }
@@ -688,7 +735,7 @@
         return { text: 'Estas son nuestras seis soluciones 📱:\n\n• Tarjetas Digitales (Star, Pro y Elite)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
       }
       if (has(['precio', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto', 'cotiza', 'cotizacion', 'cotizar'])) {
-        return { text: 'Nuestros precios arrancan así 📊:\n\n• Códigos QR: desde $50.000\n• Tarjetas Digitales: desde $49.900 (Star $49.900 · Pro $99.900 · Elite $149.900)\n• Catálogos Digitales: desde $120.000\n• Menús Digitales: desde $150.000\n• Agentes IA: desde $250.000\n• Landing Pages: desde $350.000\n\nTambién hay paquetes todo en uno desde $59.900. Escríbeme por WhatsApp y te preparo la cotización exacta, sin compromiso.', cta: true };
+        return { text: 'Nuestros precios arrancan así 📊:\n\n• Códigos QR: desde $50.000\n• Tarjetas Digitales: desde $49.900 (Star $49.900 · Pro $99.900 · Elite $149.900)\n• Catálogos Digitales: desde $120.000\n• Menús Digitales: desde $150.000\n• Agentes IA: desde $250.000\n• Landing Pages: desde $699.000\n\nTambién hay paquetes todo en uno desde $59.900. Escríbeme por WhatsApp y te preparo la cotización exacta, sin compromiso.', cta: true };
       }
       var sectores = [
         [['restaurante', 'restaurantes', 'comida', 'comidas', 'cafeteria', 'pizzeria', 'hamburgues'], ['https://konfiozinc.github.io/eltiti/', 'https://konfiozinc.github.io/colsabor/']],
@@ -766,6 +813,7 @@
       addMessage(userMsg, 'user');
       chatInput.value = '';
       history.push({ role: 'user', content: userMsg });
+      saveHistory();
       track('ia_message', { message: userMsg.slice(0, 120) });
       showTyping();
 
@@ -774,6 +822,7 @@
           hideTyping();
           addMessage(reply, 'bot');
           history.push({ role: 'assistant', content: reply });
+          saveHistory();
           showWhatsAppButton();
         })
         .catch(function () {
@@ -781,14 +830,16 @@
           var res = getLocalResponse(userMsg);
           addMessage(res.text, 'bot');
           history.push({ role: 'assistant', content: res.text });
+          saveHistory();
           if (res.cta) showWhatsAppButton();
         });
     }
 
     function showWelcome() {
-      var welcome = '¡Hola! 👋 Bienvenido a KONFÍO ZINC.\n\nTe ayudo con nuestras seis soluciones: tarjetas digitales (Star, Pro y Elite), catálogos, menús digitales con QR, landing pages, códigos QR y agentes IA de atención 24/7.\n\nY si quieres ganar dinero recomendándonos, pregunta por el *programa de aliados*.\n\n¿Qué necesitas?';
+      var welcome = '¡Hola! 👋 Soy KZ, tu asistente virtual de KONFÍO ZINC. Creamos tarjetas digitales, menús, catálogos, landing pages, códigos QR y agentes IA. ¿En qué te ayudo?';
       addMessage(welcome, 'bot');
       history.push({ role: 'assistant', content: welcome });
+      saveHistory();
     }
 
     function toggleChat(force) {
@@ -805,7 +856,7 @@
 
     toggleBtn.addEventListener('click', function () { toggleChat(); });
     if (closeBtn) closeBtn.addEventListener('click', function () { toggleChat(false); });
-    if (resetBtn) resetBtn.addEventListener('click', function () { history = []; chatBody.innerHTML = ''; showWelcome(); });
+    if (resetBtn) resetBtn.addEventListener('click', function () { history = []; chatBody.innerHTML = ''; try { localStorage.removeItem(LS_KEY); } catch (e) {} showWelcome(); });
     if (chatInput) {
       chatInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput.value); }
@@ -818,7 +869,7 @@
         if (!btn) return;
         var msg = btn.getAttribute('data-msg');
         if (!isOpen) toggleChat(true);
-        setTimeout(function () { sendMessage(msg); }, 300);
+        setTimeout(function () { sendMessage(msg); btn.remove(); }, 300);
       });
     }
     document.addEventListener('keydown', function (e) {
