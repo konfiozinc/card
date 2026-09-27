@@ -583,7 +583,7 @@
     var history = [];
     var WA_URL = WHATSAPP + '?text=Hola%2C%20quiero%20una%20cotizaci%C3%B3n%20gratis%20para%20mi%20negocio';
     var BACKEND_URL = 'https://calm-heart-6828.konfiozinc.workers.dev';
-    var LS_KEY = 'kz_chat_history_v1';
+    var LS_KEY = 'kz_chat_history_v2';
 
     /* ── Identidad del widget ── */
     var nameEl = document.querySelector('#kzFabChat .kz-name');
