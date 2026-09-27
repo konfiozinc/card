@@ -51,8 +51,9 @@
   var WHATSAPP = 'https://wa.me/573206411340';
 
   /* ── 11-A. TRACKING (GA4) ───────────────────────────────────────────
-     Envía eventos a Google Analytics 4 si gtag está disponible.
-     No falla si GA4 no está cargado (los placeholders están comentados). */
+     Envía eventos a Google Analytics 4 (gtag.js carga en el <head> de cada
+     página con el ID G-0JKTZNMPWX). Nunca envía datos personales: solo la
+     etiqueta de origen del clic. Si GA4 no carga, no rompe nada. */
   var track = function (eventName, params) {
     try {
       if (typeof window.gtag === 'function') {
@@ -62,10 +63,57 @@
   };
   window.kzTrack = track;
 
-  /* Marca los clics en enlaces de WhatsApp como conversión/evento */
-  $$('a[href*="wa.me"], .wa-float').forEach(function (a) {
-    a.addEventListener('click', function () {
-      track('click_whatsapp', { link_url: a.getAttribute('href') || '', link_text: (a.textContent || '').trim().slice(0, 80) });
+  /* Etiqueta de origen de un clic de WhatsApp (sin datos personales) */
+  function origenWhatsApp(a) {
+    try {
+      if (a.classList.contains('wa-float')) return 'boton_flotante';
+      if (a.classList.contains('kz-wa-btn')) return 'mini_chat';
+      if (a.closest('.kz-fab-chat')) return 'mini_chat';
+      if (a.closest('.plan')) return 'plan';
+      if (a.closest('.hero')) return 'hero';
+      if (a.closest('header') || a.closest('.nav')) return 'nav';
+      if (a.closest('footer')) return 'footer';
+      if (a.closest('[class*="cta"], #contacto')) return 'cta_final';
+      return 'otro';
+    } catch (e) { return 'otro'; }
+  }
+
+  /* Clic en cualquier enlace de WhatsApp. Delegado en document para cubrir
+     también el botón que el mini-chat crea en tiempo de ejecución. */
+  document.addEventListener('click', function (e) {
+    var a = (e.target && e.target.closest) ? e.target.closest('a[href*="wa.me"], .wa-float') : null;
+    if (!a) return;
+    track('click_whatsapp', {
+      event_category: 'engagement',
+      event_label: origenWhatsApp(a),
+      value: 1
+    });
+  });
+
+  /* Nombre del plan a partir de su tarjeta (ECO, SMART, POWER, STAR, PRO…) */
+  function clavePlan(card) {
+    try {
+      var nombre = card.querySelector('.plan-name');
+      var partes = normalize(nombre ? nombre.textContent : '').trim().split(/\s+/).filter(Boolean);
+      var ultima = partes.length ? partes[partes.length - 1].replace(/[^a-z0-9]+/g, '_') : '';
+      return ultima ? 'plan_' + ultima : 'plan';
+    } catch (e) { return 'plan'; }
+  }
+
+  /* Botones de los planes: "Hablar con un asesor" y "Solicitar información" */
+  $$('.plan').forEach(function (card) {
+    var clave = clavePlan(card);
+    card.querySelectorAll('a').forEach(function (a) {
+      var texto = normalize(a.textContent || '');
+      if (texto.indexOf('asesor') !== -1) {
+        a.addEventListener('click', function () {
+          track('talk_advisor', { event_category: 'conversion', event_label: clave, value: 1 });
+        });
+      } else if (texto.indexOf('solicitar') !== -1 || texto.indexOf('informaci') !== -1) {
+        a.addEventListener('click', function () {
+          track('request_info', { event_category: 'conversion', event_label: clave, value: 1 });
+        });
+      }
     });
   });
 
@@ -499,7 +547,7 @@
           headers: { Accept: 'application/json' }
         }).then(function (res) {
           if (!res.ok) throw new Error('HTTP ' + res.status);
-          track('form_submit', { form: 'contacto', method: 'formspree' });
+          track('form_submit', { event_category: 'conversion', event_label: 'contacto', value: 1, form: 'contacto', method: 'formspree' });
           window.location.href = next;
         }).catch(function () {
           if (btn) { btn.disabled = false; btn.innerHTML = original; }
@@ -539,14 +587,14 @@
           estado: 'NUEVO',
           createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
         }).then(function () {
-          track('form_submit', { form: 'contacto', method: 'firebase' });
+          track('form_submit', { event_category: 'conversion', event_label: 'contacto', value: 1, form: 'contacto', method: 'firebase' });
         }).catch(function () {
           guardarLocal();
-          track('form_submit', { form: 'contacto', method: 'local' });
+          track('form_submit', { event_category: 'conversion', event_label: 'contacto', value: 1, form: 'contacto', method: 'local' });
         });
       } else {
         guardarLocal();
-        track('form_submit', { form: 'contacto', method: 'local' });
+        track('form_submit', { event_category: 'conversion', event_label: 'contacto', value: 1, form: 'contacto', method: 'local' });
       }
 
       envio.then(function () {
@@ -594,22 +642,23 @@
     /* Papelera en lugar de reiniciar */
     if (resetBtn) { resetBtn.innerHTML = '<i class="fas fa-trash" aria-hidden="true"></i>'; resetBtn.setAttribute('aria-label', 'Borrar historial'); resetBtn.setAttribute('title', 'Borrar historial'); }
 
-    /* Chips de respuesta rápida: etiqueta corta visible, mensaje completo en data-msg */
+    /* Chips de respuesta rápida: etiqueta corta visible, mensaje completo en
+       data-msg y una clave corta en data-key para el evento agent_chip_click. */
     var CHIPS = [
-      { label: '💰 Ver precios',      msg: 'Ver precios y planes' },
-      { label: '🪪 Tarjeta digital',  msg: 'Quiero una tarjeta digital' },
-      { label: '🍽️ Menú digital',     msg: 'Quiero un menú digital' },
-      { label: '📖 Catálogo',          msg: 'Quiero un catálogo digital' },
-      { label: '🚀 Landing page',      msg: 'Quiero una landing page' },
-      { label: '📱 Código QR',         msg: 'Quiero un código QR' },
-      { label: '🤖 Agente IA',         msg: 'Quiero un agente IA' },
-      { label: '👤 Asesor humano',     msg: 'Hablar con un asesor humano' }
+      { label: '💰 Ver precios',      msg: 'Ver precios y planes',       key: 'ver_precios' },
+      { label: '🪪 Tarjeta digital',  msg: 'Quiero una tarjeta digital', key: 'tarjeta_digital' },
+      { label: '🍽️ Menú digital',     msg: 'Quiero un menú digital',     key: 'menu_digital' },
+      { label: '📖 Catálogo',          msg: 'Quiero un catálogo digital', key: 'catalogo' },
+      { label: '🚀 Landing page',      msg: 'Quiero una landing page',    key: 'landing_page' },
+      { label: '📱 Código QR',         msg: 'Quiero un código QR',        key: 'codigo_qr' },
+      { label: '🤖 Agente IA',         msg: 'Quiero un agente IA',        key: 'agente_ia' },
+      { label: '👤 Asesor humano',     msg: 'Hablar con un asesor humano', key: 'asesor_humano' }
     ];
     function renderChips() {
       if (!chatChips) return;
       chatChips.classList.remove('is-collapsed');
       chatChips.innerHTML = CHIPS.map(function (c) {
-        return '<button type="button" data-msg="' + c.msg + '">' + c.label + '</button>';
+        return '<button type="button" data-msg="' + c.msg + '" data-key="' + c.key + '">' + c.label + '</button>';
       }).join('') + '<button type="button" class="kz-chips-more" data-more>Ver más opciones</button>';
     }
     function updateChips() {
@@ -842,7 +891,8 @@
       chatInput.value = '';
       history.push({ role: 'user', content: userMsg });
       saveHistory();
-      track('ia_message', { message: userMsg.slice(0, 120) });
+      /* Privacidad: nunca se envía el texto que escribe el usuario a GA4 */
+      track('ia_message', { length: userMsg.length });
       showTyping();
 
       callBackend(userMsg)
@@ -878,7 +928,7 @@
       if (isOpen) {
         chatInput.focus();
         if (chatBody.children.length === 0) showWelcome();
-        track('ia_open');
+        track('open_agent_ia', { event_category: 'engagement', event_label: 'widget_agente', value: 1 });
       }
     }
 
@@ -898,6 +948,11 @@
         if (btn.hasAttribute('data-more')) { renderChips(); return; }
         var msg = btn.getAttribute('data-msg');
         if (!msg) return;
+        track('agent_chip_click', {
+          event_category: 'engagement',
+          event_label: btn.getAttribute('data-key') || 'otro',
+          value: 1
+        });
         if (!isOpen) toggleChat(true);
         btn.remove();
         updateChips();
