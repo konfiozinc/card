@@ -608,8 +608,15 @@
       bubble.className = 'kz-bubble';
       bubble.textContent = '¿Te ayudo?';
       toggleBtn.appendChild(bubble);
-      setTimeout(function () { bubble.classList.add('show'); }, 500);
-      setTimeout(function () { bubble.classList.remove('show'); }, 3500);
+      var bubbleShowing = false;
+      function showBubble() {
+        if (bubbleShowing) return;
+        bubbleShowing = true;
+        bubble.classList.add('show');
+        setTimeout(function () { bubble.classList.remove('show'); bubbleShowing = false; }, 3000);
+      }
+      setTimeout(showBubble, 800);
+      setInterval(showBubble, 10000);
     }
 
     /* Persistencia en localStorage */
