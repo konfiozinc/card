@@ -11,6 +11,7 @@
    · gracias.html   → confirmación de formulario (noindex)
    · 404.html       → página de error (noindex)
    · admin.html     → panel privado de gestión de clientes (noindex)
+   · blog.html y blog/* → OCULTOS temporalmente (ver commit "Ocultar blog")
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
@@ -43,12 +44,6 @@
     <lastmod>2026-09-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://konfiozinc.github.io/card/blog.html</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
   </url>
   <url>
     <loc>https://konfiozinc.github.io/card/contacto.html</loc>
@@ -144,41 +139,5 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- ══ Blog y artículos ══ -->
-  <url>
-    <loc>https://konfiozinc.github.io/card/blog/index.html</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://konfiozinc.github.io/card/blog/tarjetas-digitales-star-pro-elite.html</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://konfiozinc.github.io/card/blog/catalogos-y-menus-digitales.html</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://konfiozinc.github.io/card/blog/agentes-ia-atencion-24-7.html</loc>
-    <lastmod>2026-09-15</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://konfiozinc.github.io/card/blog/tarjeta-digital-para-medicos.html</loc>
-    <lastmod>2026-09-20</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://konfiozinc.github.io/card/blog/menu-digital-para-restaurantes.html</loc>
-    <lastmod>2026-09-22</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
+  <!-- ══ Blog y artículos: OCULTO TEMPORALMENTE (reactivar cuando el blog vuelva) ══ -->
 </urlset>

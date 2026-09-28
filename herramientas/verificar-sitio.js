@@ -88,7 +88,7 @@ for (const file of htmlFiles) {
   let m;
   while ((m = refRe.exec(raw)) !== null) {
     const target = m[1].split('#')[0].split('?')[0];
-    if (!target) continue;
+    if (!target || target.startsWith('/')) continue; // rutas absolutas (ej. /card/servicios.html)
     const resolved = path.resolve(dir, target);
     if (!fs.existsSync(resolved)) {
       err(`ENLACE ROTO · ${relPath}  ->  ${m[1]}`);
@@ -236,10 +236,10 @@ else {
      Se excluyen las páginas que a propósito no se indexan: gracias.html
      (confirmación de formulario), 404.html (error) y todo el panel
      (admin.html y admin/*). */
-  const SIN_INDEXAR = ['gracias.html', '404.html', 'admin.html'];
+  const SIN_INDEXAR = ['gracias.html', '404.html', 'admin.html', 'blog.html'];
   for (const f of htmlFiles) {
     const r = rel(f);
-    if (SIN_INDEXAR.includes(r) || r.startsWith('admin/')) continue;
+    if (SIN_INDEXAR.includes(r) || r.startsWith('admin/') || r.startsWith('blog/')) continue;
     const url = expectedCanonical(r);
     if (!locs.includes(url)) warn(`PÁGINA FUERA DEL SITEMAP · ${r}`);
   }
