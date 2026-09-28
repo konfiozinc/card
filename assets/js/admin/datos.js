@@ -18,6 +18,7 @@ import {
 import {
   crearCliente, actualizarCliente, registrarPago, confirmarPago, anularPago,
   activarServicio, suspenderServicio, desactivarServicio, reactivarServicio,
+  inhabilitarServicio, eliminarCliente,
   enviarNotificacion, registrarToken, crearUsuario, actualizarUsuario,
   seedInicial, recalcularEstados
 } from './escrituras-local.js';
@@ -156,6 +157,7 @@ export function suscribirClientes(cb) {
 export const escrituras = {
   crearCliente, actualizarCliente, registrarPago, confirmarPago, anularPago,
   activarServicio, suspenderServicio, desactivarServicio, reactivarServicio,
+  inhabilitarServicio, eliminarCliente,
   enviarNotificacion, registrarToken, crearUsuario, actualizarUsuario,
   seedInicial, recalcularEstados
 };

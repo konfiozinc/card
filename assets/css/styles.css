@@ -1210,6 +1210,11 @@ strong { color: var(--fg); }
 .requisitos .check { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: rgba(74,222,128,.12); color: var(--success); border: 1px solid rgba(74,222,128,.35); flex-shrink: 0; }
 .requisitos-nota { margin-top: 1.2rem; text-align: center; color: var(--muted); font-size: .92rem; }
 
+/* Lista de pagos (sección "Tus pagos, claros y puntuales") */
+.requisitos.pagos li { align-items: flex-start; }
+.requisitos.pagos strong { color: var(--gold); font-weight: 600; }
+.pago-ico { font-size: 1.5rem; line-height: 1.2; flex-shrink: 0; width: 34px; text-align: center; }
+
 .cta-final { text-align: center; }
 .cta-final-title { font-family: var(--font-title); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
 .cta-final-sub { color: var(--muted); font-size: 1.05rem; margin-bottom: 1.8rem; }

@@ -21,6 +21,7 @@ const NIVEL = (CFG.roles && CFG.roles.niveles) || { OPERADOR: 1, ADMIN: 2, SUPER
 const NAV = [
   { key: 'dashboard',      label: 'Dashboard',      href: 'dashboard.html',      icono: 'fa-chart-pie',   min: 'OPERADOR' },
   { key: 'clientes',       label: 'Clientes',       href: 'clientes.html',       icono: 'fa-users',       min: 'OPERADOR' },
+  { key: 'clientes-mes',   label: 'Clientes por mes', href: 'clientes-por-mes.html', icono: 'fa-calendar-days', min: 'OPERADOR' },
   { key: 'contactos',      label: 'Contactos',      href: 'contactos.html',      icono: 'fa-envelope',    min: 'OPERADOR' },
   { key: 'servicios',      label: 'Servicios',      href: 'servicios.html',      icono: 'fa-layer-group', min: 'OPERADOR' },
   { key: 'pagos',          label: 'Pagos',          href: 'pagos.html',          icono: 'fa-money-bill',  min: 'OPERADOR' },

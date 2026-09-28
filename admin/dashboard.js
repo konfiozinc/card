@@ -11,11 +11,16 @@ const cont = document.getElementById('app-content');
 
 const [clientes, pagos] = await Promise.all([cargarClientes(), cargarPagos()]);
 
+/* Solo los clientes vigentes en las listas (los de baja lógica no cuentan). */
+const visibles = clientes.filter(c => !c.eliminado);
+
 /* KPIs */
-const activos = clientes.filter(c => c.estadoCliente === 'ACTIVO').length;
-const porVencer = clientes.filter(c => c.estadoCliente === 'POR_VENCER').length;
-const pendPago = clientes.filter(c => c.estadoCliente === 'PENDIENTE_PAGO').length;
-const inactivos = clientes.filter(c => c.estadoCliente === 'INACTIVO').length;
+const activos = visibles.filter(c => c.estadoCliente === 'ACTIVO').length;
+const porVencer = visibles.filter(c => c.estadoCliente === 'POR_VENCER').length;
+const pendPago = visibles.filter(c => c.estadoCliente === 'PENDIENTE_PAGO').length;
+const inactivos = visibles.filter(c => c.estadoCliente === 'INACTIVO').length;
+const suspendidos = visibles.filter(c => c.estadoCliente === 'SUSPENDIDO').length;
+const inhabilitados = visibles.filter(c => c.estadoCliente === 'INHABILITADO').length;
 
 const mes = new Date().getMonth(), anio = new Date().getFullYear();
 const ingresosMes = pagos
@@ -25,7 +30,7 @@ const ingresosMes = pagos
 /* Barras: clientes por servicio */
 const conteo = {};
 CFG.servicios.forEach(s => conteo[s.etiqueta] = 0);
-clientes.forEach(c => { if (conteo[c.servicio] !== undefined) conteo[c.servicio]++; });
+visibles.forEach(c => { if (conteo[c.servicio] !== undefined) conteo[c.servicio]++; });
 const maximo = Math.max(1, ...Object.values(conteo));
 const barras = CFG.servicios.map(s => {
   const n = conteo[s.etiqueta] || 0;
@@ -34,7 +39,7 @@ const barras = CFG.servicios.map(s => {
 }).join('');
 
 /* Próximos vencimientos a 60 días */
-const proximos = clientes
+const proximos = visibles
   .filter(c => c.dias !== null && c.dias >= 0 && c.dias <= 60)
   .sort((a, b) => a.dias - b.dias)
   .slice(0, 10);
@@ -52,8 +57,10 @@ cont.innerHTML = `
     { label: 'Por vencer', valor: porVencer, tono: 'alerta', nota: `≤ ${NEG.diasPorVencer} días` },
     { label: 'Pendientes de pago', valor: pendPago, tono: 'peligro', nota: 'Vencidos, por cobrar' },
     { label: 'Inactivos', valor: inactivos, tono: 'neutro', nota: 'Servicio desactivado' },
+    { label: 'Suspendidos', valor: suspendidos, tono: 'alerta', nota: 'Pausa temporal' },
+    { label: 'Inhabilitados', valor: inhabilitados, tono: 'peligro', nota: 'Bloqueados' },
     { label: 'Ingresos del mes', valor: cop(ingresosMes), tono: 'info', nota: 'Pagos confirmados' },
-    { label: 'Total clientes', valor: clientes.length, tono: 'neutro', nota: 'En base de datos' }
+    { label: 'Total clientes', valor: visibles.length, tono: 'neutro', nota: 'En base de datos' }
   ])}
 
   <div class="grid-2">

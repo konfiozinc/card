@@ -5,7 +5,7 @@ import {
   cargarClientes, cargarCliente, pagosDe, historialDe, cargarPlanes,
   escrituras, CFG, NEG, cop, aFecha, iso, hoyISO, sumarMeses, dias, fechaLarga, precioSugerido
 } from '../assets/js/admin/datos.js';
-import { doc, updateDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../assets/js/admin/core.js';
 
 const sesion = await requireAuth('clientes');
@@ -15,13 +15,25 @@ const cont = document.getElementById('app-content');
 
 let clientes = [];
 let planes = [];
-let filtros = { q: '', estado: '', servicio: '', categoria: '' };
+let filtros = { q: '', estado: '', servicio: '', categoria: '', mostrarEliminados: false };
+let orden = 'fechaActivacion_desc';
 let edicionId = null;
 
 const SERVICIOS = CFG.servicios.map(s => s.etiqueta);
 const CATS = CFG.categoriasTarjeta.map(c => c.codigo);
 const METODOS = CFG.metodosPago;
 const ESTADOS = CFG.estadosCliente;
+
+/* Chips rápidos de estado */
+const CHIPS_ESTADO = [
+  { v: '', label: 'Todos' },
+  { v: 'ACTIVO', label: 'Activos' },
+  { v: 'INACTIVO', label: 'Inactivos' },
+  { v: 'SUSPENDIDO', label: 'Suspendidos' },
+  { v: 'INHABILITADO', label: 'Inhabilitados' },
+  { v: 'POR_VENCER', label: 'Por vencer' },
+  { v: 'PENDIENTE_PAGO', label: 'Pendientes' }
+];
 
 /* ── Helpers de normalización ─────────────────────────────────────── */
 function estActual(c) {
@@ -36,13 +48,53 @@ function estadoPorVenc(v) {
   return 'ACTIVO';
 }
 
+function ordenar(lista) {
+  const [campo, dir] = orden.split('_');
+  const val = (c) => {
+    if (campo === 'nombre') return (c.nombre || '').toLowerCase();
+    if (campo === 'estado') return estActual(c);
+    return c[campo] || '';
+  };
+  return [...lista].sort((a, b) => {
+    const va = val(a), vb = val(b);
+    if (va < vb) return dir === 'desc' ? 1 : -1;
+    if (va > vb) return dir === 'desc' ? -1 : 1;
+    return 0;
+  });
+}
+
 /* ── Renderizado ──────────────────────────────────────────────────── */
 function opciones(lista, sel) {
   return `<option value="">Todos</option>` + lista.map(o => `<option ${o === sel ? 'selected' : ''}>${esc(o)}</option>`).join('');
 }
 
+function botonesFila(c, estado) {
+  const admin = canAccess(sesion.rol, 'ADMIN');
+  const superAdmin = canAccess(sesion.rol, 'SUPERADMIN');
+  let b = `<button data-a="ver" title="Ver detalle"><i class="fas fa-eye" aria-hidden="true"></i></button>
+    <button data-a="editar" title="Editar"><i class="fas fa-pen" aria-hidden="true"></i></button>
+    <button data-a="pago" title="Registrar pago"><i class="fas fa-money-bill" aria-hidden="true"></i></button>`;
+  if (admin) {
+    if (['ACTIVO', 'POR_VENCER', 'PENDIENTE_PAGO'].includes(estado)) {
+      b += `<button data-a="suspender" class="act-suspender" title="Suspender"><i class="fas fa-pause" aria-hidden="true"></i></button>
+        <button data-a="desactivar" class="act-desactivar" title="Desactivar"><i class="fas fa-circle-stop" aria-hidden="true"></i></button>
+        <button data-a="inhabilitar" class="act-inhabilitar" title="Inhabilitar"><i class="fas fa-ban" aria-hidden="true"></i></button>`;
+    } else if (['INACTIVO', 'SUSPENDIDO', 'INHABILITADO'].includes(estado)) {
+      b += `<button data-a="activar" class="act-activar" title="Activar"><i class="fas fa-play" aria-hidden="true"></i></button>`;
+    }
+    if (['ACTIVO', 'POR_VENCER'].includes(estado)) {
+      b += `<button data-a="renovar" title="Renovar 12 meses"><i class="fas fa-rotate" aria-hidden="true"></i></button>`;
+    }
+  }
+  if (superAdmin) {
+    b += `<button data-a="eliminar" class="act-eliminar" title="Eliminar (baja lógica)"><i class="fas fa-trash" aria-hidden="true"></i></button>`;
+  }
+  return b;
+}
+
 function pintar() {
-  const f = clientes.filter(c => {
+  const f = ordenar(clientes).filter(c => {
+    if (!filtros.mostrarEliminados && c.eliminado) return false;
     const estado = estActual(c);
     if (filtros.estado && estado !== filtros.estado) return false;
     if (filtros.servicio && c.servicio !== filtros.servicio) return false;
@@ -60,18 +112,11 @@ function pintar() {
       <td><div class="celda-fuerte">${esc(c.nombre)}</div><div class="celda-suave">${esc(c.empresa || '—')}</div></td>
       <td><div class="celda-suave">${esc(c.telefono || '—')}</div><div class="celda-suave">${esc(c.email || '—')}</div></td>
       <td>${esc(c.servicio || '—')}${c.categoria ? ` <span class="badge badge--servicio">${esc(c.categoria)}</span>` : ''}</td>
+      <td>${fechaLarga(c.fechaActivacion)}</td>
       <td>${fechaLarga(c.fechaVencimiento)}<div class="celda-suave">${c.dias !== null && c.dias >= 0 ? 'en ' + c.dias + ' d' : c.dias !== null ? 'vencido ' + Math.abs(c.dias) + ' d' : ''}</div></td>
       <td>${badgeEstado(estado)}</td>
       <td>${cop(c.precio)}</td>
-      <td><div class="acciones-fila">
-        <button data-a="ver" title="Ver detalle"><i class="fas fa-eye" aria-hidden="true"></i></button>
-        <button data-a="editar" title="Editar"><i class="fas fa-pen" aria-hidden="true"></i></button>
-        <button data-a="pago" title="Registrar pago"><i class="fas fa-money-bill" aria-hidden="true"></i></button>
-        ${canAccess(sesion.rol, 'ADMIN') ? `<button data-a="renovar" title="Renovar 12 meses"><i class="fas fa-rotate" aria-hidden="true"></i></button>
-        <button data-a="suspender" title="Suspender"><i class="fas fa-pause" aria-hidden="true"></i></button>
-        <button data-a="reactivar" title="Reactivar"><i class="fas fa-play" aria-hidden="true"></i></button>` : ''}
-        ${canAccess(sesion.rol, 'ADMIN') ? `<button data-a="inactivar" title="Desactivar"><i class="fas fa-ban" aria-hidden="true"></i></button>` : ''}
-      </div></td>
+      <td><div class="acciones-fila">${botonesFila(c, estado)}</div></td>
     </tr>`;
   }).join('');
 
@@ -89,14 +134,29 @@ function pintar() {
 
     <div class="filtros">
       <div class="campo"><label for="f-q">Buscar</label><input id="f-q" type="search" placeholder="Nombre, empresa, teléfono, email o documento" value="${esc(filtros.q)}"></div>
-      <div class="campo"><label for="f-estado">Estado</label><select id="f-estado">${opciones(ESTADOS, filtros.estado)}</select></div>
       <div class="campo"><label for="f-servicio">Servicio</label><select id="f-servicio">${opciones(SERVICIOS, filtros.servicio)}</select></div>
       <div class="campo"><label for="f-cat">Categoría</label><select id="f-cat">${opciones(CATS, filtros.categoria)}</select></div>
+      <div class="campo"><label for="f-orden">Ordenar por</label><select id="f-orden">
+        <option value="fechaActivacion_desc" ${orden === 'fechaActivacion_desc' ? 'selected' : ''}>Activación (recientes primero)</option>
+        <option value="fechaActivacion_asc" ${orden === 'fechaActivacion_asc' ? 'selected' : ''}>Activación (antiguos primero)</option>
+        <option value="fechaVencimiento_asc" ${orden === 'fechaVencimiento_asc' ? 'selected' : ''}>Vencimiento (próximos primero)</option>
+        <option value="nombre_asc" ${orden === 'nombre_asc' ? 'selected' : ''}>Nombre (A-Z)</option>
+        <option value="estado_asc" ${orden === 'estado_asc' ? 'selected' : ''}>Estado</option>
+      </select></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="chips" role="group" aria-label="Filtrar por estado">
+        ${CHIPS_ESTADO.map(ch => `<button type="button" class="chip ${filtros.estado === ch.v ? 'is-active' : ''}" data-estado="${ch.v}">${esc(ch.label)}</button>`).join('')}
+      </div>
+      <div class="toolbar__right">
+        <label class="campo--check"><input id="f-eliminados" type="checkbox" ${filtros.mostrarEliminados ? 'checked' : ''}> Mostrar eliminados</label>
+      </div>
     </div>
 
     <div class="tabla__wrap">
       <table class="tabla"><thead><tr>
-        <th>Cliente</th><th>Contacto</th><th>Servicio</th><th>Vencimiento</th><th>Estado</th><th>Precio</th><th>Acciones</th>
+        <th>Cliente</th><th>Contacto</th><th>Servicio</th><th>Activación</th><th>Vencimiento</th><th>Estado</th><th>Precio</th><th>Acciones</th>
       </tr></thead><tbody>${filas || ''}</tbody></table>
       ${f.length ? '' : '<p class="tabla__vacia">Ningún cliente coincide con los filtros.</p>'}
     </div>
@@ -106,11 +166,16 @@ function pintar() {
 
   /* Eventos */
   document.getElementById('f-q').addEventListener('input', e => { filtros.q = e.target.value; pintar(); });
-  document.getElementById('f-estado').addEventListener('change', e => { filtros.estado = e.target.value; pintar(); });
   document.getElementById('f-servicio').addEventListener('change', e => { filtros.servicio = e.target.value; pintar(); });
   document.getElementById('f-cat').addEventListener('change', e => { filtros.categoria = e.target.value; pintar(); });
+  document.getElementById('f-orden').addEventListener('change', e => { orden = e.target.value; pintar(); });
+  document.getElementById('f-eliminados').addEventListener('change', e => { filtros.mostrarEliminados = e.target.checked; pintar(); });
   document.getElementById('btn-csv').addEventListener('click', exportar);
   document.getElementById('btn-nuevo').addEventListener('click', () => abrirEditor(null));
+
+  cont.querySelectorAll('.chips .chip').forEach(ch => ch.addEventListener('click', () => {
+    filtros.estado = ch.dataset.estado; pintar();
+  }));
 
   cont.querySelector('tbody').addEventListener('click', manejarAccion);
 }
@@ -128,6 +193,31 @@ async function manejarAccion(e) {
   if (a === 'ver') return verDetalle(c);
   if (a === 'editar') return abrirEditor(c);
   if (a === 'pago') return abrirPago(c);
+
+  if (a === 'activar') {
+    const vencido = c.dias !== null && c.dias < 0;
+    if (!await confirmar(`¿Activar al cliente ${c.nombre}?`)) return;
+    if (vencido) {
+      if (await confirmar(`El servicio de ${c.nombre} ya venció. ¿Extender su vencimiento 1 mes a partir de hoy?`)) {
+        const nuevo = iso(sumarMeses(new Date(), 1));
+        await updateDoc(doc(db, 'clientes', id), { fechaVencimiento: nuevo, updatedAt: serverTimestamp() });
+      }
+    }
+    await escrituras.activarServicio(id, 'Activación desde botón');
+    toast('Cliente activado'); return recargar();
+  }
+  if (a === 'desactivar') {
+    if (!await confirmar(`¿Desactivar a ${c.nombre}? El historial se conserva.`)) return;
+    await escrituras.desactivarServicio(id, 'Desactivación desde botón');
+    toast('Cliente desactivado'); return recargar();
+  }
+  if (a === 'suspender') return abrirSuspender(c);
+  if (a === 'inhabilitar') return abrirInhabilitar(c);
+  if (a === 'eliminar') {
+    if (!await confirmar(`¿Eliminar a ${c.nombre}? Se ocultará de las listas (baja lógica) y su historial se conserva. Solo puede revertirse manualmente en Firestore.`)) return;
+    await escrituras.eliminarCliente(id, 'Eliminado desde botón');
+    toast('Cliente eliminado (baja lógica)'); return recargar();
+  }
   if (a === 'renovar') {
     if (!await confirmar(`¿Renovar ${c.nombre} 12 meses? Se suman ${NEG.mesesSuscripcion} meses y se reinician los avisos.`)) return;
     const base = c.dias > 0 ? new Date(c.fechaVencimiento + 'T00:00:00') : new Date();
@@ -137,21 +227,71 @@ async function manejarAccion(e) {
     toast('Cliente renovado hasta ' + fechaLarga(nuevo));
     return recargar();
   }
-  if (a === 'suspender') {
-    if (!await confirmar(`¿Suspender el servicio de ${c.nombre}?`)) return;
-    await escrituras.suspenderServicio(id, 'Suspensión manual desde el panel');
-    toast('Servicio suspendido'); return recargar();
-  }
-  if (a === 'reactivar') {
-    if (!await confirmar(`¿Reactivar el servicio de ${c.nombre}?`)) return;
-    await escrituras.reactivarServicio(id, 'Reactivación manual desde el panel');
-    toast('Servicio reactivado'); return recargar();
-  }
-  if (a === 'inactivar') {
-    if (!await confirmar(`¿Desactivar a ${c.nombre}? El historial se conserva.`)) return;
-    await escrituras.desactivarServicio(id, 'Desactivación manual desde el panel');
-    toast('Cliente desactivado'); return recargar();
-  }
+}
+
+/* ── Mini-modales de suspensión e inhabilitación ──────────────────── */
+function abrirSuspender(c) {
+  const box = document.querySelector('#modal-detalle .modal__box');
+  document.getElementById('modal-detalle').classList.add('is-open');
+  box.innerHTML = `
+    <div class="modal__head">
+      <h3>Suspender — ${esc(c.nombre)}</h3>
+      <button type="button" class="modal__close" data-cerrar aria-label="Cerrar"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <form id="susp-form" class="modal__body">
+      <div class="campo"><label>Motivo *</label><select id="s-motivo">
+        <option>Falta de pago</option><option>Cliente pidió pausa</option><option>Revisión</option><option>Otro</option>
+      </select></div>
+      <p class="celda-suave">Se registrará la fecha de hoy: ${fechaLarga(hoyISO())}.</p>
+      <div class="campo"><label>Nota (opcional)</label><textarea id="s-nota" rows="2" placeholder="Detalle adicional…"></textarea></div>
+      <div class="aviso aviso--error" id="s-error" hidden></div>
+    </form>
+    <div class="modal__foot"><div class="modal__actions">
+      <button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button>
+      <button type="submit" form="susp-form" class="btn btn--primary">Confirmar suspensión</button>
+    </div></div>`;
+  const err = document.getElementById('s-error');
+  document.querySelectorAll('#modal-detalle [data-cerrar]').forEach(b => b.addEventListener('click', cerrarDetalle));
+  document.getElementById('susp-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const motivo = document.getElementById('s-motivo').value;
+    const nota = document.getElementById('s-nota').value.trim();
+    try {
+      await escrituras.suspenderServicio(c.id, nota ? `${motivo} — ${nota}` : motivo);
+      toast('Servicio suspendido'); cerrarDetalle(); recargar();
+    } catch (ex) { err.textContent = ex.message; err.hidden = false; }
+  });
+}
+
+function abrirInhabilitar(c) {
+  const box = document.querySelector('#modal-detalle .modal__box');
+  document.getElementById('modal-detalle').classList.add('is-open');
+  box.innerHTML = `
+    <div class="modal__head">
+      <h3>Inhabilitar — ${esc(c.nombre)}</h3>
+      <button type="button" class="modal__close" data-cerrar aria-label="Cerrar"><i class="fas fa-xmark" aria-hidden="true"></i></button>
+    </div>
+    <form id="inhab-form" class="modal__body">
+      <div class="campo"><label>Motivo *</label><textarea id="i-motivo" rows="3" placeholder="Explica por qué se inhabilita este cliente"></textarea></div>
+      <div class="campo campo--check"><label><input id="i-confirma" type="checkbox"> Entiendo que es una acción permanente hasta su reactivación manual.</label></div>
+      <div class="aviso aviso--error" id="i-error" hidden></div>
+    </form>
+    <div class="modal__foot"><div class="modal__actions">
+      <button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button>
+      <button type="submit" form="inhab-form" class="btn btn--danger">Inhabilitar cliente</button>
+    </div></div>`;
+  const err = document.getElementById('i-error');
+  document.querySelectorAll('#modal-detalle [data-cerrar]').forEach(b => b.addEventListener('click', cerrarDetalle));
+  document.getElementById('inhab-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const motivo = document.getElementById('i-motivo').value.trim();
+    if (!motivo) { err.textContent = 'El motivo es obligatorio.'; err.hidden = false; return; }
+    if (!document.getElementById('i-confirma').checked) { err.textContent = 'Debes confirmar que entiendes la acción.'; err.hidden = false; return; }
+    try {
+      await escrituras.inhabilitarServicio(c.id, motivo);
+      toast('Cliente inhabilitado'); cerrarDetalle(); recargar();
+    } catch (ex) { err.textContent = ex.message; err.hidden = false; }
+  });
 }
 
 /* ── Editor (nuevo / editar) ─────────────────────────────────────── */
@@ -178,7 +318,10 @@ function abrirEditor(c) {
         <div class="campo"><label>Paquete / plan</label><select id="e-plan"><option value="">Sin paquete</option>${p}</select></div>
         <div class="campo"><label>Precio (COP)</label><input id="e-precio" type="number" value="${c ? c.precio : ''}"></div>
         <div class="campo"><label>Método preferido</label><select id="e-metodo"><option value="">—</option>${METODOS.map(m => `<option ${c && c.metodoPagoPreferido === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></div>
-        <div class="campo"><label>Activación</label><input id="e-activacion" type="date" value="${c ? c.fechaActivacion : hoyISO()}"></div>
+        <div class="campo"><label>Activación *</label><input id="e-activacion" type="date" value="${c ? c.fechaActivacion : hoyISO()}"></div>
+        <div class="campo"><label>Duración del servicio</label><select id="e-duracion">
+          <option value="1">1 mes</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12" selected>12 meses</option>
+        </select></div>
         <div class="campo"><label>Vencimiento</label><input id="e-vencimiento" type="date" value="${c ? c.fechaVencimiento : ''}"></div>
         <div class="campo"><label>URL del servicio</label><input id="e-url" value="${esc(c ? c.urlServicio : '')}"></div>
         <div class="campo"><label>Proyecto (repo GitHub)</label><input id="e-proyecto" value="${esc(c ? c.proyectoId : '')}"></div>
@@ -198,13 +341,16 @@ function abrirEditor(c) {
   const prec = document.getElementById('e-precio');
   const act = document.getElementById('e-activacion');
   const ven = document.getElementById('e-vencimiento');
+  const dur = document.getElementById('e-duracion');
   const err = document.getElementById('e-error');
 
   function autocalcular() {
     const base = act.value ? new Date(act.value + 'T00:00:00') : new Date();
-    ven.value = iso(sumarMeses(base, NEG.mesesSuscripcion));
+    const meses = Number(dur.value) || NEG.mesesSuscripcion;
+    ven.value = iso(sumarMeses(base, meses));
   }
   act.addEventListener('change', autocalcular);
+  dur.addEventListener('change', autocalcular);
   if (!ven.value) autocalcular();
   sel.addEventListener('change', () => {
     cat.disabled = sel.value !== 'Tarjetas Digitales';
@@ -220,6 +366,7 @@ function abrirEditor(c) {
     err.hidden = true;
     const v = id => document.getElementById(id).value.trim();
     if (!v('e-nombre') || !v('e-telefono')) { err.textContent = 'Nombre y teléfono son obligatorios.'; err.hidden = false; return; }
+    if (!v('e-activacion')) { err.textContent = 'La fecha de activación es obligatoria.'; err.hidden = false; return; }
     const datos = {
       nombre: v('e-nombre'), empresa: v('e-empresa'), documento: v('e-documento'),
       telefono: v('e-telefono'), whatsapp: v('e-whatsapp'), email: v('e-email'),
@@ -296,6 +443,7 @@ async function verDetalle(c) {
         <div class="detalle__fila"><dt>Empresa</dt><dd>${esc(c.empresa || '—')}</dd></div>
         <div class="detalle__fila"><dt>Servicio</dt><dd>${esc(c.servicio)}${c.categoria ? ' · ' + esc(c.categoria) : ''}</dd></div>
         <div class="detalle__fila"><dt>Contacto</dt><dd>${esc(c.telefono)} · ${esc(c.email || '—')}</dd></div>
+        <div class="detalle__fila"><dt>Activación</dt><dd>${fechaLarga(c.fechaActivacion)}</dd></div>
         <div class="detalle__fila"><dt>Vencimiento</dt><dd>${fechaLarga(c.fechaVencimiento)} (${c.dias >= 0 ? 'en ' + c.dias + ' d' : 'vencido ' + Math.abs(c.dias) + ' d'})</dd></div>
         <div class="detalle__fila"><dt>Precio</dt><dd>${cop(c.precio)} ${c.metodoPagoPreferido ? '· ' + esc(c.metodoPagoPreferido) : ''}</dd></div>
         <div class="detalle__fila"><dt>URL / Proyecto</dt><dd>${c.urlServicio ? esc(c.urlServicio) : '—'} ${c.proyectoId ? '· ' + esc(c.proyectoId) : ''}</dd></div>

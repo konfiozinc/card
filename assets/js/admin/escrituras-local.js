@@ -44,7 +44,7 @@ async function ctx() {
   if (!u) throw new Error('No hay sesión.');
   const snap = await getDoc(doc(db, 'usuarios', u.uid));
   if (!snap.exists() || snap.data().activo !== true) throw new Error('Tu usuario no está activo.');
-  return { uid: u.uid, rol: snap.data().rol || 'OPERADOR', nombre: snap.data().nombre || u.email };
+  return { uid: u.uid, rol: snap.data().rol || 'OPERADOR', nombre: snap.data().nombre || u.email, email: u.email || '' };
 }
 
 async function requerir(min) {
@@ -199,7 +199,11 @@ async function transicion(clienteId, nuevo, motivo, extra) {
   const ref = doc(db, 'clientes', clienteId);
   const antes = (await getDoc(ref)).data();
   if (!antes) throw new Error('Cliente no encontrado.');
-  await updateDoc(ref, { estadoCliente: nuevo, estadoServicio: nuevo, ...extra, updatedAt: serverTimestamp() });
+  await updateDoc(ref, {
+    estadoCliente: nuevo, estadoServicio: nuevo,
+    fechaCambioEstado: serverTimestamp(), motivoCambio: motivo, cambiadoPor: c.email || c.nombre,
+    ...extra, updatedAt: serverTimestamp()
+  });
   await historial(c, clienteId, antes.estadoCliente, nuevo, motivo);
   await auditar(c, 'ESTADO_' + nuevo, 'clientes', clienteId, antes.estadoCliente, nuevo);
   return { ok: true };
@@ -208,6 +212,27 @@ export const suspenderServicio = (clienteId, motivo) => transicion(clienteId, 'S
 export const reactivarServicio = (clienteId, motivo) => transicion(clienteId, 'ACTIVO', motivo || 'Reactivación manual', { fechaReactivacion: iso(new Date()) });
 export const desactivarServicio = (clienteId, motivo) => transicion(clienteId, 'INACTIVO', motivo || 'Desactivación manual', { activo: false });
 export const activarServicio = (clienteId, motivo) => transicion(clienteId, 'ACTIVO', motivo || 'Activación manual', { activo: true });
+export const inhabilitarServicio = (clienteId, motivo) => transicion(clienteId, 'INHABILITADO', motivo || 'Inhabilitación manual', { activo: false, fechaInhabilitacion: iso(new Date()) });
+
+/** Baja lógica (las reglas no permiten borrado físico de clientes): marca
+    el cliente como eliminado y lo saca de las listas, conservando el historial. */
+export async function eliminarCliente(clienteId, motivo) {
+  const c = await requerir('SUPERADMIN');
+  if (!clienteId) throw new Error('Cliente obligatorio.');
+  const ref = doc(db, 'clientes', clienteId);
+  const antes = (await getDoc(ref)).data();
+  if (!antes) throw new Error('Cliente no encontrado.');
+  const razon = motivo || 'Eliminado desde el panel';
+  await updateDoc(ref, {
+    estadoCliente: 'INHABILITADO', estadoServicio: 'INHABILITADO',
+    activo: false, eliminado: true, fechaEliminacion: iso(new Date()),
+    motivoCambio: razon, fechaCambioEstado: serverTimestamp(),
+    cambiadoPor: c.email || c.nombre, updatedAt: serverTimestamp()
+  });
+  await historial(c, clienteId, antes.estadoCliente, 'INHABILITADO', 'ELIMINADO (baja lógica): ' + razon);
+  await auditar(c, 'ELIMINAR_CLIENTE', 'clientes', clienteId, antes, { eliminado: true, estadoCliente: 'INHABILITADO' });
+  return { ok: true };
+}
 
 /* ── Notificaciones ────────────────────────────────────────────────── */
 export async function enviarNotificacion(clienteId, tipo, mensaje) {

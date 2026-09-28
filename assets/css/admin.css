@@ -330,3 +330,51 @@ code { font-family: ui-monospace, Consolas, monospace; color: var(--gold); font-
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ── Chips de filtro por estado ────────────────────────────────────── */
+.toolbar { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; }
+.toolbar__right { display: flex; align-items: center; gap: .8rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.chip {
+  background: var(--surface); border: 1px solid var(--border); color: var(--muted);
+  border-radius: 999px; padding: .45rem .9rem; font-size: .78rem; font-weight: 600; cursor: pointer;
+  transition: all .2s;
+}
+.chip:hover { color: var(--fg); border-color: var(--border-gold); }
+.chip.is-active { background: rgba(240,180,41,.14); color: var(--gold); border-color: var(--gold); }
+
+/* Botones de acción con color por tipo */
+.acciones-fila button { min-width: 32px; min-height: 32px; }
+.acciones-fila .act-activar { color: var(--ok); border-color: rgba(74,222,128,.35); }
+.acciones-fila .act-activar:hover { background: rgba(74,222,128,.12); color: var(--ok); border-color: var(--ok); }
+.acciones-fila .act-desactivar { color: var(--danger); border-color: rgba(248,113,113,.35); }
+.acciones-fila .act-desactivar:hover { background: rgba(248,113,113,.12); color: var(--danger); border-color: var(--danger); }
+.acciones-fila .act-suspender { color: var(--warn); border-color: rgba(251,191,36,.35); }
+.acciones-fila .act-suspender:hover { background: rgba(251,191,36,.12); color: var(--warn); border-color: var(--warn); }
+.acciones-fila .act-inhabilitar { color: #f472b6; border-color: rgba(244,114,182,.35); }
+.acciones-fila .act-inhabilitar:hover { background: rgba(244,114,182,.12); color: #f472b6; border-color: #f472b6; }
+.acciones-fila .act-eliminar { color: var(--danger); border-color: rgba(248,113,113,.5); }
+.acciones-fila .act-eliminar:hover { background: rgba(248,113,113,.2); }
+
+/* Badge inhabilitado */
+.badge--inhabilitado { background: rgba(244,114,182,.12); color: #f472b6; border: 1px solid rgba(244,114,182,.3); }
+
+/* Vista "Clientes por mes" */
+.mes-grupo { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: .9rem; overflow: hidden; }
+.mes-grupo__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem; width: 100%;
+  padding: .95rem 1.2rem; background: none; border: none; cursor: pointer; text-align: left;
+  font-family: var(--font-title); font-size: .82rem; letter-spacing: 1px; color: var(--gold);
+  border-bottom: 1px solid var(--border);
+}
+.mes-grupo__head i { transition: transform .25s; }
+.mes-grupo.is-collapsed .mes-grupo__head i { transform: rotate(-90deg); }
+.mes-grupo__lista { list-style: none; margin: 0; padding: .4rem 0; }
+.mes-grupo__lista li { padding: .5rem 1.2rem; border-bottom: 1px solid var(--border); font-size: .86rem; }
+.mes-grupo__lista li:last-child { border-bottom: 0; }
+.mes-grupo.is-collapsed .mes-grupo__lista { display: none; }
+
+/* Táctil: botones de acción ≥ 40px en móvil */
+@media (max-width: 520px) {
+  .acciones-fila button { min-width: 40px; min-height: 40px; }
+}

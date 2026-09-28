@@ -59,8 +59,8 @@ window.KZ_CONFIG = {
   /* ── Catálogos de apoyo ─────────────────────────────────────────── */
   metodosPago: ['Nequi', 'Daviplata', 'Transferencia', 'Efectivo'],
 
-  estadosCliente: ['ACTIVO', 'POR_VENCER', 'PENDIENTE_PAGO', 'SUSPENDIDO', 'INACTIVO'],
-  estadosServicio: ['ACTIVO', 'POR_VENCER', 'SUSPENDIDO', 'INACTIVO'],
+  estadosCliente: ['ACTIVO', 'POR_VENCER', 'PENDIENTE_PAGO', 'SUSPENDIDO', 'INACTIVO', 'INHABILITADO'],
+  estadosServicio: ['ACTIVO', 'POR_VENCER', 'SUSPENDIDO', 'INACTIVO', 'INHABILITADO'],
   estadosPago: ['PENDIENTE', 'CONFIRMADO', 'RECHAZADO', 'ANULADO'],
 
   /* Etiquetas legibles de los estados (para badges de la interfaz) */
@@ -70,6 +70,7 @@ window.KZ_CONFIG = {
     PENDIENTE_PAGO: 'Pendiente de pago',
     SUSPENDIDO: 'Suspendido',
     INACTIVO: 'Inactivo',
+    INHABILITADO: 'Inhabilitado',
     CONFIRMADO: 'Confirmado',
     PENDIENTE: 'Pendiente',
     RECHAZADO: 'Rechazado',
