@@ -620,7 +620,6 @@
   var chat = $('#kzFabChat');
   var toggleBtn = $('#kzFabToggle');
   var closeBtn = $('#kzFabClose');
-  var resetBtn = $('#kzFabReset');
   var chatBody = $('#kzFabBody');
   var chatInput = $('#kzFabInput');
   var chatSend = $('#kzFabSend');
@@ -631,16 +630,15 @@
     var history = [];
     var WA_URL = WHATSAPP + '?text=Hola%2C%20quiero%20una%20cotizaci%C3%B3n%20gratis%20para%20mi%20negocio';
     var BACKEND_URL = 'https://calm-heart-6828.konfiozinc.workers.dev';
-    var LS_KEY = 'kz_chat_history_v2';
+    var INACTIVIDAD_MS = 5 * 60 * 1000; // borrar historial por inactividad
 
     /* ── Identidad del widget ── */
     var nameEl = document.querySelector('#kzFabChat .kz-name');
-    if (nameEl) nameEl.innerHTML = 'KONFI — Tu asesor KONFÍO ZINC';
+    if (nameEl) nameEl.innerHTML = 'Asesor Konfi';
+    var statusEl = document.querySelector('#kzFabChat .kz-status');
+    if (statusEl) statusEl.innerHTML = '<span class="kz-dot" aria-hidden="true"></span> En línea';
     var avatarEl = document.querySelector('#kzFabChat .kz-avatar');
     if (avatarEl) avatarEl.textContent = 'KO';
-
-    /* Papelera en lugar de reiniciar */
-    if (resetBtn) { resetBtn.innerHTML = '<i class="fas fa-trash" aria-hidden="true"></i>'; resetBtn.setAttribute('aria-label', 'Borrar historial'); resetBtn.setAttribute('title', 'Borrar historial'); }
 
     /* Chips de respuesta rápida: etiqueta corta visible, mensaje completo en
        data-msg y una clave corta en data-key para el evento agent_chip_click. */
@@ -689,20 +687,15 @@
       setInterval(showBubble, 10000);
     }
 
-    /* Persistencia en localStorage */
-    function saveHistory() {
-      try { localStorage.setItem(LS_KEY, JSON.stringify(history)); } catch (e) {}
+    /* Historial sin persistencia: vive solo en memoria y se borra al cerrar
+       el widget, al recargar la página o tras 5 minutos de inactividad. */
+    var lastActivity = Date.now();
+    function resetConversacion() {
+      history = [];
+      chatBody.innerHTML = '';
+      renderChips();
+      lastActivity = Date.now();
     }
-    function loadHistory() {
-      try {
-        var data = JSON.parse(localStorage.getItem(LS_KEY) || '[]');
-        if (Array.isArray(data) && data.length) {
-          data.forEach(function (m) { if (m && m.role && m.content) addMessage(m.content, m.role === 'user' ? 'user' : 'bot'); });
-          history = data;
-        }
-      } catch (e) {}
-    }
-    loadHistory();
 
     function formatBotText(text) {
       var s = escapeHtml(text);
@@ -890,7 +883,7 @@
       addMessage(userMsg, 'user');
       chatInput.value = '';
       history.push({ role: 'user', content: userMsg });
-      saveHistory();
+      lastActivity = Date.now();
       /* Privacidad: nunca se envía el texto que escribe el usuario a GA4 */
       track('ia_message', { length: userMsg.length });
       showTyping();
@@ -900,7 +893,6 @@
           hideTyping();
           addMessage(reply, 'bot');
           history.push({ role: 'assistant', content: reply });
-          saveHistory();
           showWhatsAppButton();
         })
         .catch(function () {
@@ -908,7 +900,6 @@
           var res = getLocalResponse(userMsg);
           addMessage(res.text, 'bot');
           history.push({ role: 'assistant', content: res.text });
-          saveHistory();
           if (res.cta) showWhatsAppButton();
         });
     }
@@ -917,7 +908,6 @@
       var welcome = '¡Hola! 👋 Soy KONFI, tu asesor virtual de KONFÍO ZINC. Creamos tarjetas digitales, menús, catálogos, landing pages, códigos QR y agentes IA. ¿En qué te ayudo?';
       addMessage(welcome, 'bot');
       history.push({ role: 'assistant', content: welcome });
-      saveHistory();
     }
 
     function toggleChat(force) {
@@ -926,15 +916,19 @@
       chat.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
       toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       if (isOpen) {
+        /* Si pasó más de 5 minutos sin actividad, empieza de cero. */
+        if (Date.now() - lastActivity > INACTIVIDAD_MS) resetConversacion();
         chatInput.focus();
         if (chatBody.children.length === 0) showWelcome();
         track('open_agent_ia', { event_category: 'engagement', event_label: 'widget_agente', value: 1 });
+      } else {
+        /* Al cerrar (X o el propio botón), el historial se borra al instante. */
+        resetConversacion();
       }
     }
 
     toggleBtn.addEventListener('click', function () { toggleChat(); });
     if (closeBtn) closeBtn.addEventListener('click', function () { toggleChat(false); });
-    if (resetBtn) resetBtn.addEventListener('click', function () { history = []; chatBody.innerHTML = ''; try { localStorage.removeItem(LS_KEY); } catch (e) {} showWelcome(); });
     if (chatInput) {
       chatInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput.value); }
