@@ -1,0 +1,29 @@
+#!/bin/sh
+# Pre-commit hook: bloquea Google API Keys y patrones de secreto en commits nuevos.
+# La clave publica de Firebase del proyecto konfio-zinc esta permitida (es publica por diseno,
+# protegida por Firestore Security Rules y restringida por referrer en Google Cloud).
+KNOWN_KEY="AIzaSyDbwAk9APwP2SeaEfWxeQG_bdL9eatciEA"
+
+# Solo lineas ANADIDAS (sin contexto) para evitar falsos positivos por lineas vecinas.
+added=$(git diff --cached --diff-filter=ACM -U0 | grep -E '^\+[^+]' | grep -oE 'AIza[0-9A-Za-z_-]{35}' | sort -u)
+
+if [ -n "$added" ]; then
+  for key in $added; do
+    if [ "$key" != "$KNOWN_KEY" ]; then
+      echo ""
+      echo "ERROR: Se detecto una Google API Key no permitida en este commit: $key"
+      echo "  Si es una key publica de Firebase, agregala a KNOWN_KEY en .githooks/pre-commit."
+      echo "  Si es un secreto real, muevelo fuera del repositorio."
+      exit 1
+    fi
+  done
+fi
+
+# Patrones de secreto genericos en lineas anadidas
+if git diff --cached --diff-filter=ACM -U0 | grep -E '^\+[^+]' | grep -Eq "(api[_-]?key|secret|password|token)[[:space:]]*[:=][[:space:]]*['\"][A-Za-z0-9_-]{20,}"; then
+  echo ""
+  echo "ADVERTENCIA: Posible secreto detectado en el commit. Revisalo antes de continuar."
+  exit 1
+fi
+
+exit 0
