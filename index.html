@@ -741,5 +741,19 @@
 
 <script src="assets/js/main.js" defer></script>
 <script src="assets/js/push.js" defer></script>
+<script>
+/* GA4 · conversión "lead": clic en WhatsApp */
+(function(){
+  function track(etiqueta){
+    try { if (typeof gtag === 'function') { gtag('event','click_whatsapp',{event_category:'lead',event_label:etiqueta||'whatsapp',transport_type:'beacon'}); } } catch(e){}
+  }
+  document.addEventListener('click', function(e){
+    var el = e.target && e.target.closest ? e.target.closest('a[href*="wa.me"],a[href*="api.whatsapp.com"],a[href*="whatsapp.com/send"],[data-action="whatsapp"]') : null;
+    if (!el) return;
+    var lbl = el.id || (el.textContent||'').trim().slice(0,40) || 'whatsapp';
+    track(lbl);
+  }, true);
+})();
+</script>
 </body>
 </html>
