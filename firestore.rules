@@ -166,6 +166,18 @@ service cloud.firestore {
       allow delete: if esAdmin();
     }
 
+    // ── eventos (analítica de conversión de las tarjetas) ────────────
+    // Las tarjetas publicadas escriben (create público, datos agregados).
+    // Solo el equipo autenticado (OPERADOR+) puede LEER en el panel.
+    match /eventos/{id} {
+      allow create: if true
+        && request.resource.data.tarjeta is string
+        && request.resource.data.evento is string
+        && request.resource.data.keys().hasOnly(['tarjeta','evento','etiqueta','pagina','ts','ua']);
+      allow read: if esOperador();
+      allow update, delete: if false;
+    }
+
     // ── Denegar todo lo demás ───────────────────────────────────────
     match /{document=**} {
       allow read, write: if false;
