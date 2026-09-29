@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Panel de Reporte · KONFÍO ZINC</title>
+<link rel="icon" type="image/png" href="https://konfiozinc.github.io/card/assets/img/logos/logo.jpeg">
+<style>
+  :root{--gold:#F0B429;--gold2:#FFD97D;--bg:#0A0A0A;--panel:#141414;--line:#2a2a2a;--txt:#eee;--muted:#999;--green:#25d366}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;padding:20px 14px}
+  .wrap{max-width:900px;margin:0 auto}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+  .brand{font-family:Georgia,serif;font-weight:700;font-size:22px;color:var(--gold)}
+  .brand small{display:block;font-family:'Plus Jakarta Sans',sans-serif;font-weight:400;font-size:11px;color:var(--muted);letter-spacing:.08em}
+  button{font-family:inherit;cursor:pointer;border:0}
+  .btn{background:var(--gold);color:#000;font-weight:700;padding:9px 16px;border-radius:10px;font-size:13px}
+  .btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line)}
+  .login{max-width:360px;margin:60px auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:28px}
+  .login h1{font-family:Georgia,serif;color:var(--gold);font-size:20px;margin-bottom:4px}
+  .login p{color:var(--muted);font-size:13px;margin-bottom:18px}
+  .login input{width:100%;background:#0d0d0d;border:1px solid var(--line);color:#fff;border-radius:10px;padding:12px;margin-bottom:10px;font-size:14px;font-family:inherit}
+  .login .err{color:#ff6b6b;font-size:12px;margin:8px 0}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px}
+  .kpi{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .kpi .n{font-family:Georgia,serif;font-size:30px;font-weight:700;color:var(--gold)}
+  .kpi .l{font-size:11px;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-top:2px}
+  .kpi.lead .n{color:var(--green)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+  .card h2{font-family:Georgia,serif;font-size:15px;color:var(--gold);margin-bottom:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  td b{color:#fff;font-weight:600}
+  .tarjeta{font-family:Georgia,serif}
+  .badge{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(37,211,102,.15);color:var(--green)}
+  .badge.lead{background:rgba(240,180,41,.18);color:var(--gold2)}
+  .bar{height:6px;border-radius:6px;background:#222;overflow:hidden;margin-top:6px}
+  .bar span{display:block;height:100%;background:var(--gold);border-radius:6px}
+  .fila{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #1c1c1c;font-size:12.5px}
+  .fila:last-child{border-bottom:0}
+  .fila .t{color:var(--muted);font-size:11px}
+  .oculto{display:none}
+  a{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- LOGIN -->
+  <div class="login oculto" id="login">
+    <h1>Panel de Reporte</h1>
+    <p>Ingresa con tu cuenta de KONFÍO ZINC para ver los clics y leads de todas tus tarjetas.</p>
+    <input type="email" id="email" placeholder="Correo" autocomplete="username">
+    <input type="password" id="pass" placeholder="Contraseña" autocomplete="current-password">
+    <div class="err oculto" id="loginErr"></div>
+    <button class="btn" id="btnLogin" style="width:100%">Entrar</button>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="oculto" id="dash">
+    <header>
+      <div class="brand">KONFÍO ZINC <small>Panel de reporte · clics &amp; leads</small></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn ghost" id="btnRefresh">↻ Actualizar</button>
+        <button class="btn ghost" id="btnSalir">Salir</button>
+      </div>
+    </header>
+
+    <div class="kpis">
+      <div class="kpi"><div class="n" id="kClicks">—</div><div class="l">Clics en WhatsApp (leads)</div></div>
+      <div class="kpi lead"><div class="n" id="kLeads">—</div><div class="l">Citas confirmadas (venta potencial)</div></div>
+      <div class="kpi"><div class="n" id="kTarjetas">—</div><div class="l">Tarjetas activas</div></div>
+    </div>
+
+    <div class="card">
+      <h2>Por tarjeta</h2>
+      <table id="tablaTarjetas"><tbody></tbody></table>
+    </div>
+
+    <div class="card">
+      <h2>Últimos eventos</h2>
+      <div id="recientes"></div>
+    </div>
+
+    <p style="color:var(--muted);font-size:11px;text-align:center;margin-top:6px">Los datos se actualizan en tiempo real. Cierra sesión cuando termines.</p>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+const FIREBASE = {
+  apiKey:'AIzaSyDbwAk9APwP2SeaEfWxeQG_bdL9eatciEA',
+  authDomain:'konfio-zinc.firebaseapp.com',
+  projectId:'konfio-zinc',
+  storageBucket:'konfio-zinc.firebasestorage.app',
+  messagingSenderId:'1096915735255',
+  appId:'1:1096915735255:web:00e3d896c266293cced692'
+};
+firebase.initializeApp(FIREBASE);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+const $ = (s)=>document.querySelector(s);
+const loginEl=$('#login'), dashEl=$('#dash');
+
+auth.onAuthStateChanged(u=>{
+  if(u){
+    loginEl.classList.add('oculto');
+    dashEl.classList.remove('oculto');
+    cargar();
+  } else {
+    loginEl.classList.remove('oculto');
+    dashEl.classList.add('oculto');
+  }
+});
+
+$('#btnLogin').onclick = async ()=>{
+  const err=$('#loginErr'); err.classList.add('oculto');
+  try {
+    await auth.signInWithEmailAndPassword($('#email').value.trim(), $('#pass').value);
+  } catch(e){
+    err.textContent = 'No se pudo entrar: ' + (e.code==='auth/invalid-credential'?'correo o contraseña incorrectos.':e.message);
+    err.classList.remove('oculto');
+  }
+};
+$('#btnSalir').onclick = ()=> auth.signOut();
+$('#btnRefresh').onclick = cargar;
+
+async function cargar(){
+  try {
+    const snap = await db.collection('eventos').orderBy('ts','desc').limit(500).get();
+    const docs = snap.docs.map(d=>({...d.data(), id:d.id}));
+    render(docs);
+  } catch(e){
+    alert('No tienes permiso para ver estos datos, o hubo un error: ' + e.message);
+  }
+}
+
+function render(docs){
+  // totales
+  const clicks = docs.filter(d=>d.evento==='click_whatsapp').length;
+  const leads  = docs.filter(d=>d.evento==='generate_lead').length;
+  $('#kClicks').textContent = clicks;
+  $('#kLeads').textContent  = leads;
+
+  // por tarjeta
+  const por = {};
+  docs.forEach(d=>{
+    if(!por[d.tarjeta]) por[d.tarjeta]={clicks:0,leads:0};
+    if(d.evento==='click_whatsapp') por[d.tarjeta].clicks++;
+    if(d.evento==='generate_lead')  por[d.tarjeta].leads++;
+  });
+  const keys = Object.keys(por).sort();
+  $('#kTarjetas').textContent = keys.length;
+  const max = Math.max(1, ...keys.map(k=>por[k].clicks));
+  $('#tablaTarjetas tbody').innerHTML = keys.map(k=>`
+    <tr>
+      <td class="tarjeta">${k}</td>
+      <td><span class="badge">${por[k].clicks}</span></td>
+      <td><span class="badge lead">${por[k].leads}</span></td>
+      <td style="width:40%"><div class="bar"><span style="width:${Math.round(por[k].clicks/max*100)}%"></span></div></td>
+    </tr>`).join('') || '<tr><td colspan="4" style="color:var(--muted)">Aún no hay eventos.</td></tr>';
+
+  // recientes
+  $('#recientes').innerHTML = docs.slice(0,20).map(d=>{
+    const t = d.ts ? new Date(d.ts).toLocaleString('es-CO',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
+    const tipo = d.evento==='generate_lead' ? '<span class="badge lead">cita</span>' : '<span class="badge">lead</span>';
+    return `<div class="fila"><span><b class="tarjeta">${d.tarjeta}</b> ${tipo}</span><span class="t">${d.etiqueta||''} · ${t}</span></div>`;
+  }).join('') || '<p style="color:var(--muted);font-size:12.5px">Sin eventos.</p>';
+}
+
+setInterval(cargar, 30000);
+</script>
+</body>
+</html>
