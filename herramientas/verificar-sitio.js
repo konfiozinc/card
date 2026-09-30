@@ -82,6 +82,8 @@ for (const file of htmlFiles) {
   /* El panel privado (admin.html y admin/*.html) tiene reglas propias:
      son vistas de aplicación, no páginas del sitio público. */
   const esPanel = relPath === 'admin.html' || relPath.startsWith('admin/');
+  /* Páginas internas no indexables (reportes) fuera de las reglas públicas */
+  if (relPath === 'panel.html') continue;
 
   /* 1. Enlaces y recursos internos ---------------------------------- */
   const refRe = /(?:href|src)="(?!https?:|mailto:|tel:|data:|javascript:|#)([^"]*)"/g;
@@ -236,7 +238,7 @@ else {
      Se excluyen las páginas que a propósito no se indexan: gracias.html
      (confirmación de formulario), 404.html (error) y todo el panel
      (admin.html y admin/*). */
-  const SIN_INDEXAR = ['gracias.html', '404.html', 'admin.html', 'blog.html'];
+  const SIN_INDEXAR = ['gracias.html', '404.html', 'admin.html', 'blog.html', 'panel.html'];
   for (const f of htmlFiles) {
     const r = rel(f);
     if (SIN_INDEXAR.includes(r) || r.startsWith('admin/') || r.startsWith('blog/')) continue;

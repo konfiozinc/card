@@ -1218,6 +1218,43 @@ strong { color: var(--fg); }
 .cta-final-title { font-family: var(--font-title); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; line-height: 1.15; margin-bottom: 1rem; }
 .cta-final-sub { color: var(--muted); font-size: 1.05rem; margin-bottom: 1.8rem; }
 
+/* Botón cian (outline) para el perfil Partner */
+.btn-cian { background: transparent; border: 1.5px solid #00E5FF; color: #00E5FF; }
+.btn-cian:hover { background: rgba(0,229,255,.12); border-color: #00E5FF; color: #00E5FF; box-shadow: 0 0 28px rgba(0,229,255,.3); transform: translateY(-2px); }
+
+/* Perfiles (Aliado / Partner / Marca Blanca) */
+.perfiles-grid { display: grid; gap: 1.2rem; margin-top: 2.4rem; }
+@media (min-width: 900px) { .perfiles-grid { grid-template-columns: repeat(3, 1fr); } }
+.perfil-card { background: var(--surface); border: 1px solid var(--border-gold); border-radius: var(--radius); padding: 1.6rem 1.4rem; display: flex; flex-direction: column; gap: .9rem; transition: transform .25s, border-color .25s; }
+.perfil-card:hover { transform: translateY(-4px); border-color: var(--gold); }
+.perfil-icono { font-size: 2.6rem; line-height: 1; }
+.perfil-titulo { font-family: var(--font-title); font-size: 1.05rem; color: var(--gold); margin: 0; letter-spacing: .5px; }
+.perfil-para { color: var(--muted); font-size: .88rem; margin: 0; }
+.perfil-datos { margin: 0; display: grid; gap: .5rem; }
+.perfil-datos > div { border-top: 1px solid var(--border); padding-top: .5rem; }
+.perfil-datos dt { font-size: .7rem; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); }
+.perfil-datos dd { margin: .15rem 0 0; font-size: .92rem; color: var(--fg); }
+.perfil-card .btn { margin-top: auto; }
+
+/* Categorías Bronce / Plata / Oro */
+.categorias-grid { display: grid; gap: 1.2rem; margin-top: 2.4rem; }
+@media (min-width: 900px) { .categorias-grid { grid-template-columns: repeat(3, 1fr); } }
+.categoria-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.5rem 1.3rem; text-align: center; }
+.categoria-card--destacada { border-color: var(--gold); box-shadow: 0 0 34px rgba(240,180,41,.14); }
+.categoria-medalla { font-size: 2.4rem; line-height: 1; }
+.categoria-nivel { font-family: var(--font-title); font-size: .95rem; letter-spacing: 2px; color: #fff; margin: .6rem 0 .2rem; }
+.categoria-req { color: var(--muted); font-size: .85rem; margin: 0 0 .7rem; }
+.categoria-comision { font-family: var(--font-title); font-weight: 800; font-size: 2rem; color: var(--gold); }
+.categoria-beneficios { list-style: none; margin: .9rem 0 0; padding: 0; text-align: left; display: grid; gap: .4rem; }
+.categoria-beneficios li { color: var(--fg); font-size: .85rem; padding-left: 1.3rem; position: relative; }
+.categoria-beneficios li::before { content: '✓'; position: absolute; left: 0; color: var(--gold); font-weight: 700; }
+
+/* Marca blanca y CTA final */
+.mb-desc { max-width: 760px; margin: 0 auto 1.6rem; text-align: center; color: var(--fg); font-size: 1.02rem; }
+.mb-subtitulo { font-family: var(--font-title); font-size: .9rem; letter-spacing: 1px; color: var(--gold); margin: 1.8rem 0 .9rem; text-align: center; }
+.text-center { text-align: center; margin-top: 1.8rem; }
+.aliados-cta-botones { display: flex; gap: .8rem; flex-wrap: wrap; justify-content: center; margin-top: .4rem; }
+
 @media (max-width: 768px) {
   .aliados-steps { grid-template-columns: 1fr; }
   .comisiones-table { font-size: .86rem; min-width: 480px; }
