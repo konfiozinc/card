@@ -358,6 +358,8 @@ code { font-family: ui-monospace, Consolas, monospace; color: var(--gold); font-
 
 /* Badge inhabilitado */
 .badge--inhabilitado { background: rgba(244,114,182,.12); color: #f472b6; border: 1px solid rgba(244,114,182,.3); }
+/* Badge pendiente de configuración (importados automáticamente) */
+.badge--pendiente_configuracion { background: rgba(0,229,255,.1); color: var(--cyan); border: 1px solid rgba(0,229,255,.3); }
 
 /* Vista "Clientes por mes" */
 .mes-grupo { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: .9rem; overflow: hidden; }

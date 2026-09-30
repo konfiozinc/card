@@ -57,3 +57,8 @@ serviceAccount.json
 serviceAccount.json.json
 
 herramientas/config-publica.json
+
+# Migración de proyectos (script local, no se publica su salida)
+herramientas/node_modules/
+herramientas/reporte_importacion.csv
+herramientas/reporte_importacion.json
