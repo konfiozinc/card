@@ -62,3 +62,6 @@ herramientas/config-publica.json
 herramientas/node_modules/
 herramientas/reporte_importacion.csv
 herramientas/reporte_importacion.json
+
+# Backups locales de Firestore (datos sensibles: NUNCA subir)
+herramientas/backups/
