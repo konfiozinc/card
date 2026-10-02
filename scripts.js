@@ -183,7 +183,7 @@
     ['Colsabor — Comida sana', 'https://konfiozinc.github.io/colsabor/'],
     ['Dulce Delicia — Pastelería', 'https://konfiozinc.github.io/pasteleria_artesanal/'],
     ['Carnicería La Milagrosa', 'https://konfiozinc.github.io/carniceria_la_milagrosa/'],
-    ['Nandy Nails — Uñas', 'https://konfiozinc.github.io/nandy_nails/'],
+    ['Nandy Nails — Uñas', 'https://konfiozinc.github.io/nandy-nails/'],
     ['Makeup Artist', 'https://konfiozinc.github.io/makeup_artist/'],
     ['NP Style — Salón', 'https://konfiozinc.github.io/np-style/'],
     ['La Cañada Style — Barbería', 'https://konfiozinc.github.io/ca-ada_style/'],
@@ -362,7 +362,7 @@
       var has = function (arr) { return arr.some(function (k) { return q.indexOf(k) !== -1; }); };
 
       if (/(^|\s)unas(\s|$)/.test(q) && !/dudas/.test(q)) {
-        return { text: '¡Perfecto! 👋 Para tu sector tenemos este ejemplo real:\nhttps://konfiozinc.github.io/nandy_nails/\n\n📌 ¿Ya manejas redes sociales para tu negocio?', cta: false };
+        return { text: '¡Perfecto! 👋 Para tu sector tenemos este ejemplo real:\nhttps://konfiozinc.github.io/nandy-nails/\n\n📌 ¿Ya manejas redes sociales para tu negocio?', cta: false };
       }
       if (has(['tarjeta', 'tarjetas', 'tarjeta digital', 'tarjetas digitales'])) {
         return { text: 'La tarjeta digital es tu presentación en un solo enlace 💳: contacto, redes, WhatsApp, ubicación y galería. Se actualiza al instante y reemplaza el papel.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
@@ -396,7 +396,7 @@
         [['abogado', 'abogados', 'juridico', 'legal', 'derecho', 'firma'], ['https://konfiozinc.github.io/abogados-dta/', 'https://konfiozinc.github.io/fcr_alianza_legal/']],
         [['belleza', 'salon', 'peluqueria', 'estilista'], ['https://konfiozinc.github.io/np-style/']],
         [['barberia', 'barbero'], ['https://konfiozinc.github.io/ca-ada_style/']],
-        [['manicure', 'pedicure', 'nail'], ['https://konfiozinc.github.io/nandy_nails/']],
+        [['manicure', 'pedicure', 'nail'], ['https://konfiozinc.github.io/nandy-nails/']],
         [['maquillaje', 'makeup'], ['https://konfiozinc.github.io/makeup_artist/']],
         [['contador', 'contadora', 'contabilidad'], ['https://konfiozinc.github.io/lizeth_lozano/']],
         [['nutricion funcional'], ['https://konfiozinc.github.io/nutricion_funcional/']],
