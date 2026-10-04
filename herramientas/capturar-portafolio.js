@@ -50,7 +50,7 @@ const proyectos = [
 
 const outDir = path.join(__dirname, '..', 'assets', 'img', 'portafolio');
 const VIEWPORT = { width: 600, height: 800 };
-const WAIT_MS = Number(process.env.CAPTURE_WAIT_MS) || 3500;
+const SETTLE_MS = Number(process.env.CAPTURE_SETTLE_MS) || 2500;
 
 (async () => {
   fs.mkdirSync(outDir, { recursive: true });
@@ -64,7 +64,17 @@ const WAIT_MS = Number(process.env.CAPTURE_WAIT_MS) || 3500;
     const page = await browser.newPage({ viewport: VIEWPORT, deviceScaleFactor: 2 });
     try {
       await page.goto(url, { waitUntil: 'load', timeout: 45000 });
-      await page.waitForTimeout(WAIT_MS);
+      // 1) Esperar a que se oculte cualquier splash/loader conocido (evita capturar pantallas de carga)
+      await page.waitForSelector(
+        '#splash.is-hidden, .splash.is-hidden, .loader.is-hidden, .preloader.is-hidden, .loading-screen.is-hidden, [class*="splash"].is-hidden',
+        { timeout: 6000 }
+      ).catch(() => {});
+      // 2) Esperar a que las fuentes estén listas
+      await page.evaluate(() => document.fonts.ready).catch(() => {});
+      // 3) Tiempo de asentamiento para imágenes lazy y animaciones de entrada
+      await page.waitForTimeout(SETTLE_MS);
+      // 4) Asegurar scroll arriba
+      await page.evaluate(() => window.scrollTo(0, 0));
       const out = path.join(outDir, `${slug}.jpg`);
       await page.screenshot({ path: out, type: 'jpeg', quality: 85 });
       const size = fs.statSync(out).size;
