@@ -366,7 +366,8 @@
     ['PRORED Fedpazco', 'https://konfiozinc.github.io/prored_fedpazco/'],
     ['Konfío Sports — Mundial 2026', 'https://konfiozinc.github.io/konfio-sports/'],
     ['PANGEA — Coordinación sin conexión', 'https://konfiozinc.github.io/pangea/'],
-    ['Regina Pereira — Nails Academy', 'https://konfiozinc.github.io/card/']
+    ['SAMEM — Seguridad en el hogar', 'https://konfiozinc.github.io/samem/'],
+    ['ALÍ Binary — Trading', 'https://konfiozinc.github.io/ali/']
   ];
 
   $$('#verTodosBtn, [data-all-projects]').forEach(function (btn) {
