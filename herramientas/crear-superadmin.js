@@ -1,6 +1,7 @@
 /* Crea el primer SUPERADMIN usando la cuenta de servicio (Admin SDK).
    Usuario: konfiozinc@gmail.com
-   - Crea el usuario en Firebase Auth (con contraseña temporal).
+   - Crea el usuario en Firebase Auth (la contraseña se pasa por argumento,
+     NUNCA hardcodeada).
    - Crea el documento usuarios/{uid} con rol SUPERADMIN y activo:true.
    Idempotente: si ya existe, solo reasegura el documento de Firestore. */
 'use strict';
@@ -10,7 +11,12 @@ const sa = require('../serviceAccount.json');
 admin.initializeApp({ credential: admin.credential.cert(sa) });
 
 const EMAIL = process.argv[2] || 'konfiozinc@gmail.com';
-const PASSWORD = process.argv[3] || 'Kz2026!Temporal';
+const PASSWORD = process.argv[3] || process.env.ADMIN_PASSWORD;
+if (!PASSWORD) {
+  console.error('Falta la contraseña. Uso: node crear-superadmin.js [email] <contraseña>');
+  console.error('Alternativa: variable de entorno ADMIN_PASSWORD.');
+  process.exit(1);
+}
 const NOMBRE = 'Darwin Montalvo';
 const ROL = 'SUPERADMIN';
 
