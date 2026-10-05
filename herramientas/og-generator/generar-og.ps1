@@ -1,7 +1,8 @@
-﻿Add-Type -AssemblyName System.Drawing
+Add-Type -AssemblyName System.Drawing
 
 $ErrorActionPreference = 'Stop'
-$root = 'C:\Users\PC\Documents\KONFIO_ZINC\0-Agencia y Recursos\Agencia_Konfio_Zinc'
+# Ruta portátil: raíz del repo (herramientas/og-generator -> ../..)
+$root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $logoPath = Join-Path $root 'assets\img\logos\logo.jpeg'
 $outDir = Join-Path $root 'assets\img\og'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
