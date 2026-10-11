@@ -84,6 +84,7 @@ body {
 }
 img { max-width: 100%; display: block; height: auto; }
 a { color: inherit; text-decoration: none; }
+.footer-col a { text-decoration: underline; text-underline-offset: 3px; }
 ul, ol { list-style: none; }
 button { font-family: inherit; cursor: pointer; }
 strong { color: var(--fg); }
