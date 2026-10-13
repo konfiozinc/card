@@ -109,7 +109,7 @@
       "@type": "ItemList",
       "@id": "https://konfiozinc.github.io/card/portafolio.html#casos",
       "name": "Casos de éxito publicados",
-      "numberOfItems": 27,
+      "numberOfItems": 30,
       "itemListOrder": "https://schema.org/ItemListOrderAscending",
       "itemListElement": [
         { "@type": "ListItem", "position": 1, "name": "Dra. Isabela Rojas — Odontología y estética dental", "url": "https://konfiozinc.github.io/servicios_odontologicos/" },
@@ -138,7 +138,10 @@
         { "@type": "ListItem", "position": 24, "name": "ALÍ Binary — Señales de trading en tiempo real", "url": "https://konfiozinc.github.io/ali/" },
         { "@type": "ListItem", "position": 25, "name": "UneFibra — Internet por fibra óptica", "url": "https://konfiozinc.github.io/unefibra/" },
         { "@type": "ListItem", "position": 26, "name": "Konfio Sports — Fútbol en vivo gratis", "url": "https://konfiozinc.github.io/konfio-sports/" },
-        { "@type": "ListItem", "position": 27, "name": "Centinela — Nómina Simple COOPEVIAN", "url": "https://konfiozinc.github.io/nomina_centinela/" }
+        { "@type": "ListItem", "position": 27, "name": "Centinela — Nómina Simple COOPEVIAN", "url": "https://konfiozinc.github.io/nomina_centinela/" },
+        { "@type": "ListItem", "position": 28, "name": "Postres Snoopy — Postres artesanales con pedido por WhatsApp", "url": "https://konfiozinc.github.io/postres/" },
+        { "@type": "ListItem", "position": 29, "name": "PlatoScan — Calorías y macros con una foto", "url": "https://konfiozinc.github.io/platoscan/" },
+        { "@type": "ListItem", "position": 30, "name": "Pangea — Coordinación sin conexión", "url": "https://konfiozinc.github.io/pangea/" }
       ]
     },
     {
@@ -229,7 +232,7 @@
   <!-- ══════════════ HERO DEL PORTAFOLIO ══════════════ -->
   <section class="page-hero">
     <div class="container">
-      <span class="eyebrow reveal">Portafolio · 27 casos de éxito</span>
+      <span class="eyebrow reveal">Portafolio · 30 casos de éxito</span>
       <h1 class="page-hero-title reveal">Casos de éxito que <span class="text-gradient">hablan por nosotros</span></h1>
       <p class="page-hero-sub reveal">Aquí no hay maquetas de vitrina: son proyectos publicados y funcionando para negocios colombianos de salud, gastronomía, belleza, servicios legales, inmobiliaria, transporte, música y comercio. Filtra por tipo de producto y abre cualquier caso para ver el desafío, la solución, el resultado y el enlace al sitio en vivo.</p>
       <div class="hero-actions reveal">
@@ -279,9 +282,10 @@
         <button class="filter-btn" data-filter="menus" aria-pressed="false">Menús digitales</button>
         <button class="filter-btn" data-filter="agentes" aria-pressed="false">Agentes IA</button>
         <button class="filter-btn" data-filter="qr" aria-pressed="false">Códigos QR</button>
+        <button class="filter-btn" data-filter="productos" aria-pressed="false">Nuestros productos</button>
       </div>
 
-      <!-- Rejilla de casos: 27 proyectos. Los botones abren el modal de caso de estudio (main.js) -->
+      <!-- Rejilla de casos: 30 proyectos. Los botones abren el modal de caso de estudio (main.js) -->
       <div class="portfolio-grid">
 
         <!-- 1. Dra. Isabela Rojas -->
@@ -759,6 +763,57 @@
           <div class="case-overlay">
             <span class="case-metric">Nómina simple</span>
             <span class="case-name">Centinela · Nómina</span>
+          </div>
+        </button>
+
+        <!-- 28. Postres Snoopy (cliente) -->
+        <button class="case reveal" data-category="landing" data-open-modal
+          data-title="Postres Snoopy — Postres artesanales con pedido por WhatsApp"
+          data-url="https://konfiozinc.github.io/postres/"
+          data-img="assets/img/portafolio/postres.jpg"
+          data-sector="Gastronomía · Postres"
+          data-metrics="6 productos|Carrito con persistencia|Pedido por WhatsApp"
+          data-challenge="Los pedidos llegaban por mensajes sueltos: el negocio tenía que preguntar producto por producto y el cliente no veía los precios ni las opciones en un solo lugar."
+          data-solution="Landing de negocio con catálogo de 6 postres, carrito que conserva lo elegido al cerrar la página y un pedido que se arma solo para WhatsApp."
+          data-result="El pedido llega a WhatsApp con los productos, las cantidades y el total ya escritos, listo para confirmar.">
+          <img src="assets/img/portafolio/postres.jpg" alt="Landing de Postres Snoopy con catálogo y pedido por WhatsApp" loading="lazy" width="600" height="800">
+          <div class="case-overlay">
+            <span class="case-metric">Pedido por WhatsApp</span>
+            <span class="case-name">Postres Snoopy · Postres</span>
+          </div>
+        </button>
+
+        <!-- 29. PlatoScan (producto propio) -->
+        <button class="case reveal" data-category="productos" data-open-modal
+          data-title="PlatoScan — Calorías y macros con una foto (app web instalable)"
+          data-url="https://konfiozinc.github.io/platoscan/"
+          data-img="assets/img/portafolio/platoscan.jpg"
+          data-sector="Producto propio · App con IA"
+          data-metrics="Se instala como app|Análisis con IA|Historial en tu teléfono"
+          data-challenge="Contar calorías obliga a buscar cada alimento y pesar las porciones; la mayoría abandona en la primera semana."
+          data-solution="App web instalable que analiza una foto del plato con IA y devuelve calorías y macronutrientes, con panel diario, racha, metas personalizadas, progreso de peso y modo claro/oscuro."
+          data-result="Producto propio publicado y funcionando: cada escaneo se guarda en el propio dispositivo, sin cuentas ni servidores de historial.">
+          <img src="assets/img/portafolio/platoscan.jpg" alt="PlatoScan, app web que calcula calorías y macros con una foto" loading="lazy" width="600" height="800">
+          <div class="case-overlay">
+            <span class="case-metric">App con IA</span>
+            <span class="case-name">PlatoScan · Producto propio</span>
+          </div>
+        </button>
+
+        <!-- 30. Pangea (producto propio) -->
+        <button class="case reveal" data-category="productos" data-open-modal
+          data-title="Pangea — Coordinación sin conexión para comunidades aisladas"
+          data-url="https://konfiozinc.github.io/pangea/"
+          data-img="assets/img/portafolio/pangea.jpg"
+          data-sector="Producto propio · App offline"
+          data-metrics="Funciona sin conexión|Sin servidores|Sin cuentas"
+          data-challenge="Las herramientas de coordinación dan por supuesto lo que en muchos lugares no existe: conexión, electricidad, una cuenta o un servidor."
+          data-solution="App web que opera sin servidores, sin cuentas y sin conexión: traducción, emparejamiento entre problemas y capacidades, verificación por consenso, archivo del conocimiento y alertas que viajan sin internet."
+          data-result="Producto propio publicado: se instala en el navegador y trabaja sin depender de una red ni de un servidor central.">
+          <img src="assets/img/portafolio/pangea.jpg" alt="Pangea, aplicación web que funciona sin conexión ni servidores" loading="lazy" width="600" height="800">
+          <div class="case-overlay">
+            <span class="case-metric">Funciona sin conexión</span>
+            <span class="case-name">Pangea · Producto propio</span>
           </div>
         </button>
 
