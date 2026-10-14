@@ -204,7 +204,7 @@
       guardado(K_OK, '1');
       if (chip) {
         chip.classList.add('kz-ok');
-        chip.querySelector('.kz-accion').innerHTML = '<span>✅</span> Avisos activados';
+        chip.querySelector('.kz-accion').innerHTML = '<span>✅</span> ¡Listo! Te contactaremos';
         setTimeout(function () { chip.classList.remove('kz-visible'); }, 2600);
       }
     }).catch(function (err) {
@@ -255,8 +255,7 @@
     a.innerHTML = suscrito ? '🔔 Avisos activados' : '🔔 Recibir avisos de KONFÍO ZINC';
     a.addEventListener('click', function () {
       if (guardado(K_OK) === '1' || Notification.permission === 'granted') {
-        panel('Avisos activados', '<p>Este dispositivo ya está suscrito a los avisos de KONFÍO ZINC. ' +
-          'Te llegarán novedades de servicios, promociones y recordatorios.</p>');
+        panel('¡Listo!', '<p>Te contactaremos cuando lancemos novedades.</p>');
         return;
       }
       chip.classList.add('kz-visible');
