@@ -343,7 +343,7 @@
     ['Nandy Nails — Uñas y manicure', 'https://konfiozinc.github.io/nandy-nails/'],
     ['NP Style — Salón de belleza', 'https://konfiozinc.github.io/np-style/'],
     ['Century 21 Radial — Inmobiliaria', 'https://konfiozinc.github.io/century_21_radial/'],
-    ['Mega Express — Transporte y logística', 'https://konfiozinc.github.io/mega-express/'],
+    ['Mega Express — Internet fibra óptica', 'https://konfiozinc.github.io/mega-express/'],
     ['Calixto Acordeón Mágico — Música y espectáculos', 'https://konfiozinc.github.io/calixto_acordeon_magico/'],
     ['Quiromasajes GAP — Salud y bienestar', 'https://konfiozinc.github.io/quiromasajes-gap/'],
     ['NBC Company — Comercio de utensilios', 'https://konfiozinc.github.io/nbc-company/'],
@@ -818,10 +818,9 @@
         [['diseno', 'disenador', 'diseno grafico'], ['https://konfiozinc.github.io/diseno_grafico/']],
         [['eventos', 'decoracion', 'fiestas'], ['https://konfiozinc.github.io/decoradora_de_fiestas/']],
         [['fumigacion', 'plagas'], ['https://konfiozinc.github.io/fumigaciones-monterrey/', 'https://konfiozinc.github.io/fumig_master/']],
-        [['transporte', 'mensajeria', 'envios', 'logistica'], ['https://konfiozinc.github.io/mega-express/']],
         [['inmobiliaria', 'bienes raices', 'finca raiz', 'avaluos'], ['https://konfiozinc.github.io/century_21_radial/', 'https://konfiozinc.github.io/dg_ventas_avaluos/']],
         [['tienda', 'comercio', 'almacen'], ['https://konfiozinc.github.io/dondecompro/', 'https://konfiozinc.github.io/nbc-company/']],
-        [['internet', 'fibra', 'telecomunicaciones'], ['https://konfiozinc.github.io/unefibra/']],
+        [['internet', 'fibra', 'telecomunicaciones'], ['https://konfiozinc.github.io/unefibra/', 'https://konfiozinc.github.io/mega-express/']],
         [['musica', 'cantante', 'cantar', 'voz', 'artista', 'banda'], ['https://konfiozinc.github.io/calixto_acordeon_magico/', 'https://konfiozinc.github.io/the-big-bang-carranga/']],
         [['masaje', 'masajes', 'quiromasaje', 'terapia'], ['https://konfiozinc.github.io/quiromasajes-gap/']]
       ];
@@ -832,7 +831,7 @@
         }
       }
       if (has(['portafolio', 'ejemplo', 'ejemplos', 'trabajo', 'trabajos', 'casos', 'resultados', 'proyectos'])) {
-        return { text: 'Tenemos proyectos en restaurantes, salud, belleza, inmobiliaria, transporte, música y más 💼.\n\nPuedes ver el portafolio completo aquí:\nhttps://konfiozinc.github.io/card/portafolio.html\n\n¿De qué sector es tu negocio? Así te muestro un ejemplo parecido.', cta: false };
+        return { text: 'Tenemos proyectos en restaurantes, salud, belleza, inmobiliaria, internet, música y más 💼.\n\nPuedes ver el portafolio completo aquí:\nhttps://konfiozinc.github.io/card/portafolio.html\n\n¿De qué sector es tu negocio? Así te muestro un ejemplo parecido.', cta: false };
       }
       if (has(['entrega', 'tiempo', 'cuanto tarda', 'cuanto tardan', 'tardan', 'tarda', 'cuando', 'demora', 'rapido'])) {
         return { text: '⏱️ Entregamos en 24 a 48 horas hábiles las tarjetas, catálogos y menús digitales. Las landing pages tardan de 5 a 15 días y los agentes IA de 5 a 10 días, según el alcance.', cta: true };
