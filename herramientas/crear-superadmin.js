@@ -42,11 +42,13 @@ const ROL = 'SUPERADMIN';
 
   /* Siembra datos iniciales por si seedInicial del panel aún no se ejecutó */
   const planes = [
-    { nombre: 'KZ Inicio', precio: 59900, servicio: 'tarjetas', categoria: 'STAR', duracionMeses: 12, orden: 1, estado: 'ACTIVO', incluye: ['Tarjeta Star', 'Código QR'] },
-    { nombre: 'KZ Negocio', precio: 179900, servicio: 'tarjetas', categoria: 'PRO', duracionMeses: 12, orden: 2, estado: 'ACTIVO', incluye: ['Tarjeta Pro', 'Catálogo o menú'] },
-    { nombre: 'KZ Profesional', precio: 279900, servicio: 'tarjetas', categoria: 'ELITE', duracionMeses: 12, orden: 3, estado: 'ACTIVO', incluye: ['Tarjeta Elite', 'Mini landing'] },
-    { nombre: 'KZ Premium', precio: 479900, servicio: 'agentes', categoria: null, duracionMeses: 12, orden: 4, estado: 'ACTIVO', incluye: ['Todo Profesional', 'Agente IA'] }
-  ];
+  { nombre: 'Tarjeta Star',  precio: 49900,  servicio: 'tarjetas', categoria: 'STAR',  duracionMeses: 12, orden: 1 },
+  { nombre: 'Tarjeta Pro',   precio: 99900,  servicio: 'tarjetas', categoria: 'PRO',   duracionMeses: 12, orden: 2 },
+  { nombre: 'Tarjeta Elite', precio: 149900, servicio: 'tarjetas', categoria: 'ELITE', duracionMeses: 12, orden: 3 },
+  { nombre: 'Agente IA Esencial', precio: 250000, servicio: 'agentes', categoria: null, duracionMeses: 12, orden: 4 },
+  { nombre: 'Agente IA Negocio',  precio: 420000, servicio: 'agentes', categoria: null, duracionMeses: 12, orden: 5 },
+  { nombre: 'Agente IA Premium',  precio: 650000, servicio: 'agentes', categoria: null, duracionMeses: 12, orden: 6 }
+];
   for (const p of planes) {
     const exist = await admin.firestore().collection('planes').where('nombre', '==', p.nombre).limit(1).get();
     if (exist.empty) await admin.firestore().collection('planes').add(p);

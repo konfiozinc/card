@@ -39,7 +39,6 @@ const PRUEBAS = [
   ['necesito un agente ia', /250\.000/, 'agente IA con precio'],
   ['hacen landing pages?', /350\.000/, 'landing page con precio'],
   ['quiero codigos qr', /50\.000/, 'códigos QR con precio'],
-  ['tienen paquetes?', /KZ Inicio/, 'paquetes todo en uno'],
 
   // Programa de aliados (lo nuevo)
   ['quiero ser aliado', /Bronce/, 'ser aliado'],

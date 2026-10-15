@@ -35,7 +35,6 @@ const ORG_ID = 'https://konfiozinc.github.io/card/#organizacion';
 
 /* Variantes del nombre que la gente escribe y busca de verdad.
    "KZ" se incluye porque es la abreviatura usada en los paquetes y en el
-   propio panel (KZ Inicio, KZ Negocio, KZ Activo). */
 const ALTERNATE_NAMES = ['Konfio Zinc', 'KONFIO ZINC', 'KZ', 'KZ Soluciones Digitales'];
 
 function walk(dir, out = []) {

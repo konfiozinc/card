@@ -12,7 +12,6 @@ clientes** con base de datos en Firebase Firestore y notificaciones push automá
 - **Responsable:** Darwin Montalvo — Fundador · `konfiozinc@gmail.com` · WhatsApp +57 320 641 1340
 
 > ⚠️ **Respaldo del sitio anterior:** el `index.html` de la landing one-page original quedó
-> guardado como **`index-old.html`**. Los servicios de marketing digital genéricos (SEO, redes
 > sociales, publicidad digital, desarrollo web genérico, branding y email marketing) se
 > **retiraron del sitio** porque la agencia no los ofrece: sus páginas siguen recuperables desde
 > el historial de Git (`git log --diff-filter=D --name-only`).
@@ -56,7 +55,6 @@ El sitio **no requiere compilación**: se sube tal cual a GitHub Pages.
 ```
 card/
 ├── index.html                     · Home (hero + video lite, métricas, 6 servicios, por qué elegirnos, proceso, testimonios, portafolio, garantía, FAQ, CTA)
-├── index-old.html                 · Respaldo de la landing one-page anterior
 ├── nosotros.html                  · Historia, fundador (Darwin Montalvo), misión/visión/valores, equipo, números
 ├── servicios.html                 · Overview de los 6 servicios reales + proceso + paquetes + FAQ general
 ├── portafolio.html                · Portafolio con filtros por categoría y casos de estudio en modal
@@ -482,7 +480,6 @@ no pasa nada: la función `track()` no falla):
   `apple-touch-icon`, bloque GA4/Search Console comentado, y cerrar con
   `<script src="[../]assets/js/main.js" defer></script>`.
 - **Antes de publicar**, revisa la consola del navegador en móvil, tablet y escritorio.
-- **Respaldo:** `index-old.html` guarda la versión anterior del home; no lo borres hasta validar
   el nuevo sitio en producción.
 
 ### Verificación rápida antes de publicar (recomendado)
@@ -502,7 +499,6 @@ Si detecta un enlace roto, corrígelo antes de hacer `push`.
 
 ```powershell
 $repo = "C:\Users\PC\Documents\KONFIO_ZINC\0-Agencia y Recursos\Agencia_Konfio_Zinc"
-$html = Get-ChildItem -Path $repo -Recurse -Filter *.html | Where-Object { $_.FullName -notmatch '\\\.git\\' -and $_.Name -ne 'index-old.html' }
 foreach ($f in $html) {
   $content = Get-Content $f.FullName -Raw
   $base = $f.DirectoryName
