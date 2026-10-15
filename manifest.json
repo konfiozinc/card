@@ -1,0 +1,41 @@
+{
+  "name": "KONFÍO ZINC · Soluciones digitales para negocios",
+  "short_name": "KONFÍO ZINC",
+  "description": "Tarjetas digitales, catálogos, menús digitales con QR, landing pages, códigos QR y agentes IA para negocios colombianos.",
+  "lang": "es-CO",
+  "dir": "ltr",
+  "start_url": "/card/",
+  "scope": "/card/",
+  "id": "/card/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#000000",
+  "theme_color": "#F0B429",
+  "categories": ["business", "productivity", "marketing"],
+  "icons": [
+    {
+      "src": "assets/img/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/img/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "assets/img/icons/icon-maskable-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "assets/img/icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
