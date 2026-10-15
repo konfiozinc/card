@@ -85,3 +85,100 @@ self.addEventListener('notificationclick', (event) => {
 /* ── Ciclo de vida: activar de inmediato la versión nueva ──────────── */
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+
+/* ══════════════════════════════════════════════════════════════════════════
+   CACHE PWA (parte 2). Se agrega AL FINAL a proposito: no se toca ni una linea
+   de las notificaciones push de arriba. Varios addEventListener('install'|
+   'activate') son legales, asi que este bloque trae los suyos.
+   Estrategia: HTML network-first (con pagina de sin conexion sintetizada),
+   CSS/JS stale-while-revalidate (los assets no llevan version en la URL).
+   Excluidos siempre: Firebase/FCM, Google, analitica, Cloudinary y el panel.
+   ══════════════════════════════════════════════════════════════════════════ */
+const KZ_CACHE = 'kz-card-v1';
+const KZ_PRECACHE = [
+  './',
+  'index.html',
+  'assets/css/styles.css',
+  'assets/js/main.js',
+  'manifest.json'
+];
+const KZ_EXCLUIDOS = [
+  '/admin', '/panel', 'push.js', 'firebase-messaging-sw.js',
+  'firebaseio.com', 'googleapis.com', 'gstatic.com', 'firebaseapp.com',
+  'fcm.googleapis.com', 'google-analytics.com', 'googletagmanager.com',
+  'cloudinary.com', 'res.cloudinary.com'
+];
+const KZ_OFFLINE = '<!doctype html><html lang="es"><head><meta charset="utf-8">' +
+  '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+  '<title>Sin conexion - KONFIO ZINC</title>' +
+  '<style>body{margin:0;background:#000;color:#fff;font-family:system-ui,sans-serif;' +
+  'display:flex;align-items:center;justify-content:center;min-height:100vh;text-align:center}' +
+  'h1{color:#F0B429;font-size:22px;margin:0 0 10px}p{margin:0 0 18px;opacity:.85}' +
+  'a{color:#F0B429}</style></head><body><div><h1>Sin conexion</h1>' +
+  '<p>No pudimos cargar la pagina. Revisa tu internet e intentalo otra vez.</p>' +
+  '<a href="./">Reintentar</a></div></body></html>';
+
+function kzExcluido(url) {
+  return KZ_EXCLUIDOS.some(function (fragmento) { return url.indexOf(fragmento) !== -1; });
+}
+
+self.addEventListener('install', function (evento) {
+  evento.waitUntil(
+    caches.open(KZ_CACHE).then(function (cache) {
+      return Promise.all(KZ_PRECACHE.map(function (ruta) {
+        return cache.add(new Request(ruta, { cache: 'reload' })).catch(function () { return null; });
+      }));
+    }).then(function () { return self.skipWaiting(); })
+  );
+});
+
+self.addEventListener('activate', function (evento) {
+  evento.waitUntil(
+    caches.keys().then(function (nombres) {
+      return Promise.all(nombres.map(function (n) {
+        if (n.indexOf('kz-card-') === 0 && n !== KZ_CACHE) return caches.delete(n);
+        return null;
+      }));
+    }).then(function () { return self.clients.claim(); })
+  );
+});
+
+self.addEventListener('fetch', function (evento) {
+  const peticion = evento.request;
+  if (peticion.method !== 'GET') return;
+  const url = new URL(peticion.url);
+  if (url.origin !== self.location.origin) return;
+  if (kzExcluido(url.pathname) || kzExcluido(url.href)) return;
+
+  const esHTML = peticion.mode === 'navigate' ||
+    (peticion.headers.get('accept') || '').indexOf('text/html') !== -1;
+
+  if (esHTML) {
+    evento.respondWith(
+      fetch(peticion).then(function (respuesta) {
+        const copia = respuesta.clone();
+        caches.open(KZ_CACHE).then(function (c) { c.put(peticion, copia); });
+        return respuesta;
+      }).catch(function () {
+        return caches.match(peticion).then(function (guardada) {
+          if (guardada) return guardada;
+          return new Response(KZ_OFFLINE, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
+        });
+      })
+    );
+    return;
+  }
+
+  evento.respondWith(
+    caches.match(peticion).then(function (guardada) {
+      const red = fetch(peticion).then(function (respuesta) {
+        if (respuesta && respuesta.status === 200 && respuesta.type === 'basic') {
+          const copia = respuesta.clone();
+          caches.open(KZ_CACHE).then(function (c) { c.put(peticion, copia); });
+        }
+        return respuesta;
+      }).catch(function () { return guardada; });
+      return guardada || red;
+    })
+  );
+});
