@@ -208,4 +208,23 @@
     <priority>0.6</priority>
   </url>
 
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/nandy-nails.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/make-up.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/dta-abogados.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
 </urlset>
