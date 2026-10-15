@@ -65,3 +65,7 @@ herramientas/reporte_importacion.json
 
 # Backups locales de Firestore (datos sensibles: NUNCA subir)
 herramientas/backups/
+
+# Copias de seguridad locales (nunca versionar)
+*.bak
+*.orig
