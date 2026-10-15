@@ -42,7 +42,7 @@
 - La paleta se define por la **marca del cliente** (`theme-color` = color de marca).
 - Guía por tier:
   - **Elite / Premium** → look premium (negro/dorado).
-  - **Start / Pro** → color de marca del cliente (ej. Deicy `#1A2B5C`, SAMEM `#E30613`).
+  - **Star / Pro** → color de marca del cliente (ej. Deicy `#1A2B5C`, SAMEM `#E30613`).
 - **Botones de contacto con colores oficiales** (siempre):
   - WhatsApp → verde `#25D366`
   - Instagram → gradiente (púrpura→rosa→naranja)
