@@ -34,7 +34,7 @@ const DRY = process.argv.includes('--dry-run');
 const ORG_ID = 'https://konfiozinc.github.io/card/#organizacion';
 
 /* Variantes del nombre que la gente escribe y busca de verdad.
-   "KZ" se incluye porque es la abreviatura usada en los paquetes y en el
+   "KZ" se incluye porque es la abreviatura con la que nos buscan. */
 const ALTERNATE_NAMES = ['Konfio Zinc', 'KONFIO ZINC', 'KZ', 'KZ Soluciones Digitales'];
 
 function walk(dir, out = []) {
