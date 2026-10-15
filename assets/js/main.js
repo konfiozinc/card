@@ -741,14 +741,14 @@
       if (/(^|\s)unas(\s|$)/.test(q) && !/dudas/.test(q)) {
         return { text: '¡Perfecto! 👋 Para tu sector tenemos este ejemplo real:\nhttps://konfiozinc.github.io/nandy-nails/\n\n📌 ¿Ya manejas redes sociales para tu negocio?', cta: false };
       }
-      /* ── Paquetes todo en uno ───────────────────────────────────────
+      /* ── Intencion de precios (el cliente tambien dice "paquete") ───────────────────────────────────────
          Debe ir ANTES de la regla de tarjetas: "cuánto cuesta" + "tarjeta"
          es una pregunta de precio, no de producto. */
       if (has(['cuanto cuesta', 'cuanto vale', 'precio', 'precios', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto'])
           && has(['tarjeta', 'tarjetas'])) {
         return { text: 'Las tarjetas digitales van desde $49.900 💳:\n\n• STAR $49.900 — tu presentación: contacto, WhatsApp, redes, ubicación y QR.\n• PRO $99.900 — añade catálogo o menú, precios y galería.\n• ELITE $149.900 — suma agenda de citas, formularios, varias sedes y agente IA.\n\n¿Te recomiendo una según tu negocio?', cta: true };
       }
-      if (has(['paquete', 'paquetes', 'todo en uno', 'combo'])) {
+      if (has(['paquete', 'paquetes', 'todo en uno', 'combo'])) { // verificar-precios:ok (es la palabra que escribe el cliente, no una oferta)
         return { text: 'Tenemos 3 tarjetas digitales 🎯:\n\n• Star $49.900 — contacto, redes, ubicación y QR.\n• Pro $99.900 ⭐ la más pedida — catálogo o menú, galería y botón de pedido.\n• Elite $149.900 — agenda de citas, formularios y mini landing.\n\n\nPago único, con dominio incluido el primer año. Otros servicios (landing, catálogo, menú, QR o agente IA) se cotizan.\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
       }
 

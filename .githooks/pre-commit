@@ -24,4 +24,15 @@ if git diff --cached --diff-filter=ACM -U0 | grep -E '^\+[^+]' | grep -vF "$KNOW
   exit 1
 fi
 
+# Precios y nomenclatura (KONFIO ZINC): bloquea paquetes KZ, planes "START",
+# "todo en uno" y cobros mensuales. Solo bloquea por FALLAS, nunca por avisos.
+if [ -f herramientas/verificar-precios.js ] && command -v node >/dev/null 2>&1; then
+  node herramientas/verificar-precios.js --quiet || {
+    echo ""
+    echo "COMMIT BLOQUEADO: paquetes KZ, planes START, 'todo en uno' o cobros mensuales."
+    echo "Corrige las FALLAS de arriba, o usa 'git commit --no-verify' si sabes por que."
+    exit 1
+  }
+fi
+
 exit 0

@@ -1,4 +1,16 @@
 # KONFÍO ZINC — Sitio web de soluciones digitales
+> **Antes del primer commit en un clon nuevo (obligatorio).** Los hooks de git no se
+> activan solos. Ejecuta una vez:
+>
+> ```
+> git config core.hooksPath .githooks
+> ```
+>
+> El hook `pre-commit` bloquea Google API Keys no permitidas y ejecuta
+> `node herramientas/verificar-precios.js`, que **falla** si el sitio o los documentos
+> vuelven a ofrecer los paquetes retirados, la nomenclatura antigua de planes o
+> cualquier cobro recurrente al cliente.
+
 
 Sitio web **multipágina**, responsive y optimizado para SEO de **KONFÍO ZINC**, agencia de
 soluciones digitales en Colombia. Incluye home, página de servicios, 6 páginas de servicio,
@@ -362,15 +374,19 @@ Firebase para funcionar.
 
 ```powershell
 # Instalar la CLI (solo la primera vez)
+
 npm install -g firebase-tools
 
 # Autenticarse (abre el navegador)
+
 firebase login
 
 # Comprobar que no falta nada antes de desplegar
+
 node herramientas/verificar-firebase.js
 
 # Desplegar
+
 firebase deploy --only firestore:rules,firestore:indexes
 cd functions ; npm install ; cd ..
 firebase deploy --only functions
@@ -420,9 +436,11 @@ $git = "C:\Program Files\Git\cmd\git.exe"
 $repo = "C:\Users\PC\Documents\KONFIO_ZINC\0-Agencia y Recursos\Agencia_Konfio_Zinc"
 
 # 1. Ver qué cambió
+
 & $git -C $repo status
 
 # 2. Preparar, confirmar y publicar
+
 & $git -C $repo add -A
 & $git -C $repo commit -m "Sitio multipágina: home, servicios, portafolio, blog, contacto y SEO técnico"
 & $git -C $repo push origin main
