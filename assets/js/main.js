@@ -799,7 +799,7 @@
         return { text: 'Estas son nuestras seis soluciones 📱:\n\n• Tarjetas Digitales (Star, Pro y Elite)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
       }
       if (has(['precio', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto', 'cotiza', 'cotizacion', 'cotizar'])) {
-        return { text: 'Nuestros precios arrancan así 📊:\n\n• Códigos QR: desde $50.000\n• Tarjetas Digitales: desde $49.900 (Star $49.900 · Pro $99.900 · Elite $149.900)\n• Catálogos Digitales: desde $120.000\n• Menús Digitales: desde $150.000\n• Agentes IA: desde $250.000\n• Landing Pages: desde $699.000\n\nTambién hay paquetes todo en uno desde $59.900. Escríbeme por WhatsApp y te preparo la cotización exacta, sin compromiso.', cta: true };
+        return { text: 'Nuestros precios arrancan así 📊:\n\n• Códigos QR: desde $50.000\n• Tarjetas Digitales: desde $49.900 (Star $49.900 · Pro $99.900 · Elite $149.900)\n• Catálogos Digitales: desde $120.000\n• Menús Digitales: desde $150.000\n• Agentes IA: desde $250.000\n• Landing Pages: desde $699.000\n\nEscríbeme por WhatsApp y te preparo la cotización exacta, sin compromiso.', cta: true };
       }
       var sectores = [
         [['restaurante', 'restaurantes', 'comida', 'comidas', 'cafeteria', 'pizzeria', 'hamburgues'], ['https://konfiozinc.github.io/eltiti/', 'https://konfiozinc.github.io/colsabor/']],
