@@ -81,7 +81,6 @@ card/
 │   ├── configurar-firebase.js     · Inyecta la config de Firebase y crea .firebaserc
 │   ├── probar-agente.js           · 26 pruebas de enrutamiento del Asesor IA
 │   ├── enlazar-aliados-blog.js    · Enlazado interno a la página de aliados (idempotente)
-│   ├── aplicar-correcciones.js    · Precios, botones y redes sociales (auditado)
 │   ├── migracion-servicios.js     · Migración histórica a los 6 servicios reales (ya aplicada)
 │   ├── corregir-rutas-raiz.js     · Corrección de prefijos de ruta en las páginas de la raíz
 │   └── corregir-textos-servicios.js · Corrección de etiquetas de servicio antiguas
