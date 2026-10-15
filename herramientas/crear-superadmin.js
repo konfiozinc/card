@@ -42,18 +42,22 @@ const ROL = 'SUPERADMIN';
 
   /* Siembra datos iniciales por si seedInicial del panel aún no se ejecutó */
   const planes = [
-  { nombre: 'Tarjeta Star',  precio: 49900,  servicio: 'tarjetas', categoria: 'STAR',  duracionMeses: 12, orden: 1 },
-  { nombre: 'Tarjeta Pro',   precio: 99900,  servicio: 'tarjetas', categoria: 'PRO',   duracionMeses: 12, orden: 2 },
-  { nombre: 'Tarjeta Elite', precio: 149900, servicio: 'tarjetas', categoria: 'ELITE', duracionMeses: 12, orden: 3 },
-  { nombre: 'Agente IA Esencial', precio: 250000, servicio: 'agentes', categoria: null, duracionMeses: 12, orden: 4 },
-  { nombre: 'Agente IA Negocio',  precio: 420000, servicio: 'agentes', categoria: null, duracionMeses: 12, orden: 5 },
-  { nombre: 'Agente IA Premium',  precio: 650000, servicio: 'agentes', categoria: null, duracionMeses: 12, orden: 6 }
-];
+    /* IDs fijos: la siembra es idempotente y NUNCA duplica documentos.
+       duracionMeses 12 = vigencia del dominio incluido el primer año (lo que muestra admin/planes.js). */
+    { id: 'star',  nombre: 'Star',  precio: 49900,  servicio: 'tarjetas', categoria: 'STAR',  duracionMeses: 12, orden: 1, estado: 'ACTIVO' },
+    { id: 'pro',   nombre: 'Pro',   precio: 99900,  servicio: 'tarjetas', categoria: 'PRO',   duracionMeses: 12, orden: 2, estado: 'ACTIVO' },
+    { id: 'elite', nombre: 'Elite', precio: 149900, servicio: 'tarjetas', categoria: 'ELITE', duracionMeses: 12, orden: 3, estado: 'ACTIVO' },
+    /* [PENDIENTE] La vigencia de los tres niveles del Agente IA NO esta definida en la base
+       de conocimiento canonica. No ejecutar contra produccion hasta que Darwin la confirme. */
+    { id: 'agente-esencial', nombre: 'Agente IA Esencial', precio: 250000, servicio: 'agentes', categoria: null, duracionMeses: null, orden: 4, estado: 'ACTIVO' },
+    { id: 'agente-negocio',  nombre: 'Agente IA Negocio',  precio: 420000, servicio: 'agentes', categoria: null, duracionMeses: null, orden: 5, estado: 'ACTIVO' },
+    { id: 'agente-premium',  nombre: 'Agente IA Premium',  precio: 650000, servicio: 'agentes', categoria: null, duracionMeses: null, orden: 6, estado: 'ACTIVO' }
+  ];
   for (const p of planes) {
-    const exist = await admin.firestore().collection('planes').where('nombre', '==', p.nombre).limit(1).get();
-    if (exist.empty) await admin.firestore().collection('planes').add(p);
+    const { id, ...datos } = p;
+    await admin.firestore().doc('planes/' + id).set(datos, { merge: true });
   }
-  console.log('✔ Planes KZ sembrados (idempotente)');
+  console.log('\u2714 Planes oficiales sembrados con IDs fijos (Star / Pro / Elite + 3 niveles de Agente IA)');
 
   const config = {
     diasAntes: [10, 5, 3, 1], diasPorVencer: 15, diasGracia: 5,
