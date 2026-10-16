@@ -330,12 +330,9 @@
 
   /* Listado completo de proyectos publicados (botón "Ver todos") */
   var PROJECTS = [
-    ['Dra. Isabela Rojas — Odontología y estética dental', 'https://konfiozinc.github.io/servicios_odontologicos/'],
-    ['Dra. Sofía Rodríguez — Nutricionista profesional', 'https://konfiozinc.github.io/nutricionista/'],
     ['Dra. Ana Pérez — Nutrición funcional', 'https://konfiozinc.github.io/nutricion_funcional/'],
     ['Carolina Carelli — Decoración de fiestas y eventos', 'https://konfiozinc.github.io/decoradora_de_fiestas/'],
     ['Juan Pérez — Diseño gráfico', 'https://konfiozinc.github.io/diseno_grafico/'],
-    ['Dulce Delicia — Pastelería artesanal', 'https://konfiozinc.github.io/pasteleria_artesanal/'],
     ['Dra. Amanda Méndez — Cirujana dentista', 'https://konfiozinc.github.io/cirujana_dentista/'],
     ['EL TITI — Restaurante de comidas rápidas', 'https://konfiozinc.github.io/eltiti/'],
     ['Colsabor — Comida saludable', 'https://konfiozinc.github.io/colsabor/'],

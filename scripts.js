@@ -181,7 +181,6 @@
     ['FRC Alianza Legal — Abogado', 'https://konfiozinc.github.io/fcr_alianza_legal/'],
     ['DTA Chanclas', 'https://konfiozinc.github.io/proyecto-dta/'],
     ['Colsabor — Comida sana', 'https://konfiozinc.github.io/colsabor/'],
-    ['Dulce Delicia — Pastelería', 'https://konfiozinc.github.io/pasteleria_artesanal/'],
     ['Carnicería La Milagrosa', 'https://konfiozinc.github.io/carniceria_la_milagrosa/'],
     ['Nandy Nails — Uñas', 'https://konfiozinc.github.io/nandy-nails/'],
     ['Makeup Artist', 'https://konfiozinc.github.io/make-up/'],
