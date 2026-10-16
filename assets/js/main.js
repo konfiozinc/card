@@ -735,6 +735,22 @@
       var q = normalize(userMsg);
       var has = function (arr) { return arr.some(function (k) { return q.indexOf(k) !== -1; }); };
 
+      /* Responder los plazos antes de detectar productos o sectores. */
+      if (has(['entrega', 'tiempo', 'cuanto tarda', 'cuanto tardan', 'tardan', 'tarda', 'cuando', 'demora', 'rapido'])) {
+        if (has(['landing', 'pagina web', 'paginas web'])) {
+          if (has(['eco'])) return { text: 'Las landing pages ECO tardan de 5 a 7 días hábiles; SMART y POWER, de 7 a 10 días hábiles, tras recibir toda la información y el pago.', cta: true };
+          if (has(['smart', 'power'])) return { text: 'Las landing pages SMART y POWER tardan de 7 a 10 días hábiles, tras recibir toda la información y el pago.', cta: true };
+          return { text: 'Las landing pages tardan de 5 a 10 días hábiles (ECO: 5–7; SMART y POWER: 7–10), tras recibir toda la información y el pago.', cta: true };
+        }
+        if (has(['agente ia', 'agentes ia', 'asistente ia', 'asistentes ia', 'chatbot']) || /\bia\b/.test(q)) {
+          return { text: 'Los agentes IA tardan de 24 a 48 horas hábiles, tras recibir toda la información y el pago.', cta: true };
+        }
+        if (has(['tarjeta', 'tarjetas', 'menu', 'menus', 'catalogo', 'catalogos', 'qr', 'codigo qr'])) {
+          return { text: 'Las tarjetas digitales, menús, catálogos y códigos QR tardan de 24 a 48 horas hábiles, tras recibir toda la información y el pago.', cta: true };
+        }
+        return { text: 'Las tarjetas digitales, menús, catálogos, códigos QR y agentes IA tardan de 24 a 48 horas hábiles. Las landing pages tardan de 5 a 10 días hábiles (ECO: 5–7; SMART y POWER: 7–10), tras recibir la información completa y el pago.', cta: true };
+      }
+
       if (/(^|\s)unas(\s|$)/.test(q) && !/dudas/.test(q)) {
         return { text: '¡Perfecto! 👋 Para tu sector tenemos este ejemplo real:\nhttps://konfiozinc.github.io/nandy-nails/\n\n📌 ¿Ya manejas redes sociales para tu negocio?', cta: false };
       }
@@ -829,9 +845,6 @@
       }
       if (has(['portafolio', 'ejemplo', 'ejemplos', 'trabajo', 'trabajos', 'casos', 'resultados', 'proyectos'])) {
         return { text: 'Tenemos proyectos en restaurantes, salud, belleza, inmobiliaria, internet, música y más 💼.\n\nPuedes ver el portafolio completo aquí:\nhttps://konfiozinc.github.io/card/portafolio.html\n\n¿De qué sector es tu negocio? Así te muestro un ejemplo parecido.', cta: false };
-      }
-      if (has(['entrega', 'tiempo', 'cuanto tarda', 'cuanto tardan', 'tardan', 'tarda', 'cuando', 'demora', 'rapido'])) {
-        return { text: '⏱️ Entregamos en 24 a 48 horas hábiles las tarjetas, catálogos y menús digitales. Las landing pages tardan de 5 a 15 días y los agentes IA de 5 a 10 días, según el alcance.', cta: true };
       }
       if (has(['contacto', 'whatsapp', 'telefono', 'numero', 'correo', 'email', 'hablar'])) {
         return { text: '📞 Contáctanos por:\n• WhatsApp: +57 320 641 1340\n• Email: konfiozinc@gmail.com\n\nO usa el botón verde de WhatsApp. ¡Te respondemos al instante!', cta: true };

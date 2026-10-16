@@ -23,8 +23,9 @@ Respuesta estándar cuando preguntan por el estado:
 > Tu proyecto está en proceso. Darwin te confirma el avance exacto por WhatsApp
 > +57 320 641 1340.
 
-Tiempo de entrega: 24 a 48 horas hábiles tras recibir la información y el pago
-(50% de anticipo + 50% antes de la entrega).
+Tiempo de entrega tras recibir la información completa y el pago: tarjetas digitales, menús,
+catálogos, códigos QR y agentes IA, 24 a 48 horas hábiles; landing pages, 5 a 10 días hábiles
+(ECO: 5–7; SMART y POWER: 7–10). Pago: 50% de anticipo + 50% antes de la entrega.
 
 ## 2) Datos que solicitamos para comenzar
 
@@ -42,7 +43,7 @@ Si no tiene logo ni fotos:
 
 - Precios: solo Star $49.900 / Pro $99.900 / Elite $149.900 (pago único). Nunca inventar precios.
 - Pago: 50% de anticipo para iniciar + 50% antes de la entrega final.
-- Entrega: 24–48 h hábiles la mayoría de proyectos.
+- Entrega: tarjetas digitales, menús, catálogos, códigos QR y agentes IA, 24–48 h hábiles; landing pages, 5–10 días hábiles (ECO 5–7; SMART y POWER 7–10).
 - Garantía: si el cliente no queda satisfecho, se rediseña sin costo adicional.
 - Contacto: Darwin (fundador), WhatsApp +57 320 641 1340, correo konfiozinc@gmail.com.
 - Si preguntan por algo fuera de servicio: derivar a Darwin por WhatsApp.
