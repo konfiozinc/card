@@ -766,6 +766,7 @@ strong { color: var(--fg); }
   transform-origin: bottom right;
 }
 .kz-fab-chat.open { display: flex; animation: kzOpen .3s ease; }
+.kz-fab-chat.open + .kz-fab-btn { opacity: 0; visibility: hidden; pointer-events: none; }
 @keyframes kzOpen { from { opacity: 0; transform: scale(.8); } to { opacity: 1; transform: scale(1); } }
 
 /* Header (negro con borde inferior dorado) */
