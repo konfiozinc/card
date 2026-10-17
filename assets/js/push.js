@@ -168,43 +168,50 @@
       return;
     }
 
+    // El navegador exige pedir permiso directamente dentro del gesto del clic.
+    // Si se espera a importar Firebase o registrar el worker, puede perderse
+    // la activación del usuario y la solicitud se rechaza.
+    var permisoPromise = Notification.permission === 'granted'
+      ? Promise.resolve('granted')
+      : Notification.requestPermission();
+
     boton.disabled = true;
     boton.innerHTML = '<span>⏳</span> Activando…';
 
     Promise.all([
       import(SDK + 'app'),
-      import(SDK + 'messaging')
+      import(SDK + 'messaging'),
+      permisoPromise
     ]).then(function (mods) {
-      var appMod = mods[0], msgMod = mods[1];
+      var appMod = mods[0], msgMod = mods[1], permiso = mods[2];
+      if (permiso !== 'granted') throw new Error('NO_PERMISO');
       var app = appMod.getApps && appMod.getApps().length ? appMod.getApp() : appMod.initializeApp(FIREBASE);
+      var messaging = msgMod.getMessaging(app);
       return msgMod.isSupported().then(function (ok) {
         if (!ok) throw new Error('Este navegador no soporta notificaciones push.');
         return navigator.serviceWorker.register(RAIZ + 'firebase-messaging-sw.js', { scope: RAIZ });
       }).then(function (registro) {
         return navigator.serviceWorker.ready.then(function () { return registro; });
       }).then(function (registro) {
-        return Notification.requestPermission().then(function (permiso) {
-          if (permiso !== 'granted') throw new Error('NO_PERMISO');
-          var messaging = msgMod.getMessaging(app);
-          return msgMod.getToken(messaging, { vapidKey: VAPID, serviceWorkerRegistration: registro })
-            .then(function (token) {
-              if (!token) throw new Error('Sin token de notificaciones.');
-              return guardarSuscripcion(token).then(function () {
-                /* Avisos con la pestaña abierta */
-                msgMod.onMessage(messaging, function (payload) {
-                  var n = (payload && payload.notification) || {};
-                  panel(n.title || 'KONFÍO ZINC', '<p>' + (n.body || '') + '</p>');
-                });
-                return true;
+        return msgMod.getToken(messaging, { vapidKey: VAPID, serviceWorkerRegistration: registro })
+          .then(function (token) {
+            if (!token) throw new Error('Sin token de notificaciones.');
+            return guardarSuscripcion(token).then(function () {
+              /* Avisos con la pestaña abierta */
+              msgMod.onMessage(messaging, function (payload) {
+                var n = (payload && payload.notification) || {};
+                panel(n.title || 'KONFÍO ZINC', '<p>' + (n.body || '') + '</p>');
               });
+              return true;
             });
-        });
+          });
       });
     }).then(function () {
       guardado(K_OK, '1');
       if (chip) {
         chip.classList.add('kz-ok');
-        chip.querySelector('.kz-accion').innerHTML = '<span>✅</span> ¡Listo! Te contactaremos';
+        chip.querySelector('.kz-accion').innerHTML = '<span>✅</span> Avisos activados';
+        panel('¡Listo!', '<p>Te contactaremos cuando lancemos novedades.</p>');
         setTimeout(function () { chip.classList.remove('kz-visible'); }, 2600);
       }
     }).catch(function (err) {
@@ -251,10 +258,10 @@
     a.type = 'button';
     a.className = 'kz-push-link';
     a.style.cssText = 'background:none;border:0;color:inherit;opacity:.72;cursor:pointer;font:inherit;padding:6px 0;text-decoration:underline';
-    var suscrito = guardado(K_OK) === '1' || Notification.permission === 'granted';
+    var suscrito = guardado(K_OK) === '1';
     a.innerHTML = suscrito ? '🔔 Avisos activados' : '🔔 Recibir avisos de KONFÍO ZINC';
     a.addEventListener('click', function () {
-      if (guardado(K_OK) === '1' || Notification.permission === 'granted') {
+      if (guardado(K_OK) === '1') {
         panel('¡Listo!', '<p>Te contactaremos cuando lancemos novedades.</p>');
         return;
       }
@@ -272,7 +279,7 @@
     var chip = crearChip();
     enlaceFooter(chip);
 
-    if (guardado(K_OK) === '1' || Notification.permission === 'granted') return;  // ya suscrito
+    if (guardado(K_OK) === '1') return;  // solo ocultar si guardamos token y suscripción
 
     var cerrado = Number(guardado(K_CERRADO) || 0);
     if (cerrado && (Date.now() - cerrado) < DIAS_REINTENTO * 864e5) return;
