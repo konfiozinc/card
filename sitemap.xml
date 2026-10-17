@@ -11,7 +11,7 @@
    · gracias.html   → confirmación de formulario (noindex)
    · 404.html       → página de error (noindex)
    · admin.html     → panel privado de gestión de clientes (noindex)
-   · blog.html y blog/* → OCULTOS temporalmente (ver commit "Ocultar blog")
+   · (El blog NO está excluido: blog.html y blog/* se publicaron el 14-oct-2026 y sí figuran abajo.)
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
@@ -166,7 +166,7 @@
   </url>
   <url>
     <loc>https://konfiozinc.github.io/card/blog/menu-digital-para-restaurantes.html</loc>
-    <lastmod>2026-10-14</lastmod>
+    <lastmod>2026-10-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
@@ -179,6 +179,18 @@
   <url>
     <loc>https://konfiozinc.github.io/card/blog/tarjetas-digitales-star-pro-elite.html</loc>
     <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/cuanto-cuesta-pagina-web-colombia.html</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/como-elegir-agencia-digital-medellin.html</loc>
+    <lastmod>2026-10-16</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
