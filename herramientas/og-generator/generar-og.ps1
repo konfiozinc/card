@@ -155,6 +155,109 @@ foreach ($d in $defs) {
   try { New-OgImage $d } catch { "ERROR en $($d.f): $($_.Exception.Message)" }
 }
 
+# ── Miniaturas 600x400 para las tarjetas del indice del blog ───────────
+# Mismo lenguaje visual (fondo negro/dorado, logo, marca, titulo, barra),
+# pero con proporcion 3:2 como las *-thumb.jpg que ya usa el sitio.
+$thumbDir = Join-Path $root 'assets\img\blog'
+New-Item -ItemType Directory -Force -Path $thumbDir | Out-Null
+
+$thumbs = @(
+  @{ f='cuanto-cuesta-pagina-web-thumb.jpg'; t='¿Cuánto cuesta una página web?'; s='Precios reales en Colombia · 2026' },
+  @{ f='como-elegir-agencia-digital-thumb.jpg'; t='Cómo elegir una agencia digital'; s='Banderas rojas y verdes antes de firmar' }
+)
+
+$TW = 600; $TH = 400
+$tTitleFont = New-Object System.Drawing.Font 'Impact', 40, ([System.Drawing.FontStyle]::Regular), ([System.Drawing.GraphicsUnit]::Pixel)
+$tSubFont   = New-Object System.Drawing.Font 'Bahnschrift', 20, ([System.Drawing.FontStyle]::Regular), ([System.Drawing.GraphicsUnit]::Pixel)
+$tBrandFont = New-Object System.Drawing.Font 'Bahnschrift', 18, ([System.Drawing.FontStyle]::Bold), ([System.Drawing.GraphicsUnit]::Pixel)
+$tUrlFont   = New-Object System.Drawing.Font 'Bahnschrift', 12, ([System.Drawing.FontStyle]::Regular), ([System.Drawing.GraphicsUnit]::Pixel)
+
+function Add-TGlow($gr, $color, $cx, $cy, $r, $alpha) {
+  $gp = New-Object System.Drawing.Drawing2D.GraphicsPath
+  $gp.AddEllipse(($cx - $r), ($cy - $r), ($r * 2), ($r * 2))
+  $pgb = New-Object System.Drawing.Drawing2D.PathGradientBrush $gp
+  $pgb.CenterColor = [System.Drawing.Color]::FromArgb($alpha, $color.R, $color.G, $color.B)
+  $pgb.SurroundColors = [System.Drawing.Color[]]@([System.Drawing.Color]::FromArgb(0, $color.R, $color.G, $color.B))
+  $gr.FillEllipse($pgb, ($cx - $r), ($cy - $r), ($r * 2), ($r * 2))
+  $pgb.Dispose(); $gp.Dispose()
+}
+
+function New-ThumbImage($def) {
+  $bmp = New-Object System.Drawing.Bitmap $TW, $TH
+  $g = [System.Drawing.Graphics]::FromImage($bmp)
+  $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+  $g.TextRenderingHint = [System.Drawing.Text.TextRenderingHint]::AntiAliasGridFit
+  $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+
+  $rect = New-Object System.Drawing.Rectangle 0, 0, $TW, $TH
+  $brush = New-Object System.Drawing.Drawing2D.LinearGradientBrush($rect, $black, $dark, 90)
+  $g.FillRectangle($brush, $rect)
+  $brush.Dispose()
+
+  Add-TGlow $g $gold 540 70 150 44
+  Add-TGlow $g $cyan 50 350 170 40
+
+  # Logo + marca
+  $side = 44; $lx = 36; $ly = 30
+  $logo = [System.Drawing.Image]::FromFile($logoPath)
+  $g.DrawImage($logo, (New-Object System.Drawing.Rectangle $lx, $ly, $side, $side))
+  $logo.Dispose()
+  $borde = New-Object System.Drawing.Pen $gold, 2
+  $g.DrawRectangle($borde, $lx, $ly, $side, $side)
+  $borde.Dispose()
+  $tb = New-Object System.Drawing.SolidBrush $gold
+  $g.DrawString('KONFÍO ZINC', $tBrandFont, $tb, ($lx + $side + 12), ($ly + 12))
+  $tb.Dispose()
+
+  # Titulo
+  $maxW = $TW - 72
+  $lines = Wrap-Text $g $def.t $tTitleFont $maxW
+  $lineH = [int]($tTitleFont.Height * 1.06)
+  $y = 130
+  $tBrush = New-Object System.Drawing.SolidBrush $gold
+  foreach ($ln in $lines) { $g.DrawString($ln, $tTitleFont, $tBrush, 36, $y); $y += $lineH }
+  $tBrush.Dispose()
+
+  # Subrayado degradado
+  $ub = New-Object System.Drawing.Rectangle 38, ($y + 4), 160, 3
+  $ubrush = New-Object System.Drawing.Drawing2D.LinearGradientBrush($ub, $gold, $orange, 0)
+  $g.FillRectangle($ubrush, $ub)
+  $ubrush.Dispose()
+
+  # Subtitulo
+  $subBrush = New-Object System.Drawing.SolidBrush $white
+  $g.DrawString($def.s, $tSubFont, $subBrush, 36, ($y + 18))
+  $subBrush.Dispose()
+
+  # Barra y URL
+  $bar = New-Object System.Drawing.SolidBrush $gold
+  $g.FillRectangle($bar, 0, ($TH - 3), $TW, 3)
+  $bar.Dispose()
+  $url = 'konfiozinc.github.io/card'
+  $sz = $g.MeasureString($url, $tUrlFont)
+  $uBrush = New-Object System.Drawing.SolidBrush $muted
+  $g.DrawString($url, $tUrlFont, $uBrush, ($TW - $sz.Width - 20), ($TH - 28))
+  $uBrush.Dispose()
+
+  # Guardar como JPEG (calidad 88), igual que las *-thumb.jpg del sitio
+  $out = Join-Path $thumbDir $def.f
+  $codec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object { $_.MimeType -eq 'image/jpeg' }
+  $prm = New-Object System.Drawing.Imaging.EncoderParameters 1
+  $prm.Param[0] = New-Object System.Drawing.Imaging.EncoderParameter ([System.Drawing.Imaging.Encoder]::Quality), ([long]88)
+  $bmp.Save($out, $codec, $prm)
+  $prm.Dispose()
+  $g.Dispose(); $bmp.Dispose()
+
+  $kb = [math]::Round((Get-Item $out).Length / 1KB, 1)
+  return "$($def.f)  $kb KB"
+}
+
+foreach ($t in $thumbs) {
+  try { New-ThumbImage $t } catch { "ERROR en $($t.f): $($_.Exception.Message)" }
+}
+
 # Liberar fuentes
 $titleFont.Dispose(); $subFont.Dispose(); $brandFont.Dispose(); $urlFont.Dispose()
+$tTitleFont.Dispose(); $tSubFont.Dispose(); $tBrandFont.Dispose(); $tUrlFont.Dispose()
 Write-Output "`nListo. $($defs.Count) imagenes generadas en assets/img/og/"
+Write-Output "Listo. $($thumbs.Count) miniaturas generadas en assets/img/blog/"
