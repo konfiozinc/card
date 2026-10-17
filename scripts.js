@@ -366,12 +366,12 @@
           return { text: 'Las landing pages tardan de 5 a 10 días hábiles (ECO: 5–7; SMART y POWER: 7–10), tras recibir toda la información y el pago.', cta: true };
         }
         if (has(['agente ia', 'agentes ia', 'asistente ia', 'asistentes ia', 'chatbot']) || /\bia\b/.test(q)) {
-          return { text: 'Los agentes IA tardan de 24 a 48 horas hábiles, tras recibir toda la información y el pago.', cta: true };
+          return { text: 'Los agentes IA se entregan según el plan: Esencial 3–5 días hábiles, Negocio 5–7 días hábiles, Premium hasta 10 días hábiles, tras recibir toda la información y el pago.', cta: true };
         }
         if (has(['tarjeta', 'tarjetas', 'menu', 'menus', 'catalogo', 'catalogos', 'qr', 'codigo qr'])) {
           return { text: 'Las tarjetas digitales, menús, catálogos y códigos QR tardan de 24 a 48 horas hábiles, tras recibir toda la información y el pago.', cta: true };
         }
-        return { text: 'Las tarjetas digitales, menús, catálogos, códigos QR y agentes IA tardan de 24 a 48 horas hábiles. Las landing pages tardan de 5 a 10 días hábiles (ECO: 5–7; SMART y POWER: 7–10), tras recibir la información completa y el pago.', cta: true };
+        return { text: 'Tarjetas, menús, catálogos y códigos QR: 24–48 horas hábiles. Agentes IA: 3–10 días hábiles según el plan. Landing pages: 5–10 días hábiles. En todos los casos, tras recibir la información completa y el pago.', cta: true };
       }
 
       if (/(^|\s)unas(\s|$)/.test(q) && !/dudas/.test(q)) {
