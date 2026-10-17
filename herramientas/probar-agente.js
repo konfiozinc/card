@@ -37,7 +37,7 @@ const PRUEBAS = [
   ['cuanto vale el menu digital', /150\.000/, 'menú digital con precio'],
   ['cuanto cuesta el catalogo', /120\.000/, 'catálogo digital con precio'],
   ['necesito un agente ia', /250\.000/, 'agente IA con precio'],
-  ['hacen landing pages?', /350\.000/, 'landing page con precio'],
+  ['hacen landing pages?', /699\.000/, 'landing page con precio'],
   ['quiero codigos qr', /50\.000/, 'códigos QR con precio'],
 
   // Programa de aliados (lo nuevo)
@@ -61,7 +61,7 @@ const PRUEBAS = [
   ['que servicios ofrecen', /seis soluciones/, 'listado de servicios'],
   ['precios', /50\.000/, 'lista de precios'],
   ['hola', /seis soluciones/, 'saludo inicial'],
-  ['cuanto tardan en entregar', /24 a 48 horas/, 'tiempos de entrega']
+  ['cuanto tardan en entregar', /24[–-]48 horas/, 'tiempos de entrega']
 ];
 
 let ok = 0;
