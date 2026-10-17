@@ -26,7 +26,9 @@ $defs = @(
   @{ f='og-blog-catalogos-menus.png';t='Catálogos y menús digitales';           s='Vende más sin imprimir' },
   @{ f='og-blog-agentes-ia.png';     t='Agentes IA para atención 24/7';         s='Responde sin contratar más personal' },
   @{ f='og-blog-medicos.png';        t='Tarjeta digital para médicos';          s='Agiliza tu agenda y capta pacientes' },
-  @{ f='og-blog-restaurantes.png';   t='Menú digital para restaurantes';        s='Pedidos por WhatsApp con código QR' }
+  @{ f='og-blog-restaurantes.png';   t='Menú digital para restaurantes';        s='Pedidos por WhatsApp con código QR' },
+  @{ f='og-blog-precios.png';        t='¿Cuánto cuesta una página web?';         s='Precios reales en Colombia · 2026' },
+  @{ f='og-blog-agencia.png';        t='Cómo elegir una agencia digital';        s='Banderas rojas y verdes antes de firmar' }
 )
 
 # ── Constantes de diseño ──────────────────────────────────────────────
