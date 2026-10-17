@@ -33,6 +33,8 @@ const MAP = {
   'blog/menu-digital-para-restaurantes.html':    { img: 'og-blog-restaurantes.png',   alt: 'Menú digital para restaurantes' },
   'blog/cuanto-cuesta-pagina-web-colombia.html': { img: 'og-blog-precios.png',        alt: '¿Cuánto cuesta una página web en Colombia?' },
   'blog/como-elegir-agencia-digital-medellin.html': { img: 'og-blog-agencia.png',     alt: 'Cómo elegir una agencia digital en Medellín' },
+  'blog/tarjeta-digital-vs-instagram.html':      { img: 'og-blog-instagram.png',      alt: '¿Tarjeta digital o Instagram?' },
+  'blog/que-es-codigo-qr-dinamico.html':         { img: 'og-blog-qr.png',             alt: '¿Qué es un QR dinámico?' },
 };
 
 const WIDTH_TAG = '<meta property="og:image:width" content="1200" />';

@@ -28,7 +28,9 @@ $defs = @(
   @{ f='og-blog-medicos.png';        t='Tarjeta digital para médicos';          s='Agiliza tu agenda y capta pacientes' },
   @{ f='og-blog-restaurantes.png';   t='Menú digital para restaurantes';        s='Pedidos por WhatsApp con código QR' },
   @{ f='og-blog-precios.png';        t='¿Cuánto cuesta una página web?';         s='Precios reales en Colombia · 2026' },
-  @{ f='og-blog-agencia.png';        t='Cómo elegir una agencia digital';        s='Banderas rojas y verdes antes de firmar' }
+  @{ f='og-blog-agencia.png';        t='Cómo elegir una agencia digital';        s='Banderas rojas y verdes antes de firmar' },
+  @{ f='og-blog-instagram.png';      t='¿Tarjeta digital o Instagram?';          s='Qué te falta si solo tienes una red social' },
+  @{ f='og-blog-qr.png';             t='¿Qué es un QR dinámico?';                s='Cambia el destino sin reimprimir' }
 )
 
 # ── Constantes de diseño ──────────────────────────────────────────────
@@ -163,7 +165,9 @@ New-Item -ItemType Directory -Force -Path $thumbDir | Out-Null
 
 $thumbs = @(
   @{ f='cuanto-cuesta-pagina-web-thumb.jpg'; t='¿Cuánto cuesta una página web?'; s='Precios reales en Colombia · 2026' },
-  @{ f='como-elegir-agencia-digital-thumb.jpg'; t='Cómo elegir una agencia digital'; s='Banderas rojas y verdes antes de firmar' }
+  @{ f='como-elegir-agencia-digital-thumb.jpg'; t='Cómo elegir una agencia digital'; s='Banderas rojas y verdes antes de firmar' },
+  @{ f='tarjeta-digital-vs-instagram-thumb.jpg'; t='¿Tarjeta digital o Instagram?'; s='Qué te falta si solo tienes una red social' },
+  @{ f='que-es-codigo-qr-dinamico-thumb.jpg';    t='¿Qué es un QR dinámico?';       s='Cambia el destino sin reimprimir' }
 )
 
 $TW = 600; $TH = 400
