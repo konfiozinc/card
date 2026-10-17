@@ -23,13 +23,16 @@ const ESTE = 'herramientas/verificar-precios.js';
 
 const FALLA = [
   { rx: /KZ\s+(Inicio|Negocio|Profesional|Premium|B[aá]sico)/i, que: 'paquete KZ inexistente' },
-  { rx: /\bSTART\b(?=\s*[:$]|\s+\$?\d)/, que: 'plan "START" (se llama Star)' },
+  { rx: /\bSTART\b(?=\s*[:$]|\s+\$?\d)/, que: 'plan "START" (el producto es Mini Web Basica/Pro)' },
   { rx: /\btodo en uno\b/i, que: '"todo en uno": etiqueta de los paquetes KZ, retirada' },
   { rx: /(tarifa|pago|cobro|cuota)\s+mensual/i, que: 'cobro mensual al cliente (la agencia no cobra mensualidades)' },
   { rx: /\bmensualidad(?:es)?\b/i, que: 'mensualidad (la agencia no cobra mensualidades)', negable: true }
 ];
 const AVISA = [
-  { rx: /\$\s?(59|69|179|279|299|479)\.900\b/, que: 'monto de un paquete KZ retirado (con $ y separador de miles)' }
+  { rx: /\$\s?(59|69|179|279|299|479)\.900\b/, que: 'monto de un paquete KZ retirado (con $ y separador de miles)' },
+  /* 17-oct-2026: el producto principal paso de "Tarjeta Star/Pro/Elite" a "Mini Web Basica/Pro".
+     Mientras dure la migracion del sitio esto AVISA; cuando el sitio quede migrado, moverlo a FALLA. */
+  { rx: /\bStar\b|\bElite\b|149\.900/, que: 'nombre o precio RETIRADO (Star / Elite / $149.900): ahora es Mini Web Basica y Pro' }
 ];
 const IGNORAR_DIR = ['.git', 'node_modules', 'herramientas/backups', '.githooks'];
 const IGNORAR_EXT = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.ico', '.woff', '.woff2', '.ttf', '.mp4', '.pdf', '.zip'];
@@ -73,12 +76,13 @@ for (const f of walk(RAIZ)) {
 const cop = (n) => '$' + n.toLocaleString('es-CO');
 if (!QUIETO) {
   console.log('=== verificar-precios - KONFIO ZINC ===');
-  console.log('Tarjetas (pago unico, dominio 1er ano incluido): Star ' + cop(49900) + ' | Pro ' + cop(99900) + ' | Elite ' + cop(149900));
+  console.log('Mini Webs (pago unico, dominio 1er ano incluido): Basica ' + cop(49900) + ' | Pro ' + cop(99900));
   console.log('Agentes IA: Esencial ' + cop(250000) + ' | Negocio ' + cop(420000) + ' | Premium ' + cop(650000) + ' (pago unico, sin cobros mensuales ni anuales)');
   console.log('');
   if (avisos.length) {
     console.log('AVISOS (' + avisos.length + ') - revisar a mano, pueden ser legitimos:');
-    for (const a of avisos) console.log('  ~ ' + a.rel + ':' + a.n + '  [' + a.que + ']  ' + a.linea);
+    avisos.slice(0, 20).forEach((a) => console.log('  ~ ' + a.rel + ':' + a.n + '  [' + a.que + ']  ' + a.linea));
+    if (avisos.length > 20) console.log('  ... y ' + (avisos.length - 20) + ' mas (migracion de nombres Mini Web en curso)');
     console.log('');
   }
 }
