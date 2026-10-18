@@ -155,20 +155,58 @@ const MENSAJES = {
   const r3 = await procesarVencimientos({ db, FieldValue, pushACliente: pushCero, logger: log, mensajes: MENSAJES, hoy: HOY });
   const n10 = (await db.collection('notificaciones').doc(`c-10_${masDias(10)}_VENCIMIENTO_10D`).get()).data();
   anotar('sin tokens el aviso queda ERROR con motivo',
-    n10 && n10.estado === 'ERROR' && !!n10.error, `estado=${n10 && n10.estado} · error=${n10 && n10.error}`);
+    n10 && n10.estado === 'ERROR' && /Sin tokens/.test(n10.ultimoError || ''), `estado=${n10 && n10.estado} · ultimoError=${n10 && n10.ultimoError}`);
   anotar('sin tokens no cuenta como avisado', r3.avisados < 1, `avisados=${r3.avisados}`);
 
   /* ── 4 · Fallo parcial del envío ────────────────────────────────── */
-  console.log('\n═══ 4 · FALLO PARCIAL DEL ENVÍO ═══');
-  await db.collection('notificaciones').doc(`c-5_${masDias(5)}_VENCIMIENTO_5D`).delete();
+  console.log('\n═══ 4 · FALLO DEL ENVÍO: REINTENTOS Y ESTADO FINAL ═══');
+  const clave5 = `c-5_${masDias(5)}_VENCIMIENTO_5D`;
+
+  /* 4.1 un envío que lanza no rompe la pasada y deja constancia */
+  await db.collection('notificaciones').doc(clave5).delete().catch(() => {});
   let excepcion = null;
-  try { await procesarVencimientos({ db, FieldValue, pushACliente: pushFalla, logger: log, mensajes: MENSAJES, hoy: HOY }); }
-  catch (e) { excepcion = e.message; }
-  const n5 = (await db.collection('notificaciones').doc(`c-5_${masDias(5)}_VENCIMIENTO_5D`).get()).data();
+  const r4 = await procesarVencimientos({ db, FieldValue, pushACliente: pushFalla, logger: log, mensajes: MENSAJES, hoy: HOY })
+    .catch((e) => { excepcion = e.message; });
+  let n5 = (await db.collection('notificaciones').doc(clave5).get()).data();
   anotar('un envío que lanza NO rompe la ejecución completa', excepcion === null, excepcion ? 'excepción: ' + excepcion : 'el motor siguió');
-  anotar('un envío que lanza deja el aviso en PENDIENTE (registro atascado)',
-    n5 && n5.estado === 'PENDIENTE',
-    n5 ? `estado=${n5.estado}` : 'no se creó el aviso');
+  anotar('el fallo queda registrado (estado, intentos y último error)',
+    n5 && n5.estado === 'PENDIENTE' && n5.intentos === 3 && /fallo de red simulado/.test(n5.ultimoError || ''),
+    n5 ? `estado=${n5.estado} · intentos=${n5.intentos} · error="${(n5.ultimoError || '').slice(0, 40)}"` : 'no se creó');
+  anotar('el resumen informa de los avisos fallidos', r4 && r4.fallidos >= 1, r4 ? `avisados=${r4.avisados} · fallidos=${r4.fallidos}` : 'sin resumen');
+
+  /* 4.2 segunda pasada: agota los intentos y queda FALLIDA */
+  await procesarVencimientos({ db, FieldValue, pushACliente: pushFalla, logger: log, mensajes: MENSAJES, hoy: HOY });
+  n5 = (await db.collection('notificaciones').doc(clave5).get()).data();
+  anotar('tras la segunda pasada agota el tope y queda FALLIDA',
+    n5.estado === 'FALLIDA' && n5.intentos === 5,
+    `estado=${n5.estado} · intentos=${n5.intentos}`);
+
+  /* 4.3 ya agotado: no se reintenta aunque el envío vuelva a funcionar */
+  let llamadas = 0;
+  const pushContador = async () => { llamadas++; return 1; };
+  await procesarVencimientos({ db, FieldValue, pushACliente: pushContador, logger: log, mensajes: MENSAJES, hoy: HOY });
+  n5 = (await db.collection('notificaciones').doc(clave5).get()).data();
+  anotar('un aviso FALLIDA no se reintenta solo', n5.estado === 'FALLIDA' && llamadas === 0,
+    `estado=${n5.estado} · envíos intentados=${llamadas}`);
+
+  /* 4.4 recuperación: falla una vez y luego funciona */
+  const clave3 = `c-3_${masDias(3)}_VENCIMIENTO_3D`;
+  await db.collection('notificaciones').doc(clave3).delete().catch(() => {});
+  let primera = true;
+  const pushInestable = async () => { if (primera) { primera = false; throw new Error('caída puntual'); } return 1; };
+  await procesarVencimientos({ db, FieldValue, pushACliente: pushInestable, logger: log, mensajes: MENSAJES, hoy: HOY });
+  const n3 = (await db.collection('notificaciones').doc(clave3).get()).data();
+  anotar('se recupera solo tras un fallo puntual (reintento en la misma pasada)',
+    n3.estado === 'ENVIADA' && n3.intentos === 2,
+    `estado=${n3.estado} · intentos=${n3.intentos}`);
+
+  /* 4.5 una enviada no se repite */
+  let llamadas2 = 0;
+  const pushCuenta = async () => { llamadas2++; return 1; };
+  await procesarVencimientos({ db, FieldValue, pushACliente: pushCuenta, logger: log, mensajes: MENSAJES, hoy: HOY });
+  const n3b = (await db.collection('notificaciones').doc(clave3).get()).data();
+  anotar('un aviso ENVIADA no se vuelve a mandar (sin duplicados)',
+    n3b.estado === 'ENVIADA' && llamadas2 === 0, `estado=${n3b.estado} · envíos intentados=${llamadas2}`);
 
   /* ── Resumen ────────────────────────────────────────────────────── */
   const fallos = salida.filter((x) => x.estado === 'FALLIDO');

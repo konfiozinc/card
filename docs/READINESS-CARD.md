@@ -34,10 +34,20 @@ que conserva programa `every day 08:00`, `America/Bogota` y `us-central1`.
 | Sin tokens: aviso ERROR con motivo «Sin tokens activos» | ✓ |
 | Envío que lanza: no rompe la ejecución | ✓ |
 
-**Hallazgo (P3, no corregido):** si `pushACliente` lanza, el `catch` que protege
-el anti-duplicado se traga el error y la notificación queda **atascada en
-PENDIENTE** para siempre (sin reintento ni marca de error). Reproducido y
-documentado en la prueba.
+**Hallazgo P3 — CORREGIDO (LOTE F).** Antes, si `pushACliente` lanzaba, el
+`catch` del anti-duplicado se comía el error y el aviso quedaba atascado en
+PENDIENTE para siempre. Ahora cada aviso lleva su propio ciclo de vida:
+
+| Estado | Significado | ¿Se reintenta? |
+|---|---|---|
+| `PENDIENTE` | falló, pero quedan intentos | sí, hasta 3 por pasada |
+| `ENVIADA` | éxito | **nunca** (idempotencia por clave) |
+| `ERROR` | no hay tokens activos | no (terminal) |
+| `FALLIDA` | agotó el tope de 5 intentos | no, requiere revisión humana |
+
+Cada fallo escribe `intentos`, `ultimoError` y `ultimoIntentoEn`, y el resumen
+de la pasada incluye `fallidos`. Probado en LOTE F con 6 comprobaciones nuevas
+(ver §1.1).
 
 **No verificado:** el disparador por Pub/Sub. **No se declara probado.**
 

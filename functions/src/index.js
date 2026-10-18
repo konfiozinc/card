@@ -455,3 +455,12 @@ exports.processDueDates = onSchedule({ schedule: 'every day 08:00', timeZone: 'A
   /* La lógica vive en ./vencimientos para poder probarla sin el disparador. */
   return procesarVencimientos({ db, FieldValue, pushACliente, logger, mensajes: MENSAJES });
 });
+
+/* Ejecuta el motor a mano, solo SUPERADMIN. Sirve para dos cosas: comprobar
+   tras el despliegue que el motor funciona en el runtime real sin esperar a
+   las 08:00, y repetir la pasada si un día falló el programador. No sustituye
+   al programador: ejecuta exactamente el mismo código. */
+exports.ejecutarVencimientos = onCall({ region: 'us-central1' }, async (request) => {
+  await requerir(request, 'SUPERADMIN');
+  return procesarVencimientos({ db, FieldValue, pushACliente, logger, mensajes: MENSAJES });
+});
