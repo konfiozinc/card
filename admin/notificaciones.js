@@ -10,9 +10,20 @@ const cont = document.getElementById('app-content');
 
 const [notifs, clientes] = await Promise.all([cargarNotificaciones(), cargarClientes()]);
 
+/* Filas de la tabla, en una función aparte para poder repintar solo el cuerpo
+   después de enviar un aviso, sin recargar la página. */
+function filasNotif(lista) {
+  return lista.map(n => `<tr>
+    <td>${esc(n.clienteNombre || n.clienteId)}</td>
+    <td><span class="badge badge--servicio">${esc(n.tipo)}</span></td>
+    <td>${esc(n.mensaje || '—')}</td>
+    <td>${esc(n.estado)}</td><td>${fechaLarga(n.fechaEnvio)}</td>
+  </tr>`).join('');
+}
+
 cont.innerHTML = `
   <div class="page-head"><div><h2>Notificaciones</h2>
-    <p class="celda-suave">${notifs.length} envíos. El motor automático (<code>processDueDates</code>) corre a las 8:00 a.m. y avisa ${CFG.negocio.diasAntes.join(', ')} días antes. Requiere el plan Blaze.</p></div></div>
+    <p class="celda-suave"><span id="n-total">${notifs.length}</span> envíos. El motor automático (<code>processDueDates</code>) corre a las 8:00 a.m. y avisa ${CFG.negocio.diasAntes.join(', ')} días antes. Requiere el plan Blaze.</p></div></div>
 
   <div class="card"><h3>Enviar aviso manual</h3>
     <form id="notif-form">
@@ -27,24 +38,37 @@ cont.innerHTML = `
 
   <div class="tabla__wrap"><table class="tabla"><thead><tr>
     <th>Cliente</th><th>Tipo</th><th>Mensaje</th><th>Estado</th><th>Enviado</th>
-  </tr></thead><tbody>${notifs.map(n => `<tr>
-    <td>${esc(n.clienteNombre || n.clienteId)}</td>
-    <td><span class="badge badge--servicio">${esc(n.tipo)}</span></td>
-    <td>${esc(n.mensaje || '—')}</td>
-    <td>${esc(n.estado)}</td><td>${fechaLarga(n.fechaEnvio)}</td>
-  </tr>`).join('')}</tbody></table>
-  ${notifs.length ? '' : '<p class="tabla__vacia">Aún no hay notificaciones.</p>'}</div>`;
+  </tr></thead><tbody id="n-filas">${filasNotif(notifs)}</tbody></table>
+  <p class="tabla__vacia" id="n-vacia"${notifs.length ? ' hidden' : ''}>Aún no hay notificaciones.</p></div>`;
+
+/* Un envío a la vez: un doble clic no debe crear dos registros. */
+let enviando = false;
 
 document.getElementById('notif-form').addEventListener('submit', async (e) => {
   e.preventDefault();
+  if (enviando) return;
   const err = document.getElementById('n-error');
+  const boton = e.target.querySelector('button[type="submit"]');
   err.hidden = true;
+  enviando = true;
+  if (boton) boton.disabled = true;
   try {
     await escrituras.enviarNotificacion(
       document.getElementById('n-cliente').value,
       'MANUAL',
       document.getElementById('n-mensaje').value.trim()
     );
+    /* Se repinta la tabla con lo que hay ahora en Firestore: así no se
+       duplica la fila ni hace falta recargar. */
+    const lista = await cargarNotificaciones();
+    document.getElementById('n-filas').innerHTML = filasNotif(lista);
+    document.getElementById('n-vacia').hidden = lista.length > 0;
+    document.getElementById('n-total').textContent = lista.length;
     toast('Aviso enviado');
-  } catch (ex) { err.textContent = ex.message; err.hidden = false; }
+  } catch (ex) {
+    err.textContent = ex.message; err.hidden = false;
+  } finally {
+    enviando = false;
+    if (boton) boton.disabled = false;
+  }
 });

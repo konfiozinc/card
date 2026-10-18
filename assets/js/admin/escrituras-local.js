@@ -258,35 +258,19 @@ export async function registrarToken(clienteId, token, info) {
 }
 
 /* ── Usuarios (SUPERADMIN) ─────────────────────────────────────────── */
-export async function crearUsuario(d) {
-  const c = await requerir('SUPERADMIN');
-  if (!d.email || !d.rol) throw new Error('Email y rol obligatorios.');
-  /* En Spark no hay Auth SDK para crear usuario con contraseña desde el
-     cliente. Se registra SOLO en Firestore y se le indica que cree la
-     credencial en Authentication → Users → Add user. */
-  const ref = doc(db, 'usuarios', d.email.toLowerCase());
-  await setDoc(ref, {
-    uid: d.email.toLowerCase(), nombre: d.nombre || d.email, email: d.email,
-    rol: d.rol, activo: true, createdAt: serverTimestamp()
-  });
-  await auditar(c, 'CREAR_USUARIO', 'usuarios', ref.id, null, { email: d.email, rol: d.rol });
-  return { id: ref.id, aviso: 'En Spark, crea también el usuario en Authentication → Users → Add user con este mismo correo.' };
+/* La gestión de usuarios NO se hace desde el cliente: crear la cuenta de
+   Authentication exige el Admin SDK y las reglas cierran `usuarios` a
+   escritura (allow write: if false). Estas dos funciones se conservan solo
+   para fallar de forma clara si alguien vuelve a conectarlas por error:
+   antes escribían `usuarios/{email}`, un identificador que el login nunca
+   lee (busca `usuarios/{auth.uid}`), dejando usuarios sin rol efectivo.
+   La vía correcta es callables.js → Cloud Functions. */
+export async function crearUsuario() {
+  throw new Error('La creación de usuarios va por Cloud Functions (callables.js): no se escribe desde el navegador.');
 }
 
-export async function actualizarUsuario(uid, datos) {
-  const c = await requerir('SUPERADMIN');
-  const ref = doc(db, 'usuarios', uid);
-  const antes = (await getDoc(ref)).data();
-  if (!antes) throw new Error('Usuario no encontrado.');
-  if (uid === c.uid && ((datos.rol && datos.rol !== 'SUPERADMIN') || datos.activo === false)) {
-    throw new Error('No puedes quitarte el rol SUPERADMIN ni desactivarte a ti mismo.');
-  }
-  const limpio = {};
-  for (const k of ['nombre', 'rol', 'activo']) if (datos[k] !== undefined) limpio[k] = datos[k];
-  limpio.updatedAt = serverTimestamp();
-  await updateDoc(ref, limpio);
-  await auditar(c, 'ACTUALIZAR_USUARIO', 'usuarios', uid, antes, { ...antes, ...limpio });
-  return { ok: true };
+export async function actualizarUsuario() {
+  throw new Error('La actualización de usuarios va por Cloud Functions (callables.js): no se escribe desde el navegador.');
 }
 
 /* ── Mantenimiento ─────────────────────────────────────────────────── */

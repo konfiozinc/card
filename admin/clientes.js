@@ -36,8 +36,16 @@ const CHIPS_ESTADO = [
 ];
 
 /* ── Helpers de normalización ─────────────────────────────────────── */
+/* Estados que fija una persona y que la fecha NO debe pisar. */
+const ESTADOS_MANUALES = ['SUSPENDIDO', 'INACTIVO', 'INHABILITADO'];
+
 function estActual(c) {
-  const v = c.fechaVencimiento ? estadoPorVenc(c.fechaVencimiento) : c.estadoCliente;
+  const guardado = c.estadoServicio || c.estadoCliente;
+  /* Un estado manual manda sobre el vencimiento. Antes la fecha tapaba estos
+     estados: un cliente suspendido seguía pintándose ACTIVO y por eso no
+     aparecía nunca el botón de reactivar. */
+  if (ESTADOS_MANUALES.includes(guardado)) return guardado;
+  const v = c.fechaVencimiento ? estadoPorVenc(c.fechaVencimiento) : guardado;
   return v || 'ACTIVO';
 }
 function estadoPorVenc(v) {
@@ -195,16 +203,15 @@ async function manejarAccion(e) {
   if (a === 'pago') return abrirPago(c);
 
   if (a === 'activar') {
-    const vencido = c.dias !== null && c.dias < 0;
-    if (!await confirmar(`¿Activar al cliente ${c.nombre}?`)) return;
-    if (vencido) {
-      if (await confirmar(`El servicio de ${c.nombre} ya venció. ¿Extender su vencimiento 1 mes a partir de hoy?`)) {
-        const nuevo = iso(sumarMeses(new Date(), 1));
-        await updateDoc(doc(db, 'clientes', id), { fechaVencimiento: nuevo, updatedAt: serverTimestamp() });
-      }
-    }
-    await escrituras.activarServicio(id, 'Activación desde botón');
-    toast('Cliente activado'); return recargar();
+    /* Reactivar NO toca fechas ni regala tiempo: si el servicio está vencido
+       seguirá vencido hasta que se registre y confirme un pago. Antes este
+       botón ofrecía extender el vencimiento un mes gratis. */
+    if (!await confirmar(`¿Reactivar a ${c.nombre}? No se modifican las fechas del servicio.`)) return;
+    await escrituras.activarServicio(id, 'Reactivación desde botón');
+    toast(c.dias !== null && c.dias < 0
+      ? 'Cliente reactivado. El servicio sigue vencido: registra y confirma un pago para renovarlo.'
+      : 'Cliente reactivado');
+    return recargar();
   }
   if (a === 'desactivar') {
     if (!await confirmar(`¿Desactivar a ${c.nombre}? El historial se conserva.`)) return;

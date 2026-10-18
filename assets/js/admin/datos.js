@@ -19,9 +19,13 @@ import {
   crearCliente, actualizarCliente, registrarPago, confirmarPago, anularPago,
   activarServicio, suspenderServicio, desactivarServicio, reactivarServicio,
   inhabilitarServicio, eliminarCliente,
-  enviarNotificacion, registrarToken, crearUsuario, actualizarUsuario,
+  enviarNotificacion, registrarToken,
   seedInicial, recalcularEstados
 } from './escrituras-local.js';
+/* La gestión de usuarios va SIEMPRE por Cloud Functions: las reglas cierran
+   `usuarios` a escritura desde el cliente (allow write: if false), y crear la
+   cuenta de Authentication exige el Admin SDK del servidor. */
+import { crearUsuario, actualizarUsuario } from './callables.js';
 
 const CFG = window.KZ_CONFIG || {};
 const NEG = CFG.negocio || { mesesSuscripcion: 12, diasAntes: [10, 5, 3, 1], diasPorVencer: 15, diasGracia: 5 };

@@ -18,8 +18,11 @@ const admin = require('firebase-admin');
 
 admin.initializeApp();
 const db = admin.firestore();
-const FieldValue = admin.firestore.FieldValue;
-const Timestamp = admin.firestore.Timestamp;
+/* Se importan del submódulo documentado, no de `admin.firestore`: con el
+   emulador esa propiedad del namespace llegaba undefined y cualquier función
+   que usara FieldValue.serverTimestamp() fallaba con
+   "Cannot read properties of undefined (reading 'serverTimestamp')". */
+const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 
 const NIVEL = { OPERADOR: 1, ADMIN: 2, SUPERADMIN: 3 };
 const MESES = 12;
@@ -309,32 +312,89 @@ exports.registrarToken = onCall({ region: 'us-central1' }, async (request) => {
 exports.crearUsuario = onCall({ region: 'us-central1' }, async (request) => {
   const ctx = await requerir(request, 'SUPERADMIN');
   const d = request.data || {};
-  if (!d.email || !d.password || !d.rol) throw new HttpsError('invalid-argument', 'Email, contraseña y rol son obligatorios.');
-  if (!['OPERADOR', 'ADMIN', 'SUPERADMIN'].includes(d.rol)) throw new HttpsError('invalid-argument', 'Rol inválido.');
-  const user = await admin.auth().createUser({ email: d.email, password: d.password, displayName: d.nombre });
-  await db.doc(`usuarios/${user.uid}`).set({
-    uid: user.uid, nombre: d.nombre || d.email, email: d.email, rol: d.rol,
-    activo: true, createdAt: FieldValue.serverTimestamp()
-  });
-  await auditar(ctx, 'CREAR_USUARIO', 'usuarios', user.uid, null, { email: d.email, rol: d.rol });
-  return { uid: user.uid };
+  const email = String(d.email || '').trim().toLowerCase();
+  const password = String(d.password || '');
+  const rol = String(d.rol || '').trim().toUpperCase();
+  const nombre = String(d.nombre || '').trim();
+
+  if (!email || !password || !rol) throw new HttpsError('invalid-argument', 'Email, contraseña y rol son obligatorios.');
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new HttpsError('invalid-argument', 'El email no tiene un formato válido.');
+  if (password.length < 6) throw new HttpsError('invalid-argument', 'La contraseña debe tener al menos 6 caracteres.');
+  if (!['OPERADOR', 'ADMIN', 'SUPERADMIN'].includes(rol)) throw new HttpsError('invalid-argument', 'Rol inválido.');
+
+  /* Se crea primero la cuenta de Authentication y, con su uid real, la ficha
+     `usuarios/{uid}` — nunca usando el correo como identificador. */
+  const user = await admin.auth().createUser({ email, password, displayName: nombre || email });
+
+  /* Compensación: si la ficha falla, se borra la cuenta recién creada para no
+     dejar un usuario de Authentication sin perfil, que no podría entrar al
+     panel y quedaría huérfano. */
+  try {
+    await db.doc(`usuarios/${user.uid}`).set({
+      uid: user.uid, nombre: nombre || email, email, rol,
+      activo: true, createdAt: FieldValue.serverTimestamp()
+    });
+  } catch (err) {
+    logger.error('crearUsuario: fallo al escribir la ficha, se deshace la cuenta', { detalle: err && err.message });
+    await admin.auth().deleteUser(user.uid).catch(() => {});
+    throw new HttpsError('internal', 'No se pudo guardar el perfil del usuario. Se deshizo la creación para no dejar una cuenta sin ficha.');
+  }
+
+  /* La auditoría nunca guarda la contraseña. */
+  await auditar(ctx, 'CREAR_USUARIO', 'usuarios', user.uid, null, { email, rol });
+  return { uid: user.uid, email, rol };
 });
 
 exports.actualizarUsuario = onCall({ region: 'us-central1' }, async (request) => {
   const ctx = await requerir(request, 'SUPERADMIN');
   const { uid, datos } = request.data || {};
-  if (!uid || !datos) throw new HttpsError('invalid-argument', 'Faltan uid o datos.');
+  if (!uid || !datos || typeof datos !== 'object') throw new HttpsError('invalid-argument', 'Faltan uid o datos.');
   const snap = await db.doc(`usuarios/${uid}`).get();
   if (!snap.exists) throw new HttpsError('not-found', 'Usuario no encontrado.');
   const antes = snap.data();
+
+  /* Solo se aceptan tres campos, y cada uno se valida. */
+  const limpio = {};
+  if (datos.nombre !== undefined) {
+    const nombre = String(datos.nombre).trim();
+    if (!nombre) throw new HttpsError('invalid-argument', 'El nombre no puede quedar vacío.');
+    limpio.nombre = nombre;
+  }
+  if (datos.rol !== undefined) {
+    const rol = String(datos.rol).trim().toUpperCase();
+    if (!['OPERADOR', 'ADMIN', 'SUPERADMIN'].includes(rol)) throw new HttpsError('invalid-argument', 'Rol inválido.');
+    limpio.rol = rol;
+  }
+  if (datos.activo !== undefined) {
+    if (typeof datos.activo !== 'boolean') throw new HttpsError('invalid-argument', '"activo" debe ser true o false.');
+    limpio.activo = datos.activo;
+  }
+  if (!Object.keys(limpio).length) throw new HttpsError('invalid-argument', 'No hay ningún campo permitido que actualizar.');
+
   /* Protección: nadie se degrada ni se desactiva a sí mismo */
-  if (uid === ctx.uid && (datos.rol && datos.rol !== 'SUPERADMIN' || datos.activo === false)) {
+  if (uid === ctx.uid && ((limpio.rol && limpio.rol !== 'SUPERADMIN') || limpio.activo === false)) {
     throw new HttpsError('failed-precondition', 'No puedes quitarte el rol SUPERADMIN ni desactivarte a ti mismo.');
   }
-  const limpio = {};
-  for (const k of ['nombre', 'rol', 'activo']) if (datos[k] !== undefined) limpio[k] = datos[k];
+
+  /* Coherencia Auth ↔ Firestore: al desactivar en el panel también se
+     deshabilita la cuenta de Authentication, para que no pueda seguir
+     entrando; al reactivar se vuelve a habilitar. */
+  const deshabilitar = limpio.activo === undefined ? null : (limpio.activo === false);
+  if (deshabilitar !== null) {
+    try { await admin.auth().updateUser(uid, { disabled: deshabilitar }); }
+    catch (err) { throw new HttpsError('internal', 'No se pudo cambiar el estado en Authentication. No se modificó la ficha.'); }
+  }
+
   limpio.updatedAt = FieldValue.serverTimestamp();
-  await db.doc(`usuarios/${uid}`).update(limpio);
+  try {
+    await db.doc(`usuarios/${uid}`).update(limpio);
+  } catch (err) {
+    /* Compensación: se revierte Authentication para no dejarlo deshabilitado
+       con la ficha aún activa. */
+    if (deshabilitar !== null) await admin.auth().updateUser(uid, { disabled: !deshabilitar }).catch(() => {});
+    throw new HttpsError('internal', 'No se pudo guardar el cambio en Firestore. Se revirtió el estado en Authentication.');
+  }
+
   await auditar(ctx, 'ACTUALIZAR_USUARIO', 'usuarios', uid, antes, { ...antes, ...limpio });
   return { ok: true };
 });
