@@ -1,7 +1,7 @@
 /* ── notificaciones.js · historial y envío manual ─────────────────── */
 import { requireAuth } from '../assets/js/admin/shell.js';
 import { setTitulo, toast, esc } from '../assets/js/admin/ui.js';
-import { cargarNotificaciones, cargarClientes, escrituras, fechaLarga } from '../assets/js/admin/datos.js';
+import { cargarNotificaciones, cargarClientes, escrituras, fechaLarga, CFG } from '../assets/js/admin/datos.js';
 
 const sesion = await requireAuth('notificaciones');
 if (!sesion) throw new Error('Sin acceso');

@@ -33,6 +33,14 @@
         { "fieldPath": "servicio", "order": "ASCENDING" },
         { "fieldPath": "fechaVencimiento", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "historial_estados",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "clienteId", "order": "ASCENDING" },
+        { "fieldPath": "fecha", "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
