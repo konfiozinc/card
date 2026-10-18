@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#000000">
+<meta name="robots" content="noindex,nofollow">
+<title>KZ Motion Studio | Demo privada Konfío Zinc</title>
+<meta name="description" content="Demostración privada de experiencia interactiva de Konfío Zinc.">
+<style>
+@font-face{font-family:Orbitron;src:url('assets/fonts/orbitron-latin.woff2') format('woff2');font-style:normal;font-weight:400 700;font-display:swap}
+@font-face{font-family:Inter;src:url('assets/fonts/inter-latin.woff2') format('woff2');font-style:normal;font-weight:400 700;font-display:swap}
+:root{color-scheme:dark;--gold:#F0B429;--bg:#000000;--fg:#f5f8ff;--muted:#aab7d0;--cyan:#00E5FF;--violet:#F0B429}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,Segoe UI,sans-serif;overflow-x:hidden}a{color:inherit}header{position:fixed;z-index:30;top:0;left:0;right:0;padding:18px clamp(20px,5vw,80px);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(#000000e8,#00000000)}.brand{font-weight:900;letter-spacing:.12em;font-size:14px}.brand b{color:var(--cyan)}.status{font-size:11px;border:1px solid #ffffff45;padding:6px 12px;border-radius:99px;color:#c9d8f3}.scrollspace{height:480vh;position:relative}.stage{position:sticky;top:0;height:100svh;min-height:580px;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 45%,#17171b 0%,#0a0a0c 42%,#000000 76%)}.gridbg{position:absolute;inset:0;background-image:linear-gradient(#F0B4290a 1px,transparent 1px),linear-gradient(90deg,#F0B4290a 1px,transparent 1px);background-size:52px 52px;-webkit-mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent);mask-image:linear-gradient(transparent,#000 30%,#000 70%,transparent)}.glow{position:absolute;left:50%;top:48%;width:450px;height:450px;border-radius:50%;background:#F0B42926;filter:blur(85px);transform:translate(-50%,-50%)}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.24em;color:var(--cyan)}.headline{position:absolute;z-index:10;top:15%;left:50%;transform:translateX(-50%);text-align:center;width:min(95%,850px);pointer-events:none}.headline h1{font-size:clamp(34px,6.4vw,82px);letter-spacing:-.055em;line-height:1.03;margin:10px 0}.headline p{color:var(--muted);margin:0 auto;max-width:570px;font-size:clamp(14px,1.6vw,19px)}.visual{position:absolute;top:53%;left:50%;transform:translate(-50%,-50%);width:min(66vw,390px);height:min(66vw,390px);max-height:42vh;display:grid;place-items:center;perspective:900px;filter:drop-shadow(0 30px 55px #0009)}.orbit{position:absolute;width:100%;height:100%;border:1px solid #F0B42928;border-radius:50%;transform:rotateX(68deg);box-shadow:0 0 50px #00E5FF12}.layer{position:absolute;width:67%;aspect-ratio:1.45;border:1px solid #ffffff3b;border-radius:24px;display:flex;align-items:center;justify-content:center;gap:12px;font-weight:900;letter-spacing:.04em;font-size:clamp(12px,2vw,19px);transform-style:preserve-3d;will-change:transform,opacity;box-shadow:0 18px 35px #0008,inset 0 1px #fff7;transition:box-shadow .3s}.layer svg{width:30px;height:30px;flex-shrink:0}.layer-0{background:linear-gradient(125deg,#17171b,#463813);color:white}.layer-1{background:linear-gradient(125deg,#17171b,#293b3d);color:white}.layer-2{background:linear-gradient(125deg,#17171b,#463813);color:white}.layer-3{background:linear-gradient(125deg,#17171b,#293b3d);color:white}.layer-4{background:linear-gradient(125deg,#17171b,#463813);color:white}.label{position:absolute;z-index:12;left:calc(50% + min(21vw,165px));top:50%;max-width:230px;opacity:0;transform:translate(10px,-50%);transition:opacity .2s,transform .2s;pointer-events:none}.label strong{font-size:clamp(14px,2vw,20px);display:block}.label span{color:var(--muted);font-size:13px}.label:before{content:"";position:absolute;top:18px;right:calc(100% + 12px);width:clamp(12px,5vw,75px);height:1px;background:var(--cyan)}.bottom{position:absolute;bottom:8%;left:50%;transform:translateX(-50%);text-align:center;width:90%;z-index:12}.bottom .hint{font-size:12px;color:#c8d5ed;letter-spacing:.1em}.progress{height:3px;width:min(320px,65vw);margin:16px auto;background:#ffffff26;border-radius:20px;overflow:hidden}.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cyan),var(--violet))}.cta{display:inline-block;background:linear-gradient(110deg,#39c9ee,#9282ff);color:#071020;text-decoration:none;padding:13px 25px;border-radius:12px;font-weight:800;margin-top:12px}.final{padding:95px 24px;text-align:center;background:linear-gradient(#000000,#111114)}.final h2{font-size:clamp(28px,4vw,52px);line-height:1.1;margin:10px auto}.final p{max-width:650px;margin:0 auto 20px;color:var(--muted)}footer{padding:25px;text-align:center;font-size:12px;color:#9aa9c4;border-top:1px solid #ffffff16}.static-note{display:none}.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}@media(max-width:650px){header{padding:14px 18px}.status{font-size:9px}.headline{top:14%}.headline h1{font-size:38px}.headline p{max-width:330px}.visual{top:53%;width:78vw;height:78vw;max-height:35vh}.layer{width:83%;border-radius:16px;font-size:12px;gap:6px}.layer svg{width:21px;height:21px}.label{left:50%;top:77%!important;transform:translateX(-50%);width:90%;max-width:350px;text-align:center}.label:before{display:none}.bottom{bottom:4%}.bottom .hint{font-size:10px}}@media(prefers-reduced-motion:reduce){.scrollspace{height:100svh}.layer{transition:none!important}.label{display:none!important}.static-note{display:block;color:var(--muted)}.bottom .hint{display:none}}
+
+html{scroll-behavior:auto}a:focus-visible{outline:3px solid #F0B429;outline-offset:5px}.skip{position:fixed;top:-100px;left:16px;z-index:100;background:#000000;padding:12px}.skip:focus{top:12px}.service-list{max-width:650px;margin:24px auto;text-align:left}.service-list li{margin:8px 0}header{gap:12px}.brand{max-width:70%}.headline p{color:#cad5e8}.stage{min-height:0}.visual{height:min(66vw,390px)}@media(max-width:650px){.brand{font-size:10px}.status{max-width:100px;text-align:center}.headline{top:16%}.headline h1{font-size:clamp(26px,8vw,38px)}.headline p{font-size:13px}.visual{height:35svh;width:70vw;top:55%}.layer{width:80%}.label{top:80%!important}.bottom{bottom:2%}.bottom .hint{font-size:9px}.progress{margin:8px auto}}@media(max-height:500px){.headline{top:20%;left:23%;width:42%}.headline h1{font-size:24px}.headline p{font-size:12px}.visual{left:72%;top:52%;width:220px;height:200px}.label{display:none}.bottom{bottom:1%}}@media(prefers-reduced-motion:reduce){.scrollspace{height:auto}.stage{height:auto;min-height:0;padding:100px 24px 32px}.headline{position:relative;left:auto;top:auto;transform:none;width:100%}.visual,.bottom{display:none}.headline{opacity:1!important}}
+
+ .visual{top:61%}@media(max-width:650px){.visual{top:58%}}@media(max-height:500px){.visual{top:52%}} .visual{filter:none}.glow{filter:none;background:radial-gradient(circle,#F0B42926,transparent 70%)}
+.noscript-note{padding:80px 24px 0}body{font-family:Inter,system-ui,sans-serif;font-weight:400}
+h1,h2,.brand{font-family:Orbitron,system-ui,sans-serif;font-weight:700}
+.brand b,.eyebrow{color:var(--gold)}
+.headline h1{font-size:clamp(28px,4.5vw,64px)}
+.layer{font-weight:700;font-size:12px;border-color:var(--gold)}
+.layer-5{background:linear-gradient(125deg,#17171b,#293b3d);color:var(--fg)}
+.service-list{list-style:disc;padding-left:24px}.service-list strong{color:var(--gold)}
+.label{transition:none;max-width:250px}.label span{color:var(--fg)}
+@media(max-width:650px){.brand{font-size:9px}.headline h1{font-size:clamp(23px,6.6vw,32px)}.eyebrow{font-size:10px}.layer{font-size:10px}.visual{top:57%;width:72vw}.label{top:83%!important}.headline{top:15%}}
+@media(max-height:500px){.headline h1{font-size:21px}.layer{font-size:10px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}.headline p,.gridbg,.glow{display:none}.final{padding-top:32px}}
+</style>
+<noscript>
+<style>.scrollspace{height:auto}.stage{position:relative;overflow:visible;height:auto;padding:32px 24px}.headline{position:relative;left:auto;top:auto;transform:none;width:100%}.visual,.bottom,.label,.headline p,.gridbg,.glow{display:none}.final{padding-top:32px}</style>
+</noscript>
+</head>
+<body>
+<a class="skip" href="#contenido">Saltar al contenido</a>
+<header>
+<div class="brand">KONFÍO <b>ZINC</b>
+<span style="color:#a9b5d0;font-weight:500"> / MOTION STUDIO</span>
+</div>
+<span class="status">CONCEPTO PRIVADO · SIN IA</span>
+</header>
+<main id="contenido" tabindex="-1">
+<noscript>
+<p class="noscript-note">La animación requiere JavaScript. Puedes consultar todos los servicios y sus descripciones a continuación.</p>
+</noscript>
+<section class="scrollspace" id="scrollspace" aria-label="Demostración interactiva de servicios" aria-describedby="lista-servicios">
+<div class="stage">
+<div class="gridbg">
+</div>
+<div class="glow">
+</div>
+<div class="headline" id="headline">
+<div class="eyebrow">EXPERIENCIAS DIGITALES QUE DESTACAN</div>
+<h1>Una agencia.<br>
+<span style="color:var(--gold)">Muchas posibilidades.</span>
+</h1>
+<p>Desliza para descubrir cómo construimos una presencia digital, capa por capa.</p>
+</div>
+<div class="visual" aria-hidden="true">
+<div class="orbit">
+</div>
+<div class="layer layer-5" data-layer="5">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+<path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h2v2h-2zM19 19h2v2h-2z"/>
+</svg>CÓDIGOS QR</div>
+<div class="layer layer-4" data-layer="4">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+<path d="M12 3 3 8l9 5 9-5-9-5ZM3 12l9 5 9-5M3 16l9 5 9-5"/>
+</svg>MENÚS DIGITALES</div>
+<div class="layer layer-3" data-layer="3">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+<rect x="5" y="3" width="14" height="18" rx="2"/>
+<path d="M10 17h4"/>
+</svg>MINI WEBS</div>
+<div class="layer layer-2" data-layer="2">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+<path d="M3 4h18v16H3zM3 10h18M9 10v10"/>
+</svg>CATÁLOGOS</div>
+<div class="layer layer-1" data-layer="1">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+<path d="M4 19V5h16v14H4Zm4-4 3-4 2 2 3-5"/>
+</svg>LANDINGS</div>
+<div class="layer layer-0" data-layer="0">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+<rect x="4" y="4" width="16" height="16" rx="4"/>
+<path d="M9 15V9l6 3-6 3Z"/>
+</svg>AGENTES IA</div>
+</div>
+<div class="label" id="label" aria-hidden="true">
+<strong id="labelTitle">Agentes IA</strong>
+<span id="labelText">Agentes para negocios.</span>
+</div>
+<div class="bottom">
+<div class="hint" id="hint">↓ DESLIZA PARA DESCOMPONER LA EXPERIENCIA</div>
+<div class="progress" aria-hidden="true">
+<i id="bar">
+</i>
+</div>
+<span class="static-note">Concepto de capas digitales de Konfío Zinc.</span>
+</div>
+</div>
+</section>
+<section class="final" id="servicios">
+<div class="eyebrow">KZ MOTION STUDIO</div>
+<h2>Tu marca merece<br>una experiencia memorable.</h2>
+<p>Prototipo conceptual de animación 2.5D con código nativo, sin créditos de generación, sin bibliotecas externas y sin publicación de clientes.</p>
+<ul class="service-list" id="lista-servicios" aria-label="Los seis servicios de Konfío Zinc">
+<li>
+<strong>Agentes IA</strong>: <span>Agentes para negocios y atención conversacional.</span>
+</li>
+<li>
+<strong>Landing Pages</strong>: <span>Páginas para presentar tu negocio y facilitar el contacto.</span>
+</li>
+<li>
+<strong>Catálogos Digitales</strong>: <span>Productos organizados en un catálogo digital.</span>
+</li>
+<li>
+<strong>Mini Webs</strong>: <span>Presentación digital con información, contacto, redes, ubicación y QR.</span>
+</li>
+<li>
+<strong>Menús Digitales</strong>: <span>Menús digitales para restaurantes.</span>
+</li>
+<li>
+<strong>Códigos QR</strong>: <span>Códigos QR personalizados para compartir información.</span>
+</li>
+</ul>
+<a class="cta" href="#contenido">Volver al inicio ↑</a>
+</section>
+</main>
+<footer>© 2026 KONFÍO ZINC · Todos los derechos reservados · Demo conceptual, no comercial</footer>
+<script>
+(()=>{'use strict';
+const section=document.getElementById('scrollspace'),layers=[...document.querySelectorAll('[data-layer]')],label=document.getElementById('label'),title=document.getElementById('labelTitle'),desc=document.getElementById('labelText'),bar=document.getElementById('bar'),hint=document.getElementById('hint');
+const data=[...document.querySelectorAll('#lista-servicios li')].map(el=>[el.querySelector('strong').textContent,el.querySelector('span').textContent]);
+const motion=matchMedia('(prefers-reduced-motion: reduce)'),clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x)),ease=t=>t*t*(3-2*t);
+let pending=false;
+function render(){pending=false;if(motion.matches){layers.forEach(el=>el.style.transform='none');bar.style.width='100%';return;}
+const p=clamp(-section.getBoundingClientRect().top/Math.max(1,section.offsetHeight-innerHeight));
+const spread=ease(clamp((p-.08)/.60))*(1-ease(clamp((p-.78)/.20))),mobile=innerWidth<650,center=(layers.length-1)/2,spacing=Math.min(mobile?36:55,innerHeight*.052);
+layers.forEach(el=>{const i=Number(el.dataset.layer);el.style.transform=`translate3d(0,${(i-center)*spacing*spread}px,${(i-center)*14}px) rotateX(57deg) rotateZ(-15deg)`;el.style.opacity='1';});
+const idx=clamp(Math.floor((p-.2)/(.58/data.length)),0,data.length-1),assembling=p>=.78;
+title.textContent=assembling?'Todas las piezas conectadas':data[idx][0];desc.textContent=assembling?'Seis servicios para la presencia digital de tu negocio.':data[idx][1];label.style.opacity=p>.2?'1':'0';label.style.transform=mobile?'translateX(-50%)':'translate(0,-50%)';if(!mobile)label.style.top='56%';bar.style.width=`${p*100}%`;hint.textContent=assembling?'UNA VISIÓN. SEIS SERVICIOS.':'↓ DESLIZA PARA EXPLORAR';}
+function schedule(){if(!pending){pending=true;requestAnimationFrame(render)}}
+function updateMotion(){removeEventListener('scroll',schedule);removeEventListener('resize',schedule);if(!motion.matches){addEventListener('scroll',schedule,{passive:true});addEventListener('resize',schedule,{passive:true});}schedule();}
+motion.addEventListener('change',updateMotion);updateMotion();
+})();
+</script>
+</body>
+</html>
