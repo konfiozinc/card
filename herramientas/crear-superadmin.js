@@ -5,32 +5,32 @@
    - Crea el documento usuarios/{uid} con rol SUPERADMIN y activo:true.
    Idempotente: si ya existe, solo reasegura el documento de Firestore. */
 'use strict';
-const admin = require('firebase-admin');
-const sa = require('../serviceAccount.json');
+async function main() {
+  const admin = require('firebase-admin');
+  const sa = require('../serviceAccount.json');
 
-admin.initializeApp({ credential: admin.credential.cert(sa) });
+  admin.initializeApp({ credential: admin.credential.cert(sa) });
 
-const EMAIL = process.argv[2] || 'konfiozinc@gmail.com';
-const PASSWORD = process.argv[3] || process.env.ADMIN_PASSWORD;
-if (!PASSWORD) {
-  console.error('Falta la contraseña. Uso: node crear-superadmin.js [email] <contraseña>');
-  console.error('Alternativa: variable de entorno ADMIN_PASSWORD.');
-  process.exit(1);
-}
-const NOMBRE = 'Darwin Montalvo';
-const ROL = 'SUPERADMIN';
+  const EMAIL = process.argv[2] || 'konfiozinc@gmail.com';
+  const PASSWORD = process.argv[3] || process.env.ADMIN_PASSWORD;
+  if (!PASSWORD) {
+    console.error('Falta la contraseña. Uso: node crear-superadmin.js [email] <contraseña>');
+    console.error('Alternativa: variable de entorno ADMIN_PASSWORD.');
+    process.exit(1);
+  }
+  const NOMBRE = 'Darwin Montalvo';
+  const ROL = 'SUPERADMIN';
 
-(async () => {
   let uid;
   try {
     const u = await admin.auth().getUserByEmail(EMAIL);
     uid = u.uid;
-    console.log('✔ Usuario Auth ya existía:', EMAIL);
+    console.log('✔ Usuario Auth ya existía');
   } catch (e) {
     if (e.code === 'auth/user-not-found' || e.code === 'auth/configuration-not-found') {
       const creado = await admin.auth().createUser({ email: EMAIL, password: PASSWORD, displayName: NOMBRE });
       uid = creado.uid;
-      console.log('✔ Usuario Auth creado:', EMAIL);
+      console.log('✔ Usuario Auth creado');
     } else throw e;
   }
 
@@ -38,7 +38,7 @@ const ROL = 'SUPERADMIN';
     uid, nombre: NOMBRE, email: EMAIL, rol: ROL, activo: true,
     createdAt: admin.firestore.FieldValue.serverTimestamp()
   }, { merge: true });
-  console.log('✔ Documento usuarios/' + uid + ' con rol SUPERADMIN y activo:true');
+  console.log('✔ Documento de usuario con rol SUPERADMIN y activo:true');
 
   /* Siembra datos iniciales por si seedInicial del panel aún no se ejecutó */
   const planes = [
@@ -70,8 +70,14 @@ const ROL = 'SUPERADMIN';
   console.log('✔ Configuración de vencimientos sembrada');
 
   console.log('\n=== RESUMEN ===');
-  console.log('Email      : ' + EMAIL);
-  console.log('Contraseña : ' + PASSWORD + '  (cámbiala en el primer acceso)');
   console.log('Rol        : ' + ROL);
   console.log('Panel      : https://konfiozinc.github.io/card/admin/');
-})();
+}
+
+// No volcar errores del SDK: pueden contener parámetros de autenticación.
+if (require.main === module) {
+  main().then(() => process.exit(0)).catch(() => {
+    console.error('✖ No se pudo completar la creación del administrador. Revisar configuración y permisos.');
+    process.exit(1);
+  });
+}
