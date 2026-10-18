@@ -15,6 +15,23 @@
 import { functions } from './core.js';
 import { httpsCallable } from 'firebase/functions';
 
+/* Cuando el servidor de funciones no existe —backend sin desplegar, función
+   suelta que falta o red caída— el SDK devuelve un error técnico, no una frase
+   nuestra. Sin esta comprobación el panel mostraba «Error interno del servidor.
+   Revisa los registros de las funciones» o «El registro no existe», que mandan a
+   buscar el problema en el sitio equivocado justo en el escenario que importa
+   durante un lanzamiento. */
+const CODIGOS_SIN_SERVIDOR = ['functions/internal', 'functions/unavailable', 'functions/not-found', 'functions/deadline-exceeded'];
+
+/* ¿El texto viene de nuestro servidor o es un volcado técnico del SDK? */
+function esMensajeDelServidor(err) {
+  const m = typeof err.message === 'string' ? err.message.trim() : '';
+  if (m === '' || m.length > 300) return false;
+  if (/^(internal|unavailable|not-found|not found|404|500|503|econn|failed to fetch|network)/i.test(m)) return false;
+  if (m.includes('<') || m.includes('{')) return false;
+  return true;
+}
+
 /** Envuelve una callable para devolver datos limpios y errores legibles. */
 async function invocar(nombre, datos) {
   if (!functions) {
@@ -25,7 +42,26 @@ async function invocar(nombre, datos) {
     const res = await fn(datos || {});
     return res.data;
   } catch (err) {
-    /* Los errores de httpsCallable traen código y mensaje; se traducen. */
+    /* El servidor respondió y explicó el problema: se usa su mensaje. */
+    if (esMensajeDelServidor(err)) {
+      const e = new Error(err.message.trim());
+      e.codigo = err.code;
+      throw e;
+    }
+
+    /* El servidor no respondió: se dice así, con el nombre de la acción y qué
+       revisar. Nunca se presenta como si fuera un problema del registro. */
+    if (CODIGOS_SIN_SERVIDOR.includes(err.code) || !err.code) {
+      const e = new Error(
+        `No se pudo contactar con el servidor del panel (acción «${nombre}»). ` +
+        'Comprueba que las Cloud Functions estén desplegadas y que haya conexión.'
+      );
+      e.codigo = err.code || 'sin-codigo';
+      e.backend = true;
+      throw e;
+    }
+
+    /* Resto de códigos conocidos: traducción directa. */
     const codigos = {
       'functions/unauthenticated': 'Tu sesión expiró. Vuelve a entrar.',
       'functions/permission-denied': 'Tu rol no permite esta acción.',
@@ -36,8 +72,7 @@ async function invocar(nombre, datos) {
       'functions/unavailable': 'No hay conexión con el servidor. Revisa tu internet.',
       'functions/deadline-exceeded': 'La operación tardó demasiado. Inténtalo de nuevo.'
     };
-    const legible = codigos[err.code] || 'No se pudo completar la acción.';
-    const e = new Error(err.message && !err.message.startsWith('internal') ? err.message : legible);
+    const e = new Error(codigos[err.code] || 'No se pudo completar la acción.');
     e.codigo = err.code;
     throw e;
   }

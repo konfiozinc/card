@@ -158,3 +158,10 @@ está en `docs/DESPLIEGUE-POR-FASES-CARD.md`.
 repositorio), pero **exige autorización del dueño porque lee datos personales** y todavía no se ha
 corrido contra producción. El bucket de Cloud Storage sigue sin crear y la cuenta de servicio no
 tiene permiso para leer la política IAM (comprobado con `herramientas/verificar-permisos.js`).
+## H. Secuencia de la ventana de lanzamiento
+
+El orden definitivo, con la verificación y el criterio de parada de cada etapa, está en
+`docs/VENTANA-DE-LANZAMIENTO-CARD.md`. Resumen: respaldo fresco → índice → Callables
+administrativas → validar `estadoMotor` cerrado → publicar frontend con
+`herramientas/publicar-paginas.ps1` → reglas → validación crítica. `processDueDates` no se despliega
+y la migración de usuarios no se ejecuta en esa ventana.
