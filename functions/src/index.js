@@ -324,7 +324,19 @@ exports.crearUsuario = onCall({ region: 'us-central1' }, async (request) => {
 
   /* Se crea primero la cuenta de Authentication y, con su uid real, la ficha
      `usuarios/{uid}` — nunca usando el correo como identificador. */
-  const user = await admin.auth().createUser({ email, password, displayName: nombre || email });
+  let user;
+  try {
+    user = await admin.auth().createUser({ email, password, displayName: nombre || email });
+  } catch (err) {
+    if (err && err.code === 'auth/email-already-exists') {
+      throw new HttpsError('already-exists', 'Ya existe una cuenta con ese correo. Si es un usuario antiguo, cambia su rol desde la lista en vez de crearlo otra vez.');
+    }
+    if (err && err.code === 'auth/invalid-password') {
+      throw new HttpsError('invalid-argument', 'La contraseña no es válida (mínimo 6 caracteres).');
+    }
+    logger.error('crearUsuario: fallo al crear la cuenta de Authentication', { codigo: err && err.code });
+    throw new HttpsError('internal', 'No se pudo crear la cuenta de Authentication.');
+  }
 
   /* Compensación: si la ficha falla, se borra la cuenta recién creada para no
      dejar un usuario de Authentication sin perfil, que no podría entrar al

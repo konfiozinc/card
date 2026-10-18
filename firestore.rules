@@ -83,14 +83,18 @@ service cloud.firestore {
     match /pagos/{pagoId} {
 
       // (1) El dinero y su origen no cambian nunca, para ningún rol.
+      // Se leen con get(campo, null): los pagos antiguos no tienen todos los
+      // campos (p. ej. servicioId) y una comparación directa sobre un campo
+      // ausente produce un error de evaluación que DENEGABA confirmar o
+      // anular el pago entero.
       function dineroIntacto() {
-        return request.resource.data.monto == resource.data.monto
-            && request.resource.data.clienteId == resource.data.clienteId
-            && request.resource.data.clienteNombre == resource.data.clienteNombre
-            && request.resource.data.servicioId == resource.data.servicioId
-            && request.resource.data.createdAt == resource.data.createdAt
-            && request.resource.data.registradoPor == resource.data.registradoPor
-            && request.resource.data.registradoPorNombre == resource.data.registradoPorNombre;
+        return request.resource.data.get('monto', null) == resource.data.get('monto', null)
+            && request.resource.data.get('clienteId', null) == resource.data.get('clienteId', null)
+            && request.resource.data.get('clienteNombre', null) == resource.data.get('clienteNombre', null)
+            && request.resource.data.get('servicioId', null) == resource.data.get('servicioId', null)
+            && request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null)
+            && request.resource.data.get('registradoPor', null) == resource.data.get('registradoPor', null)
+            && request.resource.data.get('registradoPorNombre', null) == resource.data.get('registradoPorNombre', null);
       }
 
       // Campos que la actualización realmente modifica.
