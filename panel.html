@@ -142,36 +142,80 @@ async function cargar(){
 }
 
 function render(docs){
+  // Los eventos son entradas no confiables, aunque procedan de Firestore.
+  const eventos = (Array.isArray(docs) ? docs : []).filter(d=>d && typeof d==='object' && !Array.isArray(d)).map(d=>({
+    tarjeta: typeof d.tarjeta==='string' ? d.tarjeta : 'Sin tarjeta',
+    evento: typeof d.evento==='string' ? d.evento : '',
+    etiqueta: typeof d.etiqueta==='string' ? d.etiqueta : '',
+    ts: d.ts
+  }));
+  const nodo = (tag, clase, texto)=>{
+    const el=document.createElement(tag);
+    if(clase) el.className=clase;
+    if(texto!==undefined) el.textContent=texto;
+    return el;
+  };
+  const fechaEvento = valor=>{
+    if(!valor) return '';
+    let fecha;
+    if(valor instanceof Date) fecha=valor;
+    else if(typeof valor==='number' && Number.isFinite(valor)) fecha=new Date(valor);
+    else if(typeof valor==='string') fecha=new Date(valor);
+    else if(typeof valor.toDate==='function') fecha=valor.toDate();
+    if(!(fecha instanceof Date) || !Number.isFinite(fecha.getTime())) return '';
+    return fecha.toLocaleString('es-CO',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+  };
   // totales
-  const clicks = docs.filter(d=>d.evento==='click_whatsapp').length;
-  const leads  = docs.filter(d=>d.evento==='generate_lead').length;
+  const clicks = eventos.filter(d=>d.evento==='click_whatsapp').length;
+  const leads  = eventos.filter(d=>d.evento==='generate_lead').length;
   $('#kClicks').textContent = clicks;
   $('#kLeads').textContent  = leads;
 
   // por tarjeta
-  const por = {};
-  docs.forEach(d=>{
-    if(!por[d.tarjeta]) por[d.tarjeta]={clicks:0,leads:0};
-    if(d.evento==='click_whatsapp') por[d.tarjeta].clicks++;
-    if(d.evento==='generate_lead')  por[d.tarjeta].leads++;
+  const por = new Map();
+  eventos.forEach(d=>{
+    if(!por.has(d.tarjeta)) por.set(d.tarjeta,{clicks:0,leads:0});
+    if(d.evento==='click_whatsapp') por.get(d.tarjeta).clicks++;
+    if(d.evento==='generate_lead')  por.get(d.tarjeta).leads++;
   });
-  const keys = Object.keys(por).sort();
+  const keys = [...por.keys()].sort();
   $('#kTarjetas').textContent = keys.length;
-  const max = Math.max(1, ...keys.map(k=>por[k].clicks));
-  $('#tablaTarjetas tbody').innerHTML = keys.map(k=>`
-    <tr>
-      <td class="tarjeta">${k}</td>
-      <td><span class="badge">${por[k].clicks}</span></td>
-      <td><span class="badge lead">${por[k].leads}</span></td>
-      <td style="width:40%"><div class="bar"><span style="width:${Math.round(por[k].clicks/max*100)}%"></span></div></td>
-    </tr>`).join('') || '<tr><td colspan="4" style="color:var(--muted)">Aún no hay eventos.</td></tr>';
+  const max = Math.max(1, ...keys.map(k=>por.get(k).clicks));
+  const filas=document.createDocumentFragment();
+  for(const k of keys){
+    const cuenta=por.get(k), fila=nodo('tr');
+    const nombre=nodo('td','tarjeta',k);
+    const clicksCelda=nodo('td'), leadsCelda=nodo('td'), barraCelda=nodo('td');
+    clicksCelda.append(nodo('span','badge',cuenta.clicks));
+    leadsCelda.append(nodo('span','badge lead',cuenta.leads));
+    barraCelda.style.width='40%';
+    const barra=nodo('div','bar'), valor=nodo('span');
+    // Solo un porcentaje calculado a partir de contadores internos llega a CSS.
+    valor.style.width=Math.round(cuenta.clicks/max*100)+'%';
+    barra.append(valor); barraCelda.append(barra);
+    fila.append(nombre,clicksCelda,leadsCelda,barraCelda); filas.append(fila);
+  }
+  if(!keys.length){
+    const fila=nodo('tr'), celda=nodo('td','','Aún no hay eventos.');
+    celda.colSpan=4; celda.style.color='var(--muted)';
+    fila.append(celda); filas.append(fila);
+  }
+  $('#tablaTarjetas tbody').replaceChildren(filas);
 
   // recientes
-  $('#recientes').innerHTML = docs.slice(0,20).map(d=>{
-    const t = d.ts ? new Date(d.ts).toLocaleString('es-CO',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '';
-    const tipo = d.evento==='generate_lead' ? '<span class="badge lead">cita</span>' : '<span class="badge">lead</span>';
-    return `<div class="fila"><span><b class="tarjeta">${d.tarjeta}</b> ${tipo}</span><span class="t">${d.etiqueta||''} · ${t}</span></div>`;
-  }).join('') || '<p style="color:var(--muted);font-size:12.5px">Sin eventos.</p>';
+  const recientes=document.createDocumentFragment();
+  for(const d of eventos.slice(0,20)){
+    const fila=nodo('div','fila'), nombre=nodo('span');
+    const cita=d.evento==='generate_lead';
+    nombre.append(nodo('b','tarjeta',d.tarjeta),document.createTextNode(' '),nodo('span',cita?'badge lead':'badge',cita?'cita':'lead'));
+    fila.append(nombre,nodo('span','t',d.etiqueta+' · '+fechaEvento(d.ts)));
+    recientes.append(fila);
+  }
+  if(!eventos.length){
+    const vacio=nodo('p','','Sin eventos.');
+    vacio.style.color='var(--muted)'; vacio.style.fontSize='12.5px'; recientes.append(vacio);
+  }
+  $('#recientes').replaceChildren(recientes);
 }
 
 setInterval(cargar, 30000);
