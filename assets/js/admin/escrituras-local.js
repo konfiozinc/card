@@ -201,6 +201,10 @@ async function transicion(clienteId, nuevo, motivo, extra) {
   if (!antes) throw new Error('Cliente no encontrado.');
   await updateDoc(ref, {
     estadoCliente: nuevo, estadoServicio: nuevo,
+    /* Volver a ACTIVO saca al cliente de la baja lógica. Sin esto, reactivar
+       un cliente eliminado lo dejaba activo en los datos pero invisible en
+       las listas para siempre (eliminado seguía en true). */
+    ...(nuevo === 'ACTIVO' ? { eliminado: false } : {}),
     fechaCambioEstado: serverTimestamp(), motivoCambio: motivo, cambiadoPor: c.email || c.nombre,
     ...extra, updatedAt: serverTimestamp()
   });
