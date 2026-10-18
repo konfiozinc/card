@@ -90,10 +90,26 @@ export async function cargarCliente(id) {
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
-/** Pagos de un cliente (para el detalle). */
+/** Pagos de un cliente (para el detalle).
+ *
+ *  Los pagos viven en la colección RAÍZ `pagos` con el campo `clienteId`:
+ *  así los escriben `registrarPago()` (escrituras-local.js) y la función
+ *  equivalente de Cloud Functions. La subcolección `clientes/{id}/pagos`
+ *  no la escribe nadie y las reglas la cierran con el comodín final, así
+ *  que la consulta anterior devolvía siempre PERMISSION_DENIED y el
+ *  historial del cliente aparecía vacío.
+ *
+ *  Se filtra SOLO por `clienteId` (índice de un campo, automático) y se
+ *  ordena en memoria a propósito: un `where` + `orderBy` sobre campos
+ *  distintos exigiría un índice compuesto en producción, y no se quiere
+ *  depender de un despliegue de índices para arreglar esto.
+ */
 export async function pagosDe(clienteId) {
-  const snap = await getDocs(query(collection(db, 'clientes', clienteId, 'pagos'), orderBy('fechaPago', 'desc'), limit(20)));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  const snap = await getDocs(query(collection(db, 'pagos'), where('clienteId', '==', clienteId)));
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => String(b.fechaPago || '').localeCompare(String(a.fechaPago || '')))
+    .slice(0, 20);
 }
 
 /** Historial de estados de un cliente. */

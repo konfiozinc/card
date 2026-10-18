@@ -69,18 +69,97 @@ service cloud.firestore {
     }
 
     // ── pagos ───────────────────────────────────────────────────────
-    // Registrar un pago lo puede hacer OPERADOR+; CAMBIAR su estado a
-    // CONFIRMADO o ANULADO solo ADMIN+. La regla valida el cambio de
-    // estado: si el campo estado cambia, exige rol ADMIN.
+    // P1 · integridad financiera (18-oct-2026).
+    // Antes esta regla solo miraba el campo `estado`: un OPERADOR podía
+    // cambiar el monto de un pago (49.900 → 1) dejando el estado intacto,
+    // reasignarlo a otro cliente, falsificar createdAt o reescribir quién
+    // lo registró. Ahora:
+    //   · `monto` y los datos de identidad son INMUTABLES para todos los
+    //     roles. Corregir un importe = anular el pago y registrar otro.
+    //   · Crear exige un conjunto CERRADO de campos y estado PENDIENTE.
+    //   · Solo ADMIN+ actualiza, y únicamente por las transiciones
+    //     PENDIENTE→CONFIRMADO, PENDIENTE→ANULADO y CONFIRMADO→ANULADO,
+    //     o para corregir metadatos sin tocar estado ni campos de auditoría.
     match /pagos/{pagoId} {
+
+      // (1) El dinero y su origen no cambian nunca, para ningún rol.
+      function dineroIntacto() {
+        return request.resource.data.monto == resource.data.monto
+            && request.resource.data.clienteId == resource.data.clienteId
+            && request.resource.data.clienteNombre == resource.data.clienteNombre
+            && request.resource.data.servicioId == resource.data.servicioId
+            && request.resource.data.createdAt == resource.data.createdAt
+            && request.resource.data.registradoPor == resource.data.registradoPor
+            && request.resource.data.registradoPorNombre == resource.data.registradoPorNombre;
+      }
+
+      // Campos que la actualización realmente modifica.
+      function tocados() {
+        return request.resource.data.diff(resource.data).affectedKeys();
+      }
+
+      // (2) Solo se tocan campos de gestión.
+      function camposPermitidos() {
+        return tocados().hasOnly([
+          'estado', 'metodoPago', 'fechaPago', 'referencia', 'comprobanteUrl',
+          'confirmadoPor', 'confirmadoPorNombre', 'periodoInicio', 'periodoFin',
+          'confirmadoEn', 'anuladoPor', 'motivo', 'anuladoEn'
+        ]);
+      }
+
+      // (3) Solo tres transiciones; ninguna inversa, ninguna desde ANULADO.
+      function transicionAutorizada() {
+        return (resource.data.estado == 'PENDIENTE' && request.resource.data.estado == 'CONFIRMADO')
+            || (resource.data.estado == 'PENDIENTE' && request.resource.data.estado == 'ANULADO')
+            || (resource.data.estado == 'CONFIRMADO' && request.resource.data.estado == 'ANULADO');
+      }
+
+      // (4) Los campos de auditoría deben corresponder a la transición.
+      function auditoriaCoherente() {
+        return (request.resource.data.estado == 'CONFIRMADO'
+                 && request.resource.data.confirmadoPor is string
+                 && request.resource.data.confirmadoEn is timestamp
+                 && !tocados().hasAny(['anuladoPor', 'anuladoEn', 'motivo']))
+            || (request.resource.data.estado == 'ANULADO'
+                 && request.resource.data.anuladoPor is string
+                 && request.resource.data.motivo is string
+                 && request.resource.data.motivo.size() > 0
+                 && request.resource.data.anuladoEn is timestamp
+                 && !tocados().hasAny(['confirmadoPor', 'confirmadoPorNombre', 'periodoInicio', 'periodoFin', 'confirmadoEn']));
+      }
+
+      // (5) Corrección de metadatos: sin cambiar estado ni auditoría, y
+      //     nunca sobre un pago ya anulado (estado terminal).
+      function soloMetadatos() {
+        return resource.data.estado != 'ANULADO'
+            && request.resource.data.estado == resource.data.estado
+            && !tocados().hasAny([
+                 'confirmadoPor', 'confirmadoPorNombre', 'periodoInicio', 'periodoFin',
+                 'confirmadoEn', 'anuladoPor', 'motivo', 'anuladoEn'
+               ]);
+      }
+
       allow read: if esOperador();
+
       allow create: if esOperador()
         && request.resource.data.estado == 'PENDIENTE'
         && request.resource.data.monto is number
-        && request.resource.data.monto > 0;
-      allow update: if esOperador()
-        && (request.resource.data.estado == resource.data.estado
-            || esAdmin());
+        && request.resource.data.monto > 0
+        && request.resource.data.clienteId is string
+        && request.resource.data.keys().hasOnly([
+             'clienteId', 'clienteNombre', 'servicioId', 'monto', 'metodoPago',
+             'fechaPago', 'referencia', 'comprobanteUrl', 'estado',
+             'registradoPor', 'registradoPorNombre', 'createdAt'
+           ]);
+
+      allow update: if esAdmin()
+        && dineroIntacto()
+        && camposPermitidos()
+        && (
+             (transicionAutorizada() && auditoriaCoherente())
+             || soloMetadatos()
+           );
+
       allow delete: if false;
     }
 
