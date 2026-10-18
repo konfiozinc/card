@@ -16,6 +16,7 @@ const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { logger } = require('firebase-functions');
 const admin = require('firebase-admin');
 const { procesarVencimientos, DIAS_ANTES, DIAS_POR_VENCER, DIAS_GRACIA } = require('./vencimientos');
+const { estadoDelMotor, RUTA_CONFIG, VARIABLE_ENTORNO, VALOR_UNICO } = require('./motor');
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -450,8 +451,21 @@ exports.recalcularEstados = onCall({ region: 'us-central1' }, async (request) =>
   return { actualizados: n };
 });
 
-/* ═══════════════ MOTOR DE VENCIMIENTOS (programado) ═══════════════ */
+/* ═══════════════ MOTOR DE VENCIMIENTOS (programado) ═══════════════
+   La puerta se evalúa ANTES de tocar nada: si el interruptor está cerrado no
+   se lee el padrón, no se escribe, no se envía ninguna notificación y no se
+   suspende a nadie. Falla cerrado (ver ./motor.js). */
+async function revisarPuerta(origen) {
+  const estado = await estadoDelMotor({ db, env: process.env });
+  if (!estado.habilitado) {
+    logger.warn(`MOTOR DESHABILITADO (${origen}) — no se ejecuta: ${estado.motivo}`);
+  }
+  return estado;
+}
+
 exports.processDueDates = onSchedule({ schedule: 'every day 08:00', timeZone: 'America/Bogota', region: 'us-central1' }, async () => {
+  const puerta = await revisarPuerta('programador diario');
+  if (!puerta.habilitado) return { ejecutado: false, motivo: puerta.motivo };
   /* La lógica vive en ./vencimientos para poder probarla sin el disparador. */
   return procesarVencimientos({ db, FieldValue, pushACliente, logger, mensajes: MENSAJES });
 });
@@ -459,8 +473,38 @@ exports.processDueDates = onSchedule({ schedule: 'every day 08:00', timeZone: 'A
 /* Ejecuta el motor a mano, solo SUPERADMIN. Sirve para dos cosas: comprobar
    tras el despliegue que el motor funciona en el runtime real sin esperar a
    las 08:00, y repetir la pasada si un día falló el programador. No sustituye
-   al programador: ejecuta exactamente el mismo código. */
+   al programador: ejecuta exactamente el mismo código. Está sujeto a la MISMA
+   puerta que el programador — una llamada manual no puede saltarse el
+   interruptor. */
 exports.ejecutarVencimientos = onCall({ region: 'us-central1' }, async (request) => {
   await requerir(request, 'SUPERADMIN');
+  const puerta = await revisarPuerta('ejecución manual');
+  if (!puerta.habilitado) {
+    throw new HttpsError('failed-precondition',
+      `El motor de vencimientos está deshabilitado: ${puerta.motivo}`);
+  }
   return procesarVencimientos({ db, FieldValue, pushACliente, logger, mensajes: MENSAJES });
+});
+
+/* Consulta del interruptor, sin efectos: no lee el padrón, no escribe, no
+   envía. Devuelve exactamente lo que evalúa la puerta, para poder comprobar
+   tras el despliegue que el motor quedó cerrado (o abierto) como se esperaba. */
+exports.estadoMotor = onCall({ region: 'us-central1' }, async (request) => {
+  await requerir(request, 'SUPERADMIN');
+  const estado = await estadoDelMotor({ db, env: process.env });
+  return {
+    habilitado: estado.habilitado,
+    motivo: estado.motivo,
+    variable: estado.entorno.variable,
+    variablePresente: estado.entorno.presente,
+    variableCorrecta: estado.entorno.correcta,
+    configuracion: {
+      ruta: estado.configuracion.ruta,
+      existe: estado.configuracion.existe,
+      habilitado: estado.configuracion.habilitado,
+      actualizadoPor: estado.configuracion.actualizadoPor,
+      error: estado.configuracion.error
+    },
+    esperado: { variable: VARIABLE_ENTORNO, valor: VALOR_UNICO, documento: RUTA_CONFIG }
+  };
 });

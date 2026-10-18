@@ -136,3 +136,25 @@ hacer con las marcadas ✗ (sin cuenta de Authentication) y con los duplicados.
    avisos en producción dependerán de que los suscriptores tengan token activo.
 5. **Nadie ha probado el panel en un móvil real** (375×667 está validado por
    emulación).
+
+---
+
+## G. LOTE H — despliegue por etapas (preparado, no ejecutado)
+
+**Interruptor del motor, a prueba de fallos.** `processDueDates` y `ejecutarVencimientos` no corren
+salvo que se cumplan **las dos** condiciones: `KZ_MOTOR_VENCIMIENTOS=HABILITADO` en
+`functions/.env.konfio-zinc` **y** el documento `configuracion/motorVencimientos` con
+`habilitado: true`. Si falta una, si vale otra cosa o si no se puede leer, el motor no lee el padrón,
+no escribe, no notifica y no suspende a nadie. La regla de Firestore impide escribir ese documento
+desde el navegador: ni siquiera un SUPERADMIN puede abrirlo con un clic.
+
+**Orden de publicación:** respaldo verificado → índice `historial_estados` → Callables
+(`herramientas/desplegar-funciones.ps1 -Etapa admin`) → frontend en GitHub Pages → reglas de
+Firestore → migración de usuarios → motor. El detalle, con comandos, compatibilidad y reversión,
+está en `docs/DESPLIEGUE-POR-FASES-CARD.md`.
+
+**Actualiza los riesgos 1 y 2 de la sección F:** el respaldo local ya es ejecutable
+(`respaldar-firestore.js` + `verificar-respaldo-firestore.js`; la credencial existe fuera del
+repositorio), pero **exige autorización del dueño porque lee datos personales** y todavía no se ha
+corrido contra producción. El bucket de Cloud Storage sigue sin crear y la cuenta de servicio no
+tiene permiso para leer la política IAM (comprobado con `herramientas/verificar-permisos.js`).

@@ -276,7 +276,11 @@ async function sembrar() {
   /* ═══ 4 · CREAR PLAN NUEVO ═══════════════════════════════════════ */
   console.log('\n═══ 4 · CREAR PLAN NUEVO ═══');
   {
-    const { ctx, pag } = await sesion('ADMIN');
+    /* El catálogo inicial es acción de SUPERADMIN: el botón solo lo ve ese rol
+       (lo comprueba el LOTE C). Se entra con SUPERADMIN para ejercitarlo; con
+       ADMIN la página no lo muestra, y esperarlo provocaba un tiempo de espera
+       de 30 s que no era un fallo del panel. */
+    const { ctx, pag } = await sesion('SUPERADMIN');
     await pag.goto(`${BASE}/admin/planes.html`, { waitUntil: 'domcontentloaded' });
     await pag.waitForTimeout(2000);
     const panorama = await pag.evaluate(() => ({
@@ -291,10 +295,17 @@ async function sembrar() {
       `botones en la página: ${panorama.botones.join(' · ')} · acciones de fila: ${panorama.accionesFila.join(', ') || 'ninguna'} · filas: ${panorama.filas}`);
 
     /* Lo que sí existe: catálogo inicial y edición */
-    await pag.click('#btn-seed');
-    await pag.waitForTimeout(2800);
-    const trasSeed = await pag.evaluate(() => document.querySelectorAll('table tbody tr').length);
-    anotar('Planes: «Cargar catálogo inicial» funciona', trasSeed > 0 ? 'APROBADO' : 'FALLIDO', `${trasSeed} planes tras pulsar el botón`);
+    const haySemilla = await pag.locator('#btn-seed').count();
+    anotar('Planes: el SUPERADMIN ve «Cargar catálogo inicial»',
+      haySemilla > 0 ? 'APROBADO' : 'FALLIDO', `${haySemilla} botón(es)`);
+    if (haySemilla > 0) {
+      await pag.click('#btn-seed');
+      await pag.waitForTimeout(2800);
+      const trasSeed = await pag.evaluate(() => document.querySelectorAll('table tbody tr').length);
+      anotar('Planes: «Cargar catálogo inicial» funciona', trasSeed > 0 ? 'APROBADO' : 'FALLIDO', `${trasSeed} planes tras pulsar el botón`);
+    } else {
+      anotar('Planes: «Cargar catálogo inicial» funciona', 'BLOQUEADO', 'no hay botón para el rol de la prueba');
+    }
     await ctx.close();
   }
 

@@ -208,9 +208,13 @@ service cloud.firestore {
     }
 
     // ── configuracion ───────────────────────────────────────────────
+    // El interruptor del motor de vencimientos (configuracion/motorVencimientos)
+    // NO se abre desde el navegador: abrirlo exige el Admin SDK, es decir una
+    // persona con credenciales y a mano, nunca un clic en el panel. Cualquier
+    // otra clave de configuración sigue igual que antes.
     match /configuracion/{clave} {
       allow read: if esOperador();
-      allow write: if esSuperadmin();
+      allow write: if esSuperadmin() && clave != 'motorVencimientos';
     }
 
     // ── contactos (formulario público del sitio) ──────────────────

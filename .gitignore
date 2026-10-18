@@ -27,6 +27,13 @@ ui-debug.log
 functions/*.log
 .runtimeconfig.json
 
+# Variables de entorno de Cloud Functions. Aquí viaja el interruptor del motor
+# de vencimientos (KZ_MOTOR_VENCIMIENTOS=HABILITADO) y cualquier ajuste de
+# despliegue. El repositorio es público: solo se versiona el ejemplo.
+functions/.env
+functions/.env.*
+!functions/.env.example
+
 # IMPORTANTE: assets/js/firebase-config.js SÍ se versiona a propósito.
 # La configuración de una app web de Firebase no es un secreto (viaja al
 # navegador por diseño). La seguridad real la dan Authentication y las reglas
