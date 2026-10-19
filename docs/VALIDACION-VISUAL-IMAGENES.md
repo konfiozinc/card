@@ -1,57 +1,87 @@
 # Validación visual de las imágenes optimizadas (KONFÍO ZINC · web pública)
 
-Registro de la inspección **visual humana** de las imágenes recomprimidas del sitio, separado de las
-métricas automáticas. El sitio y Card Spark no se tocan: esto solo documenta el veredicto.
+Registro de la inspección **visual** de las 28 imágenes recomprimidas del sitio. No se toca el
+sitio, ni las imágenes, ni Card Spark: esto solo documenta el veredicto.
+
+## Quién hizo la inspección
+
+La revisión la realizó el **propietario con ChatGPT como revisor visual externo**, subiendo los
+archivos de comparación. **Harness no la ejecuta ni la firma**: esta sesión no dispone de visión
+(servicio `HTTP 502` y plugin desregistrado), por lo que Harness **preparó las comparaciones y
+registra el dictamen**, sin atribuirse la inspección.
 
 ## Método
 
-- Comparaciones **lado a lado a resolución completa** (2400×1600 cada archivo, original a la
-  izquierda y optimizada a la derecha), generadas con ffmpeg en `C:\KZ-COMPARATIVA\tandas\`
+- Comparaciones **lado a lado a resolución completa** (2400×1600 por archivo): original a la
+  izquierda, optimizada a la derecha. Generadas con ffmpeg en `C:\KZ-COMPARATIVA\tandas\`
   (carpeta privada, fuera del repositorio y del artefacto de GitHub Pages).
-- Revisión realizada por el **propietario con un revisor visual externo (ChatGPT)**, adjuntando los
-  archivos de comparación. Harness no dispone de visión en su sesión (servicio `HTTP 502` y plugin
-  desregistrado), por lo que **no firma esta inspección**: la registra.
-- Evidencia automática complementaria (no sustitutiva): **SSIM medio 0,995** en 28 imágenes, todas
-  por encima de 0,97; pixel-diff exacto de `eltiti.jpg` al **0,34 %** global (peor zona 0,63 %).
+- 28 comparaciones entregadas al revisor en tandas, priorizando textos y rostros.
+- Optimización evaluada: commit **`66ad6cf`** (JPEG calidad 5, ancho máximo 1400 px, metadatos fuera).
 
-## Tanda 1 — cuatro imágenes prioritarias: APROBADAS
+## Resultado final: 28 APROBADAS
 
-| Archivo | Veredicto visual | SSIM (complementario) | Observaciones |
-|---|---|---|---|
-| `eltiti.jpg` | **APROBADA** | 0,995 (medido) | Sin artefactos en el texto del menú |
-| `abogados-dta.jpg` | **APROBADA** | 0,995 (medido) | Texto sobre fotografía legible |
-| `deicy-buitrago.jpg` | **APROBADA** | 0,995 (medido) | Sin pérdida de detalle en el rostro |
-| `cirujana_dentista.jpg` | **APROBADA** | 0,995 (medido) | Sin pérdida de detalle en el rostro |
-
-**No se restaura ninguna imagen.** Ninguna imagen fue modificada después de este dictamen.
-
-## Tanda 2 — cuatro imágenes: APROBADAS
-
-| Archivo | Veredicto visual | Observaciones |
+| # | Imagen | Veredicto |
 |---|---|---|
-| `adopta.jpg` | **APROBADA** | Sin defecto señalado |
-| `calixto_acordeon_magico.jpg` | **APROBADA** | Sin defecto señalado |
-| `colsabor.jpg` | **APROBADA** | Sin defecto señalado |
-| `century_21_radial.jpg` | **APROBADA** | Sin defecto señalado |
-
-**No se restaura ni se recomprime ninguna.** Las imágenes siguen exactamente como las dejó `66ad6cf`.
-
-## Estado del conjunto
+| 01 | `eltiti.jpg` | APROBADA |
+| 02 | `abogados-dta.jpg` | APROBADA |
+| 03 | `deicy-buitrago.jpg` | APROBADA |
+| 04 | `cirujana_dentista.jpg` | APROBADA |
+| 05 | `adopta.jpg` | APROBADA |
+| 06 | `calixto_acordeon_magico.jpg` | APROBADA |
+| 07 | `century_21_radial.jpg` | APROBADA |
+| 08 | `colsabor.jpg` | APROBADA |
+| 09 | `decoradora_de_fiestas.jpg` | APROBADA |
+| 10 | `diseno_grafico.jpg` | APROBADA |
+| 11 | `konfio-sports.jpg` | APROBADA |
+| 12 | `make-up.jpg` | APROBADA |
+| 13 | `nandy-nails.jpg` | APROBADA |
+| 14 | `nbc-company.jpg` | APROBADA |
+| 15 | `nomina_centinela.jpg` | APROBADA |
+| 16 | `np-style.jpg` | APROBADA |
+| 17 | `nutricion_funcional.jpg` | APROBADA |
+| 18 | `nutricionista.jpg` | APROBADA |
+| 19 | `nutridrink.jpg` | APROBADA |
+| 20 | `pangea.jpg` | APROBADA · ver nota |
+| 21 | `postres.jpg` | APROBADA |
+| 22 | `proyecto-dta.jpg` | APROBADA |
+| 23 | `proyecto-dta-detalle.jpg` | APROBADA |
+| 24 | `quiromasajes-gap.jpg` | APROBADA |
+| 25 | `redcalinet.jpg` | APROBADA |
+| 26 | `samem.jpg` | APROBADA |
+| 27 | `tarjeta-pre.jpg` | APROBADA |
+| 28 | `unefibra.jpg` | APROBADA · ver nota |
 
 | Estado | Cantidad |
 |---|---|
-| Aprobadas visualmente | **8** (tandas 1 y 2) |
-| Pendientes de revisión visual (tandas 3 y siguientes) | **20** |
-| Rechazadas | 0 |
+| APROBADAS | **28** |
+| ACEPTABLES CON OBSERVACIONES por compresión | 0 |
+| RECHAZADAS | **0** |
+| PENDIENTES | **0** |
 | Sin comparación original | 0 (las 28 tienen par) |
 
-Comparaciones pendientes en `C:\KZ-COMPARATIVA\tandas\05-…` a `28-…`, para adjuntar de cuatro en
-cuatro al mismo revisor.
+**No se restaura ni se recomprime ninguna imagen.** Las 28 siguen exactamente como las dejó `66ad6cf`.
+
+## Nota sobre Pangea y UNEFibra
+
+En `pangea.jpg` y `unefibra.jpg` se observan **condiciones visuales preexistentes** (propias de los
+materiales de origen), no defectos de compresión. **Registradas como observaciones**, no como motivo
+de rechazo ni de restauración: si alguna vez se corrigen, será por decisión de diseño con material
+nuevo, no por esta optimización.
+
+## Evidencia automática complementaria (no sustitutiva del juicio visual)
+
+| Métrica | Valor |
+|---|---|
+| SSIM medio (28 imágenes) | **0,995** |
+| SSIM mínimo | > 0,97 en todas |
+| Pixel-diff exacto `eltiti.jpg` | **0,34 %** global · peor zona 0,63 % |
+| Peso de las imágenes del sitio | **5,45 MB → 2,07 MB** (−62 %) |
+| Imágenes del repositorio | 8,46 MB → 5,08 MB (−40 %) |
 
 ## Reglas que se mantienen
 
-- No se reemplaza una imagen sin veredicto que lo justifique y sin una versión comprobablemente mejor.
-- Las imágenes aprobadas no se vuelven a recomprimir.
-- Si una imagen se rechaza: se recupera el original desde `66ad6cf^`, se repite la optimización con
-  parámetros más conservadores (calidad 4 o 3, mismo ancho máximo), mismo nombre y ruta, y se vuelve
-  a comparar.
+- Ninguna imagen se reemplaza ni se recomprime sin veredicto que lo justifique.
+- Si en el futuro una imagen se rechaza: se recupera el original desde `66ad6cf^`, se repite la
+  optimización con parámetros más conservadores (calidad 4 o 3, mismo ancho máximo), mismo nombre y
+  ruta, y se vuelve a comparar.
+- Las comparaciones quedan en `C:\KZ-COMPARATIVA\tandas\` (privadas) por si hace falta re-revisar.
