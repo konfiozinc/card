@@ -25,12 +25,23 @@ métricas automáticas. El sitio y Card Spark no se tocan: esto solo documenta e
 
 **No se restaura ninguna imagen.** Ninguna imagen fue modificada después de este dictamen.
 
+## Tanda 2 — cuatro imágenes: APROBADAS
+
+| Archivo | Veredicto visual | Observaciones |
+|---|---|---|
+| `adopta.jpg` | **APROBADA** | Sin defecto señalado |
+| `calixto_acordeon_magico.jpg` | **APROBADA** | Sin defecto señalado |
+| `colsabor.jpg` | **APROBADA** | Sin defecto señalado |
+| `century_21_radial.jpg` | **APROBADA** | Sin defecto señalado |
+
+**No se restaura ni se recomprime ninguna.** Las imágenes siguen exactamente como las dejó `66ad6cf`.
+
 ## Estado del conjunto
 
 | Estado | Cantidad |
 |---|---|
-| Aprobadas visualmente | **4** |
-| Pendientes de revisión visual (tandas 2 y 3) | **24** |
+| Aprobadas visualmente | **8** (tandas 1 y 2) |
+| Pendientes de revisión visual (tandas 3 y siguientes) | **20** |
 | Rechazadas | 0 |
 | Sin comparación original | 0 (las 28 tienen par) |
 
