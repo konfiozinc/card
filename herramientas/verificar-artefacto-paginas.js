@@ -120,7 +120,9 @@ const existe = new Set(artefacto);
 function resolver(desde, ref) {
   /* REF_INVALIDA: referencias que no apuntan a un archivo ('.', '#id', url(#filtro))
      se descartan; antes se contaban como recursos ausentes y daban falso fallo. */
-  if (ref.trim() === '.' || ref.trim() === '' || ref.trim().startsWith('#')) return null;
+  /* Una referencia con %23 es un fragmento escapado dentro de un data: URI
+     (filter='url(%23n)'). No es un archivo: se descarta igual que '#id'. */
+  if (ref.trim() === '.' || ref.trim() === '' || ref.trim().startsWith('#') || ref.trim().startsWith('%23')) return null;
   const limpio = ref.split('?')[0].split('#')[0].trim();
   if (limpio === '' || limpio === '.' || limpio === './') return null;
   if (!limpio || EXTERNA.test(limpio)) return null;
