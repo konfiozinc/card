@@ -18,7 +18,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import { getFunctions } from 'firebase/functions';
+
 
 const CFG = window.KZ_CONFIG || {};
 
@@ -58,13 +58,15 @@ export const MENSAJE_NO_CONFIGURADO = `
 let app = null;
 let auth = null;
 let db = null;
+/* MODO SPARK: no hay Cloud Functions. Se deja en null para que cualquier
+   llamada heredada falle de forma explícita en vez de intentar la red. */
 let functions = null;
 
 if (isConfigured()) {
   app = initializeApp(CFG.firebase.config);
   auth = getAuth(app);
   db = getFirestore(app);
-  functions = getFunctions(app, (CFG.firebase && CFG.firebase.region) || 'us-central1');
+  /* no se inicializan Functions: el plan Spark no las permite */
 }
 
 export { app, auth, db, functions };

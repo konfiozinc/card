@@ -78,6 +78,14 @@ const mas = (dias) => { const d = new Date(hoy); d.setDate(d.getDate() + dias); 
   /* Ficha HEREDADA: el id es el correo, como las que quedaron de antes. */
   await crear('usuarios', legado.email, { email: s(legado.email), nombre: s('Legado Ficticio'), rol: s('ADMIN'), activo: b(true) });
 
+  /* Cuentas para las pruebas de seguridad de identidad. */
+  const apagado = await alta('apagado.spark@crm.test', 'Ficticia#1');
+  await crear('usuarios', apagado.uid, { email: s(apagado.email), nombre: s('Apagado Ficticio'), rol: s('ADMIN'), activo: b(false) });
+  const sinRol = await alta('sinrol.spark@crm.test', 'Ficticia#1');
+  await crear('usuarios', sinRol.uid, { email: s(sinRol.email), nombre: s('Sin Rol Ficticio'), activo: b(true) });
+  const legadoSuper = await alta('legadosuper.spark@crm.test', 'Ficticia#1');
+  await crear('usuarios', legadoSuper.email, { email: s(legadoSuper.email), nombre: s('Legado Superadmin'), rol: s('SUPERADMIN'), activo: b(true) });
+
   const clienteBase = {
     nombre: s('Cliente Spark'), servicio: s('Tarjetas Digitales'), telefono: s('3001234567'),
     precio: n(99900), fechaActivacion: s(iso(hoy)), fechaVencimiento: s(mas(30)),
@@ -117,6 +125,18 @@ const mas = (dias) => { const d = new Date(hoy); d.setDate(d.getDate() + dias); 
   chequear('Un SUPERADMIN tampoco puede cambiar roles desde el navegador', r.st === 403, `HTTP ${r.st}`);
   r = await crear('usuarios', 'intruso@crm.test', { rol: s('SUPERADMIN'), activo: b(true) }, op.token);
   chequear('Crear una ficha de usuario desde el navegador: DENEGADO', r.st === 403, `HTTP ${r.st}`);
+
+  /* ── Seguridad de identidad (Spark) ─────────────────────────────── */
+  r = await crear('clientes', 'cli-apagado', { nombre: s('Apagado'), servicio: s('Tarjetas'), telefono: s('3001'), fechaActivacion: s(iso(hoy)), fechaVencimiento: s(mas(10)) }, apagado.token);
+  chequear('Una ficha desactivada no puede operar', r.st === 403, `HTTP ${r.st}`);
+  r = await leer('clientes/cli-1', apagado.token);
+  chequear('Una ficha desactivada tampoco puede leer', r.st === 403, `HTTP ${r.st}`);
+  r = await leer('clientes/cli-1', sinRol.token);
+  chequear('Una ficha sin rol válido no accede a nada', r.st === 403, `HTTP ${r.st}`);
+  r = await parchear(`usuarios/${legadoSuper.email}`, { rol: s('OPERADOR') }, legadoSuper.token);
+  chequear('Ni una ficha heredada SUPERADMIN escribe usuarios', r.st === 403, `HTTP ${r.st}`);
+  r = await parchear('clientes/cli-1', { precio: n(120001) }, legadoSuper.token);
+  chequear('La ficha heredada SUPERADMIN sí conserva sus permisos legítimos', r.st === 200, `HTTP ${r.st}`);
 
   /* ── C · clientes por rol ────────────────────────────────────────── */
   console.log('\n═══ C · CLIENTES: CONTACTO vs COMERCIAL vs BAJA ═══');
@@ -219,6 +239,13 @@ const mas = (dias) => { const d = new Date(hoy); d.setDate(d.getDate() + dias); 
     usuarioId: s(op.uid), preparadaEn: ts(new Date().toISOString())
   }, op.token);
   chequear('Un aviso no puede nacer «ENVIADA»', r.st === 403, `HTTP ${r.st}`);
+  r = await crear('notificaciones', 'not-ajena', {
+    clienteId: s('cli-1'), mensaje: s('A nombre de otro'), estado: s('PREPARADA'), canal: s('WHATSAPP'),
+    usuarioId: s(ad.uid), preparadaEn: ts(new Date().toISOString())
+  }, op.token);
+  chequear('Un aviso no se puede firmar a nombre de otro', r.st === 403, `HTTP ${r.st}`);
+  r = await crear('planes', 'plan-op', { nombre: s('Plan de operador'), precio: n(1000), servicio: s('tarjetas') }, op.token);
+  chequear('Un OPERADOR no crea planes', r.st === 403, `HTTP ${r.st}`);
   r = await parchear('notificaciones/not-1', { estado: s('ENVIADA'), enviadoPor: s(op.uid), enviadoEn: ts(new Date().toISOString()) }, op.token);
   chequear('El operador marca enviado su propio aviso', r.st === 200, `HTTP ${r.st}`);
   r = await parchear('notificaciones/not-1', { mensaje: s('otro texto') }, op.token);

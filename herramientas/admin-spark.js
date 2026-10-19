@@ -151,7 +151,12 @@ async function diagnostico(admin, db) {
     if (!porId.has(u.uid) && !(email && porId.has(email))) cuentasSinFicha++;
   }
 
-  const superadmins = Object.entries(porId).filter(([, d]) => String(d.rol || '').toUpperCase() === 'SUPERADMIN' && d.activo === true).length;
+  /* BUG corregido: porId es un Map y Object.entries(Map) devuelve [] — el
+     contador marcaba siempre 0 y el diagnóstico avisaba «no hay ningún
+     SUPERADMIN activo» aunque la ficha existiera y estuviera activa. Se
+     recorren los valores del Map. */
+  const superadmins = [...porId.values()]
+    .filter((d) => String(d.rol || '').toUpperCase() === 'SUPERADMIN' && d.activo === true).length;
 
   console.log(`  cuentas de Authentication: ${cuentas.length}`);
   console.log(`  fichas en Firestore:       ${porId.size}  (vinculadas al UID: ${vinculadas} · heredadas por correo: ${heredadas})`);

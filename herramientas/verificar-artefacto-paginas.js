@@ -192,7 +192,7 @@ revisar('Todos los recursos referenciados están en el artefacto', referenciasRo
 const imprescindibles = ['index.html', 'panel.html', 'precios.html', 'robots.txt', 'sitemap.xml', '404.html', 'manifest.json',
   'admin/index.html', 'admin/dashboard.html', 'admin/usuarios.html', 'assets/js/config.js', 'assets/js/firebase-config.js',
   'assets/css/admin.css', 'assets/js/admin/shell.js', 'assets/js/admin/core.js', 'assets/js/admin/datos.js',
-  'assets/js/admin/callables.js', 'assets/js/admin/escrituras-local.js', 'assets/js/admin/ui.js'];
+  'assets/js/admin/escrituras-local.js', 'assets/js/admin/ui.js'];
 for (const f of imprescindibles) {
   if (!existe.has(f)) revisar(`El sitio necesita «${f}»`, false, 'no está en el artefacto');
 }
@@ -245,7 +245,7 @@ const yaPublicas = ['herramientas/verificar-precios.js', 'herramientas/README.md
 for (const r of yaPublicas) console.log(`    https://konfiozinc.github.io/card/${r}`);
 console.log('');
 console.log('  Debe seguir respondiendo 200:');
-for (const r of ['', 'admin/index.html', 'assets/js/admin/callables.js', 'precios.html', 'robots.txt', 'sitemap.xml']) {
+for (const r of ['', 'admin/index.html', 'precios.html', 'robots.txt', 'sitemap.xml']) {
   console.log(`    https://konfiozinc.github.io/card/${r}`);
 }
 
