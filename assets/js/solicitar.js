@@ -57,7 +57,7 @@
     '<div class="form-card">' +
       '<h3>Solicitar información</h3>' +
       '<p class="solicitar-sub">Si está interesado en nuestros planes, diligencie el formulario y nuestro equipo atenderá su solicitud.</p>' +
-      '<form id="contactForm" data-thanks="' + esc(gracias) + '" novalidate>' +
+      '<form id="contactForm" method="post" data-thanks="' + esc(gracias) + '" novalidate>' +
 
         '<div class="form-row">' +
           '<div class="form-group">' +
