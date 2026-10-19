@@ -76,3 +76,6 @@ herramientas/backups/
 # Copias de seguridad locales (nunca versionar)
 *.bak
 *.orig
+
+# Registro local de la herramienta privilegiada
+herramientas/admin-spark.log
