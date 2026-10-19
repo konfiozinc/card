@@ -1,84 +1,68 @@
-/* ── usuarios.js · administradores (SUPERADMIN) ──────────────────── */
-import { requireAuth } from '../assets/js/admin/shell.js';
-import { setTitulo, toast, confirmar, esc } from '../assets/js/admin/ui.js';
-import { cargarUsuarios, escrituras, fechaLarga } from '../assets/js/admin/datos.js';
+/* ── usuarios.js · usuarios del panel en MODO SPARK ────────────────────
+   Crear una cuenta de Authentication, cambiar un rol o vincular un UID exige
+   el Admin SDK, y en el plan Spark no hay servidor donde ejecutarlo. Las reglas
+   cierran `usuarios` a escritura desde el navegador (allow write: if false), así
+   que esta página es SOLO DE LECTURA: muestra quién hay y cómo gestionarlo con
+   la herramienta local del ASUS autorizado. */
+import { requireAuth, canAccess } from '../assets/js/admin/shell.js';
+import { setTitulo, toast, esc } from '../assets/js/admin/ui.js';
+import { cargarUsuarios } from '../assets/js/admin/datos.js';
 
 const sesion = await requireAuth('usuarios');
 if (!sesion) throw new Error('Sin acceso');
 setTitulo('Usuarios');
 const cont = document.getElementById('app-content');
 
-const ROLES = ['OPERADOR', 'ADMIN', 'SUPERADMIN'];
+const usuarios = await cargarUsuarios();
+const esSuper = canAccess(sesion.rol, 'SUPERADMIN');
 
-async function pintar() {
-  const usuarios = await cargarUsuarios();
-  cont.innerHTML = `
-    <div class="page-head"><div><h2>Usuarios del panel</h2><p class="celda-suave">Permisos: OPERADOR (ve y registra) · ADMIN (confirma pagos y gestiona planes) · SUPERADMIN (todo + configuración y usuarios)</p></div>
-      <button class="btn btn--primary" id="btn-nuevo"><i class="fas fa-user-plus"></i> Nuevo usuario</button></div>
-    <div class="tabla__wrap"><table class="tabla"><thead><tr>
-      <th>Nombre</th><th>Email</th><th>Rol</th><th>Estado</th><th>Último acceso</th><th>Acciones</th>
-    </tr></thead><tbody>${usuarios.map(u => `<tr data-id="${esc(u.id)}">
-      <td class="celda-fuerte">${esc(u.nombre || '—')}</td><td>${esc(u.email)}</td>
-      <td><span class="badge badge--servicio">${esc(u.rol)}</span></td>
-      <td>${u.activo ? '<span class="badge badge--activo">Activo</span>' : '<span class="badge badge--inactivo">Inactivo</span>'}</td>
-      <td>${fechaLarga(u.ultimoAcceso)}</td>
-      <td><div class="acciones-fila">
-        <button data-a="rol" title="Cambiar rol"><i class="fas fa-user-shield"></i></button>
-        <button data-a="toggle" title="Activar/desactivar"><i class="fas fa-toggle-on"></i></button>
-      </div></td></tr>`).join('')}</tbody></table></div>`;
+const esHeredada = (u) => String(u.id).includes('@');
 
-  document.getElementById('btn-nuevo').addEventListener('click', nuevoUsuario);
-  cont.querySelector('tbody').addEventListener('click', async (e) => {
-    const b = e.target.closest('button[data-a]');
-    if (!b) return;
-    const id = b.closest('tr').dataset.id;
-    const u = (await cargarUsuarios()).find(x => x.id === id);
-    if (b.dataset.a === 'toggle') {
-      if (!await confirmar(`¿${u.activo ? 'Desactivar' : 'Activar'} a ${u.nombre}?`)) return;
-      await escrituras.actualizarUsuario(id, { activo: !u.activo });
-      toast('Usuario actualizado'); pintar();
-    } else {
-      const rol = prompt('Nuevo rol (' + ROLES.join(', ') + '):', u.rol);
-      if (!ROLES.includes(rol)) return toast('Rol inválido', 'error');
-      await escrituras.actualizarUsuario(id, { rol });
-      toast('Rol actualizado'); pintar();
-    }
-  });
+function filas(lista) {
+  return lista.map(u => `<tr>
+    <td>${esc(u.nombre || '—')}<div class="celda-suave">${esc(u.email || '')}</div></td>
+    <td><span class="badge badge--servicio">${esc(u.rol || 'SIN ROL')}</span></td>
+    <td>${u.activo === true ? 'Activo' : 'Desactivado'}</td>
+    <td>${esHeredada(u)
+      ? '<span class="celda-suave">ficha heredada por correo</span>'
+      : '<span class="celda-suave">vinculada al UID</span>'}</td>
+  </tr>`).join('');
 }
 
-function nuevoUsuario() {
-  cont.insertAdjacentHTML('beforeend', `<div class="modal is-open"><div class="modal__box">
-    <div class="modal__head">
-      <h3>Nuevo usuario</h3>
-      <button type="button" class="modal__close" data-cerrar aria-label="Cerrar"><i class="fas fa-xmark" aria-hidden="true"></i></button>
-    </div>
-    <form id="usr-form" class="modal__body">
-      <div class="campo"><label>Nombre</label><input id="u-nombre" required></div>
-      <div class="campo"><label>Email</label><input id="u-email" type="email" required></div>
-      <div class="campo"><label>Contraseña (mín. 6)</label><input id="u-pass" type="password" required></div>
-      <div class="campo"><label>Rol</label><select id="u-rol">${ROLES.map(r => `<option>${r}</option>`).join('')}</select></div>
-      <div class="aviso aviso--error" id="u-error" hidden></div>
-    </form>
-    <div class="modal__foot">
-      <div class="modal__actions"><button type="button" class="btn btn--ghost" data-cerrar>Cancelar</button>
-      <button type="submit" form="usr-form" class="btn btn--primary">Crear usuario</button></div>
-    </div>
-  </div></div>`);
-  const modal = cont.querySelector('.modal');
-  modal.querySelectorAll('[data-cerrar]').forEach(b => b.addEventListener('click', () => modal.remove()));
-  modal.querySelector('form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const err = document.getElementById('u-error');
-    err.hidden = true;
-    try {
-      await escrituras.crearUsuario({
-        nombre: document.getElementById('u-nombre').value.trim(),
-        email: document.getElementById('u-email').value.trim(),
-        password: document.getElementById('u-pass').value,
-        rol: document.getElementById('u-rol').value
-      });
-      toast('Usuario creado'); pintar();
-    } catch (ex) { err.textContent = ex.message; err.hidden = false; }
-  });
-}
-pintar();
+cont.innerHTML = `
+  <div class="page-head"><div><h2>Usuarios</h2>
+    <p class="celda-suave">${usuarios.length} ficha(s). En el plan Spark el panel
+    <strong>no puede crear cuentas ni cambiar roles</strong>: eso exige el Admin SDK.
+    Aquí solo se consulta; los cambios se hacen con la herramienta local del ASUS autorizado.</p></div></div>
+
+  ${esSuper ? `<div class="card"><h3>Gestión privilegiada (Admin SDK, en el ASUS autorizado)</h3>
+    <p class="celda-suave">La herramienta simula primero y solo actúa con <code>--aplicar --autorizado-por "nombre"</code>.</p>
+    <pre style="overflow:auto;background:rgba(0,0,0,.25);padding:12px;border-radius:8px;font-size:12px"># ver el estado sin tocar nada
+node herramientas/admin-spark.js --diagnostico
+
+# crear cuenta + ficha vinculada al UID
+node herramientas/admin-spark.js --crear-cuenta --email persona@dominio.com --rol OPERADOR --nombre "Nombre" --aplicar --autorizado-por "tu nombre"
+
+# cambiar el rol de alguien
+node herramientas/admin-spark.js --rol --email persona@dominio.com --valor ADMIN --aplicar --autorizado-por "tu nombre"
+
+# deshabilitar una cuenta
+node herramientas/admin-spark.js --deshabilitar --email persona@dominio.com --aplicar --autorizado-por "tu nombre"
+
+# vincular una ficha heredada (usuarios/correo) con su UID real
+node herramientas/admin-spark.js --vincular --email persona@dominio.com --aplicar --autorizado-por "tu nombre"</pre>
+    <div class="aviso aviso--error" id="u-error" hidden></div>
+  </div>` : '<div class="aviso">Solo un SUPERADMIN ve la lista completa de usuarios.</div>'}
+
+  <div class="tabla__wrap"><table class="tabla"><thead><tr>
+    <th>Usuario</th><th>Rol</th><th>Estado</th><th>Identificador</th>
+  </tr></thead><tbody>${filas(usuarios)}</tbody></table>
+  <p class="tabla__vacia" ${usuarios.length ? 'hidden' : ''}>No hay fichas de usuario.</p></div>`;
+
+/* Ninguna escritura: se deja constancia explícita para quien lea el código. */
+cont.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+  const err = document.getElementById('u-error');
+  if (err) { err.textContent = 'Los usuarios no se modifican desde el panel: usa la herramienta local (herramientas/admin-spark.js).'; err.hidden = false; }
+}));
+
+toast(usuarios.length + ' usuario(s)');

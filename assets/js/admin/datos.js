@@ -2,8 +2,8 @@
    KONFÍO ZINC · assets/js/admin/datos.js
    Capa de datos del panel. ÚNICA puerta de entrada a Firestore:
    - Las LECTURAS van directas (getDocs/query/onSnapshot).
-   - Las ESCRITURAS con lógica de negocio van por Cloud Functions
-     (callables.js): así se garantiza auditoría, historial de estados y
+   - Las ESCRITURAS con lógica de negocio van por escrituras-local.js
+     (modo Spark): así se mantienen auditoría, historial de estados y
      anti-duplicado de notificaciones.
 
    Cada página importa lo que necesita de aquí, con lo que las páginas
@@ -19,13 +19,15 @@ import {
   crearCliente, actualizarCliente, registrarPago, confirmarPago, anularPago,
   activarServicio, suspenderServicio, desactivarServicio, reactivarServicio,
   inhabilitarServicio, eliminarCliente,
-  enviarNotificacion, registrarToken,
+  prepararNotificacion, marcarNotificacionEnviada, registrarToken,
   seedInicial, recalcularEstados
 } from './escrituras-local.js';
-/* La gestión de usuarios va SIEMPRE por Cloud Functions: las reglas cierran
-   `usuarios` a escritura desde el cliente (allow write: if false), y crear la
-   cuenta de Authentication exige el Admin SDK del servidor. */
-import { crearUsuario, actualizarUsuario } from './callables.js';
+/* MODO SPARK: no hay Cloud Functions. Todo se escribe desde el cliente y la
+   única autoridad son las reglas de Firestore. La gestión de usuarios es la
+   excepción: crear cuentas y cambiar roles exige el Admin SDK, así que se hace
+   con la herramienta local privilegiada (herramientas/admin-spark.js); desde
+   aquí solo se explica cómo, con un error claro en vez de un fallo mudo. */
+import { crearUsuario, actualizarUsuario } from './escrituras-local.js';
 
 const CFG = window.KZ_CONFIG || {};
 const NEG = CFG.negocio || { mesesSuscripcion: 12, diasAntes: [10, 5, 3, 1], diasPorVencer: 15, diasGracia: 5 };
@@ -98,7 +100,7 @@ export async function cargarCliente(id) {
  *
  *  Los pagos viven en la colección RAÍZ `pagos` con el campo `clienteId`:
  *  así los escriben `registrarPago()` (escrituras-local.js) y la función
- *  equivalente de Cloud Functions. La subcolección `clientes/{id}/pagos`
+ *  equivalente de los antiguos servicios del servidor. La subcolección `clientes/{id}/pagos`
  *  no la escribe nadie y las reglas la cierran con el comodín final, así
  *  que la consulta anterior devolvía siempre PERMISSION_DENIED y el
  *  historial del cliente aparecía vacío.
@@ -162,8 +164,21 @@ export async function cargarAuditoria() {
 
 /** Notificaciones recientes. */
 export async function cargarNotificaciones() {
-  const snap = await getDocs(query(collection(db, 'notificaciones'), orderBy('fechaEnvio', 'desc'), limit(200)));
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  /* Sin orderBy en la consulta, a propósito: en Spark los avisos nacen con
+     `preparadaEn` (no `fechaEnvio`), y una consulta ordenada por un campo que
+     falta EXCLUYE el documento. La lista salía vacía y con ella desaparecía el
+     botón de «marcar enviado». Se ordena en memoria y se admiten ambos campos
+     para no perder los avisos antiguos. */
+  const snap = await getDocs(query(collection(db, 'notificaciones'), limit(200)));
+  const aMs = (v) => {
+    if (!v) return 0;
+    if (typeof v.toDate === 'function') return v.toDate().getTime();
+    const d = new Date(v);
+    return isNaN(d) ? 0 : d.getTime();
+  };
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .sort((x, y) => aMs(y.preparadaEn || y.fechaEnvio) - aMs(x.preparadaEn || x.fechaEnvio));
 }
 
 /** Suscripción en tiempo real a clientes (el panel se actualiza solo). */
@@ -173,12 +188,12 @@ export function suscribirClientes(cb) {
   });
 }
 
-/* ── Escrituras (por Cloud Functions) ──────────────────────────────── */
+/* ── Escrituras (cliente + reglas, modo Spark) ─────────────────────── */
 export const escrituras = {
   crearCliente, actualizarCliente, registrarPago, confirmarPago, anularPago,
   activarServicio, suspenderServicio, desactivarServicio, reactivarServicio,
   inhabilitarServicio, eliminarCliente,
-  enviarNotificacion, registrarToken, crearUsuario, actualizarUsuario,
+  prepararNotificacion, marcarNotificacionEnviada, registrarToken, crearUsuario, actualizarUsuario,
   seedInicial, recalcularEstados
 };
 

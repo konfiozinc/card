@@ -2,91 +2,184 @@ rules_version = '2';
 // ═══════════════════════════════════════════════════════════════════
 // KONFÍO ZINC · Reglas de Firestore — panel en MODO SPARK
 //
-// El proyecto está en el plan gratuito Spark, que NO permite Cloud
-// Functions. Por eso el panel escribe directo en Firestore, y la
-// autorización se hace con estas reglas + el rol leído de
-// usuarios/{uid}.rol (que es un campo del servidor, no una variable
-// manipulable desde el cliente).
+// El proyecto está en el plan gratuito Spark, que NO permite Cloud Functions.
+// Por eso el panel escribe directo en Firestore y TODA la autorización vive
+// aquí. El rol se lee de `usuarios/{uid}.rol` (o de la ficha heredada
+// `usuarios/{correo}` mientras no se vincule), nunca de una variable que el
+// navegador pueda inventar.
 //
-// Garantías que se mantienen sin funciones:
-//   - Solo usuarios autenticados y ACTIVOS pueden leer/escribir.
-//   - El rol se lee de Firestore, nunca se envía desde el navegador.
-//   - Confirmar/Anular un pago exige rol ADMIN o SUPERADMIN.
-//   - Un usuario no puede editar su propio documento de `usuarios`.
-//
-// Garantías que se pierden sin Cloud Functions (las dará el motor
-// programado si algún día se activa Blaze):
-//   - Auditoría e historial de estados automáticos.
-//   - Avisos de vencimiento 10/5/3/1 día programados a las 8:00 a.m.
-//   El estado de cada cliente se calcula en el panel al cargar
-//   (por fecha de vencimiento), no depende de un job nocturno.
+// Garantías:
+//   · Solo usuarios autenticados, con ficha y `activo == true`.
+//   · El rol sale de Firestore; el navegador no puede subirse de rol:
+//     `usuarios` es de SOLO LECTURA desde el cliente.
+//   · El dinero es inmutable: `monto`, cliente y quién registró un pago no
+//     cambian para nadie. Corregir un importe = anular y registrar otro.
+//   · Pagos: solo tres transiciones y una sola vez (PENDIENTE→CONFIRMADO,
+//     PENDIENTE→ANULADO, CONFIRMADO→ANULADO). Confirmar dos veces es imposible.
+//   · Clientes: OPERADOR edita datos de contacto; los campos comerciales
+//     (servicio, plan, precio, fechas, estado) son de ADMIN; la baja lógica
+//     (`eliminado`) es de SUPERADMIN.
+//   · Auditoría e historial: se crean, nunca se modifican ni se borran.
+//   · Notificaciones: el panel solo REGISTRA avisos preparados; marcarlos
+//     enviados es un acto explícito del operador. Nada se envía solo.
 // ═══════════════════════════════════════════════════════════════════
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    /* ── Identidad y rol ───────────────────────────────────────────── */
     function estaAutenticado() { return request.auth != null; }
 
-    function ficha() {
-      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    function correo() {
+      return estaAutenticado() && request.auth.token.email != null
+        ? request.auth.token.email : '__sin_correo__';
     }
 
-    function rol() {
-      return estaAutenticado() ? ficha().rol : '';
+    /* Ficha del usuario: primero por uid (modelo nuevo) y, si no existe, por
+       correo (fichas heredadas de antes de la vinculación). Esto permite
+       operar sin migrar datos: el día que se ejecuta la herramienta local de
+       vinculación, la ficha por correo desaparece y todo sigue igual.
+
+       Las dos lecturas se hacen UNA vez por evaluación (`let`): cada get()
+       cuenta para el límite de 10 por petición, y encadenar helpers que
+       vuelven a leer la misma ficha agotaba ese límite y hacía que las reglas
+       denegaran operaciones legítimas. */
+    function porUid() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid));
+    }
+    function porCorreo() {
+      return get(/databases/$(database)/documents/usuarios/$(correo()));
     }
 
-    function activo() {
-      return estaAutenticado() && ficha().activo == true;
+    /* El rol se resuelve con dos lecturas: la ficha del UID y, si esa no da un
+       rol válido, la ficha heredada por correo. Se comparan los CAMPOS
+       directamente y NO se usa .exists: en este motor .exists devuelve falso
+       incluso cuando el documento existe, y eso denegaba operaciones
+       legítimas. Un documento ausente produce un error que no tumba la
+       expresión: la rama del correo se evalúa igual (comprobado con sonda). */
+    function esOperador() {
+      return estaAutenticado() && (
+        (porUid().data.get('activo', false) == true
+          && porUid().data.get('rol', '') in ['OPERADOR', 'ADMIN', 'SUPERADMIN'])
+        || (porCorreo().data.get('activo', false) == true
+          && porCorreo().data.get('rol', '') in ['OPERADOR', 'ADMIN', 'SUPERADMIN'])
+      );
     }
 
-    function esOperador() { return activo() && rol() in ['OPERADOR', 'ADMIN', 'SUPERADMIN']; }
-    function esAdmin() { return activo() && rol() in ['ADMIN', 'SUPERADMIN']; }
-    function esSuperadmin() { return activo() && rol() == 'SUPERADMIN'; }
+    function esAdmin() {
+      return estaAutenticado() && (
+        (porUid().data.get('activo', false) == true
+          && porUid().data.get('rol', '') in ['ADMIN', 'SUPERADMIN'])
+        || (porCorreo().data.get('activo', false) == true
+          && porCorreo().data.get('rol', '') in ['ADMIN', 'SUPERADMIN'])
+      );
+    }
 
-    // ── usuarios ────────────────────────────────────────────────────
-    // Lectura: cada uno se ve a sí mismo; los SUPERADMIN ven a todos.
-    // Escritura: NADIE desde el cliente (evita auto-promoción de rol).
-    match /usuarios/{uid} {
-      allow read: if (estaAutenticado() && request.auth.uid == uid) || esSuperadmin();
+    function esSuperadmin() {
+      return estaAutenticado() && (
+        (porUid().data.get('activo', false) == true
+          && porUid().data.get('rol', '') == 'SUPERADMIN')
+        || (porCorreo().data.get('activo', false) == true
+          && porCorreo().data.get('rol', '') == 'SUPERADMIN')
+      );
+    }
+
+
+
+    /* ── Utilidades de esquema ─────────────────────────────────────── */
+    function textoNoVacio(v) { return v is string && v.size() > 0; }
+    function fechaTexto(v) {
+      return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+    function estadoValido(v) {
+      return v in ['ACTIVO', 'POR_VENCER', 'PENDIENTE_PAGO', 'SUSPENDIDO',
+                   'INACTIVO', 'INHABILITADO', 'PENDIENTE_CONFIGURACION'];
+    }
+    function tocados() { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    /* ── usuarios ──────────────────────────────────────────────────── */
+    // Lectura: cada uno su ficha (por uid o, si es heredada, por correo);
+    // los SUPERADMIN ven todas. Escritura: NADIE desde el navegador. Crear una
+    // cuenta, cambiar un rol o vincular un uid exige el Admin SDK, es decir la
+    // herramienta local privilegiada (herramientas/admin-spark.js).
+    match /usuarios/{clave} {
+      allow read: if estaAutenticado() && (request.auth.uid == clave || correo() == clave || esSuperadmin());
       allow write: if false;
     }
 
-    // ── clientes ────────────────────────────────────────────────────
-    // OPERADOR+ puede leer y crear/editar. Borrado denegado (se usa INACTIVO).
+    /* ── clientes ──────────────────────────────────────────────────── */
+    // OPERADOR: datos de contacto. ADMIN+: lo comercial y el ciclo de vida.
+    // SUPERADMIN: la baja lógica. Borrado físico: nunca.
     match /clientes/{clienteId} {
+
+      function contactoOperador() {
+        return tocados().hasOnly([
+          'nombre', 'empresa', 'documento', 'telefono', 'whatsapp', 'email',
+          'ciudad', 'observaciones', 'updatedAt'
+        ]);
+      }
+      function comercialAdmin() {
+        return tocados().hasOnly([
+          'nombre', 'empresa', 'documento', 'telefono', 'whatsapp', 'email',
+          'ciudad', 'observaciones', 'metodoPagoPreferido',
+          'servicio', 'categoria', 'planId', 'planNombre', 'precio',
+          'fechaActivacion', 'fechaVencimiento', 'urlServicio', 'proyectoId',
+          'estadoCliente', 'estadoServicio', 'fechaCambioEstado', 'motivoCambio',
+          'cambiadoPor', 'fechaSuspension', 'fechaReactivacion',
+          'fechaInhabilitacion', 'activo', 'updatedAt'
+        ]);
+      }
+      function tiposValidos() {
+        return request.resource.data.get('precio', 0) is number
+            && request.resource.data.get('precio', 0) >= 0
+            && fechaTexto(request.resource.data.get('fechaActivacion', '2000-01-01'))
+            && fechaTexto(request.resource.data.get('fechaVencimiento', '2000-01-01'))
+            && estadoValido(request.resource.data.get('estadoCliente', 'ACTIVO'))
+            && estadoValido(request.resource.data.get('estadoServicio', 'ACTIVO'));
+      }
+      function sinEliminar() {
+        return request.resource.data.get('eliminado', false) == resource.data.get('eliminado', false);
+      }
+
       allow read: if esOperador();
       allow create: if esOperador()
-        && request.resource.data.nombre is string
-        && request.resource.data.servicio is string;
-      allow update: if esOperador();
+        && textoNoVacio(request.resource.data.get('nombre', ''))
+        && textoNoVacio(request.resource.data.get('servicio', ''))
+        && textoNoVacio(request.resource.data.get('telefono', ''))
+        && request.resource.data.get('precio', 0) is number
+        && request.resource.data.get('precio', 0) >= 0
+        && fechaTexto(request.resource.data.get('fechaActivacion', '2000-01-01'))
+        && fechaTexto(request.resource.data.get('fechaVencimiento', '2000-01-01'))
+        && request.resource.data.get('eliminado', false) == false;
+      allow update: if esOperador() && (
+          (esAdmin() && comercialAdmin() && tiposValidos() && sinEliminar())
+          || (contactoOperador() && sinEliminar())
+          || (esSuperadmin()
+              && tocados().hasOnly(['eliminado', 'activo', 'estadoCliente', 'estadoServicio',
+                                    'fechaEliminacion', 'motivoCambio', 'fechaCambioEstado',
+                                    'cambiadoPor', 'updatedAt'])
+              && request.resource.data.get('eliminado', false) == true
+              && request.resource.data.get('estadoCliente', '') == 'INHABILITADO')
+        );
       allow delete: if false;
     }
 
-    // ── servicios ───────────────────────────────────────────────────
+    /* ── servicios ─────────────────────────────────────────────────── */
     match /servicios/{servicioId} {
       allow read: if esOperador();
-      allow create, update: if esOperador();
-      allow delete: if esAdmin();
+      allow create: if esOperador()
+        && textoNoVacio(request.resource.data.get('clienteId', ''))
+        && textoNoVacio(request.resource.data.get('servicio', ''));
+      allow update: if esOperador()
+        && request.resource.data.get('clienteId', '') == resource.data.get('clienteId', '')
+        && tocados().hasOnly(['clienteNombre', 'planId', 'servicio', 'categoria',
+                              'fechaInicio', 'fechaVencimiento', 'precio', 'estado',
+                              'activo', 'updatedAt']);
+      allow delete: if false;
     }
 
-    // ── pagos ───────────────────────────────────────────────────────
-    // P1 · integridad financiera (18-oct-2026).
-    // Antes esta regla solo miraba el campo `estado`: un OPERADOR podía
-    // cambiar el monto de un pago (49.900 → 1) dejando el estado intacto,
-    // reasignarlo a otro cliente, falsificar createdAt o reescribir quién
-    // lo registró. Ahora:
-    //   · `monto` y los datos de identidad son INMUTABLES para todos los
-    //     roles. Corregir un importe = anular el pago y registrar otro.
-    //   · Crear exige un conjunto CERRADO de campos y estado PENDIENTE.
-    //   · Solo ADMIN+ actualiza, y únicamente por las transiciones
-    //     PENDIENTE→CONFIRMADO, PENDIENTE→ANULADO y CONFIRMADO→ANULADO,
-    //     o para corregir metadatos sin tocar estado ni campos de auditoría.
+    /* ── pagos ─────────────────────────────────────────────────────── */
     match /pagos/{pagoId} {
 
-      // (1) El dinero y su origen no cambian nunca, para ningún rol.
-      // Se leen con get(campo, null): los pagos antiguos no tienen todos los
-      // campos (p. ej. servicioId) y una comparación directa sobre un campo
-      // ausente produce un error de evaluación que DENEGABA confirmar o
-      // anular el pago entero.
       function dineroIntacto() {
         return request.resource.data.get('monto', null) == resource.data.get('monto', null)
             && request.resource.data.get('clienteId', null) == resource.data.get('clienteId', null)
@@ -96,13 +189,6 @@ service cloud.firestore {
             && request.resource.data.get('registradoPor', null) == resource.data.get('registradoPor', null)
             && request.resource.data.get('registradoPorNombre', null) == resource.data.get('registradoPorNombre', null);
       }
-
-      // Campos que la actualización realmente modifica.
-      function tocados() {
-        return request.resource.data.diff(resource.data).affectedKeys();
-      }
-
-      // (2) Solo se tocan campos de gestión.
       function camposPermitidos() {
         return tocados().hasOnly([
           'estado', 'metodoPago', 'fechaPago', 'referencia', 'comprobanteUrl',
@@ -110,81 +196,87 @@ service cloud.firestore {
           'confirmadoEn', 'anuladoPor', 'motivo', 'anuladoEn'
         ]);
       }
-
-      // (3) Solo tres transiciones; ninguna inversa, ninguna desde ANULADO.
       function transicionAutorizada() {
-        return (resource.data.estado == 'PENDIENTE' && request.resource.data.estado == 'CONFIRMADO')
-            || (resource.data.estado == 'PENDIENTE' && request.resource.data.estado == 'ANULADO')
-            || (resource.data.estado == 'CONFIRMADO' && request.resource.data.estado == 'ANULADO');
+        return (resource.data.get('estado', '') == 'PENDIENTE' && request.resource.data.estado == 'CONFIRMADO')
+            || (resource.data.get('estado', '') == 'PENDIENTE' && request.resource.data.estado == 'ANULADO')
+            || (resource.data.get('estado', '') == 'CONFIRMADO' && request.resource.data.estado == 'ANULADO');
       }
-
-      // (4) Los campos de auditoría deben corresponder a la transición.
       function auditoriaCoherente() {
         return (request.resource.data.estado == 'CONFIRMADO'
-                 && request.resource.data.confirmadoPor is string
+                 && request.resource.data.confirmadoPor == request.auth.uid
                  && request.resource.data.confirmadoEn is timestamp
+                 && fechaTexto(request.resource.data.get('periodoFin', '2000-01-01'))
                  && !tocados().hasAny(['anuladoPor', 'anuladoEn', 'motivo']))
             || (request.resource.data.estado == 'ANULADO'
-                 && request.resource.data.anuladoPor is string
-                 && request.resource.data.motivo is string
-                 && request.resource.data.motivo.size() > 0
+                 && request.resource.data.anuladoPor == request.auth.uid
+                 && textoNoVacio(request.resource.data.get('motivo', ''))
                  && request.resource.data.anuladoEn is timestamp
-                 && !tocados().hasAny(['confirmadoPor', 'confirmadoPorNombre', 'periodoInicio', 'periodoFin', 'confirmadoEn']));
+                 && !tocados().hasAny(['confirmadoPor', 'confirmadoPorNombre',
+                                       'periodoInicio', 'periodoFin', 'confirmadoEn']));
       }
-
-      // (5) Corrección de metadatos: sin cambiar estado ni auditoría, y
-      //     nunca sobre un pago ya anulado (estado terminal).
       function soloMetadatos() {
-        return resource.data.estado != 'ANULADO'
-            && request.resource.data.estado == resource.data.estado
-            && !tocados().hasAny([
-                 'confirmadoPor', 'confirmadoPorNombre', 'periodoInicio', 'periodoFin',
-                 'confirmadoEn', 'anuladoPor', 'motivo', 'anuladoEn'
-               ]);
+        return resource.data.get('estado', '') != 'ANULADO'
+            && request.resource.data.estado == resource.data.get('estado', '')
+            && !tocados().hasAny(['confirmadoPor', 'confirmadoPorNombre', 'periodoInicio',
+                                  'periodoFin', 'confirmadoEn', 'anuladoPor', 'motivo', 'anuladoEn']);
       }
 
       allow read: if esOperador();
-
       allow create: if esOperador()
-        && request.resource.data.estado == 'PENDIENTE'
-        && request.resource.data.monto is number
-        && request.resource.data.monto > 0
-        && request.resource.data.clienteId is string
+        && request.resource.data.get('estado', '') == 'PENDIENTE'
+        && request.resource.data.get('monto', 0) is number
+        && request.resource.data.get('monto', 0) > 0
+        && textoNoVacio(request.resource.data.get('clienteId', ''))
+        && fechaTexto(request.resource.data.get('fechaPago', '2000-01-01'))
+        && request.resource.data.get('registradoPor', '') == request.auth.uid
         && request.resource.data.keys().hasOnly([
              'clienteId', 'clienteNombre', 'servicioId', 'monto', 'metodoPago',
              'fechaPago', 'referencia', 'comprobanteUrl', 'estado',
              'registradoPor', 'registradoPorNombre', 'createdAt'
            ]);
-
       allow update: if esAdmin()
         && dineroIntacto()
         && camposPermitidos()
-        && (
-             (transicionAutorizada() && auditoriaCoherente())
-             || soloMetadatos()
-           );
-
+        && ((transicionAutorizada() && auditoriaCoherente()) || soloMetadatos());
       allow delete: if false;
     }
 
-    // ── planes ──────────────────────────────────────────────────────
+    /* ── planes ────────────────────────────────────────────────────── */
     match /planes/{planId} {
       allow read: if esOperador();
-      allow create, update: if esAdmin();
+      allow create, update: if esAdmin()
+        && textoNoVacio(request.resource.data.get('nombre', ''))
+        && textoNoVacio(request.resource.data.get('servicio', ''))
+        && request.resource.data.get('precio', 0) is number
+        && request.resource.data.get('precio', 0) >= 0;
       allow delete: if esAdmin();
     }
 
-    // ── notificaciones ──────────────────────────────────────────────
-    // En Spark no hay motor programado; se permite registrar avisos
-    // manuales (ADMIN+) para llevar el historial desde el panel.
+    /* ── notificaciones ────────────────────────────────────────────── */
+    // En Spark no hay motor: el panel PREPARA el aviso (estado PREPARADA) y el
+    // operador lo envía a mano por WhatsApp. Marcar ENVIADA es un acto
+    // explícito y queda registrado con quién y cuándo. Nada se envía solo.
     match /notificaciones/{notificacionId} {
       allow read: if esOperador();
-      allow create: if esAdmin();
-      allow update: if esAdmin();
+      allow create: if esOperador()
+        && request.resource.data.get('estado', '') == 'PREPARADA'
+        && request.resource.data.get('canal', '') in ['MANUAL', 'WHATSAPP']
+        && textoNoVacio(request.resource.data.get('clienteId', ''))
+        && textoNoVacio(request.resource.data.get('mensaje', ''))
+        && request.resource.data.get('usuarioId', '') == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+             'clienteId', 'clienteNombre', 'tipo', 'mensaje', 'estado', 'canal',
+             'usuarioId', 'usuarioNombre', 'preparadaEn'
+           ]);
+      allow update: if esOperador()
+        && request.resource.data.estado == 'ENVIADA'
+        && request.resource.data.get('enviadoPor', '') == request.auth.uid
+        && request.resource.data.enviadoEn is timestamp
+        && tocados().hasOnly(['estado', 'enviadoPor', 'enviadoEn']);
       allow delete: if false;
     }
 
-    // ── tokens_notificacion ─────────────────────────────────────────
+    /* ── tokens_notificacion ───────────────────────────────────────── */
     match /tokens_notificacion/{token} {
       allow read: if esOperador();
       allow create, update: if estaAutenticado()
@@ -193,33 +285,37 @@ service cloud.firestore {
       allow delete: if esAdmin();
     }
 
-    // ── historial_estados ───────────────────────────────────────────
+    /* ── historial_estados ─────────────────────────────────────────── */
+    // El panel lo escribe en cada cambio de estado; se lee desde la ficha del
+    // cliente. Nunca se modifica ni se borra.
     match /historial_estados/{id} {
       allow read: if esOperador();
-      allow create: if esOperador();
+      allow create: if esOperador()
+        && textoNoVacio(request.resource.data.get('clienteId', ''))
+        && estadoValido(request.resource.data.get('estadoNuevo', 'ACTIVO'))
+        && request.resource.data.get('usuarioId', '') == request.auth.uid;
       allow update, delete: if false;
     }
 
-    // ── auditoria ───────────────────────────────────────────────────
+    /* ── auditoria ─────────────────────────────────────────────────── */
     match /auditoria/{id} {
       allow read: if esSuperadmin();
-      allow create: if esOperador();
+      allow create: if esOperador()
+        && textoNoVacio(request.resource.data.get('accion', ''))
+        && textoNoVacio(request.resource.data.get('entidad', ''))
+        && request.resource.data.get('usuarioId', '') == request.auth.uid;
       allow update, delete: if false;
     }
 
-    // ── configuracion ───────────────────────────────────────────────
-    // El interruptor del motor de vencimientos (configuracion/motorVencimientos)
-    // NO se abre desde el navegador: abrirlo exige el Admin SDK, es decir una
-    // persona con credenciales y a mano, nunca un clic en el panel. Cualquier
-    // otra clave de configuración sigue igual que antes.
+    /* ── configuracion ─────────────────────────────────────────────── */
+    // `motorVencimientos` no se toca desde el navegador ni con SUPERADMIN: si
+    // algún día se activa Blaze, ese interruptor se abre solo con Admin SDK.
     match /configuracion/{clave} {
       allow read: if esOperador();
       allow write: if esSuperadmin() && clave != 'motorVencimientos';
     }
 
-    // ── contactos (formulario público del sitio) ──────────────────
-    // Cualquier visitante puede ENVIAR su consulta (create público).
-    // Solo el equipo (OPERADOR+) puede LEER; ADMIN+ edita/borra.
+    /* ── contactos (formulario público del sitio) ──────────────────── */
     match /contactos/{contactoId} {
       allow create: if true
         && request.resource.data.nombre is string
@@ -232,11 +328,7 @@ service cloud.firestore {
       allow update, delete: if esAdmin();
     }
 
-    // ── suscriptores_web (avisos push de los visitantes) ───────────
-    // El visitante anónimo puede CREAR su suscripción: el id del documento
-    // es su propio token FCM y solo se aceptan los campos esperados.
-    // Nadie puede listar ni leer los tokens desde el navegador; solo el
-    // equipo autenticado (OPERADOR+) puede leerlos y desactivarlos.
+    /* ── suscriptores_web (avisos push de los visitantes) ──────────── */
     match /suscriptores_web/{token} {
       allow create: if true
         && request.resource.data.token is string
@@ -253,9 +345,7 @@ service cloud.firestore {
       allow delete: if esAdmin();
     }
 
-    // ── eventos (analítica de conversión de las tarjetas) ────────────
-    // Las tarjetas publicadas escriben (create público, datos agregados).
-    // Solo el equipo autenticado (OPERADOR+) puede LEER en el panel.
+    /* ── eventos (analítica de las tarjetas) ───────────────────────── */
     match /eventos/{id} {
       allow create: if true
         && request.resource.data.tarjeta is string
@@ -265,7 +355,7 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // ── Denegar todo lo demás ───────────────────────────────────────
+    /* ── Denegar todo lo demás ─────────────────────────────────────── */
     match /{document=**} {
       allow read, write: if false;
     }

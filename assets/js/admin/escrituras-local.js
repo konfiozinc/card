@@ -2,7 +2,7 @@
    KONFÍO ZINC · assets/js/admin/escrituras-local.js
    Reemplazo de las Cloud Functions para el plan SPARK.
 
-   Misma firma que callables.js, pero implementa la lógica en el cliente
+   Misma firma que las antiguas Cloud Functions, pero implementa la lógica en el cliente
    con Firestore directo. La autorización la garantiza firestore.rules
    (roles leídos de usuarios/{uid}), no este archivo; aquí solo se
    comprueba el rol en cliente para ocultar acciones y dar mensajes
@@ -17,7 +17,7 @@
 import { db, auth } from './core.js';
 import {
   collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, deleteDoc,
-  writeBatch, serverTimestamp, query, where, limit
+  writeBatch, serverTimestamp, query, where, limit, runTransaction
 } from 'firebase/firestore';
 
 const CFG = window.KZ_CONFIG || {};
@@ -38,13 +38,25 @@ const estadoPorVencimiento = (v) => {
   return 'ACTIVO';
 };
 
-/** Contexto del usuario actual (uid, rol, nombre). */
+/** Contexto del usuario actual (uid, rol, nombre).
+ *  Compatibilidad Spark: si la ficha por UID no existe, se busca la ficha
+ *  heredada `usuarios/{correo}` (así funcionaba el panel antes de vincular).
+ *  Las reglas permiten leerla solo a su dueño. Es de solo lectura: escribir
+ *  roles desde el navegador está prohibido. */
 async function ctx() {
   const u = auth.currentUser;
   if (!u) throw new Error('No hay sesión.');
-  const snap = await getDoc(doc(db, 'usuarios', u.uid));
-  if (!snap.exists() || snap.data().activo !== true) throw new Error('Tu usuario no está activo.');
-  return { uid: u.uid, rol: snap.data().rol || 'OPERADOR', nombre: snap.data().nombre || u.email, email: u.email || '' };
+  let snap = await getDoc(doc(db, 'usuarios', u.uid));
+  if (!snap.exists() && u.email) snap = await getDoc(doc(db, 'usuarios', u.email));
+  if (!snap.exists()) {
+    throw new Error('Tu usuario no tiene ficha en el panel. Pide a un administrador que la cree con la herramienta local (herramientas/admin-spark.js).');
+  }
+  const d = snap.data();
+  if (d.activo !== true) throw new Error('Tu usuario está desactivado. Pide a un administrador que lo reactive con la herramienta local.');
+  return {
+    uid: u.uid, rol: d.rol || 'OPERADOR', nombre: d.nombre || u.email || u.uid,
+    email: u.email || '', fichaId: snap.id, fichaHeredada: snap.id !== u.uid
+  };
 }
 
 async function requerir(min) {
@@ -55,19 +67,22 @@ async function requerir(min) {
   return c;
 }
 
+/* Auditoría e historial: NO se ocultan los errores. Antes se tragaban con
+   .catch(() => {}): si las reglas denegaban el registro, la operación seguía
+   adelante sin rastro y nadie se enteraba. Ahora el fallo se ve. */
 async function auditar(c, accion, entidad, entidadId, antes, despues) {
   await addDoc(collection(db, 'auditoria'), {
     usuarioId: c.uid, usuarioNombre: c.nombre, accion, entidad, entidadId,
     datosAnteriores: antes || null, datosNuevos: despues || null,
     fecha: serverTimestamp()
-  }).catch(() => {});
+  });
 }
 
 async function historial(c, clienteId, an, nu, motivo) {
   await addDoc(collection(db, 'historial_estados'), {
     clienteId, estadoAnterior: an, estadoNuevo: nu, motivo,
     usuarioId: c.uid, usuarioNombre: c.nombre, fecha: serverTimestamp()
-  }).catch(() => {});
+  });
 }
 
 /* ── Clientes ──────────────────────────────────────────────────────── */
@@ -131,63 +146,106 @@ export async function registrarPago(d) {
   if (!d.clienteId || !Number(d.monto) || Number(d.monto) <= 0) throw new Error('Falta cliente o monto válido.');
   const clienteSnap = await getDoc(doc(db, 'clientes', d.clienteId));
   if (!clienteSnap.exists()) throw new Error('Cliente no encontrado.');
+  const referencia = String(d.referencia || '').trim();
   const pago = {
     clienteId: d.clienteId, clienteNombre: clienteSnap.data().nombre,
     servicioId: d.servicioId || null, monto: Number(d.monto),
     metodoPago: d.metodoPago || 'Efectivo', fechaPago: d.fechaPago || iso(new Date()),
-    referencia: d.referencia || null, comprobanteUrl: d.comprobanteUrl || null,
+    referencia: referencia || null, comprobanteUrl: d.comprobanteUrl || null,
     estado: 'PENDIENTE', registradoPor: c.uid, registradoPorNombre: c.nombre,
     createdAt: serverTimestamp()
   };
-  const ref = await addDoc(collection(db, 'pagos'), pago);
-  await auditar(c, 'REGISTRAR_PAGO', 'pagos', ref.id, null, pago);
-  return { id: ref.id, estado: 'PENDIENTE' };
+
+  /* IDEMPOTENCIA: si el operador escribe la referencia del comprobante, el
+     documento se crea con un id derivado de ella. Si se corta la red y vuelve a
+     intentarlo, el segundo intento NO duplica el pago: avisa. */
+  const ref = referencia
+    ? doc(db, 'pagos', 'ref_' + referencia.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 60))
+    : doc(collection(db, 'pagos'));
+
+  const id = await runTransaction(db, async (tx) => {
+    const ya = await tx.get(ref);
+    if (ya.exists()) throw new Error('Ya existe un pago con esa referencia. Revísalo en la lista antes de registrarlo otra vez.');
+    tx.set(ref, pago);
+    return ref.id;
+  });
+
+  await auditar(c, 'REGISTRAR_PAGO', 'pagos', id, null, pago);
+  return { id, estado: 'PENDIENTE', idempotente: !!referencia };
 }
 
 export async function confirmarPago(pagoId) {
   const c = await requerir('ADMIN');
   const pagoRef = doc(db, 'pagos', pagoId);
-  const pagoSnap = await getDoc(pagoRef);
-  if (!pagoSnap.exists()) throw new Error('Pago no encontrado.');
-  const pago = pagoSnap.data();
-  if (pago.estado === 'CONFIRMADO') throw new Error('Este pago ya está confirmado.');
-  if (pago.estado === 'ANULADO') throw new Error('Este pago está anulado.');
 
-  const clienteRef = doc(db, 'clientes', pago.clienteId);
-  const clienteSnap = await getDoc(clienteRef);
-  if (!clienteSnap.exists()) throw new Error('Cliente no encontrado.');
+  /* En una transacción: se relee el pago y se decide con el estado REAL en el
+     servidor, no con lo que vio la pantalla. Confirmar dos veces (dos clics,
+     dos pestañas, un reintento tras un corte) es imposible: la segunda
+     transacción ve CONFIRMADO y aborta antes de renovar nada. */
+  const hecho = await runTransaction(db, async (tx) => {
+    const pagoSnap = await tx.get(pagoRef);
+    if (!pagoSnap.exists()) throw new Error('Pago no encontrado.');
+    const pago = pagoSnap.data();
+    if (pago.estado === 'CONFIRMADO') throw new Error('Este pago ya está confirmado. No se renueva dos veces.');
+    if (pago.estado === 'ANULADO') throw new Error('Este pago está anulado.');
 
-  const vencAnt = clienteSnap.data().fechaVencimiento;
-  const hoy = new Date();
-  const base = vencAnt && Math.round((aFecha(vencAnt) - hoy) / 86400000) > 0 ? aFecha(vencAnt) : hoy;
-  const nuevoVenc = iso(sumarMeses(base, NEG.mesesSuscripcion));
-  const estado = estadoPorVencimiento(nuevoVenc);
+    const clienteRef = doc(db, 'clientes', pago.clienteId);
+    const clienteSnap = await tx.get(clienteRef);
+    if (!clienteSnap.exists()) throw new Error('Cliente no encontrado.');
 
-  const batch = writeBatch(db);
-  batch.update(clienteRef, {
-    fechaVencimiento: nuevoVenc, estadoCliente: estado, estadoServicio: estado,
-    updatedAt: serverTimestamp()
+    const vencAnt = clienteSnap.data().fechaVencimiento;
+    const hoy = new Date();
+    const base = vencAnt && Math.round((aFecha(vencAnt) - hoy) / 86400000) > 0 ? aFecha(vencAnt) : hoy;
+    const nuevoVenc = iso(sumarMeses(base, NEG.mesesSuscripcion));
+    const estado = estadoPorVencimiento(nuevoVenc);
+
+    tx.update(clienteRef, {
+      fechaVencimiento: nuevoVenc, estadoCliente: estado, estadoServicio: estado,
+      updatedAt: serverTimestamp()
+    });
+    tx.update(pagoRef, {
+      estado: 'CONFIRMADO', confirmadoPor: c.uid, confirmadoPorNombre: c.nombre,
+      periodoInicio: iso(hoy), periodoFin: nuevoVenc, confirmadoEn: serverTimestamp()
+    });
+    return { estado, nuevoVenc, clienteId: pago.clienteId };
   });
-  const servicios = await getDocs(query(collection(db, 'servicios'), where('clienteId', '==', pago.clienteId)));
-  servicios.forEach(s => batch.update(s.ref, { fechaVencimiento: nuevoVenc, estado, fechaInicio: iso(hoy) }));
-  batch.update(pagoRef, {
-    estado: 'CONFIRMADO', confirmadoPor: c.uid, confirmadoPorNombre: c.nombre,
-    periodoInicio: iso(hoy), periodoFin: nuevoVenc, confirmadoEn: serverTimestamp()
-  });
-  await batch.commit();
 
-  await historial(c, pago.clienteId, 'PENDIENTE_PAGO', estado, 'Pago confirmado: renovación +12 meses');
-  await auditar(c, 'CONFIRMAR_PAGO', 'pagos', pagoId, { estado: 'PENDIENTE' }, { estado: 'CONFIRMADO', nuevoVenc });
-  return { id: pagoId, estado: 'CONFIRMADO', nuevoVencimiento: nuevoVenc };
+  /* Los servicios del cliente se actualizan aparte: consultar una colección no
+     cabe en la transacción. Si fallara, el pago y el vencimiento ya están
+     aplicados, y el operador se entera en vez de quedar con datos divergentes. */
+  let aviso = null;
+  try {
+    const servicios = await getDocs(query(collection(db, 'servicios'), where('clienteId', '==', hecho.clienteId)));
+    if (!servicios.empty) {
+      const lote = writeBatch(db);
+      servicios.forEach(s => lote.update(s.ref, {
+        fechaVencimiento: hecho.nuevoVenc, estado: hecho.estado, fechaInicio: iso(new Date()), updatedAt: serverTimestamp()
+      }));
+      await lote.commit();
+    }
+  } catch (e) {
+    aviso = 'El pago quedó confirmado y el vencimiento aplicado, pero los servicios del cliente no se pudieron actualizar: ' + e.message;
+  }
+
+  await historial(c, hecho.clienteId, 'PENDIENTE_PAGO', hecho.estado,
+    'Pago confirmado: renovación +' + NEG.mesesSuscripcion + ' meses');
+  await auditar(c, 'CONFIRMAR_PAGO', 'pagos', pagoId,
+    { estado: 'PENDIENTE' }, { estado: 'CONFIRMADO', nuevoVenc: hecho.nuevoVenc });
+  return { id: pagoId, estado: 'CONFIRMADO', nuevoVencimiento: hecho.nuevoVenc, aviso };
 }
 
 export async function anularPago(pagoId, motivo) {
   const c = await requerir('ADMIN');
   if (!motivo) throw new Error('Motivo obligatorio.');
   const ref = doc(db, 'pagos', pagoId);
-  const antes = (await getDoc(ref)).data();
-  if (!antes) throw new Error('Pago no encontrado.');
-  await updateDoc(ref, { estado: 'ANULADO', anuladoPor: c.uid, motivo, anuladoEn: serverTimestamp() });
+  const antes = await runTransaction(db, async (tx) => {
+    const snap = await tx.get(ref);
+    if (!snap.exists()) throw new Error('Pago no encontrado.');
+    const p = snap.data();
+    if (p.estado === 'ANULADO') throw new Error('Este pago ya está anulado.');
+    tx.update(ref, { estado: 'ANULADO', anuladoPor: c.uid, motivo, anuladoEn: serverTimestamp() });
+    return { estado: p.estado, monto: p.monto };
+  });
   await auditar(c, 'ANULAR_PAGO', 'pagos', pagoId, antes, { estado: 'ANULADO', motivo });
   return { ok: true };
 }
@@ -238,15 +296,42 @@ export async function eliminarCliente(clienteId, motivo) {
   return { ok: true };
 }
 
-/* ── Notificaciones ────────────────────────────────────────────────── */
-export async function enviarNotificacion(clienteId, tipo, mensaje) {
-  const c = await requerir('ADMIN');
+/* ── Notificaciones: NADA se envía solo ────────────────────────────────
+   En Spark no hay servidor de envío ni motor programado. El panel PREPARA el
+   aviso (queda registrado, con quién y cuándo) y el operador lo envía a mano
+   por WhatsApp desde su teléfono. Después marca el aviso como enviado: ese es
+   el único acto que dice «enviada», y también queda registrado. */
+export async function prepararNotificacion(clienteId, tipo, mensaje) {
+  const c = await requerir('OPERADOR');
   if (!clienteId) throw new Error('Falta cliente.');
-  await addDoc(collection(db, 'notificaciones'), {
-    clienteId, tipo: tipo || 'MANUAL', mensaje: mensaje || 'Aviso manual',
-    estado: 'ENVIADA', fechaEnvio: serverTimestamp(), canal: 'PUSH'
-  });
-  await auditar(c, 'ENVIAR_NOTIFICACION', 'notificaciones', clienteId, null, { tipo });
+  if (!mensaje || !String(mensaje).trim()) throw new Error('El mensaje no puede estar vacío.');
+  const cli = await getDoc(doc(db, 'clientes', clienteId));
+  if (!cli.exists()) throw new Error('Cliente no encontrado.');
+  const cliData = cli.data();
+  const registro = {
+    clienteId, clienteNombre: cliData.nombre || '', tipo: tipo || 'MANUAL',
+    mensaje: String(mensaje).trim(), estado: 'PREPARADA', canal: 'WHATSAPP',
+    usuarioId: c.uid, usuarioNombre: c.nombre, preparadaEn: serverTimestamp()
+  };
+  const ref = await addDoc(collection(db, 'notificaciones'), registro);
+  await auditar(c, 'PREPARAR_NOTIFICACION', 'notificaciones', ref.id, null, { clienteId, tipo });
+  const tel = String(cliData.whatsapp || cliData.telefono || '').replace(/\D/g, '');
+  return {
+    id: ref.id,
+    estado: 'PREPARADA',
+    enlaceWhatsApp: tel ? 'https://wa.me/57' + tel.replace(/^57/, '') + '?text=' + encodeURIComponent(registro.mensaje) : null
+  };
+}
+
+/** Marca un aviso preparado como enviado a mano. Es un acto explícito. */
+export async function marcarNotificacionEnviada(id) {
+  const c = await requerir('OPERADOR');
+  const ref = doc(db, 'notificaciones', id);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error('Aviso no encontrado.');
+  if (snap.data().estado !== 'PREPARADA') throw new Error('Solo se marca como enviado un aviso que esté preparado.');
+  await updateDoc(ref, { estado: 'ENVIADA', enviadoPor: c.uid, enviadoEn: serverTimestamp() });
+  await auditar(c, 'MARCAR_AVISO_ENVIADO', 'notificaciones', id, { estado: 'PREPARADA' }, { estado: 'ENVIADA' });
   return { ok: true };
 }
 
@@ -261,21 +346,20 @@ export async function registrarToken(clienteId, token, info) {
   return { ok: true };
 }
 
-/* ── Usuarios (SUPERADMIN) ─────────────────────────────────────────── */
-/* La gestión de usuarios NO se hace desde el cliente: crear la cuenta de
-   Authentication exige el Admin SDK y las reglas cierran `usuarios` a
-   escritura (allow write: if false). Estas dos funciones se conservan solo
-   para fallar de forma clara si alguien vuelve a conectarlas por error:
-   antes escribían `usuarios/{email}`, un identificador que el login nunca
-   lee (busca `usuarios/{auth.uid}`), dejando usuarios sin rol efectivo.
-   La vía correcta es callables.js → Cloud Functions. */
-export async function crearUsuario() {
-  throw new Error('La creación de usuarios va por Cloud Functions (callables.js): no se escribe desde el navegador.');
-}
+/* ── Usuarios: NO desde el navegador ───────────────────────────────────
+   Crear una cuenta de Authentication, cambiar un rol o vincular un UID exige
+   el Admin SDK, y en el plan Spark no hay servidor donde ejecutarlo. Las reglas
+   cierran `usuarios` a escritura desde el cliente (allow write: if false), así
+   que ni un SUPERADMIN puede auto-promoverse ni promover a otro desde la web.
+   La vía correcta es la herramienta local privilegiada del ASUS autorizado:
+       node herramientas/admin-spark.js --diagnostico
+       node herramientas/admin-spark.js --crear-cuenta --email … --rol ADMIN
+   (simulación por omisión; requiere --aplicar --autorizado-por "…"). */
+const SIN_ADMIN_SDK = 'La gestión de usuarios necesita el Admin SDK, que no existe en el plan Spark. ' +
+  'Se hace con la herramienta local del ASUS autorizado: node herramientas/admin-spark.js';
 
-export async function actualizarUsuario() {
-  throw new Error('La actualización de usuarios va por Cloud Functions (callables.js): no se escribe desde el navegador.');
-}
+export async function crearUsuario() { throw new Error(SIN_ADMIN_SDK + ' --crear-cuenta'); }
+export async function actualizarUsuario() { throw new Error(SIN_ADMIN_SDK + ' --rol / --deshabilitar'); }
 
 /* ── Mantenimiento ─────────────────────────────────────────────────── */
 export async function seedInicial() {
