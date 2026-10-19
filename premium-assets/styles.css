@@ -290,3 +290,9 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
 @media (max-width: 400px) {
   section, header, footer, nav { max-width: 100vw; overflow-x: clip; }
 }
+
+/* KZ-CONTRASTE: Lighthouse marcó 4,05:1 en los números de la lista de precios
+   (#77736c sobre #f0eee6, texto pequeño, mínimo 4,5:1). Se oscurece el color
+   sin tocar el diseño: mismo tono, más contraste. */
+section#precios .price-list a span { color: #56534c !important; }
+section#precios .price-list a span::first-line { color: #56534c; }
