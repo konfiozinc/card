@@ -136,6 +136,35 @@ try {
   if (-not $listo) { Aviso "El sitio no respondió 200 en 3 minutos. Comprueba a mano antes de dar la publicación por buena." }
   else { Bien "el sitio responde 200" }
 
+  # ── 9. Comprobar que lo interno YA NO se sirve ────────────────────
+  # _config.yml excluye docs/, herramientas/, functions/, tools/, reglas, indices
+  # y configuracion de Firebase. Si alguna sigue respondiendo 200, la exclusion
+  # no se aplico y hay que revisarla antes de dar la publicacion por buena.
+  $internas = @(
+    'docs/VENTANA-DE-LANZAMIENTO-CARD.md',
+    'docs/LANZAMIENTO-CARD-CHECKLIST.md',
+    'herramientas/verificar-precios.js',
+    'herramientas/publicar-paginas.ps1',
+    'functions/src/index.js',
+    'firestore.rules',
+    'firestore.indexes.json',
+    'firebase.json',
+    'README.md'
+  )
+  Write-Host ""
+  Write-Host "  Comprobando que las rutas internas ya no se publican..." -ForegroundColor Yellow
+  $fugas = @()
+  foreach ($r in $internas) {
+    $code = (& curl.exe -s -o NUL -w '%{http_code}' --max-time 20 ($Sitio + $r) 2>&1 | Out-String).Trim()
+    if ($code -ne '404') { $fugas += "$r -> HTTP $code" }
+  }
+  if ($fugas.Count -gt 0) {
+    Aviso "_config.yml no excluye todo lo interno: $($fugas -join ' | ')"
+    Aviso "Revisa _config.yml y que el sitio se construya con Jekyll (sin archivo .nojekyll)."
+  } else {
+    Bien "las $($internas.Count) rutas internas responden 404"
+  }
+
   Write-Host ""
   Write-Host "  Comprobaciones que faltan, a mano:" -ForegroundColor Cyan
   Write-Host "    1. Cargar $($Sitio)admin/index.html e iniciar sesión con un usuario real."

@@ -1,0 +1,50 @@
+# ═══════════════════════════════════════════════════════════════════
+#  GitHub Pages · publicación del sitio de KONFÍO ZINC (repositorio card)
+#
+#  Pages sirve la RAÍZ del repositorio, así que todo lo que hay aquí viaja al
+#  sitio público. Este archivo recorta el artefacto a lo que el sitio necesita:
+#  el frontend, sus recursos y los archivos de control (robots, sitemap, 404,
+#  manifiesto, service worker de mensajería).
+#
+#  Queda fuera de la publicación todo lo interno: documentación de trabajo,
+#  herramientas y pruebas, el código de las Cloud Functions, la configuración de
+#  Firebase, las reglas e índices de Firestore y los archivos originales
+#  descartados. Nada de eso se borra del repositorio: solo deja de servirse.
+#
+#  Importante: al definir `exclude` se sustituye la lista por omisión de Jekyll,
+#  por eso se repiten aquí sus entradas. Los archivos que empiezan por «_» o «.»
+#  Jekyll ya los excluye siempre.
+# ═══════════════════════════════════════════════════════════════════
+
+title: KONFÍO ZINC — Card
+description: Tarjetas digitales, catálogos, menús y páginas web para negocios.
+
+# ── Lista por omisión de Jekyll (se repite porque `exclude` la reemplaza) ──
+exclude:
+  - .sass-cache
+  - .jekyll-cache
+  - gemfiles
+  - node_modules
+  - vendor
+
+  # ── Interno de KONFÍO ZINC: nunca debe servirse ──────────────────────
+  # Documentación de trabajo (procedimientos, informes, estándares internos).
+  - docs
+  # Herramientas, pruebas, scripts de respaldo y despliegue.
+  - herramientas
+  # Código de las Cloud Functions y su configuración.
+  - functions
+  - firebase.json
+  - .firebaserc
+  # Reglas e índices de Firestore: configuración de seguridad interna.
+  - firestore.rules
+  - firestore.indexes.json
+  # Material gráfico descartado (pesa y no lo usa ninguna página).
+  - tools
+  # Documentación interna que vive en la raíz.
+  - README.md
+  - ARQUITECTURA_PANEL.md
+  - FICHA_UNICA_ATENCION.md
+  - MARCA_Y_NOMBRES.md
+  # Ganchos de git del proyecto.
+  - .githooks
