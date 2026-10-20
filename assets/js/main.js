@@ -204,13 +204,13 @@
       btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       /* En escritorio el submenú se muestra con hover; aquí forzamos visibilidad */
       var sub = item.querySelector('.nav-sub');
-      if (sub && window.innerWidth >= 1024) sub.style.display = isOpen ? 'block' : '';
+      if (sub && window.innerWidth >= 1024) sub.classList.toggle('kz-sub-abierto', !!isOpen);
     });
   });
   /* Cierra el submenú de escritorio al hacer clic fuera */
   document.addEventListener('click', function (e) {
     if (e.target.closest && e.target.closest('.nav-item')) return;
-    $$('.nav-sub').forEach(function (s) { s.style.display = ''; });
+    $$('.nav-sub').forEach(function (s) { s.classList.remove('kz-sub-abierto'); });
   });
 
   /* ── 03. REVEAL ON SCROLL ──────────────────────────────────────────── */
@@ -264,7 +264,7 @@
     modalTitle.textContent = title || 'Proyecto';
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+    document.body.classList.add('kz-scroll-lock');
     if (modalClose) modalClose.focus();
   }
   function closeModal() {
@@ -272,7 +272,7 @@
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
     modalBody.innerHTML = '';
-    document.body.style.overflow = '';
+    document.body.classList.remove('kz-scroll-lock');
     if (lastFocused && lastFocused.focus) lastFocused.focus();
   }
   /* Expone openModal para otros módulos del propio archivo */
@@ -723,7 +723,7 @@
       a.href = WA_URL; a.target = '_blank'; a.rel = 'noopener noreferrer';
       a.className = 'kz-wa-btn'; a.textContent = '💬 CONTINUAR POR WHATSAPP';
       var wrap = document.createElement('div');
-      wrap.style.cssText = 'align-self:flex-start;margin-top:4px;';
+      wrap.classList.add('kz-fila-acciones');
       wrap.appendChild(a);
       chatBody.appendChild(wrap);
       chatBody.scrollTop = chatBody.scrollHeight;
@@ -812,7 +812,7 @@
         return { text: 'Estas son nuestras seis soluciones 📱:\n\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
       }
       if (has(['precio', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto', 'cotiza', 'cotizacion', 'cotizar'])) {
-        return { text: 'Nuestros precios arrancan así 📊:\n\n• Códigos QR: desde $50.000\n• Tarjetas Digitales: desde $49.900 (Básica $49.900 · Pro $99.900)\n• Catálogos Digitales: desde $120.000\n• Menús Digitales: desde $150.000\n• Agentes IA: desde $250.000\n• Landing Pages: desde $699.000\n\nEscríbeme por WhatsApp y te preparo la cotización exacta, sin compromiso.', cta: true };
+        return { text: 'Nuestros precios arrancan así 📊:\n\n• Códigos QR: desde $50.000\n• Mini Web Básica: $49.900 · Mini Web Pro: $99.900\n• Catálogos Digitales: desde $120.000\n• Menús Digitales: desde $150.000\n• Agentes IA: desde $250.000\n• Landing Pages: desde $699.000\n\nEscríbeme por WhatsApp y te preparo la cotización exacta, sin compromiso.', cta: true };
       }
       var sectores = [
         [['restaurante', 'restaurantes', 'comida', 'comidas', 'cafeteria', 'pizzeria', 'hamburgues'], ['https://konfiozinc.github.io/eltiti/', 'https://konfiozinc.github.io/colsabor/']],

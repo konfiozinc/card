@@ -1274,3 +1274,14 @@ p a:not(.btn):not(.kz-chip),
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* ═══ KZ-CSP: clases en lugar de estilos en línea ═════════════════════
+   main.js escribía style.display y style.cssText desde JavaScript, y la
+   portada premium tiene una política de seguridad que prohíbe los estilos
+   en línea. Ahora se conmuta una clase: mismo resultado, sin violar la CSP. */
+.kz-scroll-lock { overflow: hidden; }
+.kz-fila-acciones { align-self: flex-start; margin-top: 4px; }
+@media (min-width: 1024px) {
+  .nav-sub { display: none; }
+  .nav-sub.kz-sub-abierto { display: block; }
+}
