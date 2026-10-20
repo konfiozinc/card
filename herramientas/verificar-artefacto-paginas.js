@@ -118,13 +118,7 @@ console.log('═══ RECURSOS QUE EL SITIO NECESITA ═══');
 const EXTERNA = /^(https?:|data:|mailto:|tel:|javascript:|\/\/|#)/i;
 const existe = new Set(artefacto);
 function resolver(desde, ref) {
-  /* REF_INVALIDA: referencias que no apuntan a un archivo ('.', '#id', url(#filtro))
-     se descartan; antes se contaban como recursos ausentes y daban falso fallo. */
-  /* Una referencia con %23 es un fragmento escapado dentro de un data: URI
-     (filter='url(%23n)'). No es un archivo: se descarta igual que '#id'. */
-  if (ref.trim() === '.' || ref.trim() === '' || ref.trim().startsWith('#') || ref.trim().startsWith('%23')) return null;
-  const limpio = ref.split('?')[0].split('#')[0].trim();
-  if (limpio === '' || limpio === '.' || limpio === './') return null;
+  const limpio = ref.split('#')[0].split('?')[0].trim();
   if (!limpio || EXTERNA.test(limpio)) return null;
   /* El sitio se sirve bajo /card/: una ruta absoluta «/card/x» es «x» en el
      repositorio, y «/x» es la raíz del dominio (fuera del repositorio). */

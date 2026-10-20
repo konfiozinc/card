@@ -4,6 +4,11 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs20",
+    "predeploy": []
+  },
   "hosting": {
     "public": ".",
     "ignore": [
@@ -17,21 +22,11 @@
     "headers": [
       {
         "source": "**/*.@(jpg|jpeg|png|webp|gif|svg|ico)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "max-age=604800"
-          }
-        ]
+        "headers": [{ "key": "Cache-Control", "value": "max-age=604800" }]
       },
       {
         "source": "**/*.@(css|js)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "max-age=3600"
-          }
-        ]
+        "headers": [{ "key": "Cache-Control", "value": "max-age=3600" }]
       }
     ]
   }

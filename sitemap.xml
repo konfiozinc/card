@@ -1,41 +1,254 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>https://konfiozinc.github.io/card/</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/aliados.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/blog.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/blog/</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/blog/agentes-ia-atencion-24-7.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/blog/catalogos-y-menus-digitales.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/blog/como-elegir-agencia-digital-medellin.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/blog/cuanto-cuesta-pagina-web-colombia.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/blog/menu-digital-para-restaurantes.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/blog/que-es-codigo-qr-dinamico.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/blog/tarjeta-digital-para-medicos.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/blog/tarjeta-digital-vs-instagram.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/blog/tarjetas-digitales-star-pro-elite.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/contacto.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/nosotros.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/recursos.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/politica-privacidad.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/agentes-ia.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/catalogos-digitales.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/codigos-qr.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/colsabor.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/dta-abogados.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/el-titi.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/landing-pages.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/make-up.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/menus-digitales.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/nandy-nails.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/postres-snoopy.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/portafolio/tarjetas-digitales.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/precios.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/servicios.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/servicios/agentes-ia.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/servicios/catalogos-digitales.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/servicios/codigos-qr.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/servicios/landing-pages.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/servicios/menus-digitales.html</loc></url>
-  <url><loc>https://konfiozinc.github.io/card/servicios/tarjetas-digitales.html</loc></url>
+<!--
+  Sitemap del sitio KONFÍO ZINC — https://konfiozinc.github.io/card/
+  Incluye las páginas públicas con contenido de los 6 servicios reales:
+  Tarjetas Digitales, Catálogos Digitales, Menús Digitales, Landing Pages,
+  Códigos QR y Agentes IA.
+
+  Generado: 2026-09-15 · Actualizar <lastmod> cuando cambie el contenido de una página.
+
+  NO se incluyen (a propósito):
+   · gracias.html   → confirmación de formulario (noindex)
+   · 404.html       → página de error (noindex)
+   · admin.html     → panel privado de gestión de clientes (noindex)
+   · (El blog NO está excluido: blog.html y blog/* se publicaron el 14-oct-2026 y sí figuran abajo.)
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+
+  <!-- ══ Páginas principales ══ -->
+  <url>
+    <loc>https://konfiozinc.github.io/card/</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://konfiozinc.github.io/card/assets/img/logos/logo.jpeg</image:loc>
+      <image:title>KONFÍO ZINC · Soluciones digitales para negocios</image:title>
+    </image:image>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/nosotros.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/servicios.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/contacto.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://konfiozinc.github.io/card/aliados.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/politica-privacidad.html</loc>
+    <lastmod>2026-09-25</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>  <!-- ══ Páginas de servicio (los 6 servicios reales) ══ -->
+  <url>
+    <loc>https://konfiozinc.github.io/card/servicios/tarjetas-digitales.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/servicios/catalogos-digitales.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/servicios/menus-digitales.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/servicios/landing-pages.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/servicios/codigos-qr.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/servicios/agentes-ia.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- ══ Casos de portafolio por categoría (1 por servicio) ══ -->
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/tarjetas-digitales.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/catalogos-digitales.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/menus-digitales.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/landing-pages.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/codigos-qr.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/agentes-ia.html</loc>
+    <lastmod>2026-09-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- == Blog y articulos publicos desde 14-oct-2026 == -->
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog.html</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/agentes-ia-atencion-24-7.html</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/catalogos-y-menus-digitales.html</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/menu-digital-para-restaurantes.html</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/tarjeta-digital-para-medicos.html</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/tarjetas-digitales-star-pro-elite.html</loc>
+    <lastmod>2026-10-14</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/cuanto-cuesta-pagina-web-colombia.html</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/como-elegir-agencia-digital-medellin.html</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/tarjeta-digital-vs-instagram.html</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/blog/que-es-codigo-qr-dinamico.html</loc>
+    <lastmod>2026-10-16</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/precios.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/el-titi.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/postres-snoopy.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/colsabor.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/nandy-nails.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/make-up.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://konfiozinc.github.io/card/portafolio/dta-abogados.html</loc>
+    <lastmod>2026-10-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
 </urlset>
