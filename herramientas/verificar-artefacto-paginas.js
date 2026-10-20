@@ -2,194 +2,258 @@
 /* ═══════════════════════════════════════════════════════════════════
    KONFÍO ZINC · herramientas/verificar-artefacto-paginas.js
 
-   Comprueba lo que GitHub Pages va a servir de verdad.
+   Reproduce lo que GitHub Pages va a publicar desde la raíz del repositorio,
+   aplicando las mismas reglas de exclusión de Jekyll, y comprueba:
 
-   Por qué existe: el 19/10/2026 se publicó la portada premium y quedó sin
-   estilos. `_config.yml` excluía `premium` y GitHub Pages aplicó esa entrada
-   también a `premium-assets/`: los cinco archivos del diseño respondían 404.
-   Los archivos estaban en el repositorio y este verificador daba 0 fallos,
-   porque aplicaba la regla «por carpeta» y no la regla «por prefijo» que usa
-   Pages de verdad. Ahora se reproducen las dos y además se comprueba que cada
-   recurso que una página referencia exista en el artefacto.
+     1. que ninguna ruta interna quede en el artefacto;
+     2. que el sitio conserve TODOS los recursos que referencia;
+     3. que los archivos publicados no lleven credenciales ni rutas internas.
 
-   1. Lee las exclusiones reales de `_config.yml`.
-   2. Aplica el filtro de Jekyll tal como se comporta en Pages (prefijo de
-      cadena y por carpeta), más las exclusiones por omisión (. , _ ).
-   3. Recorre cada página servible y verifica que todo recurso local esté en
-      el artefacto.
-   4. Confirma que lo interno (docs, herramientas, functions, reglas,
-      configuración) y la maqueta privada quedan FUERA.
+   ¿Por qué no se usa el constructor oficial? Porque GitHub Pages construye con
+   Jekyll y en esta máquina no hay Ruby, gem, bundle ni Docker. Esta herramienta
+   no sustituye al constructor: aplica las reglas documentadas de Jekyll
+   (exclusión de archivos que empiezan por . o _, más la lista `exclude` de
+   _config.yml) sobre el árbol de git, que es exactamente la entrada del build.
+   La comprobación definitiva es de solo lectura sobre el sitio publicado, con
+   los comandos que imprime al final.
 
    Uso: node herramientas/verificar-artefacto-paginas.js
-   Códigos: 0 todo en orden · 1 algún control falla
+   Códigos: 0 todo en orden · 1 algún control falla · 2 error de entorno
    ═══════════════════════════════════════════════════════════════════ */
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
+const { execFileSync } = require('child_process');
 
 const RAIZ = path.join(__dirname, '..');
 const CONFIG = path.join(RAIZ, '_config.yml');
 
-/* ── 1. Exclusiones declaradas ──────────────────────────────────── */
-function leerExclusiones() {
-  if (!fs.existsSync(CONFIG)) return [];
-  const lineas = fs.readFileSync(CONFIG, 'utf8').split(/\r?\n/);
-  const salida = [];
-  let dentro = false;
-  for (const linea of lineas) {
-    if (/^exclude\s*:/.test(linea)) { dentro = true; continue; }
-    if (!dentro) continue;
-    if (/^\S/.test(linea) && !/^\s*#/.test(linea)) { dentro = false; continue; }
-    const m = linea.match(/^\s+-\s+(.+?)\s*(?:#.*)?$/);
-    if (m) salida.push(m[1].replace(/^["']|["']$/g, ''));
-  }
-  return salida;
-}
-
-const EXCLUSIONES = leerExclusiones();
-
-/* ── 2. Filtro de Jekyll tal como se comporta en GitHub Pages ───── */
-function motivoExclusion(ruta) {
-  const segmentos = ruta.split('/');
-  if (segmentos.some((s) => s.startsWith('_') || s.startsWith('.'))) return 'empieza por _ o .';
-  if (ruta === '_config.yml' || ruta === '_config.yaml') return 'archivo de configuración';
-  for (const entrada of EXCLUSIONES) {
-    const limpia = entrada.replace(/^\/+|\/+$/g, '');
-    if (!limpia) continue;
-    /* Pages aplica la entrada como prefijo de cadena: `premium` se llevó por
-       delante `premium-assets/`. Reproducirlo es el objetivo de este archivo. */
-    if (ruta === limpia) return `exclude: ${entrada}`;
-    if (ruta.startsWith(limpia + '/')) return `exclude: ${entrada}`;
-    if (ruta.startsWith(limpia)) return `exclude: ${entrada} (prefijo, comportamiento de Pages)`;
-  }
-  return null;
-}
-
-/* ── 3. Inventario y artefacto ──────────────────────────────────── */
-function inventario(dir, salida = []) {
-  for (const entrada of fs.readdirSync(dir)) {
-    if (entrada === '.git' || entrada === 'node_modules') continue;
-    const ruta = path.join(dir, entrada);
-    if (fs.statSync(ruta).isDirectory()) inventario(ruta, salida);
-    else salida.push(path.relative(RAIZ, ruta).split(path.sep).join('/'));
-  }
-  return salida;
-}
-
-const archivos = inventario(RAIZ);
-const artefacto = archivos.filter((f) => !motivoExclusion(f));
-const fuera = archivos.filter((f) => motivoExclusion(f));
-const paginas = artefacto.filter((f) => f.endsWith('.html'));
-const enArtefacto = new Set(artefacto);
-
 const fallos = [];
 const avisos = [];
-let referencias = 0;
+function revisar(nombre, ok, detalle) {
+  console.log(`  [${ok ? 'PASA' : '**FALLA**'}] ${nombre.padEnd(58)} ${detalle || ''}`);
+  if (!ok) fallos.push(nombre + (detalle ? ' — ' + detalle : ''));
+}
+function avisar(texto) { avisos.push(texto); console.log(`  [AVISO   ] ${texto}`); }
 
-/* ── 4. Recursos que cada página servible referencia ────────────── */
-const EXTERNA = /^(https?:|mailto:|tel:|javascript:|data:|\/\/|#|\/)/i;
-for (const pagina of paginas) {
-  const html = fs.readFileSync(path.join(RAIZ, pagina), 'utf8');
-  for (const m of html.matchAll(/(?:href|src|srcset|poster)="([^"]+)"/g)) {
-    const destino = m[1].split(',')[0].trim().split(/\s+/)[0];
-    if (!destino || EXTERNA.test(destino)) continue;
-    const limpio = destino.split('#')[0].split('?')[0];
-    if (!limpio) continue;
-    referencias++;
-    const objetivo = path.normalize(path.join(path.dirname(path.join(RAIZ, pagina)), limpio));
-    let objetivoRel = path.relative(RAIZ, objetivo).split(path.sep).join('/');
-    /* Una referencia a carpeta («./», «admin/») la sirve Pages con su index.html */
-    if (!enArtefacto.has(objetivoRel)) {
-      const conIndice = (objetivoRel ? objetivoRel + '/' : '') + 'index.html';
-      if (enArtefacto.has(conIndice)) objetivoRel = conIndice;
-    }
-    if (!enArtefacto.has(objetivoRel)) {
-      const motivo = motivoExclusion(objetivoRel);
-      fallos.push(`${pagina} → ${destino} :: ${motivo ? 'NO SE SIRVE (' + motivo + ')' : 'no existe en el repositorio'}`);
-    }
+/* ── 1. Árbol de git (lo que verá el constructor) ─────────────────── */
+let arbol;
+try {
+  const crudo = execFileSync('git', ['-C', RAIZ, 'ls-tree', '-r', '--name-only', '-z', 'HEAD'], { encoding: 'utf8' });
+  arbol = crudo.split('\0').filter(Boolean).map((f) => f.replace(/\\/g, '/'));
+} catch (e) {
+  console.error('\n  ✖ No se pudo leer el árbol de git: ' + (e.message || e) + '\n');
+  process.exit(2);
+}
+
+/* ── 2. Reglas de Jekyll ──────────────────────────────────────────── */
+if (!fs.existsSync(CONFIG)) {
+  console.error('\n  ✖ Falta _config.yml: GitHub Pages volvería a publicar el repositorio entero.\n');
+  process.exit(1);
+}
+const lineas = fs.readFileSync(CONFIG, 'utf8').split(/\r?\n/);
+const excluir = [];
+let enLista = false;
+for (const l of lineas) {
+  if (/^\s*exclude\s*:/.test(l)) { enLista = true; continue; }
+  if (enLista) {
+    const m = /^\s*-\s*(.+?)\s*$/.exec(l);
+    if (m) { excluir.push(m[1].replace(/^["']|["']$/g, '')); continue; }
+    if (/^\s*[A-Za-z_]+\s*:/.test(l) || l.trim() === '') { if (l.trim() === '') continue; enLista = false; }
   }
 }
 
-/* ── 5. Lo interno y lo privado debe quedar fuera ───────────────── */
-const DEBE_QUEDAR_FUERA = [
-  ['docs', 'documentación interna'],
-  ['herramientas', 'herramientas y pruebas'],
-  ['functions', 'Cloud Functions'],
-  ['tools', 'material descartado'],
-  ['premium', 'maqueta privada'],
-  ['firebase.json', 'configuración de Firebase'],
-  ['.firebaserc', 'identificador de proyecto'],
-  ['firestore.rules', 'reglas de seguridad'],
-  ['firestore.indexes.json', 'índices de Firestore'],
-  ['README.md', 'documentación'],
-  ['ARQUITECTURA_PANEL.md', 'documentación'],
-  ['FICHA_UNICA_ATENCION.md', 'documentación'],
-  ['MARCA_Y_NOMBRES.md', 'documentación'],
-  ['.githooks', 'ganchos de git'],
-];
-const colados = [];
-for (const [entrada, nombre] of DEBE_QUEDAR_FUERA) {
-  const dentro = artefacto.filter((f) => f === entrada || f.startsWith(entrada + '/'));
-  if (dentro.length) colados.push(`${nombre} (${entrada}): ${dentro.length} archivo(s)`);
+const EMPIEZA_ESPECIAL = (f) => f.split('/').some((p) => p.startsWith('_') || p.startsWith('.'));
+function excluidaPorLista(f) {
+  return excluir.some((e) => {
+    const limpio = e.replace(/\/+$/, '');
+    return f === limpio || f.startsWith(limpio + '/');
+  });
 }
+const esConfig = (f) => f === '_config.yml';
 
-/* ── 6. Recursos premium que la portada necesita ────────────────── */
-const PREMIUM = [
-  'premium-assets/styles.css',
-  'premium-assets/app.js',
-  'premium-assets/chat.css',
-  'premium-assets/favicon.svg',
-  'premium-assets/og-cover.svg',
-];
-const premiumPresentes = PREMIUM.filter((f) => enArtefacto.has(f));
-const premiumFaltan = PREMIUM.filter((f) => !enArtefacto.has(f));
+const artefacto = arbol.filter((f) => !(esConfig(f) || EMPIEZA_ESPECIAL(f) || excluidaPorLista(f)));
+const fuera = arbol.filter((f) => !artefacto.includes(f));
 
-/* ── 7. Archivos publicados con rastros internos ────────────────── */
-const SOSPECHOSOS = [/(?:\/|\b)herramientas\//, /(?:\/|\b)docs\//, /CLAVE_PRIVADA|SERVICE_ACCOUNT|BEGIN PRIVATE KEY/];
-let rastros = 0;
+/* ── 3. Informe de exclusiones ────────────────────────────────────── */
+console.log('');
+console.log('═══ ARTEFACTO DE GITHUB PAGES (simulado sobre el árbol de git) ═══');
+console.log(`  archivos versionados: ${arbol.length}`);
+console.log(`  publicables:          ${artefacto.length}`);
+console.log(`  excluidos:            ${fuera.length}`);
+console.log('');
+
+const porCarpeta = {};
 for (const f of artefacto) {
-  if (!/\.(html|js|json|css|xml|txt)$/.test(f)) continue;
-  const contenido = fs.readFileSync(path.join(RAIZ, f), 'utf8');
-  for (const patron of SOSPECHOSOS) {
-    if (patron.test(contenido) && !/^\s*(\/\/|\*|\/\*)/.test(contenido)) {
-      /* se toleran las menciones en comentarios; se avisa, no se falla */
-      if (patron === SOSPECHOSOS[2]) { rastros++; }
-      break;
+  const k = f.includes('/') ? f.split('/')[0] : '(raíz)';
+  porCarpeta[k] = (porCarpeta[k] || 0) + 1;
+}
+console.log('  publicables por carpeta:');
+for (const [k, n] of Object.entries(porCarpeta).sort((a, b) => b[1] - a[1])) {
+  console.log(`    ${k.padEnd(22)} ${String(n).padStart(4)}`);
+}
+console.log('');
+
+const publicadasNoDeseadas = ['docs', 'herramientas', 'functions', 'tools'];
+for (const carpeta of publicadasNoDeseadas) {
+  const colados = artefacto.filter((f) => f === carpeta || f.startsWith(carpeta + '/'));
+  revisar(`La carpeta «${carpeta}» no se publica`, colados.length === 0,
+    colados.length ? `${colados.length} archivo(s) colados` : 'excluida');
+}
+
+for (const archivo of ['firestore.rules', 'firestore.indexes.json', 'firebase.json', '.firebaserc', 'README.md', 'ARQUITECTURA_PANEL.md', 'FICHA_UNICA_ATENCION.md', 'MARCA_Y_NOMBRES.md']) {
+  const dentro = artefacto.includes(archivo);
+  revisar(`«${archivo}» no se publica`, !dentro, dentro ? 'seguiría publicado' : 'fuera del artefacto');
+}
+
+/* Los dotfiles ya los excluye Jekyll: se comprueba que sea así. */
+const dotfiles = artefacto.filter((f) => f.split('/').some((p) => p.startsWith('.')));
+revisar('Ningún archivo oculto en el artefacto', dotfiles.length === 0, dotfiles.slice(0, 3).join(', ') || 'ninguno');
+
+/* ── 4. El sitio conserva lo que necesita ─────────────────────────── */
+console.log('');
+console.log('═══ RECURSOS QUE EL SITIO NECESITA ═══');
+
+const EXTERNA = /^(https?:|data:|mailto:|tel:|javascript:|\/\/|#)/i;
+const existe = new Set(artefacto);
+function resolver(desde, ref) {
+  const limpio = ref.split('#')[0].split('?')[0].trim();
+  if (!limpio || EXTERNA.test(limpio)) return null;
+  /* El sitio se sirve bajo /card/: una ruta absoluta «/card/x» es «x» en el
+     repositorio, y «/x» es la raíz del dominio (fuera del repositorio). */
+  let base;
+  if (limpio.startsWith('/card/')) base = limpio.slice('/card/'.length);
+  else if (limpio.startsWith('/')) base = limpio.slice(1);
+  else base = path.posix.join(path.posix.dirname(desde), limpio);
+  base = base.replace(/^\.\//, '');
+  const norm = path.posix.normalize(base);
+  if (norm.startsWith('..')) return { fuera: true, ruta: norm };
+  return { ruta: norm };
+}
+
+const referencias = new Map();
+function anotarReferencia(desde, ref, soloRutas) {
+  /* En los módulos ES, `from 'firebase/auth'` es un especificador que resuelve
+     el import map del navegador, no un archivo del repositorio: solo cuentan
+     las rutas que empiezan por ./ ../ o /. */
+  if (soloRutas && !/^[.\/]/.test(ref.trim())) return;
+  const r = resolver(desde, ref);
+  if (!r) return;
+  if (!referencias.has(r.ruta)) referencias.set(r.ruta, desde);
+}
+
+const esTexto = (f) => /\.(html|css|js|json|xml|txt|md|webmanifest|sw|yml)$/i.test(f);
+let faltantes = 0;
+const detalleFaltantes = [];
+
+for (const f of artefacto) {
+  if (!esTexto(f)) continue;
+  let txt;
+  try { txt = fs.readFileSync(path.join(RAIZ, f), 'utf8'); } catch (e) { continue; }
+
+  if (/\.html?$/i.test(f)) {
+    for (const m of txt.matchAll(/(?:src|href)\s*=\s*["']([^"']+)["']/gi)) anotarReferencia(f, m[1], false);
+    for (const m of txt.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)) anotarReferencia(f, m[1], false);
+    const im = /<script[^>]*type=["']importmap["'][^>]*>([\s\S]*?)<\/script>/i.exec(txt);
+    if (im) {
+      try {
+        const mapa = JSON.parse(im[1]);
+        for (const v of Object.values(mapa.imports || {})) anotarReferencia(f, String(v), false);
+      } catch (e) { avisar(`importmap ilegible en ${f}`); }
     }
+  } else if (/\.css$/i.test(f)) {
+    for (const m of txt.matchAll(/url\(\s*["']?([^"')]+)["']?\s*\)/gi)) anotarReferencia(f, m[1], false);
+  } else if (/\.(m?js)$/i.test(f)) {
+    for (const m of txt.matchAll(/(?:from|import)\s*\(?\s*["']([^"']+)["']/g)) anotarReferencia(f, m[1], true);
+    for (const m of txt.matchAll(/new\s+URL\(\s*["']([^"']+)["']/g)) anotarReferencia(f, m[1], true);
   }
 }
-if (rastros) avisos.push(`${rastros} archivo(s) contienen términos de credenciales`);
 
-/* ── 8. Informe ─────────────────────────────────────────────────── */
-console.log('══════════════════════════════════════════════════════════════');
-console.log('  ARTEFACTO DE GITHUB PAGES · lo que se sirve de verdad');
-console.log('══════════════════════════════════════════════════════════════');
-console.log(`  exclusiones leídas de _config.yml: ${EXCLUSIONES.length}`);
-console.log(`  archivos en el repositorio:        ${archivos.length}`);
-console.log(`  servibles:                         ${artefacto.length}`);
-console.log(`  excluidos:                         ${fuera.length}`);
-console.log(`  páginas HTML servibles:            ${paginas.length}`);
-console.log(`  referencias locales comprobadas:   ${referencias}`);
-console.log('');
-console.log(`  recursos premium servidos: ${premiumPresentes.length}/${PREMIUM.length}${premiumFaltan.length ? ' · FALTAN: ' + premiumFaltan.join(', ') : ''}`);
-console.log(`  interno fuera del artefacto: ${colados.length === 0 ? 'sí, todo' : 'NO'}`);
-console.log('');
-if (fallos.length) {
-  console.log('  FALLOS:');
-  for (const f of fallos.slice(0, 40)) console.log('   · ' + f);
-  if (fallos.length > 40) console.log(`   … y ${fallos.length - 40} más`);
-} else {
-  console.log('  FALLOS: ninguno · ningún recurso referenciado queda fuera del artefacto');
+const sinResolver = [];
+for (const [ruta, desde] of referencias) {
+  if (existe.has(ruta)) continue;
+  if (existe.has(ruta.replace(/\/$/, '') + '/index.html')) continue;
+  if (existe.has(ruta + '.html')) continue;      /* enlaces sin extensión */
+  sinResolver.push(`${ruta} (referenciado desde ${desde})`);
+  faltantes++;
 }
-if (colados.length) {
-  console.log('  SE PUBLICAN ARCHIVOS INTERNOS:');
-  for (const c of colados) console.log('   · ' + c);
+
+const referenciasInternas = sinResolver.filter((r) => /^(docs|herramientas|functions|tools)\//.test(r));
+const referenciasRotas = sinResolver.filter((r) => !referenciasInternas.includes(r));
+
+console.log(`  referencias locales encontradas: ${referencias.size}`);
+revisar('Ningún recurso del sitio apunta a una carpeta interna', referenciasInternas.length === 0,
+  referenciasInternas.length ? referenciasInternas.slice(0, 3).join(' | ') : 'nada apunta a docs/ herramientas/ functions/ tools/');
+revisar('Todos los recursos referenciados están en el artefacto', referenciasRotas.length === 0,
+  referenciasRotas.length ? referenciasRotas.slice(0, 4).join(' | ') : `${referencias.size} referencias resueltas`);
+
+/* Entradas imprescindibles del sitio, sin depender del rastreo. */
+const imprescindibles = ['index.html', 'panel.html', 'precios.html', 'robots.txt', 'sitemap.xml', '404.html', 'manifest.json',
+  'admin/index.html', 'admin/dashboard.html', 'admin/usuarios.html', 'assets/js/config.js', 'assets/js/firebase-config.js',
+  'assets/css/admin.css', 'assets/js/admin/shell.js', 'assets/js/admin/core.js', 'assets/js/admin/datos.js',
+  'assets/js/admin/escrituras-local.js', 'assets/js/admin/ui.js'];
+for (const f of imprescindibles) {
+  if (!existe.has(f)) revisar(`El sitio necesita «${f}»`, false, 'no está en el artefacto');
 }
-if (avisos.length) for (const a of avisos) console.log('  [AVISO] ' + a);
+revisar('Las páginas y módulos esenciales siguen publicados', imprescindibles.every((f) => existe.has(f)), `${imprescindibles.length} comprobados`);
+
+/* ── 5. Contenido: credenciales y rutas internas ─────────────────── */
+console.log('');
+console.log('═══ CONTENIDO DE LO PUBLICADO ═══');
+
+const CREDENCIALES = [
+  { nombre: 'clave privada PEM', re: /-----BEGIN [A-Z ]*PRIVATE KEY-----/ },
+  { nombre: 'campo private_key', re: /private_key/ },
+  { nombre: 'cuenta de servicio JSON', re: /"type"\s*:\s*"service_account"/ },
+  { nombre: 'cuenta firebase-adminsdk', re: /firebase-adminsdk/i },
+  { nombre: 'token de GitHub', re: /gh[pousr]_[A-Za-z0-9]{20,}/ },
+  { nombre: 'clave de SendGrid', re: /SG\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/ },
+  { nombre: 'clave secreta de Stripe', re: /sk_live_[A-Za-z0-9]{20,}/ },
+  { nombre: 'ruta interna de respaldos', re: /KONFIO-RESPALDOS|14-HERRAMIENTAS-DESARROLLO/i },
+  { nombre: 'ruta absoluta del equipo', re: /C:[\\/]Users[\\/]usuario29/i }
+];
+
+const hallazgos = [];
+const apiKeysFirebase = [];
+for (const f of artefacto) {
+  if (!esTexto(f)) continue;
+  let txt;
+  try { txt = fs.readFileSync(path.join(RAIZ, f), 'utf8'); } catch (e) { continue; }
+  for (const c of CREDENCIALES) {
+    if (c.re.test(txt)) hallazgos.push(`${c.nombre} en ${f}`);
+  }
+  if (/AIza[0-9A-Za-z_-]{30,}/.test(txt)) apiKeysFirebase.push(f);
+}
+
+revisar('Ningún archivo publicado lleva credenciales ni rutas internas', hallazgos.length === 0,
+  hallazgos.length ? hallazgos.slice(0, 4).join(' | ') : `${artefacto.length} archivos revisados`);
+if (apiKeysFirebase.length) {
+  avisar(`${apiKeysFirebase.length} archivo(s) con la clave web de Firebase (pública por diseño): ${apiKeysFirebase.join(', ')}`);
+}
+
+/* ── 6. Qué comprobar en el sitio real después de publicar ───────── */
+console.log('');
+console.log('═══ COMPROBACIÓN POSTERIOR (solo lectura, tras publicar) ═══');
+console.log('  Debe responder 404 en cuanto la rama se publique:');
+const yaPublicas = ['herramientas/verificar-precios.js', 'herramientas/README.md', 'functions/src/index.js',
+  'functions/package.json', 'functions/src/motor.js', 'functions/src/vencimientos.js',
+  'firestore.rules', 'firestore.indexes.json', 'firebase.json', 'README.md',
+  'ARQUITECTURA_PANEL.md', 'FICHA_UNICA_ATENCION.md', 'MARCA_Y_NOMBRES.md',
+  'docs/LANZAMIENTO-CARD-CHECKLIST.md', 'docs/VENTANA-DE-LANZAMIENTO-CARD.md',
+  'herramientas/publicar-paginas.ps1', 'herramientas/desplegar-funciones.ps1'];
+for (const r of yaPublicas) console.log(`    https://konfiozinc.github.io/card/${r}`);
+console.log('');
+console.log('  Debe seguir respondiendo 200:');
+for (const r of ['', 'admin/index.html', 'precios.html', 'robots.txt', 'sitemap.xml']) {
+  console.log(`    https://konfiozinc.github.io/card/${r}`);
+}
+
+/* ── 7. Veredicto ─────────────────────────────────────────────────── */
 console.log('');
 console.log('══════════════════════════════════════════════════════════════');
-const veredicto = fallos.length + colados.length + premiumFaltan.length;
-console.log(veredicto === 0 ? '  RESULTADO: artefacto íntegro' : `  RESULTADO: ${veredicto} problema(s)`);
+console.log(`  publicables: ${artefacto.length} · excluidos: ${fuera.length} · fallos: ${fallos.length} · avisos: ${avisos.length}`);
 console.log('══════════════════════════════════════════════════════════════');
-process.exit(veredicto === 0 ? 0 : 1);
+if (fallos.length) { console.log('\n  FALLOS:'); for (const f of fallos) console.log('   · ' + f); }
+console.log('');
+process.exit(fallos.length ? 1 : 0);

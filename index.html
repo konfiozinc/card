@@ -1,281 +1,680 @@
-<!doctype html>
-<html lang="es">
+<!DOCTYPE html>
+<html lang="es-CO" data-base="." data-root=".">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#050505">
-  <meta name="description" content="Konfío Zinc crea mini webs, menús, catálogos, landing pages y agentes IA a medida para negocios que quieren avanzar.">
-  <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self' 'sha256-XuLDwTV3jTbAZ2OyR4+WRFpxnuJtdf/gKwA6qg0VHL0='; connect-src 'self' https://calm-heart-6828.konfiozinc.workers.dev; form-action 'self'; base-uri 'self'">
-  <meta property="og:title" content="Konfío Zinc — Soluciones digitales a medida">
-  <meta property="og:description" content="Diseño, código y automatización para negocios que quieren crecer.">
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://konfiozinc.github.io/card/">
-  <meta property="og:image" content="https://konfiozinc.github.io/card/premium-assets/og-cover.svg">
-  <link rel="canonical" href="https://konfiozinc.github.io/card/">
-  <title>Konfío Zinc — Soluciones digitales a medida</title>
-  <link rel="icon" href="premium-assets/favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="premium-assets/styles.css">
-  <link rel="stylesheet" href="premium-assets/chat.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KONFÍO ZINC | Soluciones digitales para negocios</title>
+<meta name="description" content="Tarjetas digitales, catálogos, menús, landing pages, códigos QR y agentes IA. Soluciones digitales que generan resultados medibles.">
+<meta name="keywords" content="tarjetas digitales, catálogos digitales, menús digitales, landing pages, códigos QR, agentes IA, soluciones digitales Colombia">
+<meta name="author" content="KONFÍO ZINC">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#000000">
+<link rel="canonical" href="https://konfiozinc.github.io/card/">
+
+<!-- Google Analytics 4 (GA4) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-0JKTZNMPWX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-0JKTZNMPWX', {
+    send_page_view: true,
+    cookie_flags: 'SameSite=None;Secure'
+  });
+</script>
+<meta name="google-site-verification" content="8cqMe9uCjlMuvUzvNSzgMcjifl9tCk17YhZJ04eFjwU" />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KONFÍO ZINC">
+<meta property="og:locale" content="es_CO">
+<meta property="og:url" content="https://konfiozinc.github.io/card/">
+<meta property="og:title" content="KONFÍO ZINC | Soluciones digitales para negocios">
+<meta property="og:description" content="Tarjetas digitales, catálogos, menús, landing pages, códigos QR y agentes IA para hacer crecer tu negocio.">
+<meta property="og:image" content="https://konfiozinc.github.io/card/assets/img/og/og-konfio-zinc.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="KONFÍO ZINC — Soluciones digitales para negocios" />
+
+<!-- Twitter Cards -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="KONFÍO ZINC | Soluciones digitales para negocios">
+<meta name="twitter:description" content="Impulsamos tu marca con estrategias digitales que generan resultados medibles.">
+<meta name="twitter:image" content="https://konfiozinc.github.io/card/assets/img/og/og-konfio-zinc.jpg" />
+
+<!-- Favicon y apple-touch-icon -->
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/logos/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/img/logos/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/logos/apple-touch-180.png">
+<link rel="manifest" href="manifest.json">
+<link rel="shortcut icon" href="assets/img/logos/favicon-32.png">
+
+<!-- Fuentes (font-display: swap mediante &display=swap) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+<noscript>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</noscript>
+<link rel="stylesheet" href="assets/css/styles.css">
+
+<!-- CSS crítico inline: evita el salto de layout (CLS) en la carga inicial -->
+<style>
+  body{background:#000;color:#F5F5F0;margin:0}
+  .site-header{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(0,0,0,.72)}
+  .hero{min-height:100vh;display:flex;align-items:center}
+  .nav{display:flex;align-items:center;justify-content:space-between;height:72px}
+</style>
+
+<!-- Datos estructurados: Organization + LocalBusiness + WebSite + FAQPage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": ["Organization", "LocalBusiness", "MarketingAgency"],
+      "@id": "https://konfiozinc.github.io/card/#organizacion",
+      "name": "KONFÍO ZINC",
+      "alternateName": "Konfio Zinc Agencia Digital",
+      "url": "https://konfiozinc.github.io/card/",
+      "logo": "https://konfiozinc.github.io/card/assets/img/logos/logo.jpeg",
+      "image": "https://konfiozinc.github.io/card/assets/img/logos/logo.jpeg",
+      "description": "Agencia de soluciones digitales: tarjetas digitales, catálogos digitales, menús digitales, landing pages, códigos QR y agentes IA para negocios en Colombia.",
+      "email": "konfiozinc@gmail.com",
+      "telephone": "+573206411340",
+      "priceRange": "$$",
+      "currenciesAccepted": "COP",
+      "paymentAccepted": "Nequi, Daviplata, Transferencia bancaria, Efectivo",
+      "founder": { "@type": "Person", "name": "Darwin Montalvo", "jobTitle": "Fundador y Director de Estrategia Digital" },
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "CO",
+        "addressRegion": "Antioquia",
+        "addressLocality": "Medellín"
+      },
+      "areaServed": { "@type": "Country", "name": "Colombia" },
+      "openingHoursSpecification": [
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+          "opens": "08:00",
+          "closes": "18:00"
+        },
+        {
+          "@type": "OpeningHoursSpecification",
+          "dayOfWeek": "Saturday",
+          "opens": "09:00",
+          "closes": "13:00"
+        }
+      ],
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+573206411340",
+        "contactType": "customer service",
+        "availableLanguage": ["es"],
+        "areaServed": "CO"
+      },
+      "sameAs": [
+        "https://www.facebook.com/share/1DRqH4Vvrt/",
+        "https://www.instagram.com/konfio_zinc",
+        "https://www.tiktok.com/@tarjetaszinc"
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Soluciones digitales KONFÍO ZINC",
+        "itemListElement": [
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Tarjetas Digitales", "url": "https://konfiozinc.github.io/card/servicios/tarjetas-digitales.html" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Catálogos Digitales", "url": "https://konfiozinc.github.io/card/servicios/catalogos-digitales.html" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Menús Digitales", "url": "https://konfiozinc.github.io/card/servicios/menus-digitales.html" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Landing Pages", "url": "https://konfiozinc.github.io/card/servicios/landing-pages.html" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Códigos QR", "url": "https://konfiozinc.github.io/card/servicios/codigos-qr.html" } },
+          { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Agentes IA", "url": "https://konfiozinc.github.io/card/servicios/agentes-ia.html" } }
+        ]
+      }
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://konfiozinc.github.io/card/#website",
+      "url": "https://konfiozinc.github.io/card/",
+      "name": "KONFÍO ZINC",
+      "inLanguage": "es-CO",
+      "publisher": { "@id": "https://konfiozinc.github.io/card/#organizacion" }
+    },
+    {
+      "@type": "WebPage",
+      "@id": "https://konfiozinc.github.io/card/#webpage",
+      "url": "https://konfiozinc.github.io/card/",
+      "name": "KONFÍO ZINC | Soluciones digitales para negocios",
+      "isPartOf": { "@id": "https://konfiozinc.github.io/card/#website" },
+      "about": { "@id": "https://konfiozinc.github.io/card/#organizacion" },
+      "primaryImageOfPage": "https://konfiozinc.github.io/card/assets/img/logos/logo.jpeg",
+      "inLanguage": "es-CO"
+    },
+    {
+      "@type": "FAQPage",
+      "@id": "https://konfiozinc.github.io/card/#faq",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "¿Qué servicios ofrece KONFÍO ZINC?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Ofrecemos seis soluciones: Tarjetas Digitales (planes Star, Pro y Elite), Catálogos Digitales, Menús Digitales, Landing Pages, Códigos QR y Agentes IA." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cuánto tarda la entrega de un proyecto?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Las tarjetas digitales, catálogos, menús digitales y códigos QR se entregan en 24 a 48 horas hábiles. Los agentes IA se entregan según el plan: Esencial 3–5 días hábiles, Negocio 5–7 días hábiles, Premium hasta 10 días hábiles. Las landing pages tardan entre 5 y 10 días hábiles (ECO 5–7; SMART y POWER 7–10), tras recibir la información completa y el pago." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Cómo empiezo a trabajar con la agencia?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Agenda un diagnóstico gratuito por WhatsApp o mediante el formulario de contacto. Analizamos tu situación digital y te enviamos una propuesta con alcance, tiempos e inversión, sin compromiso." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Trabajan con negocios de cualquier ciudad de Colombia?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Sí. Atendemos clientes de toda Colombia de forma 100% remota, con reuniones por videollamada y acompañamiento por WhatsApp." }
+        },
+        {
+          "@type": "Question",
+          "name": "¿Qué resultados puedo esperar de una estrategia digital?",
+          "acceptedAnswer": { "@type": "Answer", "text": "Depende de tu punto de partida, tu sector y tu presupuesto. Trabajamos con objetivos medibles: más tráfico calificado, más contactos por WhatsApp, mejor costo por lead y más ventas. Todos los meses recibes un reporte con las métricas del embudo." }
+        }
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
-  <a class="skip-link" href="#contenido">Saltar al contenido</a>
-  <div class="noise" aria-hidden="true"></div>
-  <header class="site-header" data-header>
-    <a class="brand" href="#inicio" aria-label="Konfío Zinc, inicio">
-      <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 7h10v13L32 7h8L25 23l16 18H28L18 29v12H8z"/></svg>
-      <span>KONFÍO <b>ZINC</b></span>
+<a class="skip-link" href="#contenido">Saltar al contenido principal</a>
+
+<!-- Partículas de fondo (canvas) -->
+<canvas id="particles" aria-hidden="true"></canvas>
+
+<!-- ══════════════ HEADER FIJO ══════════════ -->
+<header class="site-header" id="header">
+  <nav class="nav container" aria-label="Navegación principal">
+    <a href="index.html" class="nav-logo" aria-label="KONFÍO ZINC - Inicio">
+      <img src="assets/img/logos/logo.jpeg" alt="Logotipo de KONFÍO ZINC, soluciones digitales para negocios" class="nav-logo-img" width="38" height="38">
+      <span class="nav-logo-text">KONFÍO <span class="text-gold">ZINC</span></span>
     </a>
-    <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="nav-principal">
-      <span></span><span></span><span></span><span class="sr-only">Abrir menú</span>
-    </button>
-    <nav id="nav-principal" class="nav" aria-label="Navegación principal">
-      <a href="#servicios">Servicios</a>
-      <a href="#portafolio">Portafolio</a>
-      <a href="#precios">Precios</a>
-      <a href="#contacto">Contacto</a>
-      <a class="nav__cta" href="https://wa.me/573206411340?text=Hola%20Konf%C3%ADo%20Zinc%2C%20quiero%20agendar%20un%20diagn%C3%B3stico." target="_blank" rel="noopener noreferrer">Agendar diagnóstico</a>
-    </nav>
-  </header>
 
-  <main id="contenido">
-    <section class="hero" id="inicio" aria-labelledby="hero-title">
-      <canvas id="zinc-orbit" aria-hidden="true"></canvas>
-      <div class="hero__glow hero__glow--gold" aria-hidden="true"></div>
-      <div class="hero__glow hero__glow--cyan" aria-hidden="true"></div>
-      <div class="hero__eyebrow reveal"><span>ESTUDIO DIGITAL · MEDELLÍN</span><i></i></div>
-      <div class="hero__copy">
-        <p class="hero__index reveal">01 / MANIFIESTO</p>
-        <h1 id="hero-title" class="reveal"><span>Soluciones digitales</span><span>que hacen <em>crecer</em></span><span>tu negocio.</span></h1>
-        <p class="hero__lead reveal">Diseñamos presencia digital, automatización y experiencias web con criterio, velocidad y código hecho a medida.</p>
-        <div class="hero__actions reveal">
-          <a class="button button--gold" href="#servicios">Explorar soluciones <span aria-hidden="true">↘</span></a>
-          <a class="button button--line" href="#portafolio">Ver trabajo real</a>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="index.html" class="nav-link active" aria-current="page">Inicio</a></li>
+      <li><a href="nosotros.html" class="nav-link">Nosotros</a></li>
+      <li class="nav-item">
+        <a href="servicios.html" class="nav-link nav-parent">Servicios</a>
+        <button class="nav-link nav-sub-toggle nav-caret" aria-label="Ver lista de servicios" aria-expanded="false"><i class="fas fa-chevron-down"></i></button>
+        <div class="nav-sub">
+          <a href="servicios/tarjetas-digitales.html">Tarjetas Digitales</a>
+          <a href="servicios/catalogos-digitales.html">Catálogos Digitales</a>
+          <a href="servicios/menus-digitales.html">Menús Digitales</a>
+          <a href="servicios/landing-pages.html">Landing Pages</a>
+          <a href="servicios/codigos-qr.html">Códigos QR</a>
+          <a href="servicios/agentes-ia.html">Agentes IA</a>
+        </div>
+      </li>
+      <li><a href="portafolio.html" class="nav-link">Portafolio</a></li>
+      <li><a href="blog.html" class="nav-link">Blog</a></li>
+      <li><a href="aliados.html" class="nav-link">Aliados</a></li>
+      <li><a href="contacto.html" class="nav-link">Contacto</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <a href="contacto.html" class="btn btn-primary nav-cta"><i class="fas fa-paper-plane"></i> Consulta gratis</a>
+      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="navLinks"><i class="fas fa-bars"></i></button>
+    </div>
+  </nav>
+</header>
+
+<main id="contenido">
+  <!-- ══════════════ HERO ══════════════ -->
+  <section class="hero" id="inicio">
+    <div class="hero-glow hero-glow-1" aria-hidden="true"></div>
+    <div class="hero-glow hero-glow-2" aria-hidden="true"></div>
+    <div class="container hero-inner">
+      <span class="eyebrow reveal">Soluciones digitales · Colombia</span>
+      <h1 class="hero-title reveal">Soluciones digitales que <span class="text-gradient">hacen crecer tu negocio</span></h1>
+      <p class="hero-sub reveal">Somos KONFÍO ZINC: creamos las herramientas digitales que tu negocio necesita para conseguir más clientes. Tarjetas digitales, catálogos, menús con QR, landing pages y agentes IA que atienden 24/7, todo diseñado a tu medida.</p>
+      <div class="hero-actions reveal">
+        <a href="contacto.html" class="btn btn-primary btn-lg"><i class="fas fa-calendar-check"></i> Agendar diagnóstico gratis</a>
+        <a href="portafolio.html" class="btn btn-ghost btn-lg"><i class="fas fa-briefcase"></i> Ver portafolio</a>
+      </div>
+      <div class="hero-badge reveal">
+        <span class="hero-badge-dot" aria-hidden="true"></span> Más de 40 negocios en Colombia confían en nosotros
+      </div>
+
+      <!-- Video promocional (se carga al hacer clic para no afectar el rendimiento) -->
+      <div class="video-frame reveal">
+        <button class="video-poster" data-video-id="ndRhGLFUlLA" data-video-title="Video promocional de KONFÍO ZINC" aria-label="Reproducir video promocional de KONFÍO ZINC">
+          <span class="video-play" aria-hidden="true"><i class="fas fa-play"></i></span>
+          <span>Ver video promocional</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ PRUEBA SOCIAL · clientes reales con proyecto publicado ══════════════ -->
+  <section class="section" id="confianza" style="padding-top:0;padding-bottom:10px;">
+    <div class="container">
+      <p style="text-align:center;color:#afb4b9;font-size:.82rem;letter-spacing:.12em;text-transform:uppercase;margin:0 0 18px;">Negocios que ya confían en nosotros</p>
+      <ul style="list-style:none;display:flex;flex-wrap:wrap;gap:12px 26px;justify-content:center;align-items:center;margin:0;padding:0;font-size:.95rem;">
+        <li style="color:#f5f5f0;font-weight:600;">Postres Snoopy</li>
+        <li style="color:#f5f5f0;font-weight:600;">UneFibra</li>
+        <li style="color:#f5f5f0;font-weight:600;">Red CaliNet</li>
+        <li style="color:#f5f5f0;font-weight:600;">Mega Express</li>
+        <li style="color:#f5f5f0;font-weight:600;">Colsabor</li>
+        <li style="color:#f5f5f0;font-weight:600;">EL TITI</li>
+        <li style="color:#f5f5f0;font-weight:600;">Nandy Nails</li>
+        <li style="color:#f5f5f0;font-weight:600;">Century 21 Radial</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ══════════════ MÉTRICAS ANIMADAS ══════════════ -->
+  <section class="metrics" aria-label="Resultados y trayectoria de la agencia">
+    <div class="container metrics-grid">
+      <div class="metric reveal">
+        <div class="metric-num text-gradient"><span class="counter" data-count="2">2</span>+</div>
+        <div class="metric-label">Años de experiencia</div>
+      </div>
+      <div class="metric reveal">
+        <div class="metric-num text-gradient"><span class="counter" data-count="58">58</span>+</div>
+        <div class="metric-label">Proyectos entregados</div>
+      </div>
+      <div class="metric reveal">
+        <div class="metric-num text-gradient"><span class="counter" data-count="40">40</span>+</div>
+        <div class="metric-label">Clientes satisfechos</div>
+      </div>
+      <div class="metric reveal">
+        <div class="metric-num text-gradient"><span class="counter" data-count="10">10</span>+</div>
+        <div class="metric-label">Sectores atendidos</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ SERVICIOS DESTACADOS ══════════════ -->
+  <section class="section" id="servicios">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Servicios</span>
+        <h2 class="section-title">Nuestros <span class="text-gradient">seis servicios</span></h2>
+        <p class="section-sub">Seis soluciones digitales pensadas para un objetivo concreto: que tu negocio consiga más clientes y pierda menos tiempo repitiendo lo mismo. Empieza por la que necesitas hoy.</p>
+      </div>
+
+      <div class="services-grid">
+        <!-- 1. Tarjetas Digitales (Star · Pro · Elite) -->
+        <article class="service reveal">
+          <div class="service-icon" aria-hidden="true"><i class="fas fa-id-card"></i></div>
+          <h3 class="service-title">Tarjetas Digitales</h3>
+          <p class="service-desc">Tu presentación completa en un solo enlace: contacto, WhatsApp, redes, ubicación, servicios y código QR. Planes <strong>Star</strong>, <strong>Pro</strong> y <strong>Elite</strong> desde $49.900.</p>
+          <a href="servicios/tarjetas-digitales.html" class="service-link">Ver tarjetas digitales <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
+
+        <!-- 2. Catálogos Digitales -->
+        <article class="service reveal">
+          <div class="service-icon" aria-hidden="true"><i class="fas fa-book-open"></i></div>
+          <h3 class="service-title">Catálogos Digitales</h3>
+          <p class="service-desc">Muestra todos tus productos con fotos y precios actualizables. Tus clientes eligen solos y te escriben con el pedido listo. Desde $120.000.</p>
+          <a href="servicios/catalogos-digitales.html" class="service-link">Ver catálogos digitales <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
+
+        <!-- 3. Menús Digitales -->
+        <article class="service reveal">
+          <div class="service-icon" aria-hidden="true"><i class="fas fa-utensils"></i></div>
+          <h3 class="service-title">Menús Digitales</h3>
+          <p class="service-desc">Menús con fotos, precios, promociones del día y pedido directo por WhatsApp desde el QR de la mesa. Desde $150.000.</p>
+          <a href="servicios/menus-digitales.html" class="service-link">Ver menús digitales <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
+
+        <!-- 4. Landing Pages -->
+        <article class="service reveal">
+          <div class="service-icon" aria-hidden="true"><i class="fas fa-window-maximize"></i></div>
+          <h3 class="service-title">Landing Pages</h3>
+          <p class="service-desc">Páginas enfocadas en convertir: promesa clara, prueba social y un solo objetivo. Rápidas en celular y con medición de resultados. Desde $699.000.</p>
+          <a href="servicios/landing-pages.html" class="service-link">Ver landing pages <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
+
+        <!-- 5. Códigos QR -->
+        <article class="service reveal">
+          <div class="service-icon" aria-hidden="true"><i class="fas fa-qrcode"></i></div>
+          <h3 class="service-title">Códigos QR</h3>
+          <p class="service-desc">QR con tu logo y tus colores para imprimir en mesas, vitrinas, empaques o facturas. Llevan a tu menú, catálogo, WhatsApp o reseñas. Desde $50.000.</p>
+          <a href="servicios/codigos-qr.html" class="service-link">Ver códigos QR <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
+
+        <!-- 6. Agentes IA -->
+        <article class="service reveal">
+          <div class="service-icon" aria-hidden="true"><i class="fas fa-robot"></i></div>
+          <h3 class="service-title">Agentes IA</h3>
+          <p class="service-desc">Un asistente entrenado con la información de tu negocio que responde precios, horarios y disponibilidad, y agenda citas 24/7. Desde $250.000.</p>
+          <a href="servicios/agentes-ia.html" class="service-link">Ver agentes IA <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+        </article>
+      </div>
+
+      <div class="text-center mt-2 reveal">
+        <a href="servicios.html" class="btn btn-ghost"><i class="fas fa-grip"></i> Ver todos los servicios</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ POR QUÉ ELEGIRNOS ══════════════ -->
+  <section class="section section-alt" id="por-que">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Por qué elegirnos</span>
+        <h2 class="section-title">Una agencia que <span class="text-gradient">mide lo que hace</span></h2>
+        <p class="section-sub">No vendemos horas ni promesas: entregamos estrategia, ejecución y números claros.</p>
+      </div>
+
+      <div class="benefits-grid">
+        <article class="card reveal">
+          <div class="card-icon" aria-hidden="true"><i class="fas fa-chart-line"></i></div>
+          <h3 class="card-title">Resultados medibles</h3>
+          <p class="card-text">Definimos KPIs desde el día uno —contactos, costo por lead, ventas— y te mostramos el avance cada mes con reportes entendibles.</p>
+        </article>
+        <article class="card reveal">
+          <div class="card-icon" aria-hidden="true"><i class="fas fa-user-tie"></i></div>
+          <h3 class="card-title">Trato directo</h3>
+          <p class="card-text">Hablas siempre con quien ejecuta tu proyecto, no con un centro de llamadas. Respuesta por WhatsApp en horario hábil.</p>
+        </article>
+        <article class="card reveal">
+          <div class="card-icon" aria-hidden="true"><i class="fas fa-bolt"></i></div>
+          <h3 class="card-title">Entrega ágil</h3>
+          <p class="card-text">Tarjetas, menús, catálogos y códigos QR en 24–48 horas, agentes IA de 3 a 10 días hábiles según el plan y campañas activas en menos de una semana. Sin procesos eternos ni burocracia.</p>
+        </article>
+        <article class="card reveal">
+          <div class="card-icon" aria-hidden="true"><i class="fas fa-pen-ruler"></i></div>
+          <h3 class="card-title">Diseño a la medida</h3>
+          <p class="card-text">Nada de plantillas genéricas: tu marca, tu tono y tus objetivos determinan cada decisión visual y de contenido.</p>
+        </article>
+        <article class="card reveal">
+          <div class="card-icon" aria-hidden="true"><i class="fas fa-robot"></i></div>
+          <h3 class="card-title">Tecnología e IA</h3>
+          <p class="card-text">Usamos automatización y asistentes con IA para responder 24/7, ahorrar tiempo operativo y no perder ningún contacto.</p>
+        </article>
+        <article class="card reveal">
+          <div class="card-icon" aria-hidden="true"><i class="fas fa-shield-halved"></i></div>
+          <h3 class="card-title">Garantía de satisfacción</h3>
+          <p class="card-text">Si el diseño no te convence, lo rediseñamos sin costo. Trabajamos hasta que el resultado represente tu negocio.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ PROCESO DE TRABAJO ══════════════ -->
+  <section class="section" id="proceso">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Proceso</span>
+        <h2 class="section-title">Cómo trabajamos, <span class="text-gradient">paso a paso</span></h2>
+        <p class="section-sub">Un método claro y transparente, del diagnóstico a la optimización continua.</p>
+      </div>
+
+      <div class="process-grid">
+        <div class="step reveal">
+          <div class="step-num" aria-hidden="true">01</div>
+          <div class="step-icon" aria-hidden="true"><i class="fas fa-stethoscope"></i></div>
+          <h3 class="step-title">Diagnóstico</h3>
+          <p class="step-desc">Analizamos tu marca, tu competencia y tu embudo actual. Definimos objetivos reales y los indicadores que vamos a mover.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num" aria-hidden="true">02</div>
+          <div class="step-icon" aria-hidden="true"><i class="fas fa-chess-knight"></i></div>
+          <h3 class="step-title">Estrategia</h3>
+          <p class="step-desc">Construimos el plan: mensajes, canales, presupuesto, calendario y piezas necesarias para alcanzar la meta.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num" aria-hidden="true">03</div>
+          <div class="step-icon" aria-hidden="true"><i class="fas fa-rocket"></i></div>
+          <h3 class="step-title">Implementación</h3>
+          <p class="step-desc">Diseñamos, desarrollamos y publicamos: web, redes, campañas, automatizaciones y todo lo que la estrategia requiera.</p>
+        </div>
+        <div class="step reveal">
+          <div class="step-num" aria-hidden="true">04</div>
+          <div class="step-icon" aria-hidden="true"><i class="fas fa-chart-simple"></i></div>
+          <h3 class="step-title">Optimización</h3>
+          <p class="step-desc">Medimos, testeamos y mejoramos mes a mes: lo que funciona se escala, lo que no, se corrige con datos.</p>
         </div>
       </div>
-      <div class="hero__rail" aria-hidden="true"><span>SCROLL TO DISCOVER</span><i></i></div>
-      <p class="hero__note reveal">Sin plantillas genéricas.<br>Cada píxel tiene una razón.</p>
-    </section>
+    </div>
+  </section>
 
-    <section class="statement" aria-label="Nuestro enfoque">
-      <p class="statement__label reveal">Diseño que vende · Tecnología que responde</p>
-      <p class="statement__text reveal">No hacemos “otra página web”. Construimos un <strong>sistema digital</strong> que presenta, explica y convierte.</p>
-    </section>
-
-    <section class="services" id="servicios" aria-labelledby="services-title">
-      <div class="section-head">
-        <p class="section-kicker reveal">02 / SERVICIOS</p>
-        <h2 id="services-title" class="reveal">Una solución para<br><span>cada siguiente paso.</span></h2>
+  <!-- ══════════════ PORTAFOLIO PREVIEW ══════════════ -->
+  <section class="section section-alt" id="portafolio">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">Portafolio</span>
+        <h2 class="section-title">Casos de éxito con <span class="text-gradient">resultados reales</span></h2>
+        <p class="section-sub">Proyectos publicados y funcionando para negocios de salud, gastronomía, legal, inmobiliaria y más.</p>
       </div>
-      <div class="service-stack">
-        <article class="service-panel service-panel--gold" data-service>
-          <div class="service-panel__number">01</div>
-          <div class="service-panel__body">
-            <p>Presencia esencial</p>
-            <h3>Mini Webs</h3>
-            <p>Tu negocio claro, confiable y listo para compartir. Una experiencia compacta que reúne contacto, servicios y marca.</p>
-            <ul><li>Responsive</li><li>WhatsApp</li><li>Dominio primer año</li></ul>
+
+      <div class="portfolio-grid">
+        <button class="case reveal" data-open-modal
+          data-title="EL TITI — Restaurante de comidas rápidas"
+          data-url="https://konfiozinc.github.io/eltiti/"
+          data-img="assets/img/portafolio/eltiti.jpg"
+          data-sector="Gastronomía · Restaurante"
+          
+          data-challenge="El menú impreso se desactualizaba, no mostraba fotos y obligaba a los clientes a preguntar precios y disponibilidad."
+          data-solution="Creamos un menú digital con fotos de los platos, precios actualizados, promociones del día y pedido directo por WhatsApp desde el QR de las mesas.">
+          <img src="assets/img/portafolio/eltiti.jpg" alt="Menú digital del restaurante EL TITI" loading="lazy" width="600" height="800">
+          <div class="case-overlay">
+            
+            <span class="case-name">EL TITI · Restaurante</span>
           </div>
-          <svg viewBox="0 0 300 300" aria-hidden="true"><circle cx="150" cy="150" r="104"/><circle cx="150" cy="150" r="62"/><path d="M46 150h208M150 46v208"/></svg>
-        </article>
-        <article class="service-panel service-panel--cyan" data-service>
-          <div class="service-panel__number">02</div>
-          <div class="service-panel__body">
-            <p>Venta y consulta</p>
-            <h3>Menús & catálogos</h3>
-            <p>Productos que se entienden, se exploran y terminan en una conversación lista para cerrar.</p>
-            <ul><li>Contenido editable</li><li>Pedidos</li><li>Filtros</li></ul>
+        </button>
+
+        <button class="case reveal" data-open-modal
+          data-title="Abogados DTA — Firma jurídica"
+          data-url="https://konfiozinc.github.io/abogados-dta/"
+          data-img="assets/img/portafolio/abogados-dta.jpg"
+          data-sector="Servicios legales"
+          
+          data-challenge="La firma no transmitía la autoridad que tiene en el mundo digital y perdía consultas frente a competidores con mejor presencia web."
+          data-solution="Diseñamos una landing con áreas de práctica, casos representativos, credenciales del equipo y formulario de consulta con seguimiento automatizado.">
+          <img src="assets/img/portafolio/abogados-dta.jpg" alt="Sitio web de la firma Abogados DTA" loading="lazy" width="600" height="800">
+          <div class="case-overlay">
+            
+            <span class="case-name">Abogados DTA · Legal</span>
           </div>
-          <svg viewBox="0 0 300 300" aria-hidden="true"><path d="M51 64h198v172H51z"/><path d="M85 100h130M85 138h85M85 176h130M85 214h65"/></svg>
-        </article>
-        <article class="service-panel service-panel--violet" data-service>
-          <div class="service-panel__number">03</div>
-          <div class="service-panel__body">
-            <p>Campañas y conversión</p>
-            <h3>Landing pages</h3>
-            <p>Una narrativa precisa para convertir atención en acción. Estrategia, dirección de arte y desarrollo en una sola entrega.</p>
-            <ul><li>Copy estratégico</li><li>SEO técnico</li><li>Analítica preparada</li></ul>
+        </button>
+
+
+        <button class="case reveal" data-open-modal
+          data-title="Century 21 Radial — Inmobiliaria"
+          data-url="https://konfiozinc.github.io/century_21_radial/"
+          data-img="assets/img/portafolio/century_21_radial.jpg"
+          data-sector="Inmobiliaria"
+          
+          data-challenge="Los inmuebles se compartían por capturas de pantalla y PDF pesados, difíciles de leer en celular y sin seguimiento del interés."
+          data-solution="Creamos una vitrina digital de inmuebles con fichas claras, fotos optimizadas, ubicación y botón de contacto directo por cada propiedad.">
+          <img src="assets/img/portafolio/century_21_radial.jpg" alt="Vitrina digital de inmuebles de Century 21 Radial" loading="lazy" width="600" height="800">
+          <div class="case-overlay">
+            
+            <span class="case-name">Century 21 Radial · Inmobiliaria</span>
           </div>
-          <svg viewBox="0 0 300 300" aria-hidden="true"><path d="M53 75h194v150H53z"/><path d="M53 108h194"/><circle cx="76" cy="91" r="5"/><circle cx="94" cy="91" r="5"/><path d="M90 145h120M90 171h85M90 197h102"/></svg>
-        </article>
-        <article class="service-panel service-panel--silver" data-service>
-          <div class="service-panel__number">04</div>
-          <div class="service-panel__body">
-            <p>Atención aumentada</p>
-            <h3>Agentes IA</h3>
-            <p>Asistentes con una fuente de conocimiento definida, respuestas de respaldo y controles para operar con confianza.</p>
-            <ul><li>Contexto propio</li><li>Disponibilidad</li><li>Escalamiento humano</li></ul>
+        </button>
+
+        <button class="case reveal" data-open-modal
+          data-title="Colsabor — Comida saludable"
+          data-url="https://konfiozinc.github.io/colsabor/"
+          data-img="assets/img/portafolio/colsabor.jpg"
+          data-sector="Gastronomía · Comida saludable"
+          data-challenge="Los planes semanales se coordinaban por mensajes sueltos y se perdían pedidos recurrentes de clientes de oficina."
+          data-solution="Diseñamos un menú digital con platos por plan, opciones de almuerzo semanal, precios por porción, programación de pedidos y QR para oficinas.">
+          <img src="assets/img/portafolio/colsabor.jpg" alt="Menú digital de comida saludable de Colsabor" loading="lazy" width="600" height="800">
+          <div class="case-overlay">
+            <span class="case-name">Colsabor · Gastronomía</span>
           </div>
-          <svg viewBox="0 0 300 300" aria-hidden="true"><path d="M87 86h126v106H87z"/><circle cx="121" cy="137" r="10"/><circle cx="179" cy="137" r="10"/><path d="M117 169c20 14 46 14 66 0M150 86V56M131 212h38"/></svg>
-        </article>
-      </div>
-    </section>
+        </button>
 
-    <section class="work" id="portafolio" aria-labelledby="work-title">
-      <div class="section-head section-head--split">
-        <div><p class="section-kicker reveal">03 / TRABAJO REAL</p><h2 id="work-title" class="reveal">Proyectos que ya<br><span>están en movimiento.</span></h2></div>
-        <p class="reveal">Explora casos públicos desarrollados para negocios con necesidades, públicos y ritmos diferentes.</p>
+        <button class="case reveal" data-open-modal
+          data-title="Nandy Nails — Uñas y manicure"
+          data-url="https://konfiozinc.github.io/nandy-nails/"
+          data-img="assets/img/portafolio/nandy-nails.jpg"
+          data-sector="Belleza · Uñas"
+          data-challenge="El catálogo de diseños estaba disperso en sus perfiles y las clientas preguntaban precios y disponibilidad durante todo el día."
+          data-solution="Creamos una tarjeta digital con galería de diseños por categoría, lista de precios, combos, agenda y QR instalado en el local.">
+          <img src="assets/img/portafolio/nandy-nails.jpg" alt="Tarjeta digital de Nandy Nails con galería de diseños" loading="lazy" width="600" height="800">
+          <div class="case-overlay">
+            <span class="case-name">Nandy Nails · Belleza</span>
+          </div>
+        </button>
+
+        <button class="case reveal" data-open-modal
+          data-title="Red CaliNet — Landing page de streaming, tecnología, seguros y trámites"
+          data-url="https://konfiozinc.github.io/redcalinet/"
+          data-img="assets/img/portafolio/redcalinet.jpg"
+          data-sector="Servicios · Streaming y tecnología"
+          data-metrics="Landing en vivo|Contacto por WhatsApp|SEO y JSON-LD"
+          data-challenge="Red CaliNet no tenía presencia web propia: sus servicios de streaming, tecnología, seguros y trámites se consultaban solo por mensaje directo, sin un enlace único para compartir."
+          data-solution="Creamos una landing page con sus cuatro líneas de servicio, horario, ubicación y un formulario que abre WhatsApp con el mensaje listo. Diseño azul de marca, mobile-first y con SEO + JSON-LD."
+          data-result="Sitio publicado y funcionando. Las consultas llegan por WhatsApp desde un solo enlace; las métricas de conversión están en proceso de medición.">
+          <img src="assets/img/portafolio/redcalinet.jpg" alt="Landing page de Red CaliNet con sus servicios" loading="lazy" width="600" height="800">
+          <div class="case-overlay">
+            <span class="case-name">Red CaliNet · Servicios</span>
+          </div>
+        </button>
       </div>
-      <div class="marquee" data-marquee aria-label="Portafolio de proyectos">
-        <div class="marquee__track">
-          <a class="project project--snoopy" href="https://konfiozinc.github.io/postres/" target="_blank" rel="noopener noreferrer">
-            <span class="project__meta">E-COMMERCE LIGERO · 2026</span><strong>POSTRES<br>SNOOPY</strong><span class="project__arrow" aria-hidden="true">↗</span>
-          </a>
-          <a class="project project--calinet" href="https://konfiozinc.github.io/redcalinet/" target="_blank" rel="noopener noreferrer">
-            <span class="project__meta">CONECTIVIDAD · 2026</span><strong>RED<br>CALINET</strong><span class="project__arrow" aria-hidden="true">↗</span>
-          </a>
-          <a class="project project--unefibra" href="https://konfiozinc.github.io/unefibra/" target="_blank" rel="noopener noreferrer">
-            <span class="project__meta">TELECOM · 2026</span><strong>UNE<br>FIBRA</strong><span class="project__arrow" aria-hidden="true">↗</span>
-          </a>
-          <a class="project project--eltiti" href="https://konfiozinc.github.io/eltiti/" target="_blank" rel="noopener noreferrer">
-            <span class="project__meta">MENÚ DIGITAL · 2026</span><strong>EL<br>TITI</strong><span class="project__arrow" aria-hidden="true">↗</span>
-          </a>
+
+      <div class="text-center mt-2 reveal">
+        <a href="portafolio.html" class="btn btn-primary"><i class="fas fa-briefcase"></i> Ver el portafolio completo</a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══════════════ GARANTÍA ══════════════ -->
+  <section class="section section-alt" id="garantia">
+    <div class="container">
+      <div class="guarantee reveal">
+        <div class="guarantee-icon" aria-hidden="true"><i class="fas fa-shield-halved"></i></div>
+        <h2 class="guarantee-title">Garantía de <span class="text-gradient">satisfacción</span></h2>
+        <p class="guarantee-text">Si no quedas 100% conforme con el diseño de tu proyecto, lo <strong>rediseñamos sin costo</strong> hasta que represente tu marca. Sin letra pequeña y sin excusas.</p>
+        <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20una%20cotizaci%C3%B3n%20gratis%20para%20mi%20negocio" target="_blank" rel="noopener noreferrer" class="btn btn-primary"><i class="fab fa-whatsapp"></i> Cotiza tu proyecto por WhatsApp</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════ FAQ ══════════════ -->
+  <section class="section" id="faq">
+    <div class="container">
+      <div class="section-head reveal">
+        <span class="eyebrow">FAQ</span>
+        <h2 class="section-title">Preguntas <span class="text-gradient">frecuentes</span></h2>
+      </div>
+
+      <div class="faq-list">
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">¿Qué servicios ofrece KONFÍO ZINC? <span class="faq-icon" aria-hidden="true">+</span></button>
+          <div class="faq-answer"><p>Ofrecemos seis soluciones digitales: <strong>Tarjetas Digitales</strong> (planes Star, Pro y Elite), <strong>Catálogos Digitales</strong>, <strong>Menús Digitales</strong>, <strong>Landing Pages</strong>, <strong>Códigos QR</strong> y <strong>Agentes IA</strong>. Puedes ver el detalle y los precios en <a href="servicios.html">nuestros servicios</a>.</p></div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">¿Cuánto tarda la entrega de un proyecto? <span class="faq-icon" aria-hidden="true">+</span></button>
+          <div class="faq-answer"><p>Las tarjetas digitales, catálogos, menús digitales y códigos QR se entregan en <strong>24 a 48 horas hábiles</strong>. Los agentes IA se entregan según el plan: Esencial 3–5 días hábiles, Negocio 5–7 días hábiles, Premium hasta 10 días hábiles. Las landing pages tardan entre <strong>5 y 10 días hábiles</strong> (ECO 5–7; SMART y POWER 7–10), tras recibir la información completa y el pago.</p></div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">¿Cuánto cuesta trabajar con la agencia? <span class="faq-icon" aria-hidden="true">+</span></button>
+          <div class="faq-answer"><p>Nuestras tarjetas digitales tienen tres planes de pago único: <strong>Star $49.900</strong> (contacto, redes, ubicación y QR), <strong>Pro $99.900</strong> (suma catálogo o menú, galería y botón de pedido — el más solicitado) y <strong>Elite $149.900</strong> (suma agenda de citas, formularios y mini landing). Otros servicios como landing, catálogo, menú, QR o agente IA se cotizan según el alcance. <a href="contacto.html">Pide tu cotización gratis</a>.</p></div>        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">¿Puedo actualizar mi proyecto después? <span class="faq-icon" aria-hidden="true">+</span></button>
+          <div class="faq-answer"><p>Sí. Los cambios básicos (contacto, redes, ubicación, precios) se actualizan al instante sin reimprimir nada. Para actualizaciones o renovaciones posteriores, escríbenos y te cotizamos según lo que necesites.</p></div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">¿Cómo empiezo? <span class="faq-icon" aria-hidden="true">+</span></button>
+          <div class="faq-answer"><p>Agenda tu <a href="contacto.html">diagnóstico gratuito</a> o escríbenos por WhatsApp. Revisamos tu situación digital, definimos objetivos y te enviamos una propuesta con alcance, tiempos e inversión, sin compromiso.</p></div>
+        </div>
+        <div class="faq-item reveal">
+          <button class="faq-question" aria-expanded="false">¿Qué cubre la garantía? <span class="faq-icon" aria-hidden="true">+</span></button>
+          <div class="faq-answer"><p>Tienes <strong>3 meses de garantía</strong>: si no quedas satisfecho con el resultado dentro de ese plazo, lo <strong>rediseñamos sin costo adicional</strong>. Además, los cambios menores (contacto, redes, dirección y horarios) se actualizan sin tener que reimprimir nada.</p></div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section class="principles" aria-labelledby="principles-title">
-      <p class="section-kicker reveal">04 / POR QUÉ KONFÍO ZINC</p>
-      <h2 id="principles-title" class="sr-only">Por qué elegir Konfío Zinc</h2>
-      <div class="principles__grid">
-        <article class="principle reveal">
-          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M8 32h48M32 8v48"/><circle cx="32" cy="32" r="23"/></svg>
-          <span>01</span><h3>Pago único</h3><p>Productos definidos, sin mensualidades escondidas en la oferta principal.</p>
-        </article>
-        <article class="principle reveal">
-          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M32 5l20 8v15c0 15-8 24-20 31C20 52 12 43 12 28V13z"/><path d="M22 32l7 7 14-16"/></svg>
-          <span>02</span><h3>Garantía</h3><p>Tres meses de garantía y un proceso de entrega que deja claras las responsabilidades.</p>
-        </article>
-        <article class="principle reveal">
-          <svg viewBox="0 0 64 64" aria-hidden="true"><path d="M22 14L7 32l15 18M42 14l15 18-15 18M37 8L27 56"/></svg>
-          <span>03</span><h3>Código a medida</h3><p>Elegimos la solución por el problema, con componentes propios y mantenimiento legible.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="pricing" id="precios" aria-labelledby="pricing-title">
-      <div class="section-head section-head--split">
-        <div><p class="section-kicker reveal">05 / INVERSIÓN</p><h2 id="pricing-title" class="reveal">Precios claros.<br><span>Alcance concreto.</span></h2></div>
-        <p class="reveal">Valores base en pesos colombianos. Confirmamos alcance, contenido y tiempos antes de iniciar.</p>
-      </div>
-      <div class="price-list">
-        <a href="#contacto" data-service-choice="Mini Web Básica"><span>01</span><strong>Mini Web Básica</strong><small>Presencia esencial</small><b>$49.900</b><i>↘</i></a>
-        <a href="#contacto" data-service-choice="Mini Web Pro"><span>02</span><strong>Mini Web Pro</strong><small>Experiencia ampliada</small><b>$99.900</b><i>↘</i></a>
-        <a href="#contacto" data-service-choice="Menú digital"><span>03</span><strong>Menús digitales</strong><small>Consulta y pedidos</small><b>$150.000</b><i>↘</i></a>
-        <a href="#contacto" data-service-choice="Catálogo digital"><span>04</span><strong>Catálogos</strong><small>Productos organizados</small><b>$120.000</b><i>↘</i></a>
-        <a href="#contacto" data-service-choice="Landing page"><span>05</span><strong>Landing pages</strong><small>Campañas y conversión</small><b>$699.000</b><i>↘</i></a>
-        <a href="#contacto" data-service-choice="Agente IA"><span>06</span><strong>Agentes IA</strong><small>Atención con contexto</small><b>$250.000</b><i>↘</i></a>
-      </div>
-      <p class="pricing__note">* Valores base. Integraciones, contenido adicional y requerimientos especiales se cotizan por separado.</p>
-    </section>
-
-    <section class="process" id="proceso" aria-labelledby="process-title">
-      <div class="section-head section-head--split">
-        <div><p class="section-kicker reveal">06 / PROCESO</p><h2 id="process-title" class="reveal">De la conversación<br><span>a una entrega clara.</span></h2></div>
-        <p class="reveal">Trabajamos por etapas visibles. El alcance y los tiempos se confirman cuando recibimos la información completa del proyecto.</p>
-      </div>
-      <ol class="process__list">
-        <li class="reveal"><span>01</span><div><h3>Diagnóstico</h3><p>Entendemos tu negocio, el público y la acción que quieres provocar.</p></div></li>
-        <li class="reveal"><span>02</span><div><h3>Dirección</h3><p>Definimos alcance, contenido, estructura, inversión y criterio visual.</p></div></li>
-        <li class="reveal"><span>03</span><div><h3>Construcción</h3><p>Diseñamos y desarrollamos una versión verificable para revisión.</p></div></li>
-        <li class="reveal"><span>04</span><div><h3>Validación</h3><p>Probamos móvil, enlaces, contenido y comportamiento antes de publicar.</p></div></li>
-      </ol>
-    </section>
-
-    <section class="resources" id="recursos" aria-labelledby="resources-title">
-      <div class="section-head section-head--split">
-        <div><p class="section-kicker reveal">07 / RECURSOS</p><h2 id="resources-title" class="reveal">Ideas útiles,<br><span>sin relleno.</span></h2></div>
-        <a class="button button--line reveal" href="recursos.html">Ver todos los recursos <span aria-hidden="true">↗</span></a>
-      </div>
-      <div class="resources__grid">
-        <a class="resource reveal" href="https://konfiozinc.github.io/card/blog/catalogos-y-menus-digitales.html" target="_blank" rel="noopener noreferrer"><span>CATÁLOGOS & MENÚS</span><h3>Qué necesita tu negocio para vender con una experiencia digital</h3><i aria-hidden="true">↗</i></a>
-        <a class="resource reveal" href="https://konfiozinc.github.io/card/blog/menu-digital-para-restaurantes.html" target="_blank" rel="noopener noreferrer"><span>RESTAURANTES</span><h3>Cómo organizar un menú digital que facilite el pedido</h3><i aria-hidden="true">↗</i></a>
-        <a class="resource reveal" href="https://konfiozinc.github.io/card/blog/agentes-ia-atencion-24-7.html" target="_blank" rel="noopener noreferrer"><span>AGENTES IA</span><h3>Qué revisar antes de automatizar la atención de tu negocio</h3><i aria-hidden="true">↗</i></a>
-      </div>
-    </section>
-
-    <section class="faq" aria-labelledby="faq-title">
-      <div class="section-head section-head--split">
-        <div><p class="section-kicker reveal">08 / PREGUNTAS</p><h2 id="faq-title" class="reveal">Antes de<br><span>empezar.</span></h2></div>
-        <p class="reveal">Si tu caso necesita otra respuesta, escríbenos. No te mostraremos una solución genérica como si fuera la adecuada para todos.</p>
-      </div>
-      <div class="faq__list">
-        <details><summary>¿Qué es una Mini Web?<span>+</span></summary><p>Es una presencia digital compacta para presentar tu negocio, servicios, contacto y llamados a la acción desde un solo enlace. Hay opciones Básica y Pro.</p></details>
-        <details><summary>¿El pago es mensual?<span>+</span></summary><p>La oferta principal se entrega mediante pago único. El dominio se incluye durante el primer año en las Mini Webs y su renovación posterior se confirma por separado.</p></details>
-        <details><summary>¿Atienden fuera de Medellín?<span>+</span></summary><p>Sí. La operación es remota y tiene cobertura en Colombia mediante WhatsApp y videollamada.</p></details>
-        <details><summary>¿Qué incluye la garantía?<span>+</span></summary><p>La garantía vigente es de tres meses. El alcance aplicable a tu proyecto queda definido en la propuesta y la entrega.</p></details>
-        <details><summary>¿Cuándo empieza el proyecto?<span>+</span></summary><p>Después de confirmar alcance, recibir la información necesaria y completar el anticipo acordado.</p></details>
-      </div>
-    </section>
-
-    <section class="contact" id="contacto" aria-labelledby="contact-title">
-      <div class="contact__orb" aria-hidden="true"></div>
-      <div class="contact__intro">
-        <p class="section-kicker reveal">09 / HABLEMOS</p>
-        <h2 id="contact-title" class="reveal">Tu siguiente<br>movimiento <span>empieza aquí.</span></h2>
-        <p class="reveal">Cuéntanos qué quieres construir. Revisamos el contexto y continuamos contigo por WhatsApp.</p>
-        <a href="mailto:konfiozinc@gmail.com">konfiozinc@gmail.com</a>
-      </div>
-      <form class="lead-form reveal" id="lead-form" action="#contacto" method="post" novalidate>
-        <div class="field">
-          <label for="nombre">Tu nombre</label>
-          <input id="nombre" autocomplete="name" maxlength="100" aria-describedby="error-nombre" required>
-          <span class="field__error" id="error-nombre"></span>
+  <!-- ══════════════ CTA FINAL ══════════════ -->
+  <section class="section section-alt" id="cta">
+    <div class="container">
+      <div class="cta-final reveal">
+        <h2>¿Listo para <span class="text-gradient">escalar tu negocio</span>?</h2>
+        <p>Cuéntanos dónde estás hoy y a dónde quieres llegar. Te entregamos un diagnóstico gratuito y un plan concreto para crecer.</p>
+        <div class="cta-actions">
+          <a href="contacto.html" class="btn btn-primary btn-lg"><i class="fas fa-calendar-check"></i> Agenda tu diagnóstico gratis</a>
+          <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20escalar%20mi%20negocio%20con%20KONF%C3%8DO%20ZINC" target="_blank" rel="noopener noreferrer" class="btn btn-wa btn-lg"><i class="fab fa-whatsapp"></i> Hablar por WhatsApp</a>
         </div>
-        <div class="field field--half">
-          <label for="telefono">WhatsApp</label>
-          <input id="telefono" type="tel" autocomplete="tel" inputmode="tel" maxlength="30" aria-describedby="error-telefono" required>
-          <span class="field__error" id="error-telefono"></span>
-        </div>
-        <div class="field field--half">
-          <label for="negocio">Negocio</label>
-          <input id="negocio" autocomplete="organization" maxlength="120" aria-describedby="error-negocio" required>
-          <span class="field__error" id="error-negocio"></span>
-        </div>
-        <div class="field">
-          <label for="servicio">¿Qué quieres crear?</label>
-          <select id="servicio" aria-describedby="error-servicio" required>
-            <option value="">Selecciona una opción</option>
-            <option>Mini Web Básica</option><option>Mini Web Pro</option><option>Menú digital</option>
-            <option>Catálogo digital</option><option>Landing page</option><option>Agente IA</option><option>Otro</option>
-          </select>
-          <span class="field__error" id="error-servicio"></span>
-        </div>
-        <div class="field">
-          <label for="objetivo">¿Qué necesitas resolver?</label>
-          <textarea id="objetivo" rows="4" maxlength="800" aria-describedby="error-objetivo" required></textarea>
-          <span class="field__error" id="error-objetivo"></span>
-        </div>
-        <div class="honey" aria-hidden="true"><label for="website">Dejar vacío</label><input id="website" tabindex="-1" autocomplete="off"></div>
-        <button class="button button--gold lead-form__submit" type="submit">Preparar diagnóstico <span aria-hidden="true">↗</span></button>
-        <p class="lead-form__privacy">Al continuar, preparas una solicitud para Konfío Zinc. No afirmamos recepción hasta que el servidor la confirme o completes el envío por WhatsApp.</p>
-        <p class="lead-form__status" id="form-status" role="status" aria-live="polite"></p>
-        <a class="button button--line lead-form__fallback" id="whatsapp-fallback" href="https://wa.me/573206411340" target="_blank" rel="noopener noreferrer" hidden>Continuar por WhatsApp</a>
-        <noscript><p>El formulario necesita JavaScript. Puedes <a href="https://wa.me/573206411340" target="_blank" rel="noopener noreferrer">escribirnos directamente por WhatsApp</a>.</p></noscript>
-      </form>
-    </section>
-  </main>
+      </div>
+    </div>
+  </section>
+</main>
 
-  <footer class="footer">
-    <a class="brand" href="#inicio"><svg viewBox="0 0 48 48" aria-hidden="true"><path d="M8 7h10v13L32 7h8L25 23l16 18H28L18 29v12H8z"/></svg><span>KONFÍO <b>ZINC</b></span></a>
-    <p>Diseño y tecnología para negocios en movimiento.</p>
-    <div><a href="recursos.html">Recursos</a><a href="politica-privacidad.html">Privacidad</a><a href="https://instagram.com/konfio_zinc" target="_blank" rel="noopener noreferrer">Instagram</a><a href="https://tiktok.com/@tarjetaszinc" target="_blank" rel="noopener noreferrer">TikTok</a><a href="mailto:konfiozinc@gmail.com">Email</a></div>
-    <small>© <span id="year">2026</span> Konfío Zinc · Medellín, Colombia</small>
-  </footer>
-  <script src="premium-assets/app.js" defer></script>
-  <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"ProfessionalService",
-    "name":"Konfío Zinc",
-    "description":"Agencia colombiana de soluciones digitales a medida.",
-    "areaServed":{"@type":"Country","name":"Colombia"},
-    "address":{"@type":"PostalAddress","addressLocality":"Medellín","addressRegion":"Antioquia","addressCountry":"CO"},
-    "telephone":"+573206411340",
-    "email":"konfiozinc@gmail.com",
-    "sameAs":["https://instagram.com/konfio_zinc","https://tiktok.com/@tarjetaszinc"]
-  }
-  </script>
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer class="footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <img src="assets/img/logos/logo.jpeg" alt="Logotipo de KONFÍO ZINC" class="footer-logo" width="46" height="46" loading="lazy">
+      <p>Soluciones digitales para negocios en Colombia: tarjetas digitales, catálogos, menús digitales, landing pages, códigos QR y agentes IA que hacen crecer tu negocio.</p>
+      <div class="footer-social">
+        <a href="https://www.facebook.com/share/1DRqH4Vvrt/" target="_blank" rel="noopener noreferrer" aria-label="Facebook de KONFÍO ZINC"><i class="fab fa-facebook-f" aria-hidden="true"></i></a>
+        <a href="https://www.instagram.com/konfio_zinc" target="_blank" rel="noopener noreferrer" aria-label="Instagram de KONFÍO ZINC"><i class="fab fa-instagram" aria-hidden="true"></i></a>
+        <a href="https://www.tiktok.com/@tarjetaszinc" target="_blank" rel="noopener noreferrer" aria-label="TikTok de KONFÍO ZINC"><i class="fab fa-tiktok" aria-hidden="true"></i></a>
+        <a href="https://www.youtube.com/embed/ndRhGLFUlLA" target="_blank" rel="noopener noreferrer" aria-label="YouTube de KONFÍO ZINC"><i class="fab fa-youtube" aria-hidden="true"></i></a>
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <h3>Servicios</h3>
+      <a href="servicios/tarjetas-digitales.html">Tarjetas Digitales</a>
+      <a href="servicios/catalogos-digitales.html">Catálogos Digitales</a>
+      <a href="servicios/menus-digitales.html">Menús Digitales</a>
+      <a href="servicios/landing-pages.html">Landing Pages</a>
+      <a href="servicios/codigos-qr.html">Códigos QR</a>
+      <a href="servicios/agentes-ia.html">Agentes IA</a>
+    </div>
+
+    <div class="footer-col">
+      <h3>Explora</h3>
+      <a href="nosotros.html">Nosotros</a>
+      <a href="portafolio.html">Portafolio</a>
+      <a href="blog.html">Blog</a>
+      <a href="aliados.html">Programa de aliados</a>
+      <a href="contacto.html">Contacto</a>
+    </div>
+
+    <div class="footer-col">
+      <h3>Contacto</h3>
+      <a href="mailto:konfiozinc@gmail.com">konfiozinc@gmail.com</a>
+      <a href="tel:+573206411340">+57 320 641 1340</a>
+      <a href="https://wa.me/573206411340" target="_blank" rel="noopener noreferrer">WhatsApp directo</a>
+      <a href="https://konfiozinc.github.io/card/" target="_blank" rel="noopener noreferrer">konfiozinc.github.io/card</a>
+    </div>
+
+    <!-- ══ REDES SOCIALES (colores oficiales de cada red) ══ -->
+    <div class="social-links">
+      <a href="https://www.facebook.com/share/1DRqH4Vvrt/" target="_blank" rel="noopener noreferrer" class="social-btn fb" aria-label="Facebook de KONFÍO ZINC">
+        <i class="fab fa-facebook-f" aria-hidden="true"></i>
+      </a>
+      <a href="https://www.instagram.com/konfio_zinc" target="_blank" rel="noopener noreferrer" class="social-btn ig" aria-label="Instagram de KONFÍO ZINC">
+        <i class="fab fa-instagram" aria-hidden="true"></i>
+      </a>
+      <a href="https://www.tiktok.com/@tarjetaszinc" target="_blank" rel="noopener noreferrer" class="social-btn tk" aria-label="TikTok de KONFÍO ZINC">
+        <i class="fab fa-tiktok" aria-hidden="true"></i>
+      </a>
+    </div>
+
+  <div class="footer-bottom">
+    <p>© 2026 KONFÍO ZINC · Todos los derechos reservados · <a href="contacto.html">Trabajemos juntos</a></p>
+  </div>
+  </div>
+</footer>
+
+<!-- ══════════════ ELEMENTOS FLOTANTES ══════════════ -->
+<a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20sus%20servicios%20digitales" target="_blank" rel="noopener noreferrer" class="wa-float" aria-label="Escribir por WhatsApp"><i class="fab fa-whatsapp" aria-hidden="true"></i></a>
+<button class="back-top" id="backTop" aria-label="Volver arriba"><i class="fas fa-arrow-up" aria-hidden="true"></i></button>
+
+<!-- Agente IA flotante -->
 <div class="kz-fab-wrapper" id="kzFabWrapper">
   <div class="kz-fab-chat" id="kzFabChat" role="dialog" aria-label="Asesor KONFÍO ZINC" aria-hidden="true">
     <div class="kz-chat-header">
@@ -303,14 +702,46 @@
       <button id="kzFabSend" aria-label="Enviar mensaje">➤</button>
     </div>
   </div>
-  <button class="kz-fab-btn" id="kzFabToggle" aria-label="Abrir el chat del Asesor Konfi" aria-expanded="false" aria-controls="kzFabChat">
+  <button class="kz-fab-btn" id="kzFabToggle" aria-label="Abrir chat con asesor IA" aria-expanded="false" aria-controls="kzFabChat">
     <span class="kz-dot" aria-hidden="true"></span>
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+    <i class="fas fa-robot" aria-hidden="true"></i>
   </button>
 </div>
 
-  <!-- Asesor Konfi: configuración de marca y motor de respuestas -->
-  <script src="assets/js/config.js"></script>
-  <script src="assets/js/main.js" defer></script>
+<!-- Modal (casos de portafolio, video y listados) -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <span id="modalTitle">Proyecto</span>
+      <button class="modal-close" id="modalClose" aria-label="Cerrar ventana">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script src="assets/js/main.js" defer></script>
+<script src="assets/js/push.js" defer></script>
+<script>
+/* KZ · conversiones: GA4 + Firestore (lead / venta potencial) */
+(function(){
+  var PROYECTO='konfio-zinc', API_KEY='AIzaSyDbwAk9APwP2SeaEfWxeQG_bdL9eatciEA';
+  var TARJETA=(location.pathname.split('/').filter(Boolean)[0]||'kz');
+  function kz(evento, etiqueta){
+    try { if (typeof gtag === 'function') { gtag('event',evento,{event_category:'lead',event_label:etiqueta||'',transport_type:'beacon'}); } } catch(e){}
+    try {
+      var url='https://firestore.googleapis.com/v1/projects/'+PROYECTO+'/databases/(default)/documents/eventos?key='+API_KEY;
+      var body={fields:{tarjeta:{stringValue:TARJETA},evento:{stringValue:evento},etiqueta:{stringValue:etiqueta||''},pagina:{stringValue:location.href},ts:{timestampValue:new Date().toISOString()}}};
+      fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}).catch(function(){});
+    } catch(e){}
+  }
+  document.addEventListener('click', function(e){
+    var el=e.target&&e.target.closest?e.target.closest('a[href*="wa.me"],a[href*="api.whatsapp.com"],a[href*="whatsapp.com/send"],[data-action="whatsapp"]'):null;
+    if(!el) return;
+    var lbl=el.id||(el.textContent||'').trim().slice(0,40)||'whatsapp';
+    kz('click_whatsapp',lbl);
+  }, true);
+  window.kzTrack=kz;
+})();
+</script>
 </body>
 </html>
