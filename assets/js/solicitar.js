@@ -20,7 +20,7 @@
 
   /* Catálogo completo de servicios */
   var TODOS = [
-    'Tarjeta Digital Star', 'Tarjeta Digital Pro', 'Tarjeta Digital Elite',
+    'Tarjeta Digital Mini Web Básica', 'Tarjeta Digital Mini Web Pro',
     'Catálogo Digital', 'Menú Digital',
     'Landing Page ECO', 'Landing Page SMART', 'Landing Page POWER',
     'Código QR', 'Agente IA', 'Otro / no estoy seguro'

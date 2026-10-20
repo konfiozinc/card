@@ -44,16 +44,14 @@ window.KZ_CONFIG = {
 
   /* ── Planes de tarjeta (solo aplican a Tarjetas Digitales) ──────── */
   categoriasTarjeta: [
-    { codigo: 'STAR',  etiqueta: 'Star',  precio: 49900,  para: 'Profesionales: presentación, contacto, redes y QR' },
-    { codigo: 'PRO',   etiqueta: 'Pro',   precio: 99900,  para: 'Negocios con catálogo o menú, galería y varios botones' },
-    { codigo: 'ELITE', etiqueta: 'Elite', precio: 149900, para: 'Marcas con agenda, formularios, varias sedes y agente IA' }
+    { codigo: 'MINI WEB BÁSICA',  etiqueta: 'Mini Web Básica',  precio: 49900,  para: 'Profesionales: presentación, contacto, redes y QR' },
+    { codigo: 'MINI WEB PRO',   etiqueta: 'Mini Web Pro',   precio: 99900,  para: 'Negocios con catálogo o menú, galería y varios botones' },
   ],
 
   /* ── Planes de tarjeta (catálogo de `planes`) ────────────────────── */
   paquetes: [
-    { nombre: 'Star',   precio: 49900,  servicio: 'tarjetas', duracionMeses: 12, incluye: ['Contacto, WhatsApp y redes', 'Ubicación con mapa', 'Código QR con tu marca'] },
-    { nombre: 'Pro',    precio: 99900,  servicio: 'tarjetas', duracionMeses: 12, incluye: ['Todo lo de Star', 'Catálogo o menú digital', 'Galería y botón de pedido'] },
-    { nombre: 'Elite',  precio: 149900, servicio: 'tarjetas', duracionMeses: 12, incluye: ['Todo lo de Pro', 'Agenda de citas', 'Formularios', 'Agente IA integrado'] }
+    { nombre: 'Mini Web Básica',   precio: 49900,  servicio: 'tarjetas', duracionMeses: 12, incluye: ['Contacto, WhatsApp y redes', 'Ubicación con mapa', 'Código QR con tu marca'] },
+    { nombre: 'Mini Web Pro',    precio: 99900,  servicio: 'tarjetas', duracionMeses: 12, incluye: ['Todo lo de Mini Web Básica', 'Catálogo o menú digital', 'Galería y botón de pedido'] },
   ],
 
   /* ── Catálogos de apoyo ─────────────────────────────────────────── */
