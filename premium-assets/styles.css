@@ -294,3 +294,19 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
 /* KZ-CONTRASTE: Lighthouse 13.5 marcaba 4,05:1 en la lista de precios
    (#77736c sobre #f0eee6, texto de 11px, minimo 4,5:1). El color se oscurecio
    a #56534c en la regla base .price-list, que cubre span y small. */
+
+/* ═══ KZ-TIPOGRAFIA-ESCRITORIO ═══════════════════════════════════════
+   Las escalas del candidato usaban clamp() con topes pensados para móvil: en
+   1920 px el h1 llegaba a 147 px, el manifiesto a 96 px y los títulos de
+   servicio a 120 px. Estas reglas recalibran SOLO el tramo de escritorio
+   (≥1024 px) con una curva creciente y continua; el móvil y la tableta
+   (≤768 px) quedan exactamente como estaban aprobados. Los máximos del clamp
+   frenan el crecimiento en ultrapanorámicas. */
+@media (min-width: 1024px) {
+  .hero h1 { font-size: clamp(4.6rem, 5.5vw, 5.6rem); line-height: .88; }
+  .statement__text { font-size: clamp(2.9rem, 3.4vw, 3.8rem); line-height: 1.08; }
+  .section-head h2, .contact h2 { font-size: clamp(2.9rem, 3.6vw, 4.2rem); line-height: 1.02; }
+  .service-panel h3 { font-size: clamp(3.4rem, 4.2vw, 4.2rem); line-height: .92; }
+  .price-list strong { font-size: clamp(1.7rem, 2.2vw, 2.2rem); }
+  .manifesto h2, .principles h2 { font-size: clamp(2.4rem, 3vw, 3.2rem); }
+}
