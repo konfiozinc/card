@@ -49,8 +49,10 @@
 <!-- Fuentes y estilos -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" onload="this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" /></noscript>
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" onload="this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" /></noscript>
 <link rel="stylesheet" href="assets/css/styles.css">
 
 <!-- Datos estructurados: Organización + Migas de pan + Página + Colección + Lista de casos + FAQ -->
@@ -139,7 +141,7 @@
         { "@type": "ListItem", "position": 28, "name": "Postres Snoopy — Postres artesanales con pedido por WhatsApp", "url": "https://konfiozinc.github.io/postres/" },
         { "@type": "ListItem", "position": 29, "name": "PlatoScan — Calorías y macros con una foto", "url": "https://konfiozinc.github.io/platoscan/" },
         { "@type": "ListItem", "position": 30, "name": "Pangea — Coordinación sin conexión", "url": "https://konfiozinc.github.io/pangea/" },
-        { "@type": "ListItem", "position": 31, "name": "Tarjeta Pre — Tarjeta digital Elite de la agencia", "url": "https://konfiozinc.github.io/tarjetapre/" },
+        { "@type": "ListItem", "position": 31, "name": "Tarjeta Pre — Tarjeta digital de la agencia", "url": "https://konfiozinc.github.io/tarjetapre/" },
         { "@type": "ListItem", "position": 32, "name": "Red CaliNet — Landing page de streaming y tecnología", "url": "https://konfiozinc.github.io/redcalinet/" }
       ]
     },
@@ -424,7 +426,7 @@
           data-sector="Belleza · Salón"
           
           data-challenge="Su imagen digital era débil frente a otros salones de la misma zona y no tenía un lugar único donde ver servicios, precios y disponibilidad."
-          data-solution="Desarrollamos una tarjeta PRO con servicios, precios, presentación del equipo, reseñas, ubicación con mapa, enlaces a sus perfiles y botón de cita directa.">
+          data-solution="Desarrollamos una tarjeta MINI WEB PRO con servicios, precios, presentación del equipo, reseñas, ubicación con mapa, enlaces a sus perfiles y botón de cita directa.">
           <img src="assets/img/portafolio/np-style.jpg" alt="Tarjeta digital del salón de belleza NP Style" loading="lazy" width="600" height="800">
           <div class="case-overlay">
             
@@ -736,7 +738,7 @@
 
         <!-- 31. Tarjeta Pre (producto propio de la agencia) -->
         <button class="case reveal" data-category="tarjetas productos" data-open-modal
-          data-title="Tarjeta Pre — La tarjeta digital Elite de KONFÍO ZINC"
+          data-title="Tarjeta Pre — La tarjeta digital de KONFÍO ZINC"
           data-url="https://konfiozinc.github.io/tarjetapre/"
           data-img="assets/img/portafolio/tarjeta-pre.jpg"
           data-sector="Producto propio · Tarjeta digital"
@@ -744,9 +746,9 @@
           data-challenge="La agencia necesitaba mostrar en vivo cómo se ve una tarjeta digital terminada, no solo describirla."
           data-solution="Tarjeta digital de la agencia con presentación, contacto directo, redes y código QR, publicada como ejemplo real del producto."
           data-result="Es la tarjeta de presentación de KONFÍO ZINC y el ejemplo que se comparte a los clientes.">
-          <img src="assets/img/portafolio/tarjeta-pre.jpg" alt="Tarjeta Pre, la tarjeta digital Elite de KONFÍO ZINC" loading="lazy" width="600" height="800">
+          <img src="assets/img/portafolio/tarjeta-pre.jpg" alt="Tarjeta Pre, la tarjeta digital de KONFÍO ZINC" loading="lazy" width="600" height="800">
           <div class="case-overlay">
-            <span class="case-metric">Tarjeta Elite</span>
+            <span class="case-metric">Tarjeta digital</span>
             <span class="case-name">Tarjeta Pre · Producto propio</span>
           </div>
         </button>
@@ -792,7 +794,7 @@
       <div class="related-grid">
         <a class="related reveal" href="portafolio/tarjetas-digitales.html">
           <strong><i class="fas fa-id-card" aria-hidden="true"></i> Tarjetas digitales</strong>
-          <span>Tu presentación profesional en un enlace: STAR, PRO y ELITE.</span>
+          <span>Tu presentación profesional en un enlace: MINI WEB BÁSICA, MINI WEB PRO y ELITE.</span>
         </a>
         <a class="related reveal" href="portafolio/landing-pages.html">
           <strong><i class="fas fa-window-maximize" aria-hidden="true"></i> Landing pages</strong>
@@ -883,7 +885,7 @@
     </div>
 
     <div class="footer-col">
-      <h4>Servicios</h4>
+      <h3>Servicios</h3>
       <a href="servicios/tarjetas-digitales.html">Tarjetas Digitales</a>
       <a href="servicios/catalogos-digitales.html">Catálogos Digitales</a>
       <a href="servicios/menus-digitales.html">Menús Digitales</a>
@@ -893,7 +895,7 @@
     </div>
 
     <div class="footer-col">
-      <h4>Explora</h4>
+      <h3>Explora</h3>
       <a href="nosotros.html">Nosotros</a>
       <a href="portafolio.html">Portafolio</a>
       <a href="precios.html">Precios</a>
@@ -902,7 +904,7 @@
     </div>
 
     <div class="footer-col">
-      <h4>Contacto</h4>
+      <h3>Contacto</h3>
       <a href="mailto:konfiozinc@gmail.com">konfiozinc@gmail.com</a>
       <a href="tel:+573206411340">+57 320 641 1340</a>
       <a href="https://wa.me/573206411340" target="_blank" rel="noopener noreferrer">WhatsApp directo</a>

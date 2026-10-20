@@ -365,9 +365,8 @@ export async function actualizarUsuario() { throw new Error(SIN_ADMIN_SDK + ' --
 export async function seedInicial() {
   await requerir('SUPERADMIN');
   const planes = [
-    { nombre: 'Star', precio: 49900, servicio: 'tarjetas', categoria: 'STAR', duracionMeses: 12, orden: 1, estado: 'ACTIVO', incluye: ['Contacto y redes', 'Ubicación', 'Código QR'] },
-    { nombre: 'Pro', precio: 99900, servicio: 'tarjetas', categoria: 'PRO', duracionMeses: 12, orden: 2, estado: 'ACTIVO', incluye: ['Todo Star', 'Catálogo o menú', 'Código QR'] },
-    { nombre: 'Elite', precio: 149900, servicio: 'tarjetas', categoria: 'ELITE', duracionMeses: 12, orden: 3, estado: 'ACTIVO', incluye: ['Todo Pro', 'Mini landing', 'Agenda de citas'] }
+    { nombre: 'Mini Web Básica', precio: 49900, servicio: 'tarjetas', categoria: 'MINI WEB BÁSICA', duracionMeses: 12, orden: 1, estado: 'ACTIVO', incluye: ['Contacto y redes', 'Ubicación', 'Código QR'] },
+    { nombre: 'Mini Web Pro', precio: 99900, servicio: 'tarjetas', categoria: 'MINI WEB PRO', duracionMeses: 12, orden: 2, estado: 'ACTIVO', incluye: ['Todo Mini Web Básica', 'Catálogo o menú', 'Código QR'] },
   ];
   for (const p of planes) {
     const exist = await getDocs(query(collection(db, 'planes'), where('nombre', '==', p.nombre), limit(1)));

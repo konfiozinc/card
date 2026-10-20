@@ -49,8 +49,10 @@
 <!-- Fuentes y estilos -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" onload="this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" /></noscript>
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" onload="this.rel='stylesheet'" />
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" /></noscript>
 <link rel="stylesheet" href="assets/css/styles.css">
 
 <!-- Datos estructurados: Organización + Migas de pan + Página + Catálogo de servicios + FAQ -->
@@ -215,11 +217,11 @@
       </div>
 
       <div class="services-grid">
-        <!-- 1. Tarjetas Digitales (con planes Star, Pro y Elite) -->
+        <!-- 1. Tarjetas Digitales (con planes Mini Web Básica y Pro) -->
         <article class="service reveal">
           <div class="service-icon" aria-hidden="true"><i class="fas fa-id-card"></i></div>
           <h3 class="service-title">Tarjetas Digitales</h3>
-          <p class="service-desc">Tu presentación completa en un solo enlace: contacto, WhatsApp, redes, ubicación, servicios y código QR. En tres planes: <strong>Star</strong>, <strong>Pro</strong> y <strong>Elite</strong>. Desde $49.900.</p>
+          <p class="service-desc">Tu presentación completa en un solo enlace: contacto, WhatsApp, redes, ubicación, servicios y código QR. En dos planes: <strong>Mini Web Básica</strong> y <strong>Mini Web Pro</strong>. Desde $49.900.</p>
           <a href="servicios/tarjetas-digitales.html" class="service-link">Ver tarjetas digitales <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
         </article>
 
@@ -368,7 +370,7 @@
     </div>
   </section>
 
-  <!-- ══════════════ TARJETAS STAR / PRO / ELITE ══════════════ -->
+  <!-- ══════════════ TARJETAS MINI WEB BÁSICA / MINI WEB PRO / ELITE ══════════════ -->
   <section class="section">
     <div class="container">
       <div class="section-head reveal">
@@ -379,7 +381,7 @@
 
       <div class="pricing-grid">
         <article class="plan reveal">
-          <h3 class="plan-name">STAR</h3>
+          <h3 class="plan-name">MINI WEB BÁSICA</h3>
           <div class="plan-price">$49.900 <small>COP · pago único</small></div>
           <p class="plan-for">Para dejar de usar tarjetas de papel.</p>
           <ul>
@@ -388,38 +390,25 @@
             <li>Código QR con tu marca</li>
             <li>Entrega en 24–48 horas</li>
           </ul>
-          <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20la%20tarjeta%20digital%20plan%20STAR" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-block"><i class="fab fa-whatsapp"></i> Pedir plan Star</a>
+          <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20la%20tarjeta%20digital%20plan%20STAR" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-block"><i class="fab fa-whatsapp"></i> Pedir Mini Web Básica</a>
         </article>
 
         <article class="plan featured reveal">
           <span class="plan-flag">El más solicitado</span>
-          <h3 class="plan-name">PRO</h3>
+          <h3 class="plan-name">MINI WEB PRO</h3>
           <div class="plan-price">$99.900 <small>COP · pago único</small></div>
           <p class="plan-for">Para restaurantes, tiendas y salones.</p>
           <ul>
-            <li>Todo lo del plan Star</li>
+            <li>Todo lo del Mini Web Básica</li>
             <li>Catálogo <strong>o</strong> menú digital</li>
             <li>Galería de productos o trabajos</li>
             <li>Botón de pedido por WhatsApp</li>
             <li>Soporte prioritario</li>
           </ul>
-          <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20la%20tarjeta%20digital%20plan%20PRO" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-block"><i class="fas fa-star"></i> Pedir plan Pro</a>
+          <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20la%20tarjeta%20digital%20plan%20PRO" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-block"><i class="fas fa-star"></i> Pedir Mini Web Pro</a>
         </article>
 
-        <article class="plan reveal">
-          <h3 class="plan-name">ELITE</h3>
-          <div class="plan-price">$149.900 <small>COP · pago único</small></div>
-          <p class="plan-for">Para profesionales y servicios especializados.</p>
-          <ul>
-            <li>Todo lo del plan Pro</li>
-            <li>Mini landing page</li>
-            <li>Agenda de citas</li>
-            <li>Formulario de captación</li>
-          </ul>
-          <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20la%20tarjeta%20digital%20plan%20ELITE" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-block"><i class="fas fa-crown"></i> Pedir plan Elite</a>
-        </article>
-
-      </div>
+        </div>
     </div>
   </section>
 
@@ -490,7 +479,7 @@
     </div>
 
     <div class="footer-col">
-      <h4>Servicios</h4>
+      <h3>Servicios</h3>
       <a href="servicios/tarjetas-digitales.html">Tarjetas Digitales</a>
       <a href="servicios/catalogos-digitales.html">Catálogos Digitales</a>
       <a href="servicios/menus-digitales.html">Menús Digitales</a>
@@ -500,7 +489,7 @@
     </div>
 
     <div class="footer-col">
-      <h4>Explora</h4>
+      <h3>Explora</h3>
       <a href="nosotros.html">Nosotros</a>
       <a href="portafolio.html">Portafolio</a>
       <a href="precios.html">Precios</a>
@@ -509,7 +498,7 @@
     </div>
 
     <div class="footer-col">
-      <h4>Contacto</h4>
+      <h3>Contacto</h3>
       <a href="mailto:konfiozinc@gmail.com">konfiozinc@gmail.com</a>
       <a href="tel:+573206411340">+57 320 641 1340</a>
       <a href="https://wa.me/573206411340" target="_blank" rel="noopener noreferrer">WhatsApp directo</a>

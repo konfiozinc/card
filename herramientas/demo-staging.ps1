@@ -141,7 +141,7 @@ const masDias=d=>{const x=new Date(hoy);x.setDate(x.getDate()+d);return iso(x);}
   await crear('pagos','demo-pago-1',{clienteId:s('demo-1'),clienteNombre:s('María Ficticia'),monto:n(99900),metodoPago:s('Nequi'),fechaPago:s(iso(hoy)),referencia:s('DEMO-001'),estado:s('PENDIENTE'),registradoPor:s('demo'),registradoPorNombre:s('Operador Demo'),createdAt:ts(hoy.toISOString())});
   await crear('pagos','demo-pago-2',{clienteId:s('demo-2'),clienteNombre:s('Carlos Ficticio'),monto:n(150000),metodoPago:s('Transferencia'),fechaPago:s(masDias(-12)),referencia:s('DEMO-002'),estado:s('CONFIRMADO'),registradoPor:s('demo'),registradoPorNombre:s('Administradora Demo'),createdAt:ts(hoy.toISOString())});
   await crear('pagos','demo-pago-3',{clienteId:s('demo-3'),clienteNombre:s('Laura Ficticia'),monto:n(120000),metodoPago:s('Daviplata'),fechaPago:s(masDias(-40)),referencia:s('DEMO-003'),estado:s('ANULADO'),registradoPor:s('demo'),registradoPorNombre:s('Operador Demo'),createdAt:ts(hoy.toISOString())});
-  for (const [i, p] of [['1','Básica',49900],['2','Pro',99900],['3','Premium apps',149900]].entries()) {
+  for (const [i, p] of [['1','Mini Web Básica',49900],['2','Mini Web Pro',99900]].entries()) {
     await crear('planes','demo-plan-'+p[0],{orden:n(i+1),nombre:s(p[1]),servicio:s('tarjetas'),precio:n(p[2]),duracionMeses:n(12),estado:s('ACTIVO')});
   }
   await crear('configuracion','diasPorVencer',{clave:s('diasPorVencer'),valor:n(15),descripcion:s('Días antes del vencimiento para marcar POR_VENCER')});

@@ -51,7 +51,7 @@ export const SERVICIOS = [
 ];
 
 /* Categorías: solo las Tarjetas Digitales tienen planes */
-export const CATEGORIAS_TARJETA = ['Star', 'Pro', 'Elite'];
+export const CATEGORIAS_TARJETA = ['Mini Web Básica', 'Mini Web Pro'];
 
 export const ESTADOS = ['activo', 'por_vencer', 'inactivo'];
 
