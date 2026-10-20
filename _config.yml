@@ -46,5 +46,9 @@ exclude:
   - ARQUITECTURA_PANEL.md
   - FICHA_UNICA_ATENCION.md
   - MARCA_Y_NOMBRES.md
+  # Material gráfico descartado (pesa y no lo usa ninguna página).
+  # Componentes premium de Harness: se revisan en local, no se sirven.
+  - premium/demo.html
+  - premium/premium.css
   # Ganchos de git del proyecto.
   - .githooks

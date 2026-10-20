@@ -90,7 +90,7 @@
     });
   });
 
-  /* Nombre del plan a partir de su tarjeta (ECO, SMART, POWER, STAR, PRO…) */
+  /* Nombre del plan a partir de su tarjeta */
   function clavePlan(card) {
     try {
       var nombre = card.querySelector('.plan-name');
@@ -204,13 +204,13 @@
       btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
       /* En escritorio el submenú se muestra con hover; aquí forzamos visibilidad */
       var sub = item.querySelector('.nav-sub');
-      if (sub && window.innerWidth >= 1024) sub.style.display = isOpen ? 'block' : '';
+      if (sub && window.innerWidth >= 1024) sub.classList.toggle('kz-sub-abierto', !!isOpen);
     });
   });
   /* Cierra el submenú de escritorio al hacer clic fuera */
   document.addEventListener('click', function (e) {
     if (e.target.closest && e.target.closest('.nav-item')) return;
-    $$('.nav-sub').forEach(function (s) { s.style.display = ''; });
+    $$('.nav-sub').forEach(function (s) { s.classList.remove('kz-sub-abierto'); });
   });
 
   /* ── 03. REVEAL ON SCROLL ──────────────────────────────────────────── */
@@ -264,7 +264,7 @@
     modalTitle.textContent = title || 'Proyecto';
     modal.classList.add('open');
     modal.setAttribute('aria-hidden', 'false');
-    document.body.style.overflow = 'hidden';
+    document.body.classList.add('kz-scroll-lock');
     if (modalClose) modalClose.focus();
   }
   function closeModal() {
@@ -272,7 +272,7 @@
     modal.classList.remove('open');
     modal.setAttribute('aria-hidden', 'true');
     modalBody.innerHTML = '';
-    document.body.style.overflow = '';
+    document.body.classList.remove('kz-scroll-lock');
     if (lastFocused && lastFocused.focus) lastFocused.focus();
   }
   /* Expone openModal para otros módulos del propio archivo */
@@ -357,7 +357,7 @@
     ['Postres Snoopy — Postres artesanales con pedido por WhatsApp', 'https://konfiozinc.github.io/postres/'],
     ['PlatoScan — Calorías y macros con una foto (app web instalable)', 'https://konfiozinc.github.io/platoscan/'],
     ['Pangea — Coordinación sin conexión para comunidades aisladas', 'https://konfiozinc.github.io/pangea/'],
-    ['Tarjeta Pre — La tarjeta digital Elite de KONFÍO ZINC', 'https://konfiozinc.github.io/tarjetapre/'],
+    ['Tarjeta Pre — Una tarjeta digital de KONFÍO ZINC', 'https://konfiozinc.github.io/tarjetapre/'],
     ['Red CaliNet — Landing page de streaming, tecnología, seguros y trámites', 'https://konfiozinc.github.io/redcalinet/'],
   ];
 
@@ -723,7 +723,7 @@
       a.href = WA_URL; a.target = '_blank'; a.rel = 'noopener noreferrer';
       a.className = 'kz-wa-btn'; a.textContent = '💬 CONTINUAR POR WHATSAPP';
       var wrap = document.createElement('div');
-      wrap.style.cssText = 'align-self:flex-start;margin-top:4px;';
+      wrap.classList.add('kz-fila-acciones');
       wrap.appendChild(a);
       chatBody.appendChild(wrap);
       chatBody.scrollTop = chatBody.scrollHeight;
@@ -759,10 +759,10 @@
          es una pregunta de precio, no de producto. */
       if (has(['cuanto cuesta', 'cuanto vale', 'precio', 'precios', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto'])
           && has(['tarjeta', 'tarjetas'])) {
-        return { text: 'Las tarjetas digitales van desde $49.900 💳:\n\n• STAR $49.900 — tu presentación: contacto, WhatsApp, redes, ubicación y QR.\n• PRO $99.900 — añade catálogo o menú, precios y galería.\n• ELITE $149.900 — suma agenda de citas, formularios, varias sedes y agente IA.\n\n¿Te recomiendo una según tu negocio?', cta: true };
+        return { text: 'Las Mini Web van desde $49.900 💳:\n\n• Mini Web Básica $49.900 — tu presentación: contacto, WhatsApp, redes, ubicación y QR.\n• Mini Web Pro $99.900 — añade catálogo o menú, precios y galería.\n\nLas dos son de pago único y el dominio está incluido el primer año. ¿Te recomiendo una según tu negocio?', cta: true };
       }
       if (has(['paquete', 'paquetes', 'todo en uno', 'combo'])) { // verificar-precios:ok (es la palabra que escribe el cliente, no una oferta)
-        return { text: 'Tenemos 3 tarjetas digitales 🎯:\n\n• Star $49.900 — contacto, redes, ubicación y QR.\n• Pro $99.900 ⭐ la más pedida — catálogo o menú, galería y botón de pedido.\n• Elite $149.900 — agenda de citas, formularios y mini landing.\n\n\nPago único, con dominio incluido el primer año. Otros servicios (landing, catálogo, menú, QR o agente IA) se cotizan.\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
+        return { text: 'Tenemos 2 Mini Webs 🎯:\n\n• Mini Web Básica $49.900 — contacto, redes, ubicación y QR.\n• Mini Web Pro $99.900 ⭐ la más pedida — catálogo o menú, galería y botón de pedido.\n\n\nPago único, con dominio incluido el primer año. Otros servicios (landing, catálogo, menú, QR o agente IA) se cotizan.\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
       }
 
       /* ── Programa de aliados ────────────────────────────────────────
@@ -779,12 +779,12 @@
                'marca blanca', 'afiliado', 'afiliados',
                'comprar al por mayor', 'al por mayor', 'por mayor'])
           || (has(['ganar', 'ganancia', 'gano', 'margen']) && has(['tarjeta', 'tarjetas', 'vender', 'venda', 'vendo', 'vendiendo']))) {
-        return { text: '¡Sí! Tenemos un programa de aliados para que ganes vendiendo nuestras tarjetas digitales 🤝\n\n*Opción 1 · Distribuidor* (la más rentable)\nCompras a precio de aliado y vendes al precio que quieras:\n• Bronce (1 a 4 ventas/mes) · 30% → Star $34.930 · Pro $69.930 · Elite $104.930\n• Plata (5 a 9) · 40% → Star $29.940 · Pro $59.940 · Elite $89.940\n• Oro (10 o más) · 50% → Star $24.950 · Pro $49.950 · Elite $74.950\n\n*Opción 2 · Referido* (sin invertir nada)\nSolo presentas el cliente y ganas el 20%: $9.980 (Star), $19.980 (Pro) o $29.980 (Elite).\n\n🎁 Al activarte te llevas una tarjeta PRO de muestra con 50% de descuento ($49.950), y gratis si cierras tus primeras 3 ventas.\n\nNosotros hacemos el diseño, el hosting y el soporte: tú te concentras en vender.\n\nVer tablas completas: https://konfiozinc.github.io/card/aliados.html\n\n¿Quieres que te active como aliado?', cta: true };
+        return { text: '¡Sí! Tenemos un programa de aliados para que ganes vendiendo nuestras tarjetas digitales 🤝\n\n*Opción 1 · Distribuidor* (la más rentable)\nCompras a precio de aliado y vendes al precio que quieras:\n• Bronce (1 a 4 ventas/mes) · 30% → Básica $34.930 · Pro $69.930\n• Plata (5 a 9) · 40% → Básica $29.940 · Pro $59.940\n• Oro (10 o más) · 50% → Básica $24.950 · Pro $49.950\n\n*Opción 2 · Referido* (sin invertir nada)\nSolo presentas el cliente y ganas el 20%: $9.980 (Básica) o $19.980 (Pro).\n\n🎁 Al activarte te llevas una Mini Web Pro de muestra con 50% de descuento ($49.950), y gratis si cierras tus primeras 3 ventas.\n\nNosotros hacemos el diseño, el hosting y el soporte: tú te concentras en vender.\n\nVer tablas completas: https://konfiozinc.github.io/card/aliados.html\n\n¿Quieres que te active como aliado?', cta: true };
       }
 
       /* ── Tarjetas digitales (producto) ─────────────────────────────── */
       if (has(['tarjeta', 'tarjetas'])) {
-        return { text: 'La tarjeta digital es tu presentación en un solo enlace 💳: contacto, WhatsApp, redes, ubicación, servicios y galería. Se actualiza al instante y reemplaza el papel.\n\nHay tres planes: Star $49.900, Pro $99.900 y Elite $149.900.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
+        return { text: 'La tarjeta digital es tu presentación en un solo enlace 💳: contacto, WhatsApp, redes, ubicación, servicios y galería. Se actualiza al instante y reemplaza el papel.\n\nHay dos planes: Mini Web Básica $49.900 y Mini Web Pro $99.900, las dos de pago único.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
       }
       if (has(['landing', 'pagina', 'landing page', 'landing pages'])) {
         return { text: 'Creamos landing pages profesionales en 3 planes 🚀:\n\n• *ECO $699.000* — diseño estándar, banner estático, hasta 5 bloques y 1 correo corporativo.\n• *SMART $1.099.000* ⭐ la más pedida — diseño profesional, hasta 10 bloques, formulario personalizado, 5 correos y SEO.\n• *POWER $1.399.000* — diseño exclusivo, animaciones, reCAPTCHA, panel de administración y Google Analytics 4.\n\nLos tres incluyen hosting y dominio por 1 año ✅\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
@@ -806,13 +806,13 @@
       /* ── Consultas generales ──────────────────────────────────────── */
       if (has(['seo', 'posicionamiento', 'google ads', 'pauta', 'publicidad', 'redes sociales',
                'community manager', 'branding', 'email marketing', 'diseno de marca'])) {
-        return { text: 'Esos servicios no los ofrecemos directamente 🙌. Lo que sí hacemos son seis soluciones digitales:\n\n• Tarjetas Digitales (Star, Pro y Elite)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nOjo: la landing page y la tarjeta sí salen optimizadas para que te encuentren en Google. ¿Cuál te interesa?', cta: true };
+        return { text: 'Esos servicios no los ofrecemos directamente 🙌. Lo que sí hacemos son seis soluciones digitales:\n\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nOjo: la landing page y la tarjeta sí salen optimizadas para que te encuentren en Google. ¿Cuál te interesa?', cta: true };
       }
       if (has(['servicio', 'servicios', 'producto', 'productos', 'que ofrecen', 'que hacen', 'que venden'])) {
-        return { text: 'Estas son nuestras seis soluciones 📱:\n\n• Tarjetas Digitales (Star, Pro y Elite)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
+        return { text: 'Estas son nuestras seis soluciones 📱:\n\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
       }
       if (has(['precio', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto', 'cotiza', 'cotizacion', 'cotizar'])) {
-        return { text: 'Nuestros precios arrancan así 📊:\n\n• Códigos QR: desde $50.000\n• Tarjetas Digitales: desde $49.900 (Star $49.900 · Pro $99.900 · Elite $149.900)\n• Catálogos Digitales: desde $120.000\n• Menús Digitales: desde $150.000\n• Agentes IA: desde $250.000\n• Landing Pages: desde $699.000\n\nEscríbeme por WhatsApp y te preparo la cotización exacta, sin compromiso.', cta: true };
+        return { text: 'Nuestros precios arrancan así 📊:\n\n• Códigos QR: desde $50.000\n• Mini Web Básica: $49.900 · Mini Web Pro: $99.900\n• Catálogos Digitales: desde $120.000\n• Menús Digitales: desde $150.000\n• Agentes IA: desde $250.000\n• Landing Pages: desde $699.000\n\nEscríbeme por WhatsApp y te preparo la cotización exacta, sin compromiso.', cta: true };
       }
       var sectores = [
         [['restaurante', 'restaurantes', 'comida', 'comidas', 'cafeteria', 'pizzeria', 'hamburgues'], ['https://konfiozinc.github.io/eltiti/', 'https://konfiozinc.github.io/colsabor/']],
@@ -850,7 +850,7 @@
         return { text: '📞 Contáctanos por:\n• WhatsApp: +57 320 641 1340\n• Email: konfiozinc@gmail.com\n\nO usa el botón verde de WhatsApp. ¡Te respondemos al instante!', cta: true };
       }
       if (has(['hola', 'buenas', 'buenos dias', 'saludo', 'hey'])) {
-        return { text: '¡Hola! 👋 Soy KONFI, tu asesor de KONFÍO ZINC.\n\nTe ayudo con nuestras seis soluciones:\n• Tarjetas Digitales (Star, Pro y Elite)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nY si quieres ganar dinero recomendándonos, tengo el programa de aliados.\n\nCuéntame, ¿qué necesitas?', cta: false };
+        return { text: '¡Hola! 👋 Soy KONFI, tu asesor de KONFÍO ZINC.\n\nTe ayudo con nuestras seis soluciones:\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nY si quieres ganar dinero recomendándonos, tengo el programa de aliados.\n\nCuéntame, ¿qué necesitas?', cta: false };
       }
       return { text: 'Buena pregunta 😊. Para darte una respuesta exacta, escríbeme por WhatsApp y te atiendo al instante.\n\nAquí puedo ayudarte con: servicios, precios, programa de aliados, portafolio o cotizar tu proyecto. Toca un botón de abajo 👇', cta: true };
     }

@@ -700,7 +700,7 @@ strong { color: var(--fg); }
   color: var(--muted); transition: all .2s;
 }
 .footer-social a:hover { color: var(--gold); border-color: var(--border-gold); transform: translateY(-2px); }
-.footer-col h4 { font-family: var(--font-title); font-size: .8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+.footer-col h3, .footer-col h4 { font-family: var(--font-title); font-size: .8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
 .footer-col a { display: block; color: var(--muted); font-size: .88rem; margin-bottom: .6rem; transition: color .2s; }
 .footer-col a:hover { color: var(--fg); }
 .footer-bottom { border-top: 1px solid var(--border); padding: 1.2rem 0; text-align: center; }
@@ -1261,4 +1261,27 @@ strong { color: var(--fg); }
 @media (max-width: 768px) {
   .aliados-steps { grid-template-columns: 1fr; }
   .comisiones-table { font-size: .86rem; min-width: 480px; }
+}
+
+/* ═══ KZ-ACCESO-ENLACES ═══════════════════════════════════════════════
+   Los enlaces dentro de un párrafo se distinguen por subrayado y no solo por
+   color. Lo pedía Lighthouse (link-in-text-block) en las páginas antiguas. */
+p a:not(.btn):not(.kz-chip),
+.section-sub a,
+.card-text a,
+.legal-content a,
+.step-desc a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ═══ KZ-CSP: clases en lugar de estilos en línea ═════════════════════
+   main.js escribía style.display y style.cssText desde JavaScript, y la
+   portada premium tiene una política de seguridad que prohíbe los estilos
+   en línea. Ahora se conmuta una clase: mismo resultado, sin violar la CSP. */
+.kz-scroll-lock { overflow: hidden; }
+.kz-fila-acciones { align-self: flex-start; margin-top: 4px; }
+@media (min-width: 1024px) {
+  .nav-sub { display: none; }
+  .nav-sub.kz-sub-abierto { display: block; }
 }

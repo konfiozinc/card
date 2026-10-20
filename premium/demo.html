@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es-CO" class="kz-no-js">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Componentes premium · demostración local · KONFÍO ZINC</title>
+  <meta name="description" content="Página local de demostración de los componentes premium de Harness para KONFÍO ZINC. No forma parte del sitio público." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="premium.css" />
+</head>
+<body class="kz">
+
+<a class="kz-skip kz-solo-lectores" href="#contenido">Saltar al contenido</a>
+
+<header class="kz-nav" id="nav" data-abierta="no">
+  <a class="kz-nav__marca" href="#contenido"><span class="kz-nav__punto" aria-hidden="true"></span> KONFÍO ZINC</a>
+  <button class="kz-nav__hamburguesa" type="button" aria-expanded="false" aria-controls="menu" aria-label="Abrir menú">
+    <span></span><span></span><span></span>
+  </button>
+  <ul class="kz-nav__lista" id="menu">
+    <li><a class="kz-nav__enlace" href="#servicios" aria-current="page">Servicios</a></li>
+    <li><a class="kz-nav__enlace" href="#portafolio">Portafolio</a></li>
+    <li><a class="kz-nav__enlace" href="#articulo">Recursos</a></li>
+    <li><a class="kz-nav__enlace" href="#contacto">Contacto</a></li>
+  </ul>
+</header>
+
+<main id="contenido">
+  <section class="kz-seccion" id="servicios">
+    <span class="kz-etiqueta">Demostración de componentes</span>
+    <h1 class="kz-titulo">Sistema premium: navegación, tarjetas y llamadas a la acción</h1>
+    <p class="kz-bajada">Componentes nativos (HTML, CSS y JavaScript) listos para integrarse por etapas.
+      Esta página es local y de uso interno: <strong>no</strong> sustituye el diseño de Codex ni el sitio publicado.</p>
+
+    <div class="kz-grid">
+      <article class="kz-card kz-revelar">
+        <div class="kz-card__icono" aria-hidden="true">1</div>
+        <h2 class="kz-card__titulo">Servicios</h2>
+        <p class="kz-card__texto">Tarjeta de servicio con icono, título, descripción y pie para el enlace o el precio desde.</p>
+        <p class="kz-card__pie">Ver servicio →</p>
+      </article>
+      <article class="kz-card kz-revelar">
+        <div class="kz-card__icono" aria-hidden="true">2</div>
+        <h2 class="kz-card__titulo">Botones y CTA</h2>
+        <p class="kz-card__texto">Tres variantes: principal (dorado), secundario (borde) y WhatsApp. Todas con foco visible.</p>
+        <p class="kz-card__pie"><a class="kz-btn kz-btn--principal" href="#contacto">Solicitar cotización</a></p>
+      </article>
+      <article class="kz-card kz-revelar">
+        <div class="kz-card__icono" aria-hidden="true">3</div>
+        <h2 class="kz-card__titulo">Animación accesible</h2>
+        <p class="kz-card__texto">Aparición al entrar en pantalla, desactivada por completo con <code>prefers-reduced-motion</code>.</p>
+        <p class="kz-card__pie">Sin dependencias</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="kz-seccion kz-seccion--alt" id="portafolio">
+    <span class="kz-etiqueta">Portafolio</span>
+    <h2 class="kz-titulo">Tarjeta de proyecto con imagen estable</h2>
+    <p class="kz-bajada">Relación de aspecto fija (4:3) para evitar saltos de diseño y mejorar la métrica de estabilidad visual.</p>
+    <div class="kz-grid">
+      <article class="kz-card kz-portafolio kz-revelar">
+        <div class="kz-portafolio__media">
+          <img src="../assets/img/portafolio/colsabor-detalle.jpg" alt="Proyecto de menú digital" width="900" height="675" loading="lazy" decoding="async" />
+        </div>
+        <div class="kz-portafolio__cuerpo">
+          <h3 class="kz-card__titulo">Menú digital</h3>
+          <p class="kz-card__texto">Ejemplo de composición de tarjeta de portafolio.</p>
+        </div>
+      </article>
+      <article class="kz-card kz-portafolio kz-revelar">
+        <div class="kz-portafolio__media">
+          <img src="../assets/img/portafolio/dta-detalle.jpg" alt="Proyecto de catálogo digital" width="900" height="675" loading="lazy" decoding="async" />
+        </div>
+        <div class="kz-portafolio__cuerpo">
+          <h3 class="kz-card__titulo">Catálogo digital</h3>
+          <p class="kz-card__texto">Misma estructura, distinto contenido.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="kz-seccion" id="articulo">
+    <span class="kz-etiqueta">Recursos</span>
+    <h2 class="kz-titulo">Presentación de artículo</h2>
+    <article class="kz-articulo">
+      <p>Bloque de lectura con medida de línea controlada (72 caracteres) y jerarquía clara. El texto de
+        ejemplo es de maqueta: <strong>no es contenido comercial real</strong> y no debe publicarse.</p>
+      <h2>Subtítulo de ejemplo</h2>
+      <p>Los párrafos mantienen una altura de línea de 1,7 para lectura cómoda en escritorio y móvil.</p>
+      <blockquote>Las cifras, testimonios y resultados solo se publican cuando existe respaldo verificable.</blockquote>
+    </article>
+  </section>
+
+  <section class="kz-seccion kz-seccion--alt" id="contacto">
+    <span class="kz-etiqueta">Contacto</span>
+    <h2 class="kz-titulo">Llamadas a la acción</h2>
+    <p class="kz-bajada">Sin formularios que expongan datos personales en la URL. El contacto directo va por WhatsApp.</p>
+    <p style="display:flex;gap:12px;flex-wrap:wrap;margin-top:20px">
+      <a class="kz-btn kz-btn--principal" href="#contenido">Solicitar cotización</a>
+      <a class="kz-btn kz-btn--secundario" href="#servicios">Ver servicios</a>
+      <a class="kz-btn kz-btn--wa" href="https://wa.me/573206411340" rel="noopener">Escribir por WhatsApp</a>
+    </p>
+  </section>
+</main>
+
+<footer class="kz-footer">
+  <div class="kz-footer__grid">
+    <div>
+      <h3>KONFÍO ZINC</h3>
+      <p style="margin:0;color:#A9AFBE;font-size:15px;line-height:1.6">Soluciones digitales para negocios.<br />Medellín, Colombia.</p>
+    </div>
+    <div>
+      <h3>Servicios</h3>
+      <ul>
+        <li><a href="#servicios">Mini Webs</a></li>
+        <li><a href="#servicios">Catálogos y menús</a></li>
+        <li><a href="#servicios">Landing pages</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Contacto</h3>
+      <ul>
+        <li><a href="https://wa.me/573206411340" rel="noopener">WhatsApp +57 320 641 1340</a></li>
+        <li><a href="mailto:konfiozinc@gmail.com">konfiozinc@gmail.com</a></li>
+      </ul>
+    </div>
+  </div>
+  <p class="kz-footer__legal">Demostración local de componentes · no indexada · KONFÍO ZINC</p>
+</footer>
+
+<script>
+  /* Sin dependencias. Si el navegador no ejecuta JS, el CSS deja todo visible
+     (clase kz-no-js) y el menú se ve en su versión de escritorio. */
+  document.documentElement.classList.remove('kz-no-js');
+  (function () {
+    var nav = document.getElementById('nav');
+    var boton = nav.querySelector('.kz-nav__hamburguesa');
+    boton.addEventListener('click', function () {
+      var abierta = nav.getAttribute('data-abierta') === 'si';
+      nav.setAttribute('data-abierta', abierta ? 'no' : 'si');
+      boton.setAttribute('aria-expanded', abierta ? 'false' : 'true');
+      boton.setAttribute('aria-label', abierta ? 'Abrir menú' : 'Cerrar menú');
+    });
+    nav.querySelectorAll('.kz-nav__enlace').forEach(function (a) {
+      a.addEventListener('click', function () {
+        nav.setAttribute('data-abierta', 'no');
+        boton.setAttribute('aria-expanded', 'false');
+      });
+    });
+
+    var reducido = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var piezas = document.querySelectorAll('.kz-revelar');
+    if (reducido || !('IntersectionObserver' in window)) {
+      piezas.forEach(function (p) { p.classList.add('kz-visible'); });
+      return;
+    }
+    var obs = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add('kz-visible'); obs.unobserve(e.target); }
+      });
+    }, { rootMargin: '0px 0px -10% 0px' });
+    piezas.forEach(function (p) { obs.observe(p); });
+  })();
+</script>
+</body>
+</html>
