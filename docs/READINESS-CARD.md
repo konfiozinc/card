@@ -1,5 +1,10 @@
 # Card — informe de readiness para lanzamiento
 
+> ⚠️ **HISTÓRICO (CARD-SPARK-001).** Este informe cubre el motor automático
+> `processDueDates` (Cloud Functions), que **no se despliega** en el modo Spark vigente.
+> La arquitectura actual está en `docs/ARQUITECTURA-SPARK-CARD.md`: sin motor programado,
+> vencimientos manuales y avisos por WhatsApp preparados a mano.
+
 Estado: **candidato local listo para revisión humana**. Nada publicado.
 Proyecto de ensayo: `demo-card-seguridad` (emuladores en 127.0.0.1).
 

@@ -1,5 +1,10 @@
 # ARQUITECTURA DEL PANEL · KONFÍO ZINC
 
+> ⚠️ **OBSOLETO (CARD-SPARK-001).** Este documento describe el modelo anterior
+> (planes Star/Pro/Elite, **suscripción de 12 meses**, Cloud Functions). La fuente vigente
+> del panel es **`docs/ARQUITECTURA-SPARK-CARD.md`** (plan Spark: sin Cloud Functions, avisos
+> manuales, pago único de desarrollo + renovación de dominio). Consérvese como histórico.
+>
 > **Fuente única de verdad del modelo de datos y del contrato de módulos.**
 > Adaptado de la implementación que ya funciona en `unefibras/`, con el modelo de negocio de
 > KONFÍO ZINC: 6 servicios, planes Star/Pro/Elite y **suscripción de 12 meses**.

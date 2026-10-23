@@ -1,5 +1,11 @@
 # Panel de administración · Documentación
 
+> ⚠️ **SUPERADO PARCIALMENTE (CARD-SPARK-001).** El panel corre en **modo Spark**
+> (`docs/ARQUITECTURA-SPARK-CARD.md`): **no** hay Cloud Functions operativas, los avisos son
+> **manuales** (WhatsApp) y los vencimientos se calculan al abrir la página. Donde este
+> documento diga "functions/src/index.js", "avisos automáticos 10/5/3/1" o "suscripción",
+> aplica la arquitectura Spark. `firestore.rules` sigue siendo la autoridad de seguridad.
+
 > Documentación del panel multipágina de KONFÍO ZINC (adaptada del patrón de UneFibra).
 > La fuente de autoridad del esquema es `firestore.rules` (seguridad) y `functions/src/index.js`
 > (lógica). Este documento es la referencia legible para operar el panel.
