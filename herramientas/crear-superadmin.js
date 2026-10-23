@@ -43,21 +43,23 @@ async function main() {
   /* Siembra datos iniciales por si seedInicial del panel aún no se ejecutó */
   const planes = [
     /* IDs fijos: la siembra es idempotente y NUNCA duplica documentos.
+       Oferta vigente (17-oct-2026): Mini Web Básica ($49.900) y Mini Web Pro ($99.900).
+       Star y Elite quedaron retirados; los registros históricos que los referencien se
+       conservan (este seed no borra nada, solo crea/actualiza por id).
        duracionMeses 12 = vigencia del dominio incluido el primer año (lo que muestra admin/planes.js). */
-    { id: 'star',  nombre: 'Star',  precio: 49900,  servicio: 'tarjetas', categoria: 'STAR',  duracionMeses: 12, orden: 1, estado: 'ACTIVO' },
-    { id: 'pro',   nombre: 'Pro',   precio: 99900,  servicio: 'tarjetas', categoria: 'PRO',   duracionMeses: 12, orden: 2, estado: 'ACTIVO' },
-    { id: 'elite', nombre: 'Elite', precio: 149900, servicio: 'tarjetas', categoria: 'ELITE', duracionMeses: 12, orden: 3, estado: 'ACTIVO' },
+    { id: 'mini-web-basica', nombre: 'Mini Web Básica', precio: 49900, servicio: 'tarjetas', categoria: 'MINI WEB BÁSICA', duracionMeses: 12, orden: 1, estado: 'ACTIVO' },
+    { id: 'mini-web-pro',    nombre: 'Mini Web Pro',    precio: 99900, servicio: 'tarjetas', categoria: 'MINI WEB PRO',    duracionMeses: 12, orden: 2, estado: 'ACTIVO' },
     /* [PENDIENTE] La vigencia de los tres niveles del Agente IA NO esta definida en la base
        de conocimiento canonica. No ejecutar contra produccion hasta que Darwin la confirme. */
-    { id: 'agente-esencial', nombre: 'Agente IA Esencial', precio: 250000, servicio: 'agentes', categoria: null, duracionMeses: null, orden: 4, estado: 'ACTIVO' },
-    { id: 'agente-negocio',  nombre: 'Agente IA Negocio',  precio: 420000, servicio: 'agentes', categoria: null, duracionMeses: null, orden: 5, estado: 'ACTIVO' },
-    { id: 'agente-premium',  nombre: 'Agente IA Premium',  precio: 650000, servicio: 'agentes', categoria: null, duracionMeses: null, orden: 6, estado: 'ACTIVO' }
+    { id: 'agente-esencial', nombre: 'Agente IA Esencial', precio: 250000, servicio: 'agentes', categoria: null, duracionMeses: null, orden: 3, estado: 'ACTIVO' },
+    { id: 'agente-negocio',  nombre: 'Agente IA Negocio',  precio: 420000, servicio: 'agentes', categoria: null, duracionMeses: null, orden: 4, estado: 'ACTIVO' },
+    { id: 'agente-premium',  nombre: 'Agente IA Premium',  precio: 650000, servicio: 'agentes', categoria: null, duracionMeses: null, orden: 5, estado: 'ACTIVO' }
   ];
   for (const p of planes) {
     const { id, ...datos } = p;
     await admin.firestore().doc('planes/' + id).set(datos, { merge: true });
   }
-  console.log('\u2714 Planes oficiales sembrados con IDs fijos (Star / Pro / Elite + 3 niveles de Agente IA)');
+  console.log('\u2714 Planes oficiales sembrados con IDs fijos (Mini Web Básica / Pro + 3 niveles de Agente IA)');
 
   const config = {
     diasAntes: [10, 5, 3, 1], diasPorVencer: 15, diasGracia: 5,
