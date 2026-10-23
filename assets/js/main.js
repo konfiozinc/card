@@ -635,7 +635,7 @@
        data-msg y una clave corta en data-key para el evento agent_chip_click. */
     var CHIPS = [
       { label: '💰 Ver precios',      msg: 'Ver precios y planes',       key: 'ver_precios' },
-      { label: '🪪 Tarjeta digital',  msg: 'Quiero una tarjeta digital', key: 'tarjeta_digital' },
+      { label: '🪪 Mini Web',         msg: 'Quiero una Mini Web',        key: 'mini_web' },
       { label: '🍽️ Menú digital',     msg: 'Quiero un menú digital',     key: 'menu_digital' },
       { label: '📖 Catálogo',          msg: 'Quiero un catálogo digital', key: 'catalogo' },
       { label: '🚀 Landing page',      msg: 'Quiero una landing page',    key: 'landing_page' },
