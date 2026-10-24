@@ -71,6 +71,11 @@ const EXTERNO = {
   '#25D366': 'WhatsApp',
   '#1877F2': 'Facebook',
   '#E4405F': 'Instagram',
+  '#F09433': 'Instagram (degradado)',
+  '#E6683C': 'Instagram (degradado)',
+  '#DC2743': 'Instagram (degradado)',
+  '#CC2366': 'Instagram (degradado)',
+  '#BC1888': 'Instagram (degradado)',
   '#000000': 'negro'
 };
 
@@ -78,11 +83,42 @@ const NEUTRAL = new Set(['#FFFFFF', '#FFF', '#000', 'TRANSPARENT', 'INHERIT', 'C
 
 /* ── Extraccion ───────────────────────────────────────────────────── */
 const hexs = (t) => (t.match(/#[0-9a-fA-F]{3,8}\b/g) || []).map((h) => h.toUpperCase());
+/* Extrae las declaraciones de variables CON SU AMBITO (selector y media query).
+   Sin el ambito, un modificador como `.service-panel--cyan { --accent: ... }` parece
+   un conflicto cuando en realidad es el patron previsto: cada variante redefine la
+   variable en su propio selector. Lo mismo con `@media (min-width) { :root { ... } }`,
+   que es una adaptacion responsive deliberada. */
 const vars = (t) => {
   const out = [];
-  const re = /(--[a-zA-Z0-9-]+)\s*:\s*([^;{}]+)/g;
-  let m;
-  while ((m = re.exec(t)) !== null) out.push({ nombre: m[1], valor: m[2].trim() });
+  const pila = [];
+  let buffer = '';
+  for (let i = 0; i < t.length; i++) {
+    const c = t[i];
+    if (c === '{') {
+      const preludio = buffer.trim().replace(/\s+/g, ' ');
+      pila.push({ preludio, esAt: preludio.startsWith('@') });
+      buffer = '';
+    } else if (c === '}') {
+      pila.pop();
+      buffer = '';
+    } else if (c === ';') {
+      const decl = buffer.trim();
+      buffer = '';
+      const m = decl.match(/^(--[a-zA-Z0-9-]+)\s*:\s*([\s\S]+)$/);
+      if (m) {
+        const sels = pila.filter((x) => !x.esAt);
+        const ats = pila.filter((x) => x.esAt);
+        out.push({
+          nombre: m[1],
+          valor: m[2].trim(),
+          selector: sels.length ? sels[sels.length - 1].preludio : '(sin selector)',
+          media: ats.map((x) => x.preludio).join(' ')
+        });
+      }
+    } else {
+      buffer += c;
+    }
+  }
   return out;
 };
 
@@ -101,7 +137,7 @@ for (const rel of HOJAS) {
 
   for (const v of vars(t)) {
     if (!declaraciones.has(v.nombre)) declaraciones.set(v.nombre, []);
-    declaraciones.get(v.nombre).push({ archivo: rel, valor: v.valor });
+    declaraciones.get(v.nombre).push({ archivo: rel, valor: v.valor, selector: v.selector, media: v.media });
   }
 
   const todos = hexs(t);
@@ -137,22 +173,40 @@ if (totalDesc) {
   for (const a of porArchivo) if (a.desconocidos.length) console.log('     ' + a.archivo.padEnd(32) + a.desconocidos.slice(0, 18).join(' '));
 }
 
-console.log('\n2 · VARIABLES DECLARADAS DOS O MAS VECES\n');
-let duplicadas = 0;
+console.log('\n2 · VARIABLES REDEFINIDAS\n');
+/* Un CONFLICTO real es el mismo nombre, en el MISMO archivo, MISMO selector y
+   MISMO contexto de media, con valores distintos: el resultado depende del orden
+   de aparicion y nadie puede saber cual gana. Cualquier otra redefinicion
+   (modificador BEM, media query, hoja distinta que nunca coexiste) es legitima. */
+let conflictos = 0;
+let avisos = 0;
 const nombresOrden = [...declaraciones.keys()].sort();
 for (const n of nombresOrden) {
   const d = declaraciones.get(n);
-  const valores = [...new Set(d.map((x) => x.valor.toUpperCase()))];
-  if (valuesDistintos(d)) {
-    duplicadas++;
-    console.log('   ' + n + '  (' + d.length + ' declaraciones, ' + valores.length + ' valores distintos)');
-    for (const x of d) console.log('      ' + x.archivo.padEnd(30) + x.valor);
+  const ambitos = new Map();
+  for (const x of d) {
+    const clave = x.archivo + '\u0000' + x.selector + '\u0000' + x.media;
+    if (!ambitos.has(clave)) ambitos.set(clave, []);
+    ambitos.get(clave).push(x);
+  }
+  const choques = [...ambitos.entries()].filter(([, xs]) => new Set(xs.map((y) => y.valor.toUpperCase())).size > 1);
+  const valores = new Set(d.map((x) => x.valor.toUpperCase()));
+
+  if (choques.length) {
+    conflictos += choques.length;
+    console.log('   CONFLICTO  ' + n + '  (' + d.length + ' declaraciones en el mismo ambito con valores distintos)');
+    for (const [clave, xs] of choques) {
+      const [ar, sel, med] = clave.split('\u0000');
+      console.log('      ' + ar + '  {' + sel + '}' + (med ? '  ' + med : ''));
+      for (const y of xs) console.log('         ' + y.valor);
+    }
+  } else if (valores.size > 1) {
+    avisos++;
+    const donde = [...new Set(d.map((x) => x.archivo))];
+    console.log('   aviso      ' + n + '  -> ' + valores.size + ' valores, pero cada uno en su ambito (' + donde.join(', ') + ')');
   }
 }
-function valuesDistintos(d) {
-  return new Set(d.map((x) => x.valor.toUpperCase())).size > 1;
-}
-console.log('\n   variables con conflicto: ' + duplicadas);
+console.log('\n   conflictos reales: ' + conflictos + ' · redefiniciones con ambito propio: ' + avisos);
 
 console.log('\n3 · VARIABLES DE IDENTIDAD VIEJA QUE SIGUEN VIVAS\n');
 const VIEJAS = ['--gold', '--gold-rgb', '--gold2', '--cyan', '--violet'];
@@ -190,5 +244,8 @@ console.log('   con colores heredados: ' + heredInline);
 detalle.slice(0, 15).forEach((d) => console.log('     ' + d));
 
 console.log('\n=== FIN DEL DIAGNOSTICO ===');
-console.log('Bloqueantes de identidad: ' + (totalHered + duplicadas + heredInline));
-process.exit(totalHered + duplicadas + heredInline > 0 ? 1 : 0);
+const bloqueantes = totalHered + conflictos + heredInline;
+console.log('Bloqueantes de identidad: ' + bloqueantes +
+  '  (heredados ' + totalHered + ' · conflictos reales ' + conflictos + ' · embebidos ' + heredInline + ')');
+if (avisos) console.log('Avisos (no bloquean): ' + avisos + ' redefiniciones con ambito propio');
+process.exit(bloqueantes > 0 ? 1 : 0);

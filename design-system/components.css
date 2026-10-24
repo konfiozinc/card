@@ -18,7 +18,10 @@
 
 .kz-tech :where(button, input, select, textarea) { font: inherit; }
 .kz-tech :where(img, svg) { max-width: 100%; }
-.kz-tech a { color: inherit; }
+/* El reset de enlaces NO debe tocar los botones: `.kz-tech a` (0,1,1) gana por
+   especificidad a `.kz-tech-button--primary` (0,1,0) y el boton primario, que es un
+   <a>, heredaba el blanco del body y quedaba blanco sobre cian (1,54:1). */
+.kz-tech a:not(.kz-tech-button) { color: inherit; }
 .kz-tech ::selection { color: var(--kz-tech-black); background: var(--kz-tech-cyan-300); }
 .kz-tech :focus-visible {
   outline: 3px solid var(--kz-tech-focus);
@@ -60,7 +63,7 @@
 }
 .kz-tech-title--hero { max-width: 13ch; font-size: var(--kz-tech-text-hero); }
 .kz-tech-lede { max-width: 60ch; margin: var(--kz-tech-space-5) 0 0; color: var(--kz-tech-text-muted); font-size: var(--kz-tech-text-lg); }
-.kz-tech-gradient-text { color: var(--kz-tech-white); background: linear-gradient(100deg, var(--kz-tech-cyan-300), var(--kz-tech-white) 46%, var(--kz-tech-gold-300)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.kz-tech-gradient-text { color: var(--kz-tech-white); background: linear-gradient(100deg, var(--kz-tech-cyan-300), var(--kz-tech-white) 46%, var(--kz-tech-violet-300)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 
 /* Navegación */
 .kz-tech-header {
@@ -73,7 +76,7 @@
 }
 .kz-tech-nav { min-height: 4.5rem; display: flex; align-items: center; gap: var(--kz-tech-space-5); }
 .kz-tech-brand { display: inline-flex; align-items: center; gap: var(--kz-tech-space-3); color: var(--kz-tech-white); font-weight: 900; letter-spacing: 0.08em; text-decoration: none; white-space: nowrap; }
-.kz-tech-brand__mark { position: relative; width: 1.8rem; height: 1.8rem; border: 2px solid var(--kz-tech-gold-500); border-radius: 0.45rem; transform: rotate(45deg); box-shadow: 0 0 18px rgba(139, 92, 246, 0.28); }
+.kz-tech-brand__mark { position: relative; width: 1.8rem; height: 1.8rem; border: 2px solid var(--kz-tech-violet-500); border-radius: 0.45rem; transform: rotate(45deg); box-shadow: 0 0 18px rgba(139, 92, 246, 0.28); }
 .kz-tech-brand__mark::after { content: ""; position: absolute; inset: 0.36rem; border-radius: 50%; background: var(--kz-tech-cyan-500); box-shadow: 0 0 12px rgba(0, 229, 255, 0.7); }
 .kz-tech-nav__links { display: flex; align-items: center; gap: var(--kz-tech-space-1); margin: 0 0 0 auto; padding: 0; list-style: none; }
 .kz-tech-nav__link { display: inline-flex; min-height: var(--kz-tech-touch); align-items: center; padding: 0 var(--kz-tech-space-4); border-radius: var(--kz-tech-radius-pill); color: var(--kz-tech-text-muted); font-size: var(--kz-tech-text-sm); font-weight: 700; text-decoration: none; transition: color var(--kz-tech-duration) var(--kz-tech-ease), background var(--kz-tech-duration) var(--kz-tech-ease); }
@@ -107,7 +110,7 @@
 .kz-tech-button--primary { color: var(--kz-tech-black); background: var(--kz-tech-cyan-500); box-shadow: 0 10px 28px rgba(0, 229, 255, 0.2); }
 .kz-tech-button--primary:hover { box-shadow: 0 14px 34px rgba(0, 229, 255, 0.32); }
 .kz-tech-button--secondary { color: var(--kz-tech-white); border-color: var(--kz-tech-border-strong); background: rgba(0, 229, 255, 0.04); }
-.kz-tech-button--gold { color: var(--kz-tech-black); background: var(--kz-tech-gold-500); box-shadow: 0 10px 28px rgba(139, 92, 246, 0.2); }
+.kz-tech-button--violet { color: var(--kz-tech-black); background: var(--kz-tech-violet-500); box-shadow: 0 10px 28px rgba(139, 92, 246, 0.2); }
 .kz-tech-button--quiet { color: var(--kz-tech-text); border-color: var(--kz-tech-border); background: transparent; }
 .kz-tech-button:disabled, .kz-tech-button[aria-disabled="true"] { opacity: 0.48; pointer-events: none; filter: grayscale(0.35); }
 .kz-tech-button__icon { width: 1.15rem; height: 1.15rem; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 2; }
@@ -125,7 +128,7 @@
 .kz-tech-card--interactive { transition: transform var(--kz-tech-duration) var(--kz-tech-ease), border-color var(--kz-tech-duration) var(--kz-tech-ease), box-shadow var(--kz-tech-duration) var(--kz-tech-ease); }
 .kz-tech-card--interactive:hover, .kz-tech-card--interactive:focus-within { transform: translateY(-4px); border-color: var(--kz-tech-border-strong); box-shadow: var(--kz-tech-shadow-cyan); }
 .kz-tech-card--featured { border-color: rgba(139, 92, 246, 0.55); box-shadow: var(--kz-tech-shadow-gold); }
-.kz-tech-card--featured::before { background: linear-gradient(90deg, var(--kz-tech-gold-500), transparent); }
+.kz-tech-card--featured::before { background: linear-gradient(90deg, var(--kz-tech-violet-500), transparent); }
 .kz-tech-price { font-family: var(--kz-tech-font-display); font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1; letter-spacing: -0.04em; }
 .kz-tech-price small { color: var(--kz-tech-text-muted); font-family: var(--kz-tech-font-body); font-size: var(--kz-tech-text-sm); letter-spacing: 0; }
 .kz-tech-list { display: grid; gap: var(--kz-tech-space-3); margin: 0; padding: 0; list-style: none; }
@@ -135,7 +138,7 @@
 /* Insignias y mensajes */
 .kz-tech-badge { display: inline-flex; width: fit-content; align-items: center; gap: var(--kz-tech-space-2); padding: 0.35rem 0.7rem; border: 1px solid var(--kz-tech-border); border-radius: var(--kz-tech-radius-pill); color: var(--kz-tech-text-muted); background: rgba(255, 255, 255, 0.035); font-size: var(--kz-tech-text-xs); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
 .kz-tech-badge--cyan { color: var(--kz-tech-cyan-300); border-color: rgba(0, 229, 255, 0.35); }
-.kz-tech-badge--gold { color: var(--kz-tech-gold-300); border-color: rgba(139, 92, 246, 0.35); }
+.kz-tech-badge--violet { color: var(--kz-tech-violet-300); border-color: rgba(139, 92, 246, 0.35); }
 .kz-tech-alert { display: grid; grid-template-columns: auto 1fr; gap: var(--kz-tech-space-3); padding: var(--kz-tech-space-4); border: 1px solid var(--kz-tech-border); border-radius: var(--kz-tech-radius-md); background: var(--kz-tech-surface-1); }
 .kz-tech-alert__icon { font-weight: 900; }
 .kz-tech-alert p { margin: 0; color: var(--kz-tech-text-muted); }

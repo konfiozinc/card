@@ -30,8 +30,8 @@
   --kz-tech-navy-800: var(--kz-surface);
   --kz-tech-cyan-500: var(--kz-cyan);
   --kz-tech-cyan-300: var(--kz-cyan-light);
-  --kz-tech-gold-500: var(--kz-violet);        /* oro retirado → violeta de Neon */
-  --kz-tech-gold-300: var(--kz-violet-light);  /* oro retirado → violeta claro */
+  --kz-tech-violet-500: var(--kz-violet);      /* acento de marca (el oro esta retirado) */
+  --kz-tech-violet-300: var(--kz-violet-light); /* acento claro */
   --kz-tech-orange-500: var(--kz-violet);
   --kz-tech-white: var(--kz-text);
   --kz-tech-slate-50: var(--kz-text);

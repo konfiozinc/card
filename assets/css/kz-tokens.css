@@ -5,8 +5,8 @@
 
    KZ-DESIGN-001 · Por qué existe este archivo
    La identidad estaba partida: styles.css y admin.css declaraban su propia
-   paleta vieja (--gold: var(--kz-cyan), --bg: var(--kz-bg), --fg: var(--kz-text)) y kz-neon.css
-   volvía a declarar los mismos nombres con valores nuevos. El resultado
+   paleta vieja (nombres heredados —el del oro, --bg, --fg— reapuntados al cian)
+   y kz-neon.css volvía a declarar los mismos nombres con valores nuevos. El resultado
    dependía del orden de los <link>: en unas páginas mandaba el neón y en otras
    el dorado. Además el panel no cargaba la identidad, así que seguía en oro.
 
@@ -67,11 +67,7 @@
    Estos nombres ya los usan las reglas existentes; al cambiarlos aquí,
    toda la web comercial pasa a la identidad neón sin editar componentes. */
 :root {
-  --gold: var(--kz-cyan);
-  --gold-rgb: var(--kz-rgb-cyan);
-  --gold2: var(--kz-cyan-light);
   --orange: var(--kz-violet-light);   /* extremo del degradado: mantiene AA */
-  --cyan: var(--kz-cyan);
 
   --bg: var(--kz-bg);
   --surface: var(--kz-deep);

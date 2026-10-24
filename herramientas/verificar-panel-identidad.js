@@ -45,7 +45,7 @@ const chequear = (n, ok, d) => { salida.push({ n, ok: !!ok }); console.log('  ['
       tieneTokens: hojas.some((h) => h.indexOf('kz-tokens.css') !== -1),
       bg: v('--bg'), gold: v('--gold'), fg: v('--fg'), border: v('--border'),
       bgEsIdentidad: es(v('--bg'), cfg.bg),
-      goldEsCian: es(v('--gold'), cfg.cyan),
+      goldRetirado: v('--gold') === '',
       fgEsIdentidad: es(v('--fg'), cfg.text),
       botonFondo: boton ? getComputedStyle(boton).backgroundColor : null,
       botonEsOro: boton ? es(getComputedStyle(boton).backgroundColor, '#F0B429') : false,
@@ -54,7 +54,11 @@ const chequear = (n, ok, d) => { salida.push({ n, ok: !!ok }); console.log('  ['
   }, { bg: '#050B14', cyan: '#00E5FF', text: '#FFFFFF' });
 
   chequear('El panel carga la hoja de tokens', r.tieneTokens, r.hojas.filter((h) => /css\//.test(h)).join(' '));
-  chequear('--gold resuelve al cian oficial', r.goldEsCian, '--gold = ' + r.gold);
+  /* Antes se comprobaba que el nombre heredado del oro estuviera reapuntado al cian.
+     En KZ-DESIGN-001 se retiro del todo (214 referencias renombradas al token), asi que
+     el invariante correcto ya no es "apunta al cian" sino "el nombre no existe": un
+     elemento que aun lo usara se quedaria sin color, y eso hay que verlo aqui. */
+  chequear('El nombre heredado del oro ya no existe', r.goldRetirado, '--gold = ' + (r.gold || 'no declarada'));
   chequear('--bg resuelve al fondo oficial', r.bgEsIdentidad, '--bg = ' + r.bg);
   chequear('--fg resuelve al texto oficial', r.fgEsIdentidad, '--fg = ' + r.fg);
   chequear('--border resuelve al borde oficial', /148|180|220|\.16/.test(r.border) || !!r.border, '--border = ' + r.border);

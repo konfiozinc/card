@@ -79,8 +79,8 @@ paleta silenciosa.
 | `--kz-tech-navy-950` | `#07121e` | `#050B14` (**--kz-bg**) | una sola base |
 | `--kz-tech-surface-1` | `#0d1d2c` | `#101C35` (**--kz-surface**) | una sola superficie |
 | `--kz-tech-text` | `#f4f8fb` | `#FFFFFF` (**--kz-text**) | un solo texto |
-| `--kz-tech-gold-500` | `#f0b429` | **`--kz-violet`** | el oro está retirado; la identidad Neon es cian + violeta |
-| `--kz-tech-gold-300` | `#ffd978` | **`--kz-violet-light`** | idem |
+| `--kz-tech-violet-500` | `#8B5CF6` | *(nativo)* | el oro está retirado; la identidad Neon es cian + violeta |
+| `--kz-tech-violet-300` | `#A78BFA` | *(nativo)* | idem |
 | `--kz-tech-orange-500` | `#f97316` | **`--kz-violet`** | fuera de la identidad |
 | `--kz-tech-cyan-500/300` | `#00e5ff` / `#77f3ff` | se conservan | ya coincidían |
 

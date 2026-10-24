@@ -50,12 +50,17 @@ hay errores de JavaScript.
 
 **Resultado: 23/23 con identidad correcta, 0 errores.**
 
-Detecta un riesgo real que había quedado sin cubrir: `assets/css/styles.css` todavía declara
-`--gold: #F0B429` (el oro viejo) y solo lo anula `kz-neon.css` al cargarse después. Si alguien invierte
-el orden de los `<link>`, las páginas comerciales se vuelven doradas al instante. La auditoría lo
-detecta; la herramienta deja constancia del invariante.
+Detectaba un riesgo real que había quedado sin cubrir: `assets/css/styles.css` todavía declaraba
+el nombre heredado del oro con el valor `#F0B429` y solo lo anulaba `kz-neon.css` al cargarse después.
+Si alguien invertía el orden de los `<link>`, las páginas comerciales se volvían doradas al instante.
+La auditoría lo detectaba y dejaba constancia del invariante.
 
-### 2.3 Laboratorio de componentes — `design-system/index.html`
+> **Riesgo cerrado en KZ-DESIGN-001.** El nombre heredado ya no existe: las 214 referencias se
+> renombraron a `var(--kz-cyan)` / `var(--kz-cyan-light)` / `var(--kz-rgb-cyan)` y las
+> declaraciones se retiraron de `styles.css`, `admin.css`, `premium-assets/styles.css` y
+> `panel.html`. Ya no queda ningún orden de `<link>` capaz de repintar el sitio de oro.
+
+### 2.3 Laboratorio de componentes — `design-system/lab.html`
 
 Una página local, **no pública** (`noindex`, fuera de la navegación del sitio y del sitemap), que carga
 **el mismo par de hojas que una página comercial** y muestra: color con contraste declarado, tipografía,
@@ -63,6 +68,12 @@ acciones, formularios con sus estados de error, tarjetas de precio con los impor
 avisos y el contrato del sistema.
 
 No define ni un color propio: todos los valores salen de `--kz-*`.
+
+> **Nota de KZ-DESIGN-001:** el laboratorio propio de esta misión era `design-system/index.html`.
+> Se retiró para no dejar dos laboratorios enseñando vocabularios distintos; el único vigente es
+> `design-system/lab.html`, el de la biblioteca que entregó Codex en KZ-TECH-001, ya re-baseado
+> sobre `--kz-*`. Los nombres `--kz-tech-gold-500/300` y las clases `--gold` también se
+> renombraron a `--violet`, porque pintaban violeta con etiqueta de oro.
 
 **Verificado con `herramientas/verificar-laboratorio.js`: 12/12.**
 

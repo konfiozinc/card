@@ -169,9 +169,42 @@ function contrast(a, b) {
     return rect.width > 0 && rect.height > 0 && rect.height < 44;
   }).length);
   check('Objetivos táctiles principales miden al menos 44 px', undersizedTargets === 0, `${undersizedTargets} controles inferiores`);
-  check('Contraste texto principal AA', contrast('#f4f8fb', '#07121e') >= 4.5, contrast('#f4f8fb', '#07121e').toFixed(2));
-  check('Contraste botón cian AA', contrast('#03080d', '#00e5ff') >= 4.5, contrast('#03080d', '#00e5ff').toFixed(2));
-  check('Contraste botón oro AA', contrast('#03080d', '#f0b429') >= 4.5, contrast('#03080d', '#f0b429').toFixed(2));
+  /* Antes estos tres chequeos comparaban literales fijos de la paleta original de
+     KZ-TECH-001 (#f4f8fb, #07121e, #03080d, #f0b429). Medidos asi seguian "pasando"
+     aunque el color ya no existiera en la pagina, y el boton dorado se retiro en
+     KZ-DESIGN-001. Ahora se mide el contraste real de lo que hay en el laboratorio. */
+  const contrasteReal = await page.evaluate(() => {
+    const aRgb = (s) => { const m = (s || '').match(/\d+/g); return m ? m.slice(0, 3).map(Number) : null; };
+    const lum = (c) => {
+      const f = c.map((v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); });
+      return 0.2126 * f[0] + 0.7152 * f[1] + 0.0722 * f[2];
+    };
+    const ratio = (a, b) => { const l1 = lum(a), l2 = lum(b); const hi = Math.max(l1, l2), lo = Math.min(l1, l2); return (hi + 0.05) / (lo + 0.05); };
+    const esOpaco = (s) => {
+      const n = (s || '').match(/[\d.]+/g) || [];
+      return !/rgba?\(/.test(s) || (n.length >= 4 ? Number(n[3]) > 0.05 : true);
+    };
+    const fondoDe = (el) => {
+      let n = el;
+      while (n && n !== document.documentElement) {
+        const bg = getComputedStyle(n).backgroundColor;
+        if (esOpaco(bg)) { const c = aRgb(bg); if (c) return c; }
+        n = n.parentElement;
+      }
+      return aRgb(getComputedStyle(document.documentElement).backgroundColor) || [5, 11, 20];
+    };
+    const cuerpo = document.body;
+    const texto = { color: getComputedStyle(cuerpo).color, r: ratio(aRgb(getComputedStyle(cuerpo).color), fondoDe(cuerpo)) };
+    const botones = [...document.querySelectorAll('.kz-tech-button')].map((b) => {
+      const cs = getComputedStyle(b);
+      return { clase: b.className, texto: (b.textContent || '').trim().slice(0, 20), r: ratio(aRgb(cs.color), fondoDe(b)) };
+    });
+    return { texto, botones };
+  });
+  check('Contraste texto principal AA', contrasteReal.texto.r >= 4.5, contrasteReal.texto.r.toFixed(2) + ' · ' + contrasteReal.texto.color);
+  const peores = contrasteReal.botones.filter((b) => b.r < 4.5);
+  check('Contraste de cada botón del laboratorio AA', contrasteReal.botones.length > 0 && peores.length === 0,
+    contrasteReal.botones.map((b) => b.texto + '=' + b.r.toFixed(2)).join(' · ') || 'sin botones');
 
   const reduced = await browser.newContext({ viewport: { width: 375, height: 812 }, reducedMotion: 'reduce' });
   const reducedPage = await reduced.newPage();

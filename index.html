@@ -15,6 +15,10 @@
   <link rel="canonical" href="https://konfiozinc.github.io/card/">
   <title>Konfío Zinc — Soluciones digitales a medida</title>
   <link rel="icon" href="premium-assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" onload="this.rel='stylesheet'" />
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" /></noscript>
   <link rel="stylesheet" href="assets/css/kz-neon.css">
   <link rel="stylesheet" href="premium-assets/styles.css">
   <link rel="stylesheet" href="premium-assets/chat.css">
@@ -31,10 +35,15 @@
       <span></span><span></span><span></span><span class="sr-only">Abrir menú</span>
     </button>
     <nav id="nav-principal" class="nav" aria-label="Navegación principal">
-      <a href="#servicios">Servicios</a>
-      <a href="#portafolio">Portafolio</a>
-      <a href="#precios">Precios</a>
-      <a href="#contacto">Contacto</a>
+      <!-- KZ-DESIGN-001: mismas etiquetas y destinos que la cabecera del resto del
+           sitio. Antes apuntaban a anclas de esta misma página (#servicios…), así que
+           la portada y las interiores ofrecían dos navegaciones distintas. -->
+      <a href="servicios.html">Servicios</a>
+      <a href="portafolio.html">Portafolio</a>
+      <a href="precios.html">Precios</a>
+      <a href="nosotros.html">Nosotros</a>
+      <a href="blog.html">Blog</a>
+      <a href="contacto.html">Contacto</a>
       <a class="nav__cta" href="https://wa.me/573206411340?text=Hola%20Konf%C3%ADo%20Zinc%2C%20quiero%20agendar%20un%20diagn%C3%B3stico." target="_blank" rel="noopener noreferrer">Agendar diagnóstico</a>
     </nav>
   </header>
