@@ -226,7 +226,8 @@ service cloud.firestore {
         return (request.resource.data.estado == 'CONFIRMADO'
                  && request.resource.data.confirmadoPor == request.auth.uid
                  && request.resource.data.confirmadoEn is timestamp
-                 && fechaTexto(request.resource.data.get('periodoFin', '2000-01-01'))
+                 && (!('periodoFin' in request.resource.data)
+                     || fechaTexto(request.resource.data.get('periodoFin', '2000-01-01')))
                  && !tocados().hasAny(['anuladoPor', 'anuladoEn', 'motivo']))
             || (request.resource.data.estado == 'ANULADO'
                  && request.resource.data.anuladoPor == request.auth.uid
@@ -250,9 +251,16 @@ service cloud.firestore {
         && textoNoVacio(request.resource.data.get('clienteId', ''))
         && fechaTexto(request.resource.data.get('fechaPago', '2000-01-01'))
         && request.resource.data.get('registradoPor', '') == request.auth.uid
+        && request.resource.data.get('concepto', 'DESARROLLO') in [
+             'DESARROLLO', 'RENOVACION_DOMINIO', 'HOSTING', 'MANTENIMIENTO',
+             'SERVICIO_PERIODICO', 'AMPLIACION', 'OTRO'
+           ]
+        && (!('descripcion' in request.resource.data)
+             || (request.resource.data.descripcion is string
+                 && request.resource.data.descripcion.size() <= 300))
         && request.resource.data.keys().hasOnly([
-             'clienteId', 'clienteNombre', 'servicioId', 'monto', 'metodoPago',
-             'fechaPago', 'referencia', 'comprobanteUrl', 'estado',
+             'clienteId', 'clienteNombre', 'servicioId', 'monto', 'concepto', 'descripcion',
+             'metodoPago', 'fechaPago', 'referencia', 'comprobanteUrl', 'estado',
              'registradoPor', 'registradoPorNombre', 'createdAt'
            ]);
       allow update: if esAdmin()

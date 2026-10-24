@@ -54,6 +54,20 @@ window.KZ_CONFIG = {
     { nombre: 'Mini Web Pro',    precio: 99900,  servicio: 'tarjetas', duracionMeses: 12, incluye: ['Todo lo de Mini Web Básica', 'Catálogo o menú digital', 'Galería y botón de pedido'] },
   ],
 
+  /* ── Conceptos de cobro (CARD-SPARK-002) ─────────────────────────────
+     Cada pago lleva un `concepto` y la confirmación aplica SOLO el efecto de
+     ese concepto. Un pago de DESARROLLO no renueva nada; solo un concepto
+     renovable extiende una fecha. `meses` = periodo que cubre el cobro. */
+  conceptosPago: [
+    { codigo: 'DESARROLLO',         etiqueta: 'Desarrollo inicial (pago único)', extensible: false, meses: 0 },
+    { codigo: 'RENOVACION_DOMINIO', etiqueta: 'Renovación de dominio',            extensible: true,  meses: 12 },
+    { codigo: 'HOSTING',            etiqueta: 'Hosting contratado',               extensible: true,  meses: 12 },
+    { codigo: 'MANTENIMIENTO',      etiqueta: 'Mantenimiento y soporte',          extensible: true,  meses: 12 },
+    { codigo: 'SERVICIO_PERIODICO', etiqueta: 'Servicio periódico contratado',    extensible: true,  meses: 12 },
+    { codigo: 'AMPLIACION',         etiqueta: 'Ampliación / trabajo adicional',   extensible: false, meses: 0 },
+    { codigo: 'OTRO',               etiqueta: 'Otro concepto autorizado',         extensible: false, meses: 0 }
+  ],
+
   /* ── Catálogos de apoyo ─────────────────────────────────────────── */
   metodosPago: ['Nequi', 'Daviplata', 'Transferencia', 'Efectivo'],
 

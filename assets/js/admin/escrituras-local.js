@@ -150,6 +150,8 @@ export async function registrarPago(d) {
   const pago = {
     clienteId: d.clienteId, clienteNombre: clienteSnap.data().nombre,
     servicioId: d.servicioId || null, monto: Number(d.monto),
+    concepto: d.concepto || 'DESARROLLO',
+    descripcion: String(d.descripcion || '').trim() || null,
     metodoPago: d.metodoPago || 'Efectivo', fechaPago: d.fechaPago || iso(new Date()),
     referencia: referencia || null, comprobanteUrl: d.comprobanteUrl || null,
     estado: 'PENDIENTE', registradoPor: c.uid, registradoPorNombre: c.nombre,
@@ -181,7 +183,11 @@ export async function confirmarPago(pagoId) {
   /* En una transacción: se relee el pago y se decide con el estado REAL en el
      servidor, no con lo que vio la pantalla. Confirmar dos veces (dos clics,
      dos pestañas, un reintento tras un corte) es imposible: la segunda
-     transacción ve CONFIRMADO y aborta antes de renovar nada. */
+     transacción ve CONFIRMADO y aborta antes de renovar nada.
+
+     CARD-SPARK-002: el efecto depende del CONCEPTO. Un pago de DESARROLLO
+     (pago único) NO renueva ni toca vencimientos; solo un concepto renovable
+     (dominio/hosting/mantenimiento/servicio periódico) extiende su fecha. */
   const hecho = await runTransaction(db, async (tx) => {
     const pagoSnap = await tx.get(pagoRef);
     if (!pagoSnap.exists()) throw new Error('Pago no encontrado.');
@@ -193,45 +199,62 @@ export async function confirmarPago(pagoId) {
     const clienteSnap = await tx.get(clienteRef);
     if (!clienteSnap.exists()) throw new Error('Cliente no encontrado.');
 
-    const vencAnt = clienteSnap.data().fechaVencimiento;
+    const concepto = (CFG.conceptosPago || []).find((x) => x.codigo === (pago.concepto || 'DESARROLLO'))
+      || { codigo: 'DESARROLLO', extensible: false, meses: 0 };
     const hoy = new Date();
-    const base = vencAnt && Math.round((aFecha(vencAnt) - hoy) / 86400000) > 0 ? aFecha(vencAnt) : hoy;
-    const nuevoVenc = iso(sumarMeses(base, NEG.mesesSuscripcion));
-    const estado = estadoPorVencimiento(nuevoVenc);
+    let nuevoVenc = null;
 
-    tx.update(clienteRef, {
-      fechaVencimiento: nuevoVenc, estadoCliente: estado, estadoServicio: estado,
-      updatedAt: serverTimestamp()
-    });
+    if (concepto.extensible) {
+      const vencAnt = clienteSnap.data().fechaVencimiento;
+      const base = vencAnt && Math.round((aFecha(vencAnt) - hoy) / 86400000) > 0 ? aFecha(vencAnt) : hoy;
+      nuevoVenc = iso(sumarMeses(base, concepto.meses || NEG.mesesSuscripcion));
+    }
+
+    if (nuevoVenc) {
+      const estado = estadoPorVencimiento(nuevoVenc);
+      tx.update(clienteRef, {
+        fechaVencimiento: nuevoVenc, estadoCliente: estado, estadoServicio: estado,
+        updatedAt: serverTimestamp()
+      });
+      tx.update(pagoRef, {
+        estado: 'CONFIRMADO', confirmadoPor: c.uid, confirmadoPorNombre: c.nombre,
+        periodoInicio: iso(hoy), periodoFin: nuevoVenc, confirmadoEn: serverTimestamp()
+      });
+      return { concepto: concepto.codigo, estado, nuevoVenc, clienteId: pago.clienteId };
+    }
+
+    /* Pago no renovable (desarrollo/ampliación/otro): solo se confirma. */
     tx.update(pagoRef, {
       estado: 'CONFIRMADO', confirmadoPor: c.uid, confirmadoPorNombre: c.nombre,
-      periodoInicio: iso(hoy), periodoFin: nuevoVenc, confirmadoEn: serverTimestamp()
+      confirmadoEn: serverTimestamp()
     });
-    return { estado, nuevoVenc, clienteId: pago.clienteId };
+    return { concepto: concepto.codigo, estado: null, nuevoVenc: null, clienteId: pago.clienteId };
   });
 
-  /* Los servicios del cliente se actualizan aparte: consultar una colección no
-     cabe en la transacción. Si fallara, el pago y el vencimiento ya están
-     aplicados, y el operador se entera en vez de quedar con datos divergentes. */
+  /* Los servicios del cliente se actualizan aparte y SOLO si hubo renovación. */
   let aviso = null;
-  try {
-    const servicios = await getDocs(query(collection(db, 'servicios'), where('clienteId', '==', hecho.clienteId)));
-    if (!servicios.empty) {
-      const lote = writeBatch(db);
-      servicios.forEach(s => lote.update(s.ref, {
-        fechaVencimiento: hecho.nuevoVenc, estado: hecho.estado, fechaInicio: iso(new Date()), updatedAt: serverTimestamp()
-      }));
-      await lote.commit();
+  if (hecho.nuevoVenc) {
+    try {
+      const servicios = await getDocs(query(collection(db, 'servicios'), where('clienteId', '==', hecho.clienteId)));
+      if (!servicios.empty) {
+        const lote = writeBatch(db);
+        servicios.forEach((s) => lote.update(s.ref, {
+          fechaVencimiento: hecho.nuevoVenc, estado: hecho.estado, fechaInicio: iso(new Date()), updatedAt: serverTimestamp()
+        }));
+        await lote.commit();
+      }
+    } catch (e) {
+      aviso = 'El pago quedó confirmado y el vencimiento aplicado, pero los servicios del cliente no se pudieron actualizar: ' + e.message;
     }
-  } catch (e) {
-    aviso = 'El pago quedó confirmado y el vencimiento aplicado, pero los servicios del cliente no se pudieron actualizar: ' + e.message;
   }
 
-  await historial(c, hecho.clienteId, 'PENDIENTE_PAGO', hecho.estado,
-    'Pago confirmado: renovación +' + NEG.mesesSuscripcion + ' meses');
+  await historial(c, hecho.clienteId, 'PENDIENTE_PAGO', hecho.estado || 'ACTIVO',
+    hecho.nuevoVenc
+      ? 'Pago confirmado (' + hecho.concepto + '): vigencia extendida a ' + hecho.nuevoVenc
+      : 'Pago confirmado (' + hecho.concepto + '): pago único, sin cambios de vigencia');
   await auditar(c, 'CONFIRMAR_PAGO', 'pagos', pagoId,
-    { estado: 'PENDIENTE' }, { estado: 'CONFIRMADO', nuevoVenc: hecho.nuevoVenc });
-  return { id: pagoId, estado: 'CONFIRMADO', nuevoVencimiento: hecho.nuevoVenc, aviso };
+    { estado: 'PENDIENTE' }, { estado: 'CONFIRMADO', concepto: hecho.concepto, nuevoVenc: hecho.nuevoVenc });
+  return { id: pagoId, estado: 'CONFIRMADO', concepto: hecho.concepto, nuevoVencimiento: hecho.nuevoVenc, aviso };
 }
 
 export async function anularPago(pagoId, motivo) {
