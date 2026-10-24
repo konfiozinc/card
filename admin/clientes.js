@@ -475,7 +475,13 @@ async function verDetalle(c) {
       </dl>
       <h4>Servicios contratados</h4>
       <div id="det-servicios" class="celda-suave">Cargando…</div>
-      <button type="button" class="btn btn--ghost btn--mini" id="det-add-servicio"><i class="fas fa-plus" aria-hidden="true"></i> Añadir servicio</button>
+      <form id="det-servicio-form" class="grid-2" style="margin-top:.5rem">
+        <div class="campo"><label>Servicio</label>
+          <select id="ds-servicio">${CFG.servicios.map(s => `<option value="${esc(s.etiqueta)}">${esc(s.etiqueta)}</option>`).join('')}</select></div>
+        <div class="campo"><label>Precio (COP)</label><input id="ds-precio" type="number" min="0" required></div>
+        <div class="campo"><label>Vence (opcional)</label><input id="ds-vence" type="date"></div>
+        <div class="campo" style="align-self:end"><button type="submit" class="btn btn--primary btn--mini"><i class="fas fa-plus" aria-hidden="true"></i> Añadir servicio</button></div>
+      </form>
       <h4>Pagos</h4>
       ${pagos.length ? `<table class="tabla"><thead><tr><th>Fecha</th><th>Monto</th><th>Método</th><th>Estado</th></tr></thead><tbody>
         ${pagos.map(p => `<tr><td>${fechaLarga(p.fechaPago)}</td><td>${cop(p.monto)}</td><td>${esc(p.metodoPago)}</td><td>${badgeEstado(p.estado)}</td></tr>`).join('')}
@@ -494,12 +500,13 @@ async function verDetalle(c) {
         ? sv.map((s) => `<div class="celda-suave">${esc(s.servicio)}${s.categoria ? ' · ' + esc(s.categoria) : ''} · ${cop(s.precio)} · ${esc(s.estado || '')}${s.fechaVencimiento ? ' · vence ' + esc(s.fechaVencimiento) : ''}</div>`).join('')
         : 'Sin servicios registrados.';
     }).catch(() => { ds.textContent = 'No se pudieron cargar los servicios.'; });
-    document.getElementById('det-add-servicio').addEventListener('click', async () => {
-      const servicio = prompt('Servicio (tarjetas, catalogos, menus, landing, qr, agentes):');
+    document.getElementById('det-servicio-form').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const servicio = document.getElementById('ds-servicio').value;
+      const precio = Number(document.getElementById('ds-precio').value) || 0;
       if (!servicio) return;
-      const precio = Number(prompt('Precio COP:') || 0);
       try {
-        await escrituras.crearServicio({ clienteId: c.id, clienteNombre: c.nombre, servicio, precio });
+        await escrituras.crearServicio({ clienteId: c.id, clienteNombre: c.nombre, servicio, precio, fechaVencimiento: document.getElementById('ds-vence').value || null });
         toast('Servicio añadido');
         verDetalle(c);
       } catch (ex) { toast(ex.message, 'error'); }
