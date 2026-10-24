@@ -29,7 +29,7 @@
   if (canvas && !reducedMotion) {
     var ctx = canvas.getContext('2d');
     var W, H, particles = [];
-    var COLORS = ['rgba(240,180,41,', 'rgba(0,229,255,', 'rgba(249,115,22,'];
+    var COLORS = ['rgba(0,229,255,', 'rgba(139,92,246,', 'rgba(167,139,250,'];
 
     function resize() {
       W = canvas.width = window.innerWidth;

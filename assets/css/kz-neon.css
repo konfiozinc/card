@@ -1,0 +1,189 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   KONFÍO ZINC · NEON TECH
+   assets/css/kz-neon.css
+
+   Capa de identidad visual. No describe componentes nuevos: reasigna los
+   tokens del sistema y añade el acabado neón (degradados, bordes y
+   resplandores) a las reglas que ya existen, de modo que cualquier página
+   que la cargue hereda la identidad sin tocar su contenido.
+
+   ORDEN DE CARGA
+     · Páginas comerciales (servicios, precios, portafolio, blog…):
+         assets/css/styles.css  →  assets/css/kz-neon.css
+     · Portada premium y páginas premium:
+         assets/css/kz-neon.css  →  premium-assets/styles.css
+       (el styles.css premium declara sus nombres como alias de --kz-*)
+
+   PALETA Y CONTRASTE MEDIDO (WCAG 2.1, sRGB)
+     blanco  #FFFFFF sobre base      19,7:1   texto principal
+     blanco  #FFFFFF sobre superficie 14,9:1
+     #D4DEED sobre base              14,5:1   texto secundario
+     #D4DEED sobre superficie        12,5:1
+     #A7B8D1 sobre base               9,8:1   texto apagado
+     #A7B8D1 sobre superficie         8,4:1
+     #00E5FF sobre base              12,8:1   acento y enlaces
+     #00E5FF sobre superficie        11,0:1
+     #050B14 sobre #00E5FF           12,8:1   texto oscuro en botón cian
+     #050B14 sobre #A78BFA            7,3:1   extremo claro del degradado
+     #050B14 sobre #8B5CF6            4,7:1   punto más oscuro del degradado
+     #52678F sobre base               3,5:1   borde de componente (no texto)
+
+   REGLA DE USO
+     El violeta #8B5CF6 se emplea en degradados, bordes y resplandores;
+     nunca como color de texto pequeño (4,0:1 sobre superficie: insuficiente).
+     Para texto violeta se usa #A78BFA (6,2:1 sobre superficie).
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── 01. PRIMITIVAS ─────────────────────────────────────────────────── */
+:root {
+  /* Fondos y superficies */
+  --kz-bg: #050B14;
+  --kz-deep: #0A1424;            /* fondo de sección */
+  --kz-surface: #101C35;         /* tarjeta / panel */
+  --kz-surface-raised: #152746;  /* panel elevado, burbujas */
+
+  /* Identidad cromática */
+  --kz-cyan: #00E5FF;
+  --kz-cyan-light: #39DFF5;
+  --kz-violet: #8B5CF6;
+  --kz-violet-light: #A78BFA;
+  --kz-rgb-cyan: 0 229 255;
+  --kz-rgb-violet: 139 92 246;
+
+  /* Tipografía */
+  --kz-text: #FFFFFF;
+  --kz-text-secondary: #D4DEED;
+  --kz-text-muted: #A7B8D1;
+
+  /* Bordes: componente (≥3:1) y divisor decorativo */
+  --kz-border: #52678F;
+  --kz-border-soft: #2C3E5C;
+
+  /* Estados */
+  --kz-focus: #39DFF5;
+  --kz-success: #34D399;
+  --kz-danger: #FF9AA6;
+
+  /* Degradados. El de marca incluye el violeta aprobado en el centro y
+     cierra en violeta claro para que el texto oscuro conserve el contraste. */
+  --kz-gradient-brand: linear-gradient(110deg, #00E5FF, #8B5CF6 45%, #A78BFA);
+  --kz-gradient-hero: linear-gradient(145deg, #050B14, #101C35);
+  --kz-gradient-text: linear-gradient(100deg, #39DFF5, #A78BFA);
+
+  /* Resplandores: solo box-shadow (no filtros caros en elementos en scroll) */
+  --kz-glow-cyan: 0 0 24px rgb(var(--kz-rgb-cyan) / .18);
+  --kz-glow-violet: 0 0 24px rgb(var(--kz-rgb-violet) / .18);
+  --kz-glow-cta: 0 12px 40px rgb(var(--kz-rgb-cyan) / .22);
+  --kz-ease: cubic-bezier(.16, 1, .3, 1);
+}
+
+/* ─── 02. REASIGNACIÓN DEL TEMA HEREDADO (negro + dorado + naranja) ────
+   Estos nombres ya los usan las reglas existentes; al cambiarlos aquí,
+   toda la web comercial pasa a la identidad neón sin editar componentes. */
+:root {
+  --gold: var(--kz-cyan);
+  --gold-rgb: var(--kz-rgb-cyan);
+  --gold2: var(--kz-cyan-light);
+  --orange: var(--kz-violet-light);   /* extremo del degradado: mantiene AA */
+  --cyan: var(--kz-cyan);
+
+  --bg: var(--kz-bg);
+  --surface: var(--kz-deep);
+  --surface2: var(--kz-surface);
+  --surface-deep: var(--kz-deep);
+  --surface-chat: var(--kz-surface);
+  --elevated: var(--kz-surface-raised);
+
+  --fg: var(--kz-text);
+  --muted: var(--kz-text-muted);
+
+  --border: rgb(148 180 220 / .16);
+  --border-strong: var(--kz-border-soft);
+  --border-gold: rgb(var(--kz-rgb-cyan) / .28);
+  --on-accent: var(--kz-bg);
+
+  --success: var(--kz-success);
+  --danger: var(--kz-danger);
+  --shadow: 0 20px 50px rgb(0 0 0 / .55);
+}
+
+/* ─── 03. BASE ───────────────────────────────────────────────────────── */
+body { background: var(--kz-bg); color: var(--kz-text); }
+::selection { background: var(--kz-cyan); color: var(--kz-bg); }
+
+/* El foco hereda el cian de la identidad sin imponer un contorno nuevo:
+   solo cambia el color del contorno que cada componente ya declara. */
+:where(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline-color: var(--kz-focus);
+}
+
+/* ─── 04. CABECERA ───────────────────────────────────────────────────── */
+.site-header.scrolled {
+  background: rgb(5 11 20 / .92);
+  border-bottom: 1px solid rgb(var(--kz-rgb-cyan) / .22);
+  box-shadow: 0 10px 30px rgb(0 0 0 / .5);
+}
+
+/* ─── 05. BOTONES ────────────────────────────────────────────────────── */
+/* El degradado de marca sustituye al relleno plano: mismo tamaño, mismo
+   texto oscuro, contraste verificado en el extremo más desfavorable. */
+.btn-primary {
+  background: var(--kz-gradient-brand);
+  color: var(--kz-bg);
+  box-shadow: var(--kz-glow-cta);
+}
+.btn-primary:hover,
+.btn-primary:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 46px rgb(var(--kz-rgb-cyan) / .34);
+}
+
+/* ─── 06. TARJETAS Y CHIPS ───────────────────────────────────────────── */
+.card { background: rgb(255 255 255 / .025); border-color: var(--border); }
+.card:hover {
+  border-color: rgb(var(--kz-rgb-cyan) / .38);
+  background: rgb(var(--kz-rgb-cyan) / .04);
+  box-shadow: var(--kz-glow-cyan);
+}
+.card-icon {
+  color: var(--kz-cyan);
+  background: linear-gradient(135deg, rgb(var(--kz-rgb-cyan) / .16), rgb(var(--kz-rgb-violet) / .16));
+}
+
+/* ─── 07. HERO ───────────────────────────────────────────────────────── */
+/* Dos resplandores complementarios: cian arriba y violeta abajo. */
+.hero-glow-1 { background: radial-gradient(circle, rgb(var(--kz-rgb-cyan) / .20), transparent 70%); }
+.hero-glow-2 { background: radial-gradient(circle, rgb(var(--kz-rgb-violet) / .18), transparent 70%); }
+.eyebrow { color: var(--kz-cyan-light); }
+
+/* ─── 08. PIE ────────────────────────────────────────────────────────── */
+.footer { border-top-color: var(--border); }
+.footer-col a:hover, .footer-bottom a:hover { color: var(--kz-cyan-light); }
+
+/* ─── 09. ASESOR FLOTANTE ────────────────────────────────────────────── */
+/* El robot toma el cian como acento y conserva el punto verde de
+   disponibilidad y la etiqueta «¿Te ayudo?». */
+.kz-fab-btn {
+  border-color: var(--kz-cyan);
+  color: var(--kz-cyan);
+  box-shadow: 0 0 0 4px rgb(var(--kz-rgb-cyan) / .16), 0 8px 32px rgb(0 0 0 / .6);
+}
+.kz-fab-btn:hover,
+.kz-fab-btn:focus-visible {
+  box-shadow: 0 0 0 6px rgb(var(--kz-rgb-cyan) / .30), 0 10px 36px rgb(0 0 0 / .7);
+}
+.kz-fab-btn .kz-dot { border-color: var(--kz-bg); }
+.kz-bubble { border-color: var(--kz-cyan); color: var(--kz-text); }
+.kz-chat-header { border-bottom-color: var(--kz-cyan); }
+.kz-avatar { border-color: var(--kz-cyan); }
+.kz-chat-input button:hover { background: var(--kz-violet-light); }
+
+/* El estado de error no debe heredar el violeta del degradado. */
+.state-icon.err { color: var(--kz-danger); }
+
+/* ─── 10. MOVIMIENTO REDUCIDO ────────────────────────────────────────── */
+/* Esta capa no añade animaciones. Si el sistema pide menos movimiento, los
+   resplandores quedan estáticos y nada se oculta. */
+@media (prefers-reduced-motion: reduce) {
+  .card:hover, .btn-primary:hover, .btn-primary:focus-visible { transform: none; }
+}

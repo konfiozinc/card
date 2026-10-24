@@ -69,7 +69,7 @@
         context.beginPath();
         context.ellipse(cx + Math.sin(phase + tilt) * 9, cy + tilt * radius * .55, xRadius, yRadius, phase * .24 + tilt, 0, Math.PI * 2);
         const alpha = .035 + (ring % 5 === 0 ? .09 : 0);
-        context.strokeStyle = ring % 3 === 0 ? `rgba(0,229,255,${alpha})` : `rgba(240,180,41,${alpha + .025})`;
+        context.strokeStyle = ring % 3 === 0 ? `rgba(0,229,255,${alpha})` : `rgba(139,92,246,${alpha + .025})`;
         context.lineWidth = ring % 5 === 0 ? 1.3 : .65;
         context.stroke();
       }
@@ -80,7 +80,7 @@
         const y = cy + Math.sin(angle) * distance * .52;
         context.beginPath();
         context.arc(x, y, i % 8 === 0 ? 2.2 : 1, 0, Math.PI * 2);
-        context.fillStyle = i % 4 ? 'rgba(240,180,41,.5)' : 'rgba(0,229,255,.62)';
+        context.fillStyle = i % 4 ? 'rgba(167,139,250,.5)' : 'rgba(0,229,255,.62)';
         context.fill();
       }
       if (!reduceMotion) frame = requestAnimationFrame(draw);
