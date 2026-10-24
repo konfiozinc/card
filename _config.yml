@@ -32,6 +32,8 @@ exclude:
   - docs
   # Herramientas, pruebas, scripts de respaldo y despliegue.
   - herramientas
+  # KZ-TECH-001: biblioteca y laboratorio internos; Harness integra solo piezas aprobadas.
+  - design-system
   # Código de las Cloud Functions y su configuración.
   - functions
   - firebase.json

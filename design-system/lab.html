@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es-CO" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <meta name="color-scheme" content="dark">
+  <title>Laboratorio Neon Tech · KZ-TECH-001 · KONFÍO ZINC</title>
+  <meta name="description" content="Laboratorio interno y local del sistema de diseño Neon Tech de KONFÍO ZINC.">
+  <link rel="stylesheet" href="./components.css">
+</head>
+<body class="kz-tech">
+  <a class="kz-tech-skip" href="#contenido">Saltar al contenido</a>
+
+  <header class="kz-tech-header" data-kz-tech-nav data-open="false">
+    <nav class="kz-tech-nav kz-tech-shell" aria-label="Navegación del laboratorio">
+      <a class="kz-tech-brand" href="#inicio" aria-label="KONFÍO ZINC, ir al inicio">
+        <span class="kz-tech-brand__mark" aria-hidden="true"></span>
+        KONFÍO ZINC
+      </a>
+      <button class="kz-tech-nav__toggle" type="button" aria-expanded="false" aria-controls="lab-menu" aria-label="Abrir menú" data-kz-tech-nav-toggle>
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="kz-tech-nav__links" id="lab-menu" data-kz-tech-nav-menu>
+        <li><a class="kz-tech-nav__link" href="#identidad" aria-current="page">Identidad</a></li>
+        <li><a class="kz-tech-nav__link" href="#tarjetas">Tarjetas</a></li>
+        <li><a class="kz-tech-nav__link" href="#formularios">Formularios</a></li>
+        <li><a class="kz-tech-nav__link" href="#estados">Estados</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main id="contenido">
+    <section class="kz-tech-section" id="inicio">
+      <div class="kz-tech-shell kz-tech-stack">
+        <div>
+          <p class="kz-tech-eyebrow">KZ-TECH-001 · laboratorio local</p>
+          <h1 class="kz-tech-title kz-tech-title--hero">Tecnología clara, <span class="kz-tech-gradient-text">humana y consistente.</span></h1>
+          <p class="kz-tech-lede">Biblioteca reutilizable para la nueva experiencia Neon Tech. Esta página no contiene datos comerciales ni se publica en producción.</p>
+        </div>
+        <div class="kz-tech-demo-row" aria-label="Variantes de botones">
+          <a class="kz-tech-button kz-tech-button--primary" href="#tarjetas">
+            Explorar componentes
+            <svg class="kz-tech-button__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12h14m-6-6 6 6-6 6"/></svg>
+          </a>
+          <button class="kz-tech-button kz-tech-button--secondary" type="button" data-kz-tech-open-modal="#modal-demo">Abrir modal</button>
+          <button class="kz-tech-button kz-tech-button--quiet" type="button" disabled>Acción deshabilitada</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="kz-tech-section kz-tech-section--soft" id="identidad" aria-labelledby="identidad-titulo">
+      <div class="kz-tech-shell kz-tech-stack">
+        <header>
+          <p class="kz-tech-eyebrow">Tokens e identidad</p>
+          <h2 class="kz-tech-title" id="identidad-titulo">Color con jerarquía y brillo moderado</h2>
+          <p class="kz-tech-lede">El cian guía la interacción, el oro conserva la marca y las superficies azul oscuro sostienen la lectura.</p>
+        </header>
+        <div class="kz-tech-grid" data-testid="token-grid">
+          <article class="kz-tech-card"><div class="kz-tech-card__body"><span class="kz-tech-badge kz-tech-badge--cyan">Cian · acción</span><h3 class="kz-tech-card__title">#00E5FF</h3><p class="kz-tech-card__copy">Foco, enlaces destacados e información tecnológica.</p></div></article>
+          <article class="kz-tech-card kz-tech-card--featured"><div class="kz-tech-card__body"><span class="kz-tech-badge kz-tech-badge--gold">Oro · marca</span><h3 class="kz-tech-card__title">#F0B429</h3><p class="kz-tech-card__copy">Marca, oferta destacada y acentos editoriales.</p></div></article>
+          <article class="kz-tech-card"><div class="kz-tech-card__body"><span class="kz-tech-badge">Navy · base</span><h3 class="kz-tech-card__title">#07121E</h3><p class="kz-tech-card__copy">Fondo tecnológico estable con texto claro de alto contraste.</p></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="kz-tech-section" id="tarjetas" aria-labelledby="tarjetas-titulo">
+      <div class="kz-tech-shell kz-tech-stack">
+        <header>
+          <p class="kz-tech-eyebrow">Biblioteca de tarjetas</p>
+          <h2 class="kz-tech-title" id="tarjetas-titulo">Contenido flexible sin perder estructura</h2>
+        </header>
+        <div class="kz-tech-grid">
+          <article class="kz-tech-card kz-tech-card--interactive kz-tech-reveal" tabindex="0">
+            <div class="kz-tech-card__body">
+              <div class="kz-tech-card__icon" aria-hidden="true">01</div>
+              <span class="kz-tech-badge kz-tech-badge--cyan">Producto</span>
+              <h3 class="kz-tech-card__title">Solución digital</h3>
+              <p class="kz-tech-card__copy">Componente de producto con espacio para una explicación verificable y una acción clara.</p>
+              <a href="#formularios">Conocer el patrón →</a>
+            </div>
+          </article>
+          <article class="kz-tech-card kz-tech-card--featured kz-tech-reveal">
+            <div class="kz-tech-card__body">
+              <span class="kz-tech-badge kz-tech-badge--gold">Precio destacado</span>
+              <h3 class="kz-tech-card__title">Plan de referencia</h3>
+              <p class="kz-tech-price">Valor <small>según catálogo vigente</small></p>
+              <ul class="kz-tech-list"><li>Beneficio verificable</li><li>Alcance documentado</li><li>Soporte definido</li></ul>
+              <button class="kz-tech-button kz-tech-button--gold" type="button">Elegir opción</button>
+            </div>
+          </article>
+          <article class="kz-tech-card kz-tech-card--interactive kz-tech-reveal">
+            <div class="kz-tech-card__media">
+              <img src="../assets/img/portafolio/colsabor-detalle.jpg" width="900" height="675" loading="lazy" decoding="async" alt="Vista de un proyecto digital del portafolio de KONFÍO ZINC">
+            </div>
+            <div class="kz-tech-card__body">
+              <span class="kz-tech-badge">Portafolio</span>
+              <h3 class="kz-tech-card__title">Proyecto real</h3>
+              <p class="kz-tech-card__copy">La relación de aspecto reserva espacio para reducir desplazamientos de contenido.</p>
+            </div>
+          </article>
+        </div>
+        <article class="kz-tech-card">
+          <div class="kz-tech-card__body">
+            <span class="kz-tech-badge">Prueba de texto largo</span>
+            <h3 class="kz-tech-card__title kz-tech-long-text">Un título deliberadamente extenso para verificar que el componente responde correctamente cuando el contenido supera la longitud habitual y no desborda su contenedor</h3>
+            <p class="kz-tech-card__copy kz-tech-long-text">ReferenciaTécnicaSinEspaciosMuyLargaParaComprobarElAjusteSeguroDeContenidoEnPantallasPequeñas.example</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="kz-tech-section kz-tech-section--soft" id="formularios" aria-labelledby="formularios-titulo">
+      <div class="kz-tech-shell kz-tech-stack">
+        <header>
+          <p class="kz-tech-eyebrow">Formularios</p>
+          <h2 class="kz-tech-title" id="formularios-titulo">Validación visible y comprensible</h2>
+          <p class="kz-tech-lede">La demostración valida en el navegador, no persiste información y no contacta ningún backend.</p>
+        </header>
+        <div class="kz-tech-grid">
+          <form class="kz-tech-form kz-tech-demo-surface kz-tech-span-7" action="#" method="post" novalidate data-kz-tech-demo-form>
+            <div class="kz-tech-field">
+              <label for="lab-nombre">Nombre de prueba</label>
+              <input id="lab-nombre" name="nombre" type="text" autocomplete="off" placeholder="Ejemplo ficticio" required aria-describedby="lab-nombre-error">
+              <p class="kz-tech-field__error" id="lab-nombre-error" hidden></p>
+            </div>
+            <div class="kz-tech-field">
+              <label for="lab-servicio">Tipo de componente</label>
+              <select id="lab-servicio" name="servicio" required aria-describedby="lab-servicio-error"><option value="">Selecciona una opción</option><option>Tarjeta</option><option>Formulario</option><option>Navegación</option></select>
+              <p class="kz-tech-field__error" id="lab-servicio-error" hidden></p>
+            </div>
+            <div class="kz-tech-field">
+              <label for="lab-mensaje">Observación técnica</label>
+              <textarea id="lab-mensaje" name="mensaje" placeholder="Texto ficticio para revisar el estado del campo"></textarea>
+              <p class="kz-tech-field__hint">No se envía ni se almacena este contenido.</p>
+            </div>
+            <label class="kz-tech-check"><input type="checkbox" required aria-describedby="lab-acepta-error"><span>Confirmo que estoy usando únicamente datos ficticios.</span></label>
+            <p class="kz-tech-field__error" id="lab-acepta-error" hidden></p>
+            <div class="kz-tech-alert kz-tech-alert--error" role="status" aria-live="polite" hidden data-kz-tech-form-status><strong class="kz-tech-alert__icon" aria-hidden="true">!</strong><p></p></div>
+            <button class="kz-tech-button kz-tech-button--primary" type="submit">Validar demostración</button>
+          </form>
+          <aside class="kz-tech-demo-surface kz-tech-stack kz-tech-span-5" aria-label="Estados de campos">
+            <div class="kz-tech-field"><label for="lab-normal">Estado normal</label><input id="lab-normal" value="Contenido válido" readonly></div>
+            <div class="kz-tech-field"><label for="lab-error">Estado con error</label><input id="lab-error" value="Requiere atención" aria-invalid="true" aria-describedby="lab-error-text" readonly><p class="kz-tech-field__error" id="lab-error-text">Explica cómo resolver el problema.</p></div>
+            <div class="kz-tech-field"><label for="lab-disabled">Estado deshabilitado</label><input id="lab-disabled" value="No disponible" disabled></div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="kz-tech-section" id="estados" aria-labelledby="estados-titulo">
+      <div class="kz-tech-shell kz-tech-stack">
+        <header>
+          <p class="kz-tech-eyebrow">Feedback y estados</p>
+          <h2 class="kz-tech-title" id="estados-titulo">El sistema siempre explica qué ocurre</h2>
+        </header>
+        <div class="kz-tech-grid">
+          <div class="kz-tech-demo-surface kz-tech-stack kz-tech-span-6">
+            <div class="kz-tech-alert kz-tech-alert--success"><strong class="kz-tech-alert__icon" aria-hidden="true">✓</strong><p>Operación ficticia validada correctamente.</p></div>
+            <div class="kz-tech-alert kz-tech-alert--error" role="alert"><strong class="kz-tech-alert__icon" aria-hidden="true">!</strong><p>No se pudo completar la demostración. Intenta de nuevo.</p></div>
+            <div class="kz-tech-loader" role="status"><span class="kz-tech-loader__ring" aria-hidden="true"></span><span>Preparando vista…</span></div>
+            <div class="kz-tech-stack" aria-label="Contenido cargando"><span class="kz-tech-skeleton" style="width:75%"></span><span class="kz-tech-skeleton" style="width:100%"></span><span class="kz-tech-skeleton" style="width:55%"></span></div>
+          </div>
+          <div class="kz-tech-empty kz-tech-span-6">
+            <span class="kz-tech-empty__symbol" aria-hidden="true">◇</span><h3>Sin resultados</h3><p>Ajusta los filtros o crea un primer elemento para comenzar.</p><button class="kz-tech-button kz-tech-button--secondary" type="button">Limpiar filtros</button>
+          </div>
+        </div>
+
+        <div class="kz-tech-reading" aria-label="Preguntas frecuentes">
+          <article class="kz-tech-accordion"><h3><button class="kz-tech-accordion__button" type="button" aria-expanded="true" aria-controls="faq-1" data-kz-tech-accordion>¿Los componentes requieren una librería?</button></h3><div class="kz-tech-accordion__panel" id="faq-1"><p>No. La biblioteca usa HTML, CSS y JavaScript nativos.</p></div></article>
+          <article class="kz-tech-accordion"><h3><button class="kz-tech-accordion__button" type="button" aria-expanded="false" aria-controls="faq-2" data-kz-tech-accordion>¿Cómo se reduce el movimiento?</button></h3><div class="kz-tech-accordion__panel" id="faq-2" hidden><p>La media query <code>prefers-reduced-motion</code> elimina animaciones y transformaciones no esenciales.</p></div></article>
+        </div>
+
+        <section class="kz-tech-cta" aria-labelledby="cta-titulo">
+          <p class="kz-tech-eyebrow">CTA reutilizable</p><h2 class="kz-tech-title" id="cta-titulo">Una siguiente acción clara, sin ruido visual.</h2><p class="kz-tech-lede">El contenido comercial definitivo debe llegar desde la fuente vigente antes de integrar este patrón.</p><div class="kz-tech-demo-row" style="margin-top:1.5rem"><button class="kz-tech-button kz-tech-button--primary" type="button">Acción principal</button><button class="kz-tech-button kz-tech-button--secondary" type="button">Acción secundaria</button></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <footer class="kz-tech-footer">
+    <div class="kz-tech-shell">
+      <div class="kz-tech-footer__grid"><div><a class="kz-tech-brand" href="#inicio"><span class="kz-tech-brand__mark" aria-hidden="true"></span>KONFÍO ZINC</a><p>Patrones visuales para experiencias digitales claras y consistentes.</p></div><div><h2 class="kz-tech-footer__title">Sistema</h2><ul><li><a href="#identidad">Identidad</a></li><li><a href="#tarjetas">Componentes</a></li></ul></div><div><h2 class="kz-tech-footer__title">Calidad</h2><ul><li><a href="#formularios">Accesibilidad</a></li><li><a href="#estados">Estados</a></li></ul></div></div>
+      <p class="kz-tech-footer__legal">Laboratorio interno KZ-TECH-001 · no indexado · no publicable.</p>
+    </div>
+  </footer>
+
+  <dialog class="kz-tech-modal" id="modal-demo" aria-labelledby="modal-titulo">
+    <div class="kz-tech-modal__body"><div class="kz-tech-modal__header"><div><span class="kz-tech-badge kz-tech-badge--cyan">Modal nativo</span><h2 class="kz-tech-modal__title" id="modal-titulo">Detalle del componente</h2></div><button class="kz-tech-icon-button" type="button" aria-label="Cerrar modal" data-kz-tech-close-modal>×</button></div><p class="kz-tech-card__copy">El elemento <code>dialog</code> gestiona foco, tecla Escape y capa modal de forma nativa.</p><div class="kz-tech-demo-row"><button class="kz-tech-button kz-tech-button--primary" type="button" data-kz-tech-close-modal>Aceptar</button><button class="kz-tech-button kz-tech-button--quiet" type="button" data-kz-tech-close-modal>Cancelar</button></div></div>
+  </dialog>
+
+  <script src="./components.js" defer></script>
+</body>
+</html>
