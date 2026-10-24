@@ -54,3 +54,6 @@ exclude:
   - premium/premium.css
   # Ganchos de git del proyecto.
   - .githooks
+  # KZ-ID-001: archivos fuente del propietario (maestro de la marca).
+  # Se versionan para poder regenerar los activos, pero NO se sirven.
+  - assets/img/marca/fuente

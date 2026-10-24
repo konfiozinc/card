@@ -156,3 +156,47 @@ textarea {
      los flotantes cuando se llega al pie. */
   body { padding-bottom: 78px; }
 }
+
+/* ═══ LOGOTIPO OFICIAL (KZ-ID-001) ═══ */
+/* El logotipo es la imagen oficial del propietario, con el fondo ya separado.
+   Se dimensiona por ALTO para no deformarlo nunca: el ancho lo pone la
+   proporcion real del archivo (1332 x 574). */
+.brand__logo,
+.nav-logo-img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  border-radius: 0;
+}
+
+.brand__logo {
+  height: 48px;
+}
+
+.nav-logo-img {
+  height: 46px;
+}
+
+/* El pie usa la marca cuadrada. */
+.footer-logo {
+  height: 52px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 0;
+}
+
+/* En movil el logotipo no debe encogerse hasta ser ilegible: 40 px de alto
+   dan ~93 px de ancho, que es el minimo con el que se lee KONFIO ZINC. */
+@media (max-width: 900px) {
+  .brand__logo { height: 40px; }
+  .nav-logo-img { height: 38px; }
+  .footer-logo { height: 46px; }
+}
+
+/* Solo en pantallas muy estrechas baja un paso mas. */
+@media (max-width: 340px) {
+  .brand__logo { height: 34px; }
+  .nav-logo-img { height: 32px; }
+}
+
