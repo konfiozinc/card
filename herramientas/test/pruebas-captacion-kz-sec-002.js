@@ -1,12 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════════
    pruebas-captacion-kz-sec-002.js · KONFÍO ZINC — KZ-SEC-002
 
-   Verifica de extremo a extremo la captación de contactos:
-     Formulario premium → Firestore `contactos` → panel Card Spark.
-
-   Comprueba: creación confirmada (200 + nombre del documento), lectura
-   desde el panel (OPERADOR), rechazo de campos omitidos/inválidos, sin
-   campos administrativos, duplicados y no-regresión del formulario estándar.
+   Arquitectura final: el navegador NO escribe en Firestore. Solo el Worker
+   `/leads` (cuenta de servicio) escribe en `contactos`. Estas pruebas
+   demuestran que una ESCRITURA DIRECTA a Firestore queda DENEGADA (no se
+   puede saltar el control de abuso) y que el panel sigue leyendo.
 
    Requisitos: Auth 9099 · Firestore 8080 · proyecto demo-card-seguridad.
    Uso: node herramientas/test/pruebas-captacion-kz-sec-002.js
@@ -25,7 +23,7 @@ const b = (v) => ({ booleanValue: v });
 const salida = [];
 function chequear(nombre, ok, detalle) {
   salida.push({ nombre, ok: !!ok, detalle });
-  console.log(`  [${ok ? 'PASA' : '**FALLA**'}] ${nombre.padEnd(62)} ${detalle || ''}`);
+  console.log(`  [${ok ? 'PASA' : '**FALLA**'}] ${nombre.padEnd(64)} ${detalle || ''}`);
 }
 
 async function pedir(metodo, url, cuerpo, token) {
@@ -52,39 +50,35 @@ const DENEGADO = (r) => r.st === 403 || r.st === 401;
 (async () => {
   console.log('\n═══ PREPARACIÓN ═══');
   await fetch(`${FS}/emulator/v1/projects/${P}/databases/(default)/documents`, { method: 'DELETE' });
-  const op = await alta('op.lead@crm.test', 'Ficticia#1');
-  await crear('usuarios', op.uid, { email: s(op.email), nombre: s('Op Lead'), rol: s('OPERADOR'), activo: b(true) }, 'owner');
+  const op = await alta('op.lead2@crm.test', 'Ficticia#1');
+  await crear('usuarios', op.uid, { email: s(op.email), nombre: s('Op Lead2'), rol: s('OPERADOR'), activo: b(true) }, 'owner');
+  /* Un contacto histórico que el panel debe poder leer. */
+  await crear('contactos', 'c-historico', {
+    nombre: s('Cliente Histórico'), telefono: s('3000000000'),
+    servicio: s('Mini Web Básica'), mensaje: s('Solicitud de prueba'),
+    origen: s('premium'), estado: s('NUEVO')
+  }, 'owner');
 
   const lead = {
     nombre: s('Cliente Premium'),
     telefono: s('+57 300 111 2233'),
     servicio: s('Mini Web Básica'),
     mensaje: s('Negocio: panadería. Objetivo: aparecer en Google y recibir pedidos'),
-    origen: s('premium'),
-    estado: s('NUEVO'),
+    origen: s('premium'), estado: s('NUEVO'),
     createdAt: { timestampValue: new Date().toISOString() }
   };
 
-  console.log('\n═══ A · FORMULARIO PREMIUM → FIRESTORE → PANEL ═══');
-  const r1 = await crearAuto('contactos', lead, undefined);
-  chequear('Formulario premium: creación confirmada (200 + doc)', r1.st === 200 && !!r1.j.name, r1.st + ' ' + ((r1.j && r1.j.name) || ''));
-  const docId = r1.j && r1.j.name ? r1.j.name.split('/').pop() : null;
-  if (docId) {
-    const r2 = await leer('contactos/' + docId, op.token);
-    chequear('El panel (OPERADOR) lee el contacto creado', r2.st === 200 && r2.j.fields && r2.j.fields.nombre.stringValue === 'Cliente Premium', r2.st + '');
-  } else {
-    chequear('El panel (OPERADOR) lee el contacto creado', false, 'sin docId');
-  }
+  console.log('\n═══ A · ESCRITURA DIRECTA A FIRESTORE: DENEGADA ═══');
+  chequear('Formulario premium (directo): DENEGADO', DENEGADO(await crearAuto('contactos', lead, undefined)));
+  chequear('Formulario estándar con email (directo): DENEGADO', DENEGADO(await crearAuto('contactos', { ...lead, email: s('cliente@x.com') }, undefined)));
+  chequear('Contacto sin mensaje (directo): DENEGADO', DENEGADO(await crearAuto('contactos', { nombre: s('X'), telefono: s('1') }, undefined)));
+  chequear('Campo administrativo inyectado (directo): DENEGADO', DENEGADO(await crearAuto('contactos', { ...lead, rol: s('SUPERADMIN') }, undefined)));
+  chequear('Contacto desde OPERADOR autenticado: DENEGADO', DENEGADO(await crearAuto('contactos', lead, op.token)));
 
-  console.log('\n═══ B · ERRORES, CAMPOS OMITIDOS Y SEGURIDAD ═══');
-  chequear('Sin mensaje: DENEGADO', DENEGADO(await crearAuto('contactos', { nombre: s('X'), telefono: s('1') })));
-  chequear('Campo administrativo inyectado (rol): DENEGADO', DENEGADO(await crearAuto('contactos', { ...lead, rol: s('SUPERADMIN') })));
-  chequear('Mensaje gigante (>2000): DENEGADO', DENEGADO(await crearAuto('contactos', { ...lead, mensaje: s('x'.repeat(2001)) })));
-  chequear('Email inválido: DENEGADO', DENEGADO(await crearAuto('contactos', { ...lead, email: s('noesuncorreo') })));
-
-  console.log('\n═══ C · DUPLICADOS Y NO-REGRESIÓN ═══');
-  chequear('Envío duplicado crea otro documento (sin dedup server-side)', (await crearAuto('contactos', lead, undefined)).st === 200);
-  chequear('Formulario estándar (con email): PERMITIDO', (await crearAuto('contactos', { ...lead, email: s('cliente@x.com') }, undefined)).st === 200);
+  console.log('\n═══ B · EL PANEL SIGUE LEYENDO CONTACTOS ═══');
+  const r2 = await leer('contactos/c-historico', op.token);
+  chequear('El panel (OPERADOR) lee un contacto', r2.st === 200 && r2.j.fields && r2.j.fields.nombre.stringValue === 'Cliente Histórico', r2.st + '');
+  chequear('El panel no puede crear contactos (create=false)', DENEGADO(await crear('contactos', 'c-op', lead, op.token)));
 
   console.log('\n══════════════════════════════════════════════════════════════');
   const fallan = salida.filter((x) => !x.ok).length;

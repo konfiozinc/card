@@ -91,8 +91,8 @@ const DENEGADO = (r) => r.st === 403 || r.st === 401;
   chequear('Token válido de OPERADOR: PERMITIDO', (await crear('tokens_notificacion', 'token-d', { clienteId: s('cliente-sec2'), token: s('token-d'), activo: b(true) }, op.token)).st === 200);
 
   console.log('\n═══ C · contactos: CREACIÓN PÚBLICA ENDURECIDA ═══');
-  chequear('Contacto público válido: PERMITIDO', (await crear('contactos', 'c1', { nombre: s('Ana'), email: s('ana@x.com'), mensaje: s('Hola mundo'), origen: s('premium'), estado: s('NUEVO') })).st === 200);
-  chequear('Contacto del formulario premium (sin email): PERMITIDO', (await crear('contactos', 'c7', { nombre: s('Pedro'), telefono: s('+57 300 000 0000'), servicio: s('Mini Web Básica'), mensaje: s('Negocio: panadería. Objetivo: más clientes'), origen: s('premium'), estado: s('NUEVO'), createdAt: { timestampValue: new Date().toISOString() } })).st === 200);
+  chequear('Contacto público directo (cerrado): DENEGADO', DENEGADO(await crear('contactos', 'c1', { nombre: s('Ana'), email: s('ana@x.com'), mensaje: s('Hola mundo'), origen: s('premium'), estado: s('NUEVO') })));
+  chequear('Contacto premium sin email directo (cerrado): DENEGADO', DENEGADO(await crear('contactos', 'c7', { nombre: s('Pedro'), telefono: s('+57 300 000 0000'), servicio: s('Mini Web Básica'), mensaje: s('Negocio: panadería. Objetivo: más clientes'), origen: s('premium'), estado: s('NUEVO'), createdAt: { timestampValue: new Date().toISOString() } })));
   chequear('Contacto sin mensaje: DENEGADO', DENEGADO(await crear('contactos', 'c2', { nombre: s('Ana'), email: s('ana@x.com') })));
   chequear('Contacto con campo arbitrario: DENEGADO', DENEGADO(await crear('contactos', 'c3', { nombre: s('Ana'), email: s('ana@x.com'), mensaje: s('Hola'), admin: b(true) })));
   chequear('Contacto con mensaje > 2000: DENEGADO', DENEGADO(await crear('contactos', 'c4', { nombre: s('Ana'), email: s('ana@x.com'), mensaje: s('x'.repeat(2001)) })));

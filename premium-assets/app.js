@@ -117,13 +117,11 @@
     if (select) select.value = link.dataset.serviceChoice;
   }));
 
-  /* KZ-SEC-002: el formulario premium escribía a `/api/leads`, una ruta que
-     GitHub Pages no sirve. Ahora escribe en la colección `contactos` de
-     Firestore (misma que lee el panel y que usa el formulario estándar), vía
-     la API REST con la clave web pública. La creación pública está protegida
-     por firestore.rules (campos cerrados, tamaños y formato). */
-  const FIREBASE_API_KEY = 'AIzaSyDbwAk9APwP2SeaEfWxeQG_bdL9eatciEA';
-  const LEADS_URL = 'https://firestore.googleapis.com/v1/projects/konfio-zinc/databases/(default)/documents/contactos?key=' + FIREBASE_API_KEY;
+  /* KZ-SEC-002: el formulario NO escribe directo en Firestore. Habla con el
+     Worker `/leads`, que valida, limita por IP, deduplica y escribe con cuenta
+     de servicio. Una escritura directa del navegador a `contactos` queda
+     denegada por las reglas, así que no se puede saltar el control. */
+  const LEADS_URL = 'https://calm-heart-6828.konfiozinc.workers.dev/leads';
 
   const form = $('#lead-form');
   const fallback = $('#whatsapp-fallback');
@@ -194,23 +192,21 @@
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
     try {
-      const fieldsDoc = {
-        nombre: { stringValue: data.nombre },
-        telefono: { stringValue: data.telefono },
-        servicio: { stringValue: data.servicio },
-        mensaje: { stringValue: 'Negocio: ' + data.negocio + '. Objetivo: ' + data.objetivo },
-        origen: { stringValue: 'premium' },
-        estado: { stringValue: 'NUEVO' },
-        createdAt: { timestampValue: new Date().toISOString() }
-      };
       const response = await fetch(LEADS_URL, {
         method: 'POST',
         headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify({ fields: fieldsDoc }),
+        body: JSON.stringify({
+          nombre: data.nombre,
+          telefono: data.telefono,
+          servicio: data.servicio,
+          negocio: data.negocio,
+          objetivo: data.objetivo,
+          website: ''
+        }),
         signal: controller.signal
       });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.name) throw new Error('not-confirmed');
+      if (!response.ok || result.saved !== true) throw new Error('not-confirmed');
       status.textContent = 'Solicitud recibida. Te contactaremos por WhatsApp en horario hábil.';
       status.dataset.kind = 'success';
       try { localStorage.setItem('kz_lead_last', String(Date.now())); } catch { /* sin almacenamiento */ }

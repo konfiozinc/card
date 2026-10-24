@@ -344,29 +344,12 @@ service cloud.firestore {
     }
 
     /* ── contactos (formulario público del sitio) ──────────────────── */
-    // KZ-SEC-002: creación pública con lista cerrada de campos, tamaños
-    // máximos y formato de correo. El formulario premium escribe aquí; el
-    // panel los lee. Sin campos arbitrarios ni mensajes gigantes.
+    // KZ-SEC-002: la creación pública se CIERRA. Solo el Worker de captación
+    // (cuenta de servicio / OAuth2) escribe aquí, con validación y límite por
+    // IP. Una escritura directa desde el navegador queda DENEGADA, de modo que
+    // no se puede saltar el control de abuso. El panel solo los lee.
     match /contactos/{contactoId} {
-      allow create: if true
-        && request.resource.data.keys().hasOnly(
-             ['nombre', 'email', 'telefono', 'mensaje', 'servicio', 'pagina',
-              'origen', 'estado', 'createdAt', 'consentimiento']
-           )
-        && request.resource.data.nombre is string
-        && request.resource.data.nombre.size() > 1
-        && request.resource.data.nombre.size() <= 120
-        && (!('email' in request.resource.data)
-             || (request.resource.data.email is string
-                 && request.resource.data.email.size() > 3
-                 && request.resource.data.email.size() <= 200
-                 && request.resource.data.email.matches('^[^@ ]+@[^@ ]+\\.[^@ ]+$')))
-        && request.resource.data.mensaje is string
-        && request.resource.data.mensaje.size() > 1
-        && request.resource.data.mensaje.size() <= 2000
-        && (!('telefono' in request.resource.data)
-             || (request.resource.data.telefono is string
-                 && request.resource.data.telefono.size() <= 40));
+      allow create: if false;
       allow read: if esOperador();
       allow update, delete: if esAdmin();
     }

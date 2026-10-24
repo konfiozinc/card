@@ -566,27 +566,24 @@
         } catch (err) { /* sin almacenamiento: continuamos */ }
       }
 
-      var envio = Promise.resolve();
-      if (window.KZ_DB && window.firebase) {
-        envio = window.KZ_DB.collection('contactos').add({
-          nombre: lead.nombre,
-          email: lead.email,
-          telefono: lead.telefono,
-          servicio: lead.servicio,
-          mensaje: lead.mensaje,
-          origen: 'contacto',
-          estado: 'NUEVO',
-          createdAt: window.firebase.firestore.FieldValue.serverTimestamp()
-        }).then(function () {
-          track('form_submit', { event_category: 'conversion', event_label: 'contacto', value: 1, form: 'contacto', method: 'firebase' });
-        }).catch(function () {
-          guardarLocal();
-          track('form_submit', { event_category: 'conversion', event_label: 'contacto', value: 1, form: 'contacto', method: 'local' });
-        });
-      } else {
-        guardarLocal();
-        track('form_submit', { event_category: 'conversion', event_label: 'contacto', value: 1, form: 'contacto', method: 'local' });
-      }
+      /* KZ-SEC-002: el formulario estándar también pasa por el Worker `/leads`
+         (límite por IP + dedup + escritura con cuenta de servicio). El mensaje
+         de éxito solo aparece si el Worker confirma `saved:true`. */
+      var WORKER_LEADS = 'https://calm-heart-6828.konfiozinc.workers.dev/leads';
+      var envio = fetch(WORKER_LEADS, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nombre: lead.nombre, email: lead.email, telefono: lead.telefono,
+          servicio: lead.servicio, mensaje: lead.mensaje, website: ''
+        })
+      }).then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      }).then(function (j) {
+        if (!j || j.saved !== true) throw new Error('no-confirmado');
+        track('form_submit', { event_category: 'conversion', event_label: 'contacto', value: 1, form: 'contacto', method: 'worker' });
+      });
 
       envio.then(function () {
         setTimeout(function () {
@@ -598,6 +595,11 @@
             setTimeout(function () { window.location.href = next; }, 1400);
           }
         }, 500);
+      }).catch(function () {
+        guardarLocal();
+        if (btn) { btn.disabled = false; btn.innerHTML = original; }
+        showBox(errorBox, 'No pudimos registrar tu solicitud ahora. Escríbenos directo por <a href="' + WHATSAPP + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;">WhatsApp</a> o al correo konfiozinc@gmail.com.');
+        track('form_error', { form: 'contacto', reason: 'worker' });
       });
     });
   }
