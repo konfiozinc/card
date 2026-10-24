@@ -169,6 +169,18 @@
     const data = values();
     const errors = validate(data);
     if ($('#website')?.value) return;
+    /* KZ-SEC-002: cooldown del navegador (proporcional). El honeypot, la
+       validación y las reglas de Firestore son las barreras reales; esto solo
+       frena reenvíos en ráfaga desde el mismo equipo. */
+    const COOLDOWN_MS = 60 * 1000;
+    try {
+      const last = Number(localStorage.getItem('kz_lead_last') || 0);
+      if (Date.now() - last < COOLDOWN_MS) {
+        status.textContent = 'Acabamos de recibir tu solicitud. Espera un momento antes de enviar otra.';
+        status.dataset.kind = 'error';
+        return;
+      }
+    } catch { /* sin almacenamiento: se permite */ }
     if (Object.keys(errors).length) {
       Object.entries(errors).forEach(([id, message]) => setError(id, message));
       status.textContent = 'Revisa los campos indicados.';
@@ -201,6 +213,7 @@
       if (!response.ok || !result.name) throw new Error('not-confirmed');
       status.textContent = 'Solicitud recibida. Te contactaremos por WhatsApp en horario hábil.';
       status.dataset.kind = 'success';
+      try { localStorage.setItem('kz_lead_last', String(Date.now())); } catch { /* sin almacenamiento */ }
       form.reset();
     } catch {
       fallback.href = whatsappUrl(data);
