@@ -20,25 +20,47 @@ pruebas-seguridad-kz-sec-002.js    → 17 · PASAN 17 · FALLAN 0   (blindaje)
 pruebas-captacion-kz-sec-002.js    →  8 · PASAN  8 · FALLAN 0   (E2E formulario→panel)
 ```
 
-## 3. Orden seguro de publicación (cuando se autorice)
+## 3. Orden seguro de publicación (cuando se autorice) — DESPLIEGUE ACOPLADO
+
+La captación final es **acoplada**: el formulario habla con el Worker `/leads`, y la colección
+`contactos` está cerrada (`allow create: if false`). Deben publicarse juntos y en este orden:
 
 ```bash
-# 0) Respaldos: la regla actual queda en git; anota su hash en Cloudflare/Firebase
+# 0) Respaldos
 cd 6-LANDING-PAGES/Konfio-Zinc-Web
-git hash-object firestore.rules          # 1c...  (respaldar el id)
-git diff origin/main --stat              # revisar el diff exacto
+git diff origin/main --stat                 # revisar el diff exacto del candidato
+# anotar el hash de las reglas actuales (git log -1 origin/main:firestore.rules)
 
-# 1) Reglas Firestore (cambian permisos: primero y con ventana de verificación)
+# 1) Cuenta de servicio (Admin SDK) como SECRETO del Worker (NUNCA en el navegador)
+cd 9-AGENTES-IA/Asistente-IA/asesor_web
+npx wrangler secret put FIREBASE_SA         # pegar el JSON de la cuenta de servicio (konfio-zinc)
+
+# 2) Worker con /leads (mismo Worker del asesor; no cambia el chat)
+npx wrangler deploy
+
+# 3) Reglas: cerrar contactos a escritura directa
+cd 6-LANDING-PAGES/Konfio-Zinc-Web
 firebase deploy --only firestore:rules,firestore:indexes
 
-# 2) Web (formulario reparado + cooldown)
+# 4) Web: ambos formularios -> Worker /leads
 git push origin main
 
-# 3) Verificación en producción
-#    - panel abre, clientes/servicios/pagos sin regresión
-#    - formulario premium envía y el documento aparece en Card Spark → Contactos
-#    - herencia: OPERADOR no puede cambiar precio de un servicio (403)
+# 5) Verificación en producción (con datos ficticios)
+#    - form premium y estándar -> aparece el contacto en Card Spark → Contactos
+#    - escritura directa del navegador a contactos -> DENEGADA
+#    - OPERADOR no puede cambiar precio de un servicio (403)
+#    - panel: clientes, servicios, pagos, usuarios sin regresión
 ```
+
+**Degradación segura:** si el Worker no tiene `FIREBASE_SA`, `/leads` responde **503** y el
+formulario muestra el respaldo de WhatsApp con texto honesto (no hay confirmación falsa).
+Si la regla se cierra y el formulario no se publica, los envíos se pierden → por eso el orden
+es sagrado: primero secreto + Worker, luego reglas, luego web.
+
+**Nota de concurrencia (Cloudflare KV):** el límite (5 por 10 min por IP) y la deduplicación
+usan KV, cuyas operaciones **no son atómicas** (get/put separados): dos peticiones simultáneas
+desde la misma IP podrían colarse por encima del límite. Es una mitigación razonable, no una
+barrera criptográfica; se documenta como tal.
 
 **No publicar el Worker en esta misión.** El Worker `calm-heart-6828` ya corre `a44754db`
 (sin caché, respuesta determinista para Elite). Si en el futuro se redeploya, **hacerlo solo
