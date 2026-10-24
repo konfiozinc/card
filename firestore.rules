@@ -169,6 +169,30 @@ service cloud.firestore {
     // estado, activo) los toca únicamente ADMIN+, y con tipos válidos. La
     // autorización vive aquí, no en los botones del panel.
     match /servicios/{servicioId} {
+      /* KZ-OPS-001: `createdAt` faltaba en la lista de claves permitidas y el
+         panel lo escribía en cada alta. Consecuencia: TODA creación de servicio
+         desde el navegador daba PERMISSION_DENIED, y como crearCliente() lo
+         envolvía en .catch(() => {}), el cliente se guardaba sin ninguno de sus
+         servicios y nadie se enteraba. Se admite el campo, exigiendo timestamp,
+         y se valida estado y fechas para que ninguna escritura deje un servicio
+         en un estado imposible. */
+      function fechaOMnula(v) {
+        return v == null || fechaTexto(v);
+      }
+      function estadoDeServicioValido() {
+        return estadoValido(request.resource.data.get('estado', 'ACTIVO'));
+      }
+      function fechasCoherentesAlta() {
+        return fechaTexto(request.resource.data.get('fechaInicio', '2000-01-01'))
+            && fechaOMnula(request.resource.data.get('fechaVencimiento', null));
+      }
+      /* En una ACTUALIZACIÓN se tolera que un servicio histórico no traiga
+         `fechaInicio`; si la trae, tiene que ser una fecha válida. */
+      function fechasCoherentesEdicion() {
+        return (!('fechaInicio' in request.resource.data)
+                 || fechaTexto(request.resource.data.get('fechaInicio', '2000-01-01')))
+            && fechaOMnula(request.resource.data.get('fechaVencimiento', null));
+      }
       function camposContacto() {
         return tocados().hasOnly(['clienteNombre', 'updatedAt']);
       }
@@ -183,17 +207,24 @@ service cloud.firestore {
         && textoNoVacio(request.resource.data.get('servicio', ''))
         && request.resource.data.keys().hasOnly([
              'clienteId', 'clienteNombre', 'planId', 'servicio', 'categoria',
-             'fechaInicio', 'fechaVencimiento', 'precio', 'estado', 'activo', 'updatedAt'
+             'fechaInicio', 'fechaVencimiento', 'precio', 'estado', 'activo',
+             'createdAt', 'updatedAt'
            ])
         && request.resource.data.get('precio', 0) is number
-        && request.resource.data.get('precio', 0) >= 0;
+        && request.resource.data.get('precio', 0) >= 0
+        && estadoDeServicioValido()
+        && fechasCoherentesAlta()
+        && (!('createdAt' in request.resource.data)
+             || request.resource.data.createdAt is timestamp);
       allow update: if esOperador()
         && request.resource.data.get('clienteId', '') == resource.data.get('clienteId', '')
         && (
           camposContacto()
           || (esAdmin() && camposComerciales()
               && request.resource.data.get('precio', 0) is number
-              && request.resource.data.get('precio', 0) >= 0)
+              && request.resource.data.get('precio', 0) >= 0
+              && estadoDeServicioValido()
+              && fechasCoherentesEdicion())
         );
       allow delete: if false;
     }
@@ -242,6 +273,26 @@ service cloud.firestore {
             && !tocados().hasAny(['confirmadoPor', 'confirmadoPorNombre', 'periodoInicio',
                                   'periodoFin', 'confirmadoEn', 'anuladoPor', 'motivo', 'anuladoEn']);
       }
+      /* KZ-OPS-001 · Clasificación de un pago HISTÓRICO.
+         Los pagos anteriores a CARD-SPARK-002 no tienen concepto y no se pueden
+         confirmar (no se asume «DESARROLLO»). Sin esta vía, la única salida era
+         anular el pago, perdiendo su fecha y su referencia. Aquí un ADMIN lo
+         clasifica UNA sola vez, dejando constancia de quién y cuándo. No sirve
+         para reclasificar: exige que el pago aún NO tenga concepto, exigir
+         que siga PENDIENTE y prohíbe tocar el dinero. */
+      function clasificacionHistorica() {
+        return resource.data.get('estado', '') == 'PENDIENTE'
+            && !('concepto' in resource.data)
+            && request.resource.data.concepto in [
+                 'DESARROLLO', 'RENOVACION_DOMINIO', 'HOSTING', 'MANTENIMIENTO',
+                 'SERVICIO_PERIODICO', 'AMPLIACION', 'OTRO'
+               ]
+            && request.resource.data.get('clasificadoPor', '') == request.auth.uid
+            && request.resource.data.get('clasificadoEn', null) is timestamp
+            && textoNoVacio(request.resource.data.get('motivoClasificacion', ''))
+            && tocados().hasOnly(['concepto', 'descripcion', 'clasificadoPor',
+                                  'clasificadoEn', 'motivoClasificacion']);
+      }
 
       allow read: if esOperador();
       allow create: if esOperador()
@@ -256,7 +307,13 @@ service cloud.firestore {
                   'DESARROLLO', 'RENOVACION_DOMINIO', 'HOSTING', 'MANTENIMIENTO',
                   'SERVICIO_PERIODICO', 'AMPLIACION', 'OTRO'
                 ])
+        /* KZ-OPS-001: `descripcion` puede venir NULL. El panel enviaba
+           `descripcion: null` cuando el operador no escribía detalle y la regla
+           exigía `is string`, así que registrar un pago sin descripción fallaba
+           SIEMPRE con un mensaje de reglas ilegible. La descripción es opcional
+           por diseño: null es un valor legítimo, no un texto inválido. */
         && (!('descripcion' in request.resource.data)
+             || request.resource.data.descripcion == null
              || (request.resource.data.descripcion is string
                  && request.resource.data.descripcion.size() <= 300))
         && request.resource.data.keys().hasOnly([
@@ -266,8 +323,11 @@ service cloud.firestore {
            ]);
       allow update: if esAdmin()
         && dineroIntacto()
-        && camposPermitidos()
-        && ((transicionAutorizada() && auditoriaCoherente()) || soloMetadatos());
+        && (
+          (camposPermitidos()
+            && ((transicionAutorizada() && auditoriaCoherente()) || soloMetadatos()))
+          || clasificacionHistorica()
+        );
       allow delete: if false;
     }
 
@@ -356,11 +416,59 @@ service cloud.firestore {
     // KZ-SEC-002: la creación pública se CIERRA. Solo el Worker de captación
     // (cuenta de servicio / OAuth2) escribe aquí, con validación y límite por
     // IP. Una escritura directa desde el navegador queda DENEGADA, de modo que
-    // no se puede saltar el control de abuso. El panel solo los lee.
+    // no se puede saltar el control de abuso.
+    //
+    // KZ-OPS-001: el panel SÍ necesita gestionar el seguimiento comercial, y
+    // antes solo un ADMIN podía escribir, sin restricción de campos: un ADMIN
+    // podía reescribir el teléfono, el correo o el mensaje ORIGINAL del lead y
+    // el registro de captación perdía su valor probatorio. Ahora el OPERADOR
+    // puede hacer el seguimiento (es quien llama al cliente) y nadie puede
+    // alterar los datos con los que el lead llegó: nombre, teléfono, correo,
+    // servicio, mensaje y fecha de recepción quedan INMUTABLES.
     match /contactos/{contactoId} {
+      function identidadDelLeadIntacta() {
+        return request.resource.data.get('nombre', '') == resource.data.get('nombre', '')
+            && request.resource.data.get('telefono', '') == resource.data.get('telefono', '')
+            && request.resource.data.get('email', '') == resource.data.get('email', '')
+            && request.resource.data.get('mensaje', '') == resource.data.get('mensaje', '')
+            && request.resource.data.get('servicio', '') == resource.data.get('servicio', '')
+            && request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null);
+      }
+      function camposDeGestion() {
+        return tocados().hasOnly(['estado', 'seguimiento', 'nota', 'asignadoA',
+                                  'contactadoEn', 'atendidoEn', 'descartadoEn',
+                                  'convertidoEn', 'clienteId',
+                                  'actualizadoEn', 'actualizadoPor']);
+      }
+      function estadoComercialValido() {
+        return request.resource.data.get('estado', 'NUEVO') in [
+          'NUEVO', 'CONTACTADO', 'ATENDIDO', 'DESCARTADO', 'CONVERTIDO'
+        ];
+      }
+      /* Marcar CONVERTIDO sin cliente asociado sería un estado mentiroso. */
+      function conversionConCliente() {
+        return request.resource.data.get('estado', 'NUEVO') != 'CONVERTIDO'
+            || textoNoVacio(request.resource.data.get('clienteId', ''));
+      }
+      function seguimientoEsLista() {
+        return !('seguimiento' in request.resource.data)
+            || request.resource.data.seguimiento is list;
+      }
+      function firmaPropia() {
+        return (!('actualizadoPor' in request.resource.data)
+                 || request.resource.data.actualizadoPor == request.auth.uid);
+      }
+
       allow create: if false;
       allow read: if esOperador();
-      allow update, delete: if esAdmin();
+      allow update: if esOperador()
+        && identidadDelLeadIntacta()
+        && camposDeGestion()
+        && estadoComercialValido()
+        && conversionConCliente()
+        && seguimientoEsLista()
+        && firmaPropia();
+      allow delete: if esAdmin();
     }
 
     /* ── suscriptores_web (avisos push de los visitantes) ──────────── */

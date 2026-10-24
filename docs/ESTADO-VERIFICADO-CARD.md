@@ -1,5 +1,11 @@
 # Estado verificado de Card — 19/10/2026
 
+> ⚠️ **HISTÓRICO.** Retrato del 19/10/2026, **anterior** a CARD-SPARK-002 y a KZ-OPS-001.
+> Su descripción de servicios, renovaciones y permisos **ya no corresponde** al sistema
+> vigente. Fuentes actuales: `docs/ARQUITECTURA-SPARK-CARD.md`,
+> `docs/CARD-SPARK-002-FINANCIERO.md` y `docs/KZ-OPS-001-CONSOLIDACION.md`.
+> Se conserva como registro de lo que se verificó ese día, no como manual de operación.
+
 > Este documento **no es un informe de intenciones**: cada afirmación viene de un comando
 > ejecutado hoy sobre el repositorio local, no de otro documento. Nace porque el
 > *Handoff Maestro del 18/10/2026* da por pendientes tres correcciones (P2/P3) que **ya

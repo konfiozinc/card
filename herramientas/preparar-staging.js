@@ -61,6 +61,12 @@ parche('assets/js/firebase-config.js', DEMO);
 
 parche('assets/js/main.js', [
   ["var BACKEND_URL = 'https://calm-heart-6828.konfiozinc.workers.dev';", "var BACKEND_URL = 'http://127.0.0.1:9999/kz-agente-deshabilitado'; /* [AISLAMIENTO] */"],
+  /* KZ-OPS-001: el formulario ESTÁNDAR del sitio tenía su propio endpoint
+     (`WORKER_LEADS`) y el recetario solo apagaba `BACKEND_URL` (el del chat).
+     La comprobación de fugas lo avisaba, pero no era bloqueante y pasaba
+     desapercibido: un E2E sobre el formulario estándar en staging habría
+     enviado el lead REAL al Worker de producción. */
+  ["var WORKER_LEADS = 'https://calm-heart-6828.konfiozinc.workers.dev/leads';", "var WORKER_LEADS = 'http://127.0.0.1:9999/kz-leads-deshabilitado'; /* [AISLAMIENTO] */"],
 ]);
 
 /* El formulario premium también apunta al Worker de producción: se apaga en staging. */
@@ -132,6 +138,21 @@ function paginas(dir, salida = []) {
   return salida;
 }
 let tocadas = 0;
+/* KZ-OPS-001 · Además del vendorizado, cada página recibe las sustituciones de
+   PRODUCCIÓN → emulador. `contacto.html` y `panel.html` llevan una
+   configuración de Firebase INLINE con la apiKey y el proyecto reales, y la CSP
+   de `index.html` autoriza el Worker de producción: el recetario anterior no las
+   cubría y el staging quedaba con capacidad de escribir en sistemas reales. */
+const SUSTITUCIONES_HTML = [
+  [/AIzaSyDbwAk9APwP2SeaEfWxeQG_bdL9eatciEA/g, 'demo-api-key-ficticia'],
+  [/konfio-zinc\.firebaseapp\.com/g, 'demo-card-seguridad.firebaseapp.com'],
+  [/konfio-zinc\.firebasestorage\.app/g, 'demo-card-seguridad.appspot.com'],
+  [/konfio-zinc\.appspot\.com/g, 'demo-card-seguridad.appspot.com'],
+  [/(projectId\s*:\s*['"])konfio-zinc(['"])/g, '$1demo-card-seguridad$2'],
+  [/1096915735255/g, '000000000000'],
+  [/1:000000000000:web:00e3d896c266293cced692/g, '1:000000000000:web:demo0000000000000000'],
+  [/https:\/\/calm-heart-6828\.konfiozinc\.workers\.dev/g, 'http://127.0.0.1:9999'],
+];
 for (const archivo of paginas(SITIO)) {
   let h = readFileSync(archivo, 'utf8');
   const original = h;
@@ -139,9 +160,37 @@ for (const archivo of paginas(SITIO)) {
 
   h = h.replace(/https:\/\/www\.gstatic\.com\/firebasejs\/10\.12\.2\/(firebase-[a-z]+\.js)/g, `${prefijo}vendor/firebase-esm/10.12.2/$1`);
   h = h.replace(/\s*<link[^>]*(?:fonts\.googleapis|fonts\.gstatic|cdnjs\.cloudflare)[^>]*>/g, '\n  <!-- [AISLAMIENTO] recurso externo retirado en staging -->');
+  for (const [re, valor] of SUSTITUCIONES_HTML) h = h.replace(re, valor);
   if (!h.includes('aislamiento.js') && /<body[^>]*>/i.test(h)) {
     h = h.replace(/<body([^>]*)>/i, `<body$1>\n  <script src="${prefijo}assets/js/aislamiento.js"></script>`);
   }
   if (h !== original) { writeFileSync(archivo, h, 'utf8'); tocadas++; }
 }
 console.log(`  páginas ajustadas para el aislamiento: ${tocadas}`);
+
+/* 8. KZ-OPS-001 · La comprobación de fugas es BLOQUEANTE.
+   Antes solo imprimía el aviso y el staging se usaba igual: una referencia a
+   producción que el recetario no cubriera pasaba desapercibida y el E2E podía
+   escribir en sistemas reales. Ahora el build falla y no se genera un staging
+   engañoso. */
+const fugaFinal = [];
+for (const archivo of paginas(SITIO)) {
+  const t = readFileSync(archivo, 'utf8');
+  if (t.includes('calm-heart-6828')) fugaFinal.push(archivo.slice(SITIO.length + 1) + ' → Worker de producción');
+  if (t.includes('konfio-zinc.firebaseapp')) fugaFinal.push(archivo.slice(SITIO.length + 1) + ' → proyecto Firebase de producción');
+}
+for (const rel of ['assets/js/main.js', 'premium-assets/app.js', 'assets/js/config.js',
+                   'assets/js/firebase-config.js', 'assets/js/admin/core.js']) {
+  const t = readFileSync(join(SITIO, rel), 'utf8');
+  if (rel !== 'assets/js/main.js' && t.includes('calm-heart-6828')) fugaFinal.push(rel + ' → Worker de producción');
+  if (rel === 'assets/js/main.js' && t.includes('workers.dev')) fugaFinal.push(rel + ' → Worker de producción');
+  if (t.includes('projectId: \'konfio-zinc\'')) fugaFinal.push(rel + ' → proyecto Firebase de producción');
+}
+if (fugaFinal.length) {
+  console.error('  ✗ STAGING NO SEGURO — referencias a producción:');
+  fugaFinal.forEach((x) => console.error('      · ' + x));
+  console.error('  El staging NO debe usarse para pruebas: escribiría en sistemas reales.');
+  process.exitCode = 1;
+} else {
+  console.log('  ✓ aislamiento verificado: ninguna página apunta a producción');
+}

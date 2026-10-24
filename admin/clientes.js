@@ -3,10 +3,15 @@ import { requireAuth, canAccess } from '../assets/js/admin/shell.js';
 import { setTitulo, toast, confirmar, badgeEstado, esc, fmtCOP, descargarCSV } from '../assets/js/admin/ui.js';
 import {
   cargarClientes, cargarCliente, pagosDe, historialDe, cargarPlanes,
-  escrituras, CFG, NEG, cop, aFecha, iso, hoyISO, sumarMeses, dias, fechaLarga, precioSugerido
+  escrituras, CFG, NEG, cop, aFecha, iso, hoyISO, sumarMeses, dias, fechaLarga, precioSugerido,
+  obligacionServicio
 } from '../assets/js/admin/datos.js';
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../assets/js/admin/core.js';
+/* KZ-OPS-001: el panel ya NO escribe en Firestore a mano. Toda escritura con
+   lógica de negocio (incluidas las fechas de vigencia) pasa por
+   escrituras-local.js, que deja historial y auditoría. Se retiraron los imports
+   de escritura directa (`doc`, `updateDoc`, `serverTimestamp`, `db`) porque ya
+   no hay ninguna llamada que los use: si volviera a aparecer una, sería una vía
+   que se salta las reglas de negocio y hay que verla en revisión. */
 
 const sesion = await requireAuth('clientes');
 if (!sesion) throw new Error('Sin acceso');
@@ -90,9 +95,9 @@ function botonesFila(c, estado) {
     } else if (['INACTIVO', 'SUSPENDIDO', 'INHABILITADO'].includes(estado)) {
       b += `<button data-a="activar" class="act-activar" title="Activar"><i class="fas fa-play" aria-hidden="true"></i></button>`;
     }
-    if (['ACTIVO', 'POR_VENCER'].includes(estado)) {
-      b += `<button data-a="renovar" title="Renovar 12 meses"><i class="fas fa-rotate" aria-hidden="true"></i></button>`;
-    }
+    /* KZ-OPS-001: se retiró el botón «Renovar 12 meses». Renovar exige un pago
+       con concepto y la confirmación de un ADMIN, que extiende solo el servicio
+       identificado en el pago. */
   }
   if (superAdmin) {
     b += `<button data-a="eliminar" class="act-eliminar" title="Eliminar (baja lógica)"><i class="fas fa-trash" aria-hidden="true"></i></button>`;
@@ -225,14 +230,17 @@ async function manejarAccion(e) {
     await escrituras.eliminarCliente(id, 'Eliminado desde botón');
     toast('Cliente eliminado (baja lógica)'); return recargar();
   }
+  /* KZ-OPS-001 · Aquí vivía un botón «Renovar 12 meses» que sumaba
+     `NEG.mesesSuscripcion` a `clientes.fechaVencimiento` con un updateDoc
+     directo: sin pago, sin concepto, sin servicio identificado, sin historial y
+     sin auditoría. Era exactamente el comportamiento que CARD-SPARK-002
+     eliminó, reintroducido en la interfaz, y dejaba renovar por dos vías
+     incompatibles. La única vía válida es registrar un pago con concepto y que
+     un ADMIN lo confirme: eso extiende SOLO el servicio que el pago identifica.
+     Si alguien vuelve a necesitar «renovar», debe usar «Registrar pago». */
   if (a === 'renovar') {
-    if (!await confirmar(`¿Renovar ${c.nombre} 12 meses? Se suman ${NEG.mesesSuscripcion} meses y se reinician los avisos.`)) return;
-    const base = c.dias > 0 ? new Date(c.fechaVencimiento + 'T00:00:00') : new Date();
-    const nuevo = iso(sumarMeses(base, NEG.mesesSuscripcion));
-    await escrituras.recalcularEstados();
-    await updateDoc(doc(db, 'clientes', id), { fechaVencimiento: nuevo, estadoCliente: 'ACTIVO', updatedAt: serverTimestamp() });
-    toast('Cliente renovado hasta ' + fechaLarga(nuevo));
-    return recargar();
+    toast('Para renovar hay que registrar un pago con su concepto y que un ADMIN lo confirme: extiende solo el servicio indicado.', 'error');
+    return;
   }
 }
 
@@ -417,6 +425,7 @@ function abrirPago(c) {
         <div class="campo"><label>Servicio asociado</label><select id="p-servicio"><option value="">— (sin servicio) —</option></select></div>
       </div>
       <div class="campo"><label>Descripción</label><input id="p-desc" maxlength="300" placeholder="Detalle del cobro (opcional)"></div>
+      <div class="aviso aviso--ok" id="p-aviso" hidden></div>
       <div class="aviso aviso--error" id="p-error" hidden></div>
     </form>
     <div class="modal__foot">
@@ -430,6 +439,27 @@ function abrirPago(c) {
   escrituras.cargarServiciosDeCliente(c.id).then((sv) => {
     const sel = document.getElementById('p-servicio');
     if (sel) sel.innerHTML = '<option value="">— (sin servicio) —</option>' + sv.map(s => `<option value="${esc(s.id)}">${esc(s.servicio)}${s.categoria ? ' · ' + esc(s.categoria) : ''}</option>`).join('');
+    /* KZ-OPS-001 · Aviso en vivo: un concepto renovable sin servicio no se
+       puede confirmar después, y antes el error solo aparecía en la pantalla de
+       Pagos, lejos de donde se eligió. */
+    const concepto = document.getElementById('p-concepto');
+    const aviso = document.getElementById('p-aviso');
+    const revisar = () => {
+      if (!concepto || !aviso) return;
+      const def = (CFG.conceptosPago || []).find((x) => x.codigo === concepto.value);
+      const sinServicio = sel && !sel.value;
+      const texto = def && def.extensible
+        ? (sinServicio
+          ? 'Este concepto RENUEVA: elige el servicio que renueva o el pago quedará bloqueado al confirmarlo.'
+          : 'Este concepto renueva SOLO el servicio elegido; el resto de servicios del cliente no cambia.')
+        : 'Concepto de pago único: no extiende ninguna vigencia.';
+      aviso.textContent = texto;
+      aviso.className = 'aviso ' + (def && def.extensible && sinServicio ? 'aviso--error' : 'aviso--ok');
+      aviso.hidden = false;
+    };
+    if (concepto) concepto.addEventListener('change', revisar);
+    if (sel) sel.addEventListener('change', revisar);
+    revisar();
   }).catch(() => {});
   document.getElementById('pago-form').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -497,8 +527,23 @@ async function verDetalle(c) {
   if (ds) {
     escrituras.cargarServiciosDeCliente(c.id).then((sv) => {
       ds.innerHTML = sv.length
-        ? sv.map((s) => `<div class="celda-suave">${esc(s.servicio)}${s.categoria ? ' · ' + esc(s.categoria) : ''} · ${cop(s.precio)} · ${esc(s.estado || '')}${s.fechaVencimiento ? ' · vence ' + esc(s.fechaVencimiento) : ''}</div>`).join('')
-        : 'Sin servicios registrados.';
+        ? `<div class="tabla__wrap"><table class="tabla"><thead><tr>
+             <th>Servicio</th><th>Precio</th><th>Estado</th><th>Vence</th><th>Obligación</th>
+           </tr></thead><tbody>${sv.map((s) => {
+             const obl = obligacionServicio(s.servicio, s.categoria);
+             const d = dias(s.fechaVencimiento);
+             const cuando = d === null ? '' : d < 0 ? ` · venció hace ${Math.abs(d)} d` : d === 0 ? ' · vence hoy' : ` · en ${d} d`;
+             return `<tr>
+               <td><div class="celda-fuerte">${esc(s.servicio)}</div>${s.categoria ? `<div class="celda-suave">${esc(s.categoria)}</div>` : ''}</td>
+               <td>${cop(s.precio)}</td>
+               <td>${badgeEstado(s.estado || 'ACTIVO')}</td>
+               <td>${fechaLarga(s.fechaVencimiento)}<div class="celda-suave">${esc(cuando.replace(' · ', ''))}</div></td>
+               <td class="celda-suave">${esc(obl.etiqueta)}</td>
+             </tr>`;
+           }).join('')}</tbody></table></div>
+           <p class="celda-suave">Para editar un servicio, cámbiale el estado o corregir sus fechas, usa
+             <a href="servicios.html">Servicios</a>. Aquí solo se añaden.</p>`
+        : '<p class="celda-suave">Sin servicios registrados. Añade el primero con el formulario de abajo: sin servicio no se puede registrar una renovación.</p>';
     }).catch(() => { ds.textContent = 'No se pudieron cargar los servicios.'; });
     document.getElementById('det-servicio-form').addEventListener('submit', async (ev) => {
       ev.preventDefault();

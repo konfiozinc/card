@@ -1,8 +1,15 @@
 # Publicación controlada de CARD en Spark · secuencia y reversión
 
-Estado previo: producción sirve `main@ac44115` (panel antiguo, con Cloud Functions en el código) y
-las reglas **anteriores**. La rama `spark/card-sin-functions` trae el panel nuevo y las reglas nuevas.
-No se despliega nada aquí: esto es el procedimiento para la ventana.
+> ⚠️ **HISTÓRICO.** Escrito para una ventana de publicación que **ya ocurrió**: producción sirve
+> hoy `card/main` en `8a80234` (no `ac44115`) con las reglas de CARD-SPARK-002 publicadas, y la rama
+> `spark/card-sin-functions` ya no es el vehículo de publicación. El procedimiento vigente, con
+> respaldo de reglas y reversión, está en `docs/KZ-OPS-001-CONSOLIDACION.md` §7 y en
+> `docs/CARD-SPARK-002-FINANCIERO.md` §5. Se conserva como registro histórico del orden
+> «frontend primero, reglas después», que sigue siendo válido.
+
+Estado previo (al momento de escribirse): producción servía `main@ac44115` (panel antiguo, con Cloud
+Functions en el código) y las reglas **anteriores**. La rama `spark/card-sin-functions` traía el panel
+nuevo y las reglas nuevas. No se despliega nada aquí: esto es el procedimiento para la ventana.
 
 ## 1. Orden obligatorio: primero el frontend, después las reglas
 

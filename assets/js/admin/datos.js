@@ -16,9 +16,11 @@ import {
   onSnapshot, where, Timestamp
 } from 'firebase/firestore';
 import {
-  crearCliente, actualizarCliente, registrarPago, confirmarPago, anularPago,
+  crearCliente, actualizarCliente, registrarPago, confirmarPago, anularPago, clasificarPago,
   activarServicio, suspenderServicio, desactivarServicio, reactivarServicio,
   inhabilitarServicio, eliminarCliente, crearServicio, cargarServiciosDeCliente,
+  actualizarServicio, cambiarEstadoServicio,
+  actualizarContacto, agregarSeguimientoContacto, convertirContactoEnCliente,
   prepararNotificacion, marcarNotificacionEnviada, registrarToken,
   seedInicial, recalcularEstados
 } from './escrituras-local.js';
@@ -40,6 +42,11 @@ export function cop(n) { return '$' + (Number(n) || 0).toLocaleString('es-CO'); 
 export function aFecha(v) {
   if (!v) return null;
   if (typeof v.toDate === 'function') return v.toDate();
+  /* KZ-OPS-001 · 'YYYY-MM-DD' es una fecha de CALENDARIO, no un instante.
+     `new Date('2027-10-24')` la interpreta como medianoche UTC y en Colombia
+     (UTC-5) eso es el día anterior, así que las fechas mostradas y las sumas de
+     meses salían un día antes. Se parsea como fecha local. */
+  if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) return new Date(v + 'T00:00:00');
   const d = new Date(v);
   return isNaN(d.getTime()) ? null : d;
 }
@@ -124,6 +131,25 @@ export async function historialDe(clienteId) {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+/** Contactos captados por el sitio (KZ-OPS-001).
+ *
+ *  Se leen todos y se ordenan en memoria por fecha de recepción: `createdAt` lo
+ *  escribe el Worker con cuenta de servicio y no todos los leads históricos lo
+ *  traen, así que un `orderBy('createdAt')` los habría hecho desaparecer de la
+ *  lista sin ningún error visible. */
+export async function cargarContactos() {
+  const snap = await getDocs(collection(db, 'contactos'));
+  const aMs = (v) => {
+    if (!v) return 0;
+    if (typeof v.toDate === 'function') return v.toDate().getTime();
+    const d = new Date(v);
+    return isNaN(d) ? 0 : d.getTime();
+  };
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .sort((x, y) => aMs(y.createdAt) - aMs(x.createdAt));
+}
+
 /** Todos los pagos. */
 export async function cargarPagos() {
   const snap = await getDocs(query(collection(db, 'pagos'), orderBy('createdAt', 'desc'), limit(200)));
@@ -134,6 +160,30 @@ export async function cargarPagos() {
 export async function cargarServicios() {
   const snap = await getDocs(query(collection(db, 'servicios'), orderBy('fechaVencimiento')));
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+/** Todos los servicios SIN ordenar en la consulta (KZ-OPS-001).
+ *
+ *  `orderBy('fechaVencimiento')` EXCLUYE los documentos que no tienen ese
+ *  campo. Un servicio antiguo sin la clave desaparecía de Vencimientos y de la
+ *  página Servicios sin ningún error visible. Aquí se leen todos y se ordenan
+ *  en memoria, dejando los que no tienen fecha al final. */
+export async function cargarTodosLosServicios() {
+  const snap = await getDocs(collection(db, 'servicios'));
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => String(a.fechaVencimiento || '9999-12-31')
+      .localeCompare(String(b.fechaVencimiento || '9999-12-31')));
+}
+
+/** Servicios agrupados por cliente. */
+export function agruparServiciosPorCliente(lista) {
+  const mapa = new Map();
+  for (const s of lista || []) {
+    if (!mapa.has(s.clienteId)) mapa.set(s.clienteId, []);
+    mapa.get(s.clienteId).push(s);
+  }
+  return mapa;
 }
 
 /** Catálogo de planes. */
@@ -190,12 +240,54 @@ export function suscribirClientes(cb) {
 
 /* ── Escrituras (cliente + reglas, modo Spark) ─────────────────────── */
 export const escrituras = {
-  crearCliente, actualizarCliente, registrarPago, confirmarPago, anularPago,
+  crearCliente, actualizarCliente, registrarPago, confirmarPago, anularPago, clasificarPago,
   activarServicio, suspenderServicio, desactivarServicio, reactivarServicio,
   inhabilitarServicio, eliminarCliente, crearServicio, cargarServiciosDeCliente,
+  actualizarServicio, cambiarEstadoServicio,
+  actualizarContacto, agregarSeguimientoContacto, convertirContactoEnCliente,
   prepararNotificacion, marcarNotificacionEnviada, registrarToken, crearUsuario, actualizarUsuario,
   seedInicial, recalcularEstados
 };
+
+/* ── Obligación renovable de un servicio (KZ-OPS-001) ──────────────────
+   En Spark no hay motor de vencimientos: la obligación se DERIVA del servicio
+   contratado cada vez que se abre una página. El catálogo comercial es la única
+   fuente: un producto de pago único no genera renovación, la Mini Web incluye
+   dominio del primer año (renovable) y los agentes IA llevan mantenimiento. */
+const OBLIGACION_POR_SERVICIO = {
+  tarjetas: 'RENOVACION_DOMINIO',
+  agentes: 'MANTENIMIENTO',
+  catalogos: 'HOSTING',
+  menus: 'HOSTING',
+  landing: 'SIN_OBLIGACION',
+  qr: 'SIN_OBLIGACION'
+};
+
+const ETIQUETAS_OBLIGACION = {
+  RENOVACION_DOMINIO: 'Renovación de dominio',
+  HOSTING: 'Hosting contratado',
+  MANTENIMIENTO: 'Mantenimiento y soporte',
+  SERVICIO_PERIODICO: 'Servicio periódico',
+  SIN_OBLIGACION: 'Sin renovación (pago único)'
+};
+
+/** Traduce la etiqueta comercial del servicio a su slug del catálogo. */
+export function slugDeServicio(etiqueta) {
+  const s = (CFG.servicios || []).find((x) => x.etiqueta === etiqueta);
+  return s ? s.slug : null;
+}
+
+/** Obligación real de un servicio a partir de su nombre y, si existe, su
+ *  categoría (Mini Web Básica / Pro). */
+export function obligacionServicio(nombreServicio, categoria) {
+  const codigo = OBLIGACION_POR_SERVICIO[slugDeServicio(nombreServicio)] || 'SIN_OBLIGACION';
+  return {
+    codigo,
+    etiqueta: ETIQUETAS_OBLIGACION[codigo] || ETIQUETAS_OBLIGACION.SIN_OBLIGACION,
+    renovable: codigo !== 'SIN_OBLIGACION',
+    categoria: categoria || null
+  };
+}
 
 /* ── Precio sugerido por servicio (para autocompletar) ─────────────── */
 export function precioSugerido(servicio, categoria) {
