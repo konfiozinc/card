@@ -6,11 +6,11 @@
   --ink: var(--kz-deep);
   --panel: var(--kz-surface);
   --white: var(--kz-text);
-  --muted: var(--kz-text-muted);
-  --gold: var(--kz-cyan);          /* acento corporativo (antes dorado) */
-  --cyan: var(--kz-cyan);
-  --violet: var(--kz-violet-light);
-  --line: rgb(148 180 220 / .16);
+  --muted:var(--kz-text-muted);
+  --gold:var(--kz-cyan);          /* acento corporativo (antes dorado) */
+  --cyan:var(--kz-cyan);
+  --violet:var(--kz-violet-light);
+  --line: var(--kz-border);
   --glass: rgb(16 28 53 / .55);
   --max: 1280px;
   --pad: clamp(20px, 5vw, 72px);
@@ -63,7 +63,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .button--brand { color: var(--black); background: var(--kz-gradient-brand); box-shadow: var(--kz-glow-cta); }
 .button--brand:hover,.button--brand:focus-visible { box-shadow: 0 16px 55px rgb(var(--kz-rgb-cyan) / .34); }
 .button--line { color: var(--white); background: rgba(255,255,255,.025); border-color: var(--line); }
-.button--line:hover,.button--line:focus-visible { border-color: var(--cyan); background: rgb(var(--kz-rgb-cyan) / .07); }
+.button--line:var(--kz-border); background: rgb(var(--kz-rgb-cyan) / .07); }
 .hero__rail { position: absolute; right: var(--pad); bottom: 50px; display: flex; align-items: center; gap: 16px; color: var(--muted); font-size: 9px; letter-spacing: .25em; writing-mode: vertical-rl; }
 .hero__rail i { width: 1px; height: 66px; background: linear-gradient(var(--cyan),transparent); }
 .hero__note { position: absolute; top: 25%; right: var(--pad); margin: 0; color: var(--kz-text-muted); font-size: 11px; line-height: 1.6; text-align: right; letter-spacing: .08em; text-transform: uppercase; }
@@ -109,10 +109,10 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .project::before { width: 75%; aspect-ratio: 1; top: 18%; left: 35%; background: radial-gradient(circle,var(--project),transparent 66%); filter: blur(8px); }
 .project::after { inset: 0; border-radius: 0; background: linear-gradient(140deg,rgba(255,255,255,.08),transparent 46%,rgba(0,0,0,.3)); }
 .project:hover::before { transform: scale(1.25) translate(-10%,-8%); }
-.project--snoopy { --project: #e93d68; background: #341119; }
-.project--calinet { --project: #00d4ff; background: #071d32; }
-.project--unefibra { --project: #55d674; background: #082218; }
-.project--eltiti { --project: #f0b429; background: #2a1a06; }
+.project--snoopy { --project: var(--kz-danger); background: var(--kz-surface); }
+.project--calinet { --project: var(--kz-cyan); background: var(--kz-surface); }
+.project--unefibra { --project: var(--kz-success); background: var(--kz-surface); }
+.project--eltiti { --project: var(--kz-cyan); background: var(--kz-surface); }
 .project__meta { font-size: 10px; letter-spacing: .18em; }
 .project strong { font-family: var(--display); font-size: clamp(3.2rem,7vw,6.5rem); line-height: .78; letter-spacing: -.07em; }
 .project__arrow { position: absolute; right: 28px; bottom: 28px; display: grid; place-items: center; width: 50px; aspect-ratio: 1; border: 1px solid rgba(255,255,255,.34); border-radius: 50%; font-size: 24px; }
@@ -179,14 +179,14 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .field input,.field select,.field textarea { width: 100%; min-height: 52px; padding: 13px 0; color: var(--white); background: transparent; border: 0; border-bottom: 1px solid var(--kz-border); border-radius: 0; outline: none; resize: vertical; transition: border .2s,box-shadow .2s; }
 .field select { color-scheme: dark; }
 .field input:focus,.field select:focus,.field textarea:focus { border-color: var(--cyan); box-shadow: 0 1px var(--cyan); }
-.field [aria-invalid="true"] { border-color: #ff6f7f; }
-.field__error { display: block; min-height: 18px; padding-top: 5px; color: #ff9aa6; font-size: 11px; }
+.field [aria-invalid="true"] { border-color: var(--kz-danger); }
+.field__error { display: block; min-height: 18px; padding-top: 5px; color: var(--kz-danger); font-size: 11px; }
 .lead-form__submit,.lead-form__privacy,.lead-form__status,.lead-form__fallback { grid-column: 1 / -1; }
 .lead-form__submit { width: 100%; border: 0; }
 .lead-form__privacy { margin: 0; color: var(--kz-text-muted); font-size: 11px; line-height: 1.55; }
 .lead-form__status { min-height: 24px; margin: 0; color: var(--kz-text-secondary); line-height: 1.5; }
-.lead-form__status[data-kind="success"] { color: #83efb3; }
-.lead-form__status[data-kind="error"] { color: #ff9aa6; }
+.lead-form__status[data-kind="success"] { color: var(--kz-success); }
+.lead-form__status[data-kind="error"] { color: var(--kz-danger); }
 .lead-form__fallback[hidden] { display: none; }
 .honey { position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden; }
 
@@ -288,15 +288,15 @@ button, a { -webkit-tap-highlight-color: transparent; }
   .site-header,.noise,#zinc-orbit,.hero__glow,.hero__rail,.menu-toggle { display: none!important; }
   body { color: #000; background: #fff; }
   section { break-inside: avoid; padding: 30px!important; }
-  .service-panel { position: static; min-height: auto; color: #000; background: #fff; border-color: #777; }
+  .service-panel { position: static; min-height: auto; color: #000; background: #fff; border-color: var(--kz-text-muted); }
   /* La banda de precios es oscura en pantalla; en papel vuelve a claro para
      no imprimir un rectángulo de tinta y no perder el texto. */
   .pricing { color: #000; background: #fff; }
-  .pricing .section-kicker,.pricing .section-head h2 span { color: #4a4a4a; -webkit-text-stroke-color: #6b6b6b; }
-  .pricing .section-head--split > p,.pricing__note,.price-list span,.price-list small { color: #333; }
-  .price-list,.price-list a { border-color: #999; }
+  .pricing .section-kicker,.pricing .section-head h2 span { color: var(--kz-border); -webkit-text-stroke-color: var(--kz-text-muted); }
+  .pricing .section-head--split > p,.pricing__note,.price-list span,.price-list small { color: var(--kz-border); }
+  .price-list,.price-list a { border-color: var(--kz-text-muted); }
   .price-list a,.price-list strong,.price-list b { color: #000; background: none; }
-  .price-list i { border-color: #999; }
+  .price-list i { border-color: var(--kz-text-muted); }
 }
 
 /* KZ-NO-OVERFLOW: ninguna caja excede el viewport en movil. Corrige el desbordamiento
@@ -309,7 +309,7 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
 }
 
 /* KZ-CONTRASTE (histórico): con la banda clara anterior Lighthouse 13.5
-   marcaba 4,05:1 en la lista de precios (#77736c sobre #f0eee6, 11 px).
+   marcaba 4,05:1 en la lista de precios (var(--kz-text-muted)36c sobre #f0eee6, 11 px).
    Con la identidad Neon Tech la banda pasó a superficie #101C35, donde el
    texto mide 14,9:1 (blanco) y 8,4:1 (apagado). La comprobación se repite
    con herramientas/verificar-neon.js, que mide el contraste sobre el píxel

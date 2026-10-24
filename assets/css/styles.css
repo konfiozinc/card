@@ -33,7 +33,7 @@
      28. Accesibilidad y movimiento reducido
      29. Responsive específico (breakpoints 480 / 768 / 1024 / 1280)
 
-   Identidad visual: negro #000000, dorado var(--gold), naranja #F97316, cian #00E5FF
+   Identidad visual: negro var(--kz-bg), dorado var(--gold), naranja var(--kz-violet), cian #00E5FF
    Tipografías: Orbitron (títulos) · Inter (textos)
    ═══════════════════════════════════════════════════════════════════════ */
 
@@ -41,28 +41,28 @@
 :root {
   /* Acento corporativo. `--gold-rgb` permite translúcidos sin repetir el canal:
      rgb(var(--gold-rgb) / .25). El tema Neon Tech reasigna estos tokens. */
-  --gold: #F0B429;
-  --gold-rgb: 240 180 41;
-  --gold2: #FFD97D;
-  --orange: #F97316;
-  --cyan: #00E5FF;
-  --success: #4ade80;
-  --danger: #f87171;
+  --gold: var(--kz-cyan);
+  --gold-rgb: var(--kz-rgb-cyan);
+  --gold2: var(--kz-cyan-light);
+  --orange: var(--kz-violet);
+  --cyan: var(--kz-cyan);
+  --success: var(--kz-success);
+  --danger: var(--kz-danger);
 
-  --bg: #000000;
-  --surface: #0a0a0c;
-  --surface2: #111114;
-  --elevated: #17171b;
-  --surface-deep: #07070a;   /* póster de video */
-  --surface-chat: #0a0a0a;   /* paneles del asesor flotante */
+  --bg: var(--kz-bg);
+  --surface: var(--kz-surface);
+  --surface2: var(--kz-surface-raised);
+  --elevated: var(--kz-surface-raised);
+  --surface-deep: var(--kz-deep);   /* póster de video */
+  --surface-chat: var(--kz-surface-raised);   /* paneles del asesor flotante */
 
-  --fg: #F5F5F0;
-  --muted: #9aa0a6;
+  --fg: var(--kz-text);
+  --muted: var(--kz-text-muted);
 
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: #2a2a2a;
-  --border-gold: rgb(var(--gold-rgb) / .25);
-  --on-accent: #000000;   /* texto sobre relleno de acento */
+  --border: var(--kz-border);
+  --border-strong: var(--kz-border-soft);
+  --border-gold: rgb(var(--kz-rgb-cyan) / .28);
+  --on-accent: var(--kz-bg);   /* texto sobre relleno de acento */
 
   --font-title: 'Orbitron', sans-serif;
   --font-body: 'Inter', sans-serif;
@@ -167,7 +167,7 @@ strong { color: var(--fg); }
   box-shadow: 0 0 30px rgb(var(--gold-rgb) / .25);
   transform: translateY(-2px);
 }
-.btn-wa { background: #25D366; color: #052e16; box-shadow: 0 6px 24px rgba(37, 211, 102, .3); }
+.btn-wa { background: #25D366; color: var(--kz-surface); box-shadow: 0 6px 24px rgba(37, 211, 102, .3); }
 .btn-wa:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(37, 211, 102, .5); }
 .btn-lg { padding: 1rem 2rem; font-size: .85rem; }
 .btn-block { width: 100%; }
@@ -749,7 +749,7 @@ strong { color: var(--fg); }
   transition: transform .25s, box-shadow .25s; cursor: pointer;
 }
 .kz-fab-btn:hover { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(0,229,255,.28), 0 10px 36px rgba(0,0,0,.7); }
-.kz-fab-btn .kz-dot { position: absolute; top: 3px; right: 3px; width: 13px; height: 13px; background: #22c55e; border-radius: 50%; border: 2px solid #0a0a0a; animation: pulse 2.2s infinite; z-index: 2; }
+.kz-fab-btn .kz-dot { position: absolute; top: 3px; right: 3px; width: 13px; height: 13px; background: var(--kz-success); border-radius: 50%; border: 2px solid var(--kz-bg); animation: pulse 2.2s infinite; z-index: 2; }
 
 /* Anillo pulsante cian */
 .kz-ring { position: absolute; inset: -2px; border-radius: 50%; border: 2px solid #00E5FF; opacity: .55; animation: kzRing 2.4s ease-out infinite; pointer-events: none; }
@@ -782,7 +782,7 @@ strong { color: var(--fg); }
 .kz-info { flex: 1; min-width: 0; }
 .kz-name { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 15px; color: #fff; white-space: nowrap; }
 .kz-badge { font-size: 9px; background: rgb(var(--gold-rgb) / .2); color: var(--gold); padding: 2px 8px; border-radius: 20px; font-weight: 500; }
-.kz-status { font-size: 12px; color: #999; display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.kz-status { font-size: 12px; color: var(--kz-text-muted); display: flex; align-items: center; gap: 6px; margin-top: 2px; }
 .kz-status .kz-dot { width: 6px; height: 6px; border-radius: 50%; background: #25D366; box-shadow: 0 0 6px #25D366; animation: pulse 2.2s infinite; }
 .kz-close { background: none; border: none; color: #fff; font-size: 22px; line-height: 1; padding: 4px; cursor: pointer; transition: color .2s; }
 .kz-close:hover { color: var(--gold); }

@@ -17,7 +17,7 @@
   transition: transform .25s, box-shadow .25s; cursor: pointer;
 }
 .kz-fab-btn:hover { transform: scale(1.08); box-shadow: 0 0 0 6px rgba(0,229,255,.28), 0 10px 36px rgba(0,0,0,.7); }
-.kz-fab-btn .kz-dot { position: absolute; top: 3px; right: 3px; width: 13px; height: 13px; background: #22c55e; border-radius: 50%; border: 2px solid #0a0a0a; animation: pulse 2.2s infinite; z-index: 2; }
+.kz-fab-btn .kz-dot { position: absolute; top: 3px; right: 3px; width: 13px; height: 13px; background: var(--kz-success); border-radius: 50%; border: 2px solid var(--kz-bg); animation: pulse 2.2s infinite; z-index: 2; }
 
 /* Anillo pulsante cian */
 .kz-ring { position: absolute; inset: -2px; border-radius: 50%; border: 2px solid #00E5FF; opacity: .55; animation: kzRing 2.4s ease-out infinite; pointer-events: none; }
