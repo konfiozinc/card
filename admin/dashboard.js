@@ -27,6 +27,19 @@ const ingresosMes = pagos
   .filter(p => p.estado === 'CONFIRMADO' && p.fechaPago && new Date(p.fechaPago).getMonth() === mes && new Date(p.fechaPago).getFullYear() === anio)
   .reduce((s, p) => s + (Number(p.monto) || 0), 0);
 
+/* CARD-SPARK-002: separar ingresos realizados de importes pendientes, y
+   desglosar por CONCEPTO (un pago de desarrollo NO es un ingreso recurrente). */
+const pendientesMonto = pagos
+  .filter(p => p.estado === 'PENDIENTE')
+  .reduce((s, p) => s + (Number(p.monto) || 0), 0);
+const porConcepto = {};
+pagos.filter(p => p.estado === 'CONFIRMADO').forEach(p => {
+  const k = p.concepto || 'SIN_CLASIFICAR';
+  porConcepto[k] = (porConcepto[k] || 0) + (Number(p.monto) || 0);
+});
+const conceptosTxt = (CFG.conceptosPago || []).map(x => ({ ...x, total: porConcepto[x.codigo] || 0 })).filter(x => x.total > 0);
+const renovacionesProx = visibles.filter(c => c.dias !== null && c.dias >= 0 && c.dias <= 60).length;
+
 /* Barras: clientes por servicio */
 const conteo = {};
 CFG.servicios.forEach(s => conteo[s.etiqueta] = 0);
@@ -59,9 +72,19 @@ cont.innerHTML = `
     { label: 'Inactivos', valor: inactivos, tono: 'neutro', nota: 'Servicio desactivado' },
     { label: 'Suspendidos', valor: suspendidos, tono: 'alerta', nota: 'Pausa temporal' },
     { label: 'Inhabilitados', valor: inhabilitados, tono: 'peligro', nota: 'Bloqueados' },
-    { label: 'Ingresos del mes', valor: cop(ingresosMes), tono: 'info', nota: 'Pagos confirmados' },
+    { label: 'Ingresos confirmados (mes)', valor: cop(ingresosMes), tono: 'info', nota: 'Cobros CONFIRMADOS' },
+    { label: 'Pagos pendientes (monto)', valor: cop(pendientesMonto), tono: 'peligro', nota: 'Registrados sin confirmar' },
+    { label: 'Renovaciones próximas', valor: renovacionesProx, tono: 'alerta', nota: '≤ 60 días' },
     { label: 'Total clientes', valor: visibles.length, tono: 'neutro', nota: 'En base de datos' }
   ])}
+
+  <div class="card">
+    <h3><i class="fas fa-coins" aria-hidden="true"></i> Ingresos confirmados por concepto</h3>
+    ${conceptosTxt.length
+      ? conceptosTxt.map(x => `<div class="barra__head"><span>${esc(x.etiqueta)}</span><span>${cop(x.total)}</span></div>`).join('')
+      : '<p class="celda-suave">Sin cobros confirmados clasificados todavía.</p>'}
+    <p class="celda-suave" style="margin-top:.5rem">Los pagos sin concepto se cuentan como «sin clasificar» hasta que un ADMIN los clasifique.</p>
+  </div>
 
   <div class="grid-2">
     <div class="card">
@@ -75,7 +98,7 @@ cont.innerHTML = `
   </div>
 
   <div class="page-head">
-    <p class="celda-suave">Los avisos automáticos se envían ${NEG.diasAntes.join(', ')} días antes del vencimiento, mediante la función programada <code>processDueDates</code> (8:00 a.m. America/Bogota).</p>
+    <p class="celda-suave">Los avisos son MANUALES por WhatsApp: este panel los prepara y el operador los envía. No hay motor automático de notificaciones en el plan Spark.</p>
     <div class="page-head__acciones">
       <a class="btn btn--primary" href="clientes.html"><i class="fas fa-user-plus" aria-hidden="true"></i> Nuevo cliente</a>
       <a class="btn btn--ghost" href="pagos.html"><i class="fas fa-money-bill" aria-hidden="true"></i> Registrar pago</a>

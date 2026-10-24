@@ -24,12 +24,20 @@ const esAdmin = canAccess(sesion.rol, 'ADMIN');
 
 let clientes = [];
 
-const dias = (c) => (c.dias === null || c.dias === undefined ? null : Number(c.dias));
+function dias(c) { return (c.dias === null || c.dias === undefined ? null : Number(c.dias)); }
 const vigentes = () => clientes.filter(c => !c.eliminado);
 const sinVencimiento = () => vigentes().filter(c => dias(c) === null);
 const vencidos = () => vigentes().filter(c => dias(c) !== null && dias(c) < 0);
 const porVencer = () => vigentes().filter(c => dias(c) !== null && dias(c) >= 0 && dias(c) <= UMBRAL);
 const suspendidos = () => vigentes().filter(c => c.estadoCliente === 'SUSPENDIDO' || c.estadoCliente === 'INACTIVO');
+
+/* CARD-SPARK-002: la obligación depende del servicio contratado, no de una
+   "suscripción" genérica. Un producto de pago único no genera renovación. */
+function obligacion(c) {
+  if (c.servicio === 'tarjetas') return 'Renovación de dominio';
+  if (c.servicio === 'agentes') return 'Mantenimiento / soporte';
+  return 'Sin renovación aplicable (pago único)';
+}
 
 function plantillaMensaje(c) {
   const d = dias(c);
@@ -46,7 +54,7 @@ function fila(c, etiqueta) {
     <td>${esc(c.nombre || '—')}<div class="celda-suave">${esc(c.telefono || '')}</div></td>
     <td>${esc(c.servicio || '')}</td>
     <td>${fechaLarga(c.fechaVencimiento)}<div class="celda-suave">${cuando}</div></td>
-    <td><span class="badge badge--servicio">${esc(etiqueta)}</span></td>
+    <td><span class="badge badge--servicio">${esc(etiqueta)}</span><div class="celda-suave">${esc(obligacion(c))}</div></td>
     <td>${cop(c.precio)}
       <div class="celda-suave">
         <button class="btn btn--ghost btn--mini" data-aviso="${esc(c.id)}">Preparar aviso</button>
