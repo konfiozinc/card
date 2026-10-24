@@ -208,3 +208,24 @@ en ese caso hay que revertir código y reglas juntos.
    pasado en CI porque no hay evidencia de ello.
 7. **Las suites de navegador no están en CI** (necesitan el staging vendorizado). Siguen siendo
    locales.
+8. **[HALLAZGO NUEVO, no corregido] El Asesor Konfi puede devolver respuestas cortadas.**
+   Durante la verificación en producción, una respuesta terminó a mitad de frase: *«…Manejamos dos
+   opciones: la Mini Web»*. La causa está en el Worker y **no** en este despliegue:
+
+   ```js
+   // worker.js · callGemini(): se toma el texto sin revisar finishReason
+   const reply = data.candidates[0].content.parts.map((p) => p.text || "").join("");
+   ```
+
+   Si Gemini corta la generación por longitud (`finishReason: "MAX_TOKENS"`), el Worker devuelve el
+   texto parcial como si fuera la respuesta completa. No es un fallo de las reglas ni del panel, y en
+   una segunda consulta la misma pregunta devolvió la lista de precios completa.
+
+   **No se ha corregido ni desplegado**: modificar y redesplegar el Worker está expresamente fuera
+   del alcance de esta misión. Corrección preparada conceptualmente: comprobar `finishReason` y, si
+   no es `STOP`, reintentar con el siguiente modelo de `MODELS` o responder con `respuestaLocal`;
+   nunca devolver un texto parcial como completo. Requiere su propia autorización y sus propias
+   pruebas (`saneamiento`, `aislamiento`, `pruebas-leads` siguen en 10/10 con la fuente actual).
+9. **El modelo del Asesor Konfi es no determinista.** Las comprobaciones de precio preguntan dos veces
+   y exigen que al menos una respuesta traiga los dos precios vigentes; las invariantes que sí se
+   exigen siempre son: responde, no anuncia `$149.900` y rechaza el plan Elite.
