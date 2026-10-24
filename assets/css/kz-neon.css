@@ -187,3 +187,24 @@ body { background: var(--kz-bg); color: var(--kz-text); }
 @media (prefers-reduced-motion: reduce) {
   .card:hover, .btn-primary:hover, .btn-primary:focus-visible { transform: none; }
 }
+
+/* ─── 11. CAMPOS DE FORMULARIO LEGIBLES (KZ-NEON-INT-001) ────────────────
+   Los controles de formulario no heredan el tamaño del cuerpo: el navegador les
+   aplica 13,33 px por defecto. Por debajo de 16 px, iOS hace zoom automático al
+   enfocar el campo, el teclado tapa media pantalla y el visitante pierde el
+   contexto del formulario. Se fija un mínimo de 16 px reales.
+   Es una corrección de legibilidad, no estética: no cambia la identidad. */
+:where(input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]), select, textarea) {
+  font-size: max(16px, 1em);
+}
+
+/* Se repite con `!important` a propósito y con motivo: las hojas base fijan el
+   tamaño de los campos con selectores como `.form-group input` (especificidad
+   0,1,1), que ganan a cualquier regla con `:where()`. El zoom automático de iOS
+   no es un detalle estético: tapa media pantalla al escribir. Por eso la
+   accesibilidad gana aquí la cascada. Solo afecta al TAMAÑO, no a la identidad. */
+input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+select,
+textarea {
+  font-size: max(16px, 1em) !important;
+}
