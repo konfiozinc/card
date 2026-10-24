@@ -20,42 +20,36 @@ pruebas-seguridad-kz-sec-002.js    → 17 · PASAN 17 · FALLAN 0   (blindaje)
 pruebas-captacion-kz-sec-002.js    →  8 · PASAN  8 · FALLAN 0   (E2E formulario→panel)
 ```
 
-## 3. Orden seguro de publicación (cuando se autorice) — DESPLIEGUE ACOPLADO
+## 3. Transición EN FASES (no dejar formularios sin backend)
 
-La captación final es **acoplada**: el formulario habla con el Worker `/leads`, y la colección
-`contactos` está cerrada (`allow create: if false`). Deben publicarse juntos y en este orden:
+La regla `contactos` **NO se cierra hasta que la ruta nueva esté verificada y el frontend
+publicado**. Así ningún envío se pierde durante la transición y se puede revertir cada fase.
 
+### Fase 1 — Worker con `/leads` (reglas ABIERTAS)
 ```bash
-# 0) Respaldos
-cd 6-LANDING-PAGES/Konfio-Zinc-Web
-git diff origin/main --stat                 # revisar el diff exacto del candidato
-# anotar el hash de las reglas actuales (git log -1 origin/main:firestore.rules)
-
-# 1) Cuenta de servicio (Admin SDK) como SECRETO del Worker (NUNCA en el navegador)
 cd 9-AGENTES-IA/Asistente-IA/asesor_web
-npx wrangler secret put FIREBASE_SA         # pegar el JSON de la cuenta de servicio (konfio-zinc)
+# Cuenta de servicio DEDICADA (no admin general): solo datastore.user sobre konfio-zinc
+npx wrangler secret put FIREBASE_SA       # pegar el JSON de kz-leads (nunca en GitHub)
+npx wrangler deploy                        # mismo Worker del chat + ruta /leads
+# Verificar: POST /leads con datos ficticios -> 200 saved:true + documento en Firestore
+```
+La regla sigue permitiendo la escritura pública temporal: si algo falla, el formulario actual
+sigue funcionando (doble ruta).
 
-# 2) Worker con /leads (mismo Worker del asesor; no cambia el chat)
-npx wrangler deploy
+### Fase 2 — Frontend (formularios → Worker)
+```bash
+cd 6-LANDING-PAGES/Konfio-Zinc-Web && git push origin main
+# Verificar en producción: ambos formularios envían y el contacto aparece en Card Spark → Contactos
+```
 
-# 3) Reglas: cerrar contactos a escritura directa
-cd 6-LANDING-PAGES/Konfio-Zinc-Web
+### Fase 3 — Cerrar la escritura directa (último paso)
+```bash
 firebase deploy --only firestore:rules,firestore:indexes
-
-# 4) Web: ambos formularios -> Worker /leads
-git push origin main
-
-# 5) Verificación en producción (con datos ficticios)
-#    - form premium y estándar -> aparece el contacto en Card Spark → Contactos
-#    - escritura directa del navegador a contactos -> DENEGADA
-#    - OPERADOR no puede cambiar precio de un servicio (403)
-#    - panel: clientes, servicios, pagos, usuarios sin regresión
+# Verificar: escritura directa del navegador a contactos -> DENEGADA; el panel sigue leyendo
 ```
 
 **Degradación segura:** si el Worker no tiene `FIREBASE_SA`, `/leads` responde **503** y el
-formulario muestra el respaldo de WhatsApp con texto honesto (no hay confirmación falsa).
-Si la regla se cierra y el formulario no se publica, los envíos se pierden → por eso el orden
-es sagrado: primero secreto + Worker, luego reglas, luego web.
+formulario muestra el WhatsApp de respaldo con texto honesto (sin confirmación falsa).
 
 **Nota de concurrencia (Cloudflare KV):** el límite (5 por 10 min por IP) y la deduplicación
 usan KV, cuyas operaciones **no son atómicas** (get/put separados): dos peticiones simultáneas
@@ -101,3 +95,44 @@ firebase deploy --only firestore:rules
   mensajes completos). **Riesgo:** un redeploy desde `main` reintroduce ambos.
 - Mitigación documentada: alinear `main` con la versión desplegada **antes** de cualquier
   redeploy, y mantener la rama certificada como única fuente de despliegue del Worker.
+
+## 7. Respaldos verificables (antes de publicar)
+
+| Elemento | Respaldo |
+|---|---|
+| SHA público de GitHub | `origin/main` = `8ec2e2a` (anotar `git rev-parse origin/main`) |
+| Worker desplegado | versión `a44754db-4f8d-4399-8613-f7a286fae105` (conservada en Cloudflare) |
+| Reglas anteriores | `git show 8ec2e2a:firestore.rules` (contactos ABIERTO con validación) |
+| Reglas candidatas | commit `f5237b1` / `e6fbdfd` (contactos CERRADO) |
+| Cuenta de servicio | Identidad DEDICADA `kz-leads` con `roles/datastore.user` (crear el secreto solo con autorización) |
+
+## 8. Reversión coordinada (sin pérdida de contactos)
+
+```bash
+# Fase 3 revertida: reabrir la regla (contactos vuelve a crear público con validación)
+git show 8ec2e2a:firestore.rules > firestore.rules
+firebase deploy --only firestore:rules
+
+# Fase 2 revertida: formularios de vuelta al flujo anterior
+git revert --no-edit f5237b1 && git push origin main
+
+# Fase 1 revertida: Worker de vuelta a a44754db (sin /leads)
+cd 9-AGENTES-IA/Asistente-IA/asesor_web
+wrangler versions deploy a44754db-4f8d-4399-8613-f7a286fae105
+
+# El secreto FIREBASE_SA puede quedarse (no da acceso si el código no lo usa).
+```
+
+- **Contactos ya recibidos:** viven en Firestore `contactos`; ninguna reversión de código los
+  borra (el panel los sigue leyendo).
+- **Orden inverso:** reabrir regla → revertir web → revertir Worker. Nunca cerrar la regla sin
+  el Worker nuevo ya desplegado.
+- **KV `KZ_CONOCIMIENTO`:** no se toca en esta misión.
+
+## 9. Operaciones que requieren autorización de producción
+
+1. Crear la cuenta de servicio `kz-leads` en GCP y cargar su JSON como secreto Cloudflare.
+2. `wrangler deploy` (Worker con `/leads`).
+3. `firebase deploy --only firestore:rules,firestore:indexes` (Fase 3).
+4. `git push origin main` (Fase 2).
+5. Ejecutar las pruebas de verificación en producción con datos ficticios.
