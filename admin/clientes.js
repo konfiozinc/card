@@ -467,6 +467,9 @@ async function verDetalle(c) {
         <div class="detalle__fila"><dt>URL / Proyecto</dt><dd>${c.urlServicio ? esc(c.urlServicio) : '—'} ${c.proyectoId ? '· ' + esc(c.proyectoId) : ''}</dd></div>
         <div class="detalle__fila"><dt>Observaciones</dt><dd>${esc(c.observaciones || '—')}</dd></div>
       </dl>
+      <h4>Servicios contratados</h4>
+      <div id="det-servicios" class="celda-suave">Cargando…</div>
+      <button type="button" class="btn btn--ghost btn--mini" id="det-add-servicio"><i class="fas fa-plus" aria-hidden="true"></i> Añadir servicio</button>
       <h4>Pagos</h4>
       ${pagos.length ? `<table class="tabla"><thead><tr><th>Fecha</th><th>Monto</th><th>Método</th><th>Estado</th></tr></thead><tbody>
         ${pagos.map(p => `<tr><td>${fechaLarga(p.fechaPago)}</td><td>${cop(p.monto)}</td><td>${esc(p.metodoPago)}</td><td>${badgeEstado(p.estado)}</td></tr>`).join('')}
@@ -478,6 +481,24 @@ async function verDetalle(c) {
       <div class="modal__actions"><button type="button" class="btn btn--ghost" data-cerrar>Cerrar</button></div>
     </div>`;
   document.querySelectorAll('#modal-detalle [data-cerrar]').forEach(b => b.addEventListener('click', cerrarDetalle));
+  const ds = document.getElementById('det-servicios');
+  if (ds) {
+    escrituras.cargarServicios(c.id).then((sv) => {
+      ds.innerHTML = sv.length
+        ? sv.map((s) => `<div class="celda-suave">${esc(s.servicio)}${s.categoria ? ' · ' + esc(s.categoria) : ''} · ${cop(s.precio)} · ${esc(s.estado || '')}${s.fechaVencimiento ? ' · vence ' + esc(s.fechaVencimiento) : ''}</div>`).join('')
+        : 'Sin servicios registrados.';
+    }).catch(() => { ds.textContent = 'No se pudieron cargar los servicios.'; });
+    document.getElementById('det-add-servicio').addEventListener('click', async () => {
+      const servicio = prompt('Servicio (tarjetas, catalogos, menus, landing, qr, agentes):');
+      if (!servicio) return;
+      const precio = Number(prompt('Precio COP:') || 0);
+      try {
+        await escrituras.crearServicio({ clienteId: c.id, clienteNombre: c.nombre, servicio, precio });
+        toast('Servicio añadido');
+        verDetalle(c);
+      } catch (ex) { toast(ex.message, 'error'); }
+    });
+  }
 }
 function cerrarDetalle() { document.getElementById('modal-detalle').classList.remove('is-open'); }
 

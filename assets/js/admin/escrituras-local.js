@@ -140,6 +140,26 @@ export async function actualizarCliente(clienteId, datos) {
   return { ok: true };
 }
 
+/* CARD-SPARK-002 · Servicios independientes por cliente (1 cliente → N). */
+export async function crearServicio(d) {
+  const c = await requerir('OPERADOR');
+  if (!d.clienteId || !d.servicio) throw new Error('Cliente y servicio son obligatorios.');
+  const ref = await addDoc(collection(db, 'servicios'), {
+    clienteId: d.clienteId, clienteNombre: d.clienteNombre || '',
+    servicio: d.servicio, categoria: d.categoria || null, planId: d.planId || null,
+    precio: Number(d.precio) || 0,
+    fechaInicio: d.fechaInicio || iso(new Date()), fechaVencimiento: d.fechaVencimiento || null,
+    estado: d.estado || 'ACTIVO', createdAt: serverTimestamp()
+  });
+  await auditar(c, 'CREAR_SERVICIO', 'servicios', ref.id, null, { clienteId: d.clienteId, servicio: d.servicio });
+  return { id: ref.id };
+}
+
+export async function cargarServicios(clienteId) {
+  const snap = await getDocs(query(collection(db, 'servicios'), where('clienteId', '==', clienteId)));
+  return snap.docs.map((x) => ({ id: x.id, ...x.data() }));
+}
+
 /* ── Pagos ─────────────────────────────────────────────────────────── */
 export async function registrarPago(d) {
   const c = await requerir('OPERADOR');
@@ -224,7 +244,7 @@ export async function confirmarPago(pagoId) {
         estado: 'CONFIRMADO', confirmadoPor: c.uid, confirmadoPorNombre: c.nombre,
         periodoInicio: iso(hoy), periodoFin: nuevoVenc, confirmadoEn: serverTimestamp()
       });
-      return { concepto: concepto.codigo, estado, nuevoVenc, clienteId: pago.clienteId };
+      return { concepto: concepto.codigo, estado, nuevoVenc, clienteId: pago.clienteId, servicioId: pago.servicioId || null };
     }
 
     /* Pago no renovable (desarrollo/ampliación/otro): solo se confirma. */
@@ -232,23 +252,19 @@ export async function confirmarPago(pagoId) {
       estado: 'CONFIRMADO', confirmadoPor: c.uid, confirmadoPorNombre: c.nombre,
       confirmadoEn: serverTimestamp()
     });
-    return { concepto: concepto.codigo, estado: null, nuevoVenc: null, clienteId: pago.clienteId };
+    return { concepto: concepto.codigo, estado: null, nuevoVenc: null, clienteId: pago.clienteId, servicioId: pago.servicioId || null };
   });
 
-  /* Los servicios del cliente se actualizan aparte y SOLO si hubo renovación. */
+  /* CARD-SPARK-002: la renovación afecta SOLO el servicio del pago
+     (`pago.servicioId`), nunca a todos los servicios del cliente. */
   let aviso = null;
-  if (hecho.nuevoVenc) {
+  if (hecho.nuevoVenc && hecho.servicioId) {
     try {
-      const servicios = await getDocs(query(collection(db, 'servicios'), where('clienteId', '==', hecho.clienteId)));
-      if (!servicios.empty) {
-        const lote = writeBatch(db);
-        servicios.forEach((s) => lote.update(s.ref, {
-          fechaVencimiento: hecho.nuevoVenc, estado: hecho.estado, fechaInicio: iso(new Date()), updatedAt: serverTimestamp()
-        }));
-        await lote.commit();
-      }
+      await updateDoc(doc(db, 'servicios', hecho.servicioId), {
+        fechaVencimiento: hecho.nuevoVenc, estado: hecho.estado, updatedAt: serverTimestamp()
+      });
     } catch (e) {
-      aviso = 'El pago quedó confirmado y el vencimiento aplicado, pero los servicios del cliente no se pudieron actualizar: ' + e.message;
+      aviso = 'El pago quedó confirmado y el vencimiento aplicado, pero el servicio del pago no se pudo actualizar: ' + e.message;
     }
   }
 
