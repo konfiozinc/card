@@ -36,7 +36,7 @@ function pageHTML(titulo, script) {
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="../assets/css/admin.css" />
-  <link rel="icon" href="../assets/img/logos/logo.jpeg" type="image/jpeg" />
+  <link rel="icon" href="../assets/img/icons/icon-192.png" type="image/jpeg" />
   <script type="importmap">
   { "imports": {
       "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
@@ -69,7 +69,7 @@ function loginHTML() {
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   <link rel="stylesheet" href="../assets/css/admin.css" />
-  <link rel="icon" href="../assets/img/logos/logo.jpeg" type="image/jpeg" />
+  <link rel="icon" href="../assets/img/icons/icon-192.png" type="image/jpeg" />
   <script type="importmap">
   { "imports": {
       "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",

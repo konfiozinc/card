@@ -28,7 +28,9 @@ const firebaseConfig = {
 
 /* Rutas absolutas del sitio (un service worker no tiene rutas relativas claras) */
 const SITIO = 'https://konfiozinc.github.io/card/';
-const ICONO = SITIO + 'assets/img/logos/logo.jpeg';
+/* KZ-ID-001: el icono de la notificación es el del logotipo oficial.
+   Se usa el PNG de 192 porque es el tamaño que piden las notificaciones. */
+const ICONO = SITIO + 'assets/img/icons/icon-192.png';
 
 let messaging = null;
 try {
