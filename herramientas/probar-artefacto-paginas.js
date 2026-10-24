@@ -26,9 +26,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const http = require('http');
-const { execFileSync } = require('child_process');
 
-const PW = 'C:\\Users\\usuario29\\Documents\\KONFIO_ZINC\\6-LANDING-PAGES\\Konfio-Zinc-Web\\herramientas\\node_modules\\playwright';
 const RAIZ = path.join(__dirname, '..');
 const PUERTO = 5188;
 
@@ -39,8 +37,16 @@ function revisar(nombre, ok, detalle) {
 }
 
 /* ── 1. Lista del artefacto (mismas reglas que el verificador) ────── */
-const arbol = execFileSync('git', ['-C', RAIZ, 'ls-tree', '-r', '--name-only', '-z', 'HEAD'], { encoding: 'utf8' })
-  .split('\0').filter(Boolean).map((f) => f.replace(/\\/g, '/'));
+const arbol = [];
+function inventario(dir) {
+  for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (dir === RAIZ && ['.git', 'node_modules', 'test-results'].includes(item.name)) continue;
+    const full = path.join(dir, item.name);
+    if (item.isDirectory()) inventario(full);
+    else arbol.push(path.relative(RAIZ, full).split(path.sep).join('/'));
+  }
+}
+inventario(RAIZ);
 
 const lineas = fs.readFileSync(path.join(RAIZ, '_config.yml'), 'utf8').split(/\r?\n/);
 const excluir = [];
@@ -98,12 +104,13 @@ const paginas = [
 const internas = ['docs/PLAN-PUBLICACION-CARD.md', 'docs/VENTANA-DE-LANZAMIENTO-CARD.md',
   'herramientas/verificar-precios.js', 'herramientas/publicar-paginas.ps1',
   'functions/src/index.js', 'firestore.rules', 'firestore.indexes.json', 'firebase.json',
-  'README.md', 'tools/originales/descartados/pasteleria_artesanal.jpg'];
+  'README.md', 'tools/originales/descartados/pasteleria_artesanal.jpg',
+  'design-system/lab.html', 'design-system/components.css', 'design-system/components.js'];
 
 (async () => {
   await new Promise((r) => servidor.listen(PUERTO, '127.0.0.1', r));
-  const { chromium } = require(PW);
-  const nav = await chromium.launch({ headless: true });
+  const { chromium } = require('playwright');
+  const nav = await chromium.launch({ headless: true, executablePath: process.env.CHROMIUM_PATH || undefined });
 
   /* ── 3. Las páginas no piden recursos que falten ─────────────────── */
   const faltantes = [];
@@ -143,7 +150,7 @@ const internas = ['docs/PLAN-PUBLICACION-CARD.md', 'docs/VENTANA-DE-LANZAMIENTO-
 
   /* ── 5. Contraste: el sitio sí se sirve ─────────────────────────── */
   const vivas = ['index.html', 'panel.html', 'precios.html', 'admin/index.html', 'assets/css/admin.css',
-    'assets/js/admin/callables.js', 'robots.txt', 'sitemap.xml'];
+    'assets/js/admin/core.js', 'robots.txt', 'sitemap.xml'];
   const caidas = [];
   for (const r of vivas) {
     const code = await new Promise((resolve) => {

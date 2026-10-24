@@ -79,3 +79,6 @@ herramientas/backups/
 
 # Registro local de la herramienta privilegiada
 herramientas/admin-spark.log
+
+# Evidencias locales reproducibles de KZ-TECH-001
+test-results/

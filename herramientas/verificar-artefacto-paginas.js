@@ -118,6 +118,7 @@ const DEBE_QUEDAR_FUERA = [
   ['functions', 'Cloud Functions'],
   ['tools', 'material descartado'],
   ['premium', 'maqueta privada'],
+  ['design-system', 'laboratorio y biblioteca KZ-TECH-001'],
   ['firebase.json', 'configuración de Firebase'],
   ['.firebaserc', 'identificador de proyecto'],
   ['firestore.rules', 'reglas de seguridad'],
