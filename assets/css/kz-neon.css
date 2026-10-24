@@ -138,3 +138,21 @@ select,
 textarea {
   font-size: max(16px, 1em) !important;
 }
+
+
+/* ─── 12. AJUSTE DE MOVIL (KZ-DESIGN-001) ────────────────────────────────
+   Los tres flotantes (chat, WhatsApp y volver arriba) viven en la franja
+   inferior de la pantalla, en una sola fila, para no quedar a media altura
+   sobre los botones de llamada a la accion del hero.
+   La etiqueta «¿Te ayudo?» se oculta en movil: ocupaba el ancho util y tapaba
+   contenido; el boton conserva su aria-label y sigue siendo accesible. */
+@media (max-width: 560px) {
+  .kz-bubble { display: none !important; }
+  /* Un solo flotante en movil: el boton de WhatsApp fijo se retira porque
+     competia con el chat y ambos tapaban los CTA del hero. WhatsApp sigue
+     accesible desde el propio chat y desde los botones de la pagina. */
+  .wa-float { display: none !important; }
+  /* Hueco al final del documento para que el ultimo contenido no quede bajo
+     los flotantes cuando se llega al pie. */
+  body { padding-bottom: 78px; }
+}

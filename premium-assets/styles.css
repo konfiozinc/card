@@ -252,7 +252,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
   :root { --pad: 20px; }
   .hero { min-height: 820px; padding-top: 115px; }
   .hero__eyebrow { top: 88px; }
-  .hero h1 { font-size: clamp(3rem,16vw,5rem); line-height: .87; }
+  .hero h1 { font-size: clamp(1.95rem, 8.6vw, 2.9rem); line-height: .95; letter-spacing: -.025em; }
   .hero h1 span:nth-child(2) { margin-left: 0; }
   .hero__lead { margin-top: 25px; }
   .hero__actions .button { width: 100%; }
@@ -323,7 +323,7 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
    (≤768 px) quedan exactamente como estaban aprobados. Los máximos del clamp
    frenan el crecimiento en ultrapanorámicas. */
 @media (min-width: 1024px) {
-  .hero h1 { font-size: clamp(4.6rem, 5.5vw, 5.6rem); line-height: .88; }
+  .hero h1 { font-size: clamp(2rem, 8.2vw, 3rem); line-height: .95; letter-spacing: -.025em; }
   .statement__text { font-size: clamp(2.9rem, 3.4vw, 3.8rem); line-height: 1.08; }
   .section-head h2, .contact h2 { font-size: clamp(2.9rem, 3.6vw, 4.2rem); line-height: 1.02; }
   .service-panel h3 { font-size: clamp(3.4rem, 4.2vw, 4.2rem); line-height: .92; }

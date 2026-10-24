@@ -855,7 +855,7 @@ strong { color: var(--fg); }
   .section { padding: 60px 0; }
   .hero { min-height: auto; padding-top: calc(var(--header-h) + 40px); }
   .hero-actions .btn, .cta-actions .btn, .state-actions .btn { width: 100%; }
-  .wa-float { width: 50px; height: 50px; font-size: 23px; bottom: 96px; right: 16px; }
+  .wa-float { width: 50px; height: 50px; font-size: 23px; bottom: 19px; right: 84px; }
   .back-top { width: 42px; height: 42px; bottom: 16px; left: 16px; }
   .contact-form { padding: 1.4rem; }
   .cta-final { padding: 2.2rem 1.2rem; }
@@ -1292,3 +1292,8 @@ p a:not(.btn):not(.kz-chip),
   .nav-sub { display: none; }
   .nav-sub.kz-sub-abierto { display: block; }
 }
+
+/* KZ-DESIGN-001 · Monograma SVG de la marca, el mismo de la portada. Sustituye
+   al JPEG de 38 px que usaban las páginas interiores y que hacia que la
+   cabecera pareciera de otra identidad. */
+.nav-logo-svg { width: 34px; height: 34px; fill: currentColor; flex-shrink: 0; }
