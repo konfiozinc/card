@@ -12,7 +12,7 @@
      06. FAQ acordeón
      07. Filtros de portafolio
      08. Video promocional "lite" (el iframe se inyecta al hacer clic)
-     09. Formulario de contacto (validación + Formspree o envío simulado)
+     09. Formulario de contacto (validación + envío al Worker `/leads`)
      10. Botón "volver arriba"
      11. Eventos de tracking (CTA WhatsApp, formulario) para GA4
      12. Agente IA flotante (backend Gemini + respaldo local por reglas)
@@ -448,8 +448,10 @@
   });
 
   /* ── 09. FORMULARIO DE CONTACTO ────────────────────────────────────────
-     Validación en JS + envío a Formspree (si el atributo action está
-     configurado) o envío simulado con redirección a gracias.html. */
+     Validación en JS y envío al Worker `/leads` (KZ-SEC-002). El mensaje de
+     éxito solo aparece si el Worker confirma `saved:true`; si falla, se avisa
+     de que los datos NO se han recibido y se ofrece WhatsApp. No se guarda
+     nada en el navegador. */
   var form = $('#contactForm');
   if (form) {
     var successBox = form.querySelector('.form-success');
@@ -526,29 +528,15 @@
       var original = btn ? btn.innerHTML : '';
       if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Enviando…'; }
 
-      var action = (form.getAttribute('action') || '').trim();
-      var isPlaceholder = !action || action.indexOf('xxxxx') !== -1;
       var next = form.getAttribute('data-thanks') || siteUrl('gracias.html');
 
-      /* Envío real con Formspree */
-      if (!isPlaceholder) {
-        fetch(action, {
-          method: 'POST',
-          body: new FormData(form),
-          headers: { Accept: 'application/json' }
-        }).then(function (res) {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          track('form_submit', { event_category: 'conversion', event_label: 'contacto', value: 1, form: 'contacto', method: 'formspree' });
-          window.location.href = next;
-        }).catch(function () {
-          if (btn) { btn.disabled = false; btn.innerHTML = original; }
-          showBox(errorBox, 'No pudimos enviar el formulario. Escríbenos directo por <a href="' + WHATSAPP + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;">WhatsApp</a> o al correo konfiozinc@gmail.com.');
-          track('form_error', { form: 'contacto', reason: 'network' });
-        });
-        return;
-      }
-
-      /* Envío a Firebase (colección `contactos`) con respaldo local */
+      /* KZ-QA-001 · El formulario estándar tiene UN SOLO destino: el Worker
+         `/leads`. Antes existía aquí una rama «Formspree» que enviaba los datos
+         a cualquier `action` del HTML que no fuera un marcador, y `contacto.html`
+         declaraba un endpoint FICTICIO: sin JavaScript, o si el marcador
+         cambiaba, los datos personales se habrían enviado a un tercero. Se
+         eliminó la rama entera: no hay ninguna vía que saque los datos del
+         circuito seguro (Worker → cuenta de servicio). */
       var lead = {
         fecha: new Date().toISOString(),
         nombre: (document.getElementById('nombre') || {}).value || '',
@@ -557,14 +545,6 @@
         servicio: (document.getElementById('servicio') || {}).value || '',
         mensaje: (document.getElementById('mensaje') || {}).value || ''
       };
-
-      function guardarLocal() {
-        try {
-          var prev = JSON.parse(localStorage.getItem('kz_leads') || '[]');
-          prev.push(lead);
-          localStorage.setItem('kz_leads', JSON.stringify(prev));
-        } catch (err) { /* sin almacenamiento: continuamos */ }
-      }
 
       /* KZ-SEC-002: el formulario estándar también pasa por el Worker `/leads`
          (límite por IP + dedup + escritura con cuenta de servicio). El mensaje
@@ -596,9 +576,14 @@
           }
         }, 500);
       }).catch(function () {
-        guardarLocal();
         if (btn) { btn.disabled = false; btn.innerHTML = original; }
-        showBox(errorBox, 'No pudimos registrar tu solicitud ahora. Escríbenos directo por <a href="' + WHATSAPP + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;">WhatsApp</a> o al correo konfiozinc@gmail.com.');
+        /* KZ-QA-001 · Si el envío falla NO se guarda nada en el navegador.
+           Antes se acumulaba cada solicitud fallida —nombre, correo, teléfono y
+           mensaje— en `localStorage['kz_leads']`, donde quedaba indefinidamente
+           en el equipo del visitante y contradecía lo que promete
+           `politica-privacidad.html`. El mensaje es explícito: los datos no se
+           dan por recibidos, y se ofrece el canal directo. */
+        showBox(errorBox, 'No pudimos registrar tu solicitud: <strong>tus datos no se han guardado</strong>. Escríbenos por <a href="' + WHATSAPP + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;">WhatsApp</a> o al correo konfiozinc@gmail.com.');
         track('form_error', { form: 'contacto', reason: 'worker' });
       });
     });

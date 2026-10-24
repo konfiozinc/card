@@ -1,0 +1,123 @@
+name: Calidad KONFÍO ZINC
+
+# KZ-QA-001 · Puerta de calidad automatizada.
+#
+# REGLAS DE ESTE WORKFLOW
+#   · No usa secretos: no hay una sola referencia a `secrets.*`.
+#   · No publica nada: no despliega Firebase, ni GitHub Pages, ni Cloudflare.
+#     La publicación es siempre un acto manual y autorizado.
+#   · No toca datos reales: el emulador arranca con el proyecto de demostración
+#     `demo-card-seguridad` y se descarta al terminar el trabajo.
+#
+# ALCANCE
+#   Lo que se puede ejecutar sin depender de la máquina del propietario:
+#     · `estatica`  — sintaxis del código de cliente + puerta de calidad
+#                     (privacidad, endpoints ficticios, recursos, oferta,
+#                     credenciales) + verificador de precios.
+#     · `reglas`    — 125 comprobaciones de reglas de Firestore, seguridad,
+#                     captación y modelo financiero contra los emuladores.
+#
+#   Las suites de navegador (panel, financiero y recorrido operativo E2E) NO se
+#   ejecutan aquí a propósito: `herramientas/preparar-staging.js` construye un
+#   staging aislado que necesita el SDK de Firebase vendorizado, que vive fuera
+#   del repositorio para no versionar binarios de terceros. Esas suites se
+#   corren en local, y así se declara en docs/KZ-OPS-001-CONSOLIDACION.md.
+#   Inventar un trabajo de CI que no puede pasar sería peor que no tenerlo.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: calidad-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  estatica:
+    name: Calidad estática (privacidad, oferta, recursos)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Sintaxis del código de cliente
+        run: |
+          set -e
+          tmp="$(mktemp -d)"
+          fail=0
+          for f in assets/js/main.js assets/js/config.js assets/js/push.js \
+                   assets/js/firebase-config.js assets/js/admin/core.js \
+                   assets/js/admin/datos.js assets/js/admin/escrituras-local.js \
+                   assets/js/admin/shell.js assets/js/admin/ui.js \
+                   premium-assets/app.js \
+                   admin/*.js; do
+            [ -f "$f" ] || continue
+            cp "$f" "$tmp/$(basename "$f" .js).mjs"
+            if ! node --check "$tmp/$(basename "$f" .js).mjs"; then
+              echo "::error file=$f::Error de sintaxis"
+              fail=1
+            fi
+          done
+          exit $fail
+
+      - name: Puerta de calidad de la web pública
+        run: node herramientas/test/pruebas-qa-001-web-publica.js
+
+      - name: Precios y oferta comercial (AGENTS.md)
+        run: node herramientas/verificar-precios.js
+
+  reglas:
+    name: Reglas de Firestore (emulador)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Java (necesario para el emulador de Firestore)
+        run: java -version
+
+      - name: Instalar firebase-tools
+        run: npm install --global firebase-tools@13
+
+      - name: Arrancar emuladores
+        run: |
+          set -e
+          firebase emulators:start --only auth,firestore \
+            --project demo-card-seguridad > emuladores.log 2>&1 &
+          for i in $(seq 1 60); do
+            if (echo > /dev/tcp/127.0.0.1/8080) 2>/dev/null && \
+               (echo > /dev/tcp/127.0.0.1/9099) 2>/dev/null; then
+              echo "emuladores listos tras ${i}s"; exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Los emuladores no arrancaron"
+          tail -40 emuladores.log
+          exit 1
+
+      - name: Reglas, seguridad y captación
+        run: |
+          set -e
+          node herramientas/test/pruebas-spark-reglas-p1.js
+          node herramientas/test/pruebas-seguridad-kz-sec-002.js
+          node herramientas/test/pruebas-captacion-kz-sec-002.js
+          node herramientas/test/pruebas-pagos-concepto-card-spark-002.js
+          node herramientas/test/pruebas-ops-001-servicios-contactos.js
+
+      - name: Registro de los emuladores
+        if: always()
+        run: tail -40 emuladores.log || true

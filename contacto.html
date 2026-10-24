@@ -265,9 +265,28 @@
         <p class="section-sub">Responde el formulario en menos de dos minutos o escríbenos directo por WhatsApp. Respondemos en horario hábil, normalmente en pocas horas.</p>
       </div>
 
+      <!-- KZ-QA-001 · Sin JavaScript el formulario no se envía a ninguna parte
+           (ya no tiene `action`). Este aviso ofrece el canal real, para que nadie
+           escriba su mensaje y crea que se ha enviado. -->
+      <noscript>
+        <p class="form-note" style="border-left:3px solid var(--gold);padding-left:.75rem;margin-bottom:1rem;">
+          <strong>Para enviar el formulario necesitas JavaScript activado.</strong>
+          Si prefieres no activarlo, escríbenos directamente por
+          <a href="https://wa.me/573206411340">WhatsApp al +57 320 641 1340</a>
+          o a <a href="mailto:konfiozinc@gmail.com">konfiozinc@gmail.com</a>.
+        </p>
+      </noscript>
+
       <div class="contact-grid">
         <!-- Columna izquierda: formulario funcional -->
-        <form id="contactForm" class="contact-form reveal" action="https://formspree.io/f/xxxxx" method="POST" data-thanks="gracias.html" novalidate>
+        <!-- KZ-QA-001 · Sin `action` ni `method`: así, si el JavaScript no carga,
+             el navegador NO puede enviar los datos a ningún destino externo.
+             Antes declaraba un `action` apuntando a un endpoint FICTICIO de
+             Formspree que nunca existió: sin JavaScript —o si el marcador
+             cambiaba— los datos personales se habrían enviado a un tercero.
+             El único destino real es el Worker `/leads`, invocado por main.js,
+             y el resultado se confirma con la respuesta `saved:true`. -->
+        <form id="contactForm" class="contact-form reveal" data-thanks="gracias.html" novalidate>
           <div class="form-row">
             <div class="form-group">
               <label for="nombre">Nombre completo *</label>
@@ -540,26 +559,14 @@
   </div>
 </div>
 
-<!-- Firebase (formulario de contacto → colección `contactos`) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
-<script>
-  (function () {
-    try {
-      firebase.initializeApp({
-        apiKey: 'AIzaSyDbwAk9APwP2SeaEfWxeQG_bdL9eatciEA',
-        authDomain: 'konfio-zinc.firebaseapp.com',
-        projectId: 'konfio-zinc',
-        storageBucket: 'konfio-zinc.firebasestorage.app',
-        messagingSenderId: '1096915735255',
-        appId: '1:1096915735255:web:00e3d896c266293cced692'
-      });
-      window.KZ_DB = firebase.firestore();
-    } catch (e) {
-      window.KZ_DB = null;
-    }
-  })();
-</script>
+<!-- KZ-QA-001 · Se retiró la inicialización de Firebase de esta página.
+     Exponía `window.KZ_DB` «para escribir en la colección contactos», pero:
+       · KZ-SEC-002 cerró la escritura directa a `contactos` (allow create: false):
+         ese código ya no podía escribir nada;
+       · nadie leía `window.KZ_DB` (solo se asignaba);
+       · obligaba a cargar dos scripts de un CDN externo.
+     El envío real ocurre en assets/js/main.js contra el Worker `/leads`, que
+     valida, limita por IP, deduplica y escribe con cuenta de servicio. -->
 <script src="assets/js/main.js" defer></script>
 <script src="assets/js/push.js" defer></script>
 </body>

@@ -4,6 +4,15 @@
 
 Este documento es el registro de la misión de consolidación. Recoge **qué estaba mal y con qué evidencia**, **qué se cambió**, **cómo se prueba** y **cómo se despliega o se revierte**. Sustituye como referencia operativa a los informes parciales anteriores sobre el mismo flujo.
 
+> **Nota sobre KZ-QA-001.** El encargo pedía integrar la rama `codex/kz-qa-001`
+> (commit `76057470a26046cd9cccec89849e49850734b5c9`). **Esa rama y ese commit no existen
+> en este entorno**: se comprobó con `git cat-file`, `git fetch origin`, `git branch -r` y
+> búsqueda en todos los worktrees y en el árbol de trabajo. No se integró nada de Codex
+> porque no había nada que integrar. Los dos defectos que el encargo describía eran
+> verificables por su cuenta y **sí se corrigieron** (§2, D13 y D14), y la puerta de
+> calidad se redactó aquí cubriendo los mismos objetivos (§6). Si la suite de Codex
+> aparece después, se incorpora sin sustituir estas comprobaciones.
+
 ---
 
 ## 1. Qué se consolidó
@@ -83,14 +92,24 @@ Cada defecto se **midió primero** contra el emulador y después se corrigió. L
 - La obligación se calculaba desde el campo único `clientes.servicio`, así que un cliente con dominio y landing mostraba **una sola** obligación. Ahora cada fila es una obligación de un servicio concreto (`obligacionServicio()` en `datos.js`), el estado que se muestra es el **del servicio**, y suspender desde esa página afecta solo a ese servicio. Los clientes sin servicios registrados siguen apareciendo, marcados como tales, en vez de desaparecer.
 
 ### D12 · El staging aislado podía escribir en producción
-
 - **Evidencia:** `node herramientas/preparar-staging.js` avisaba «fugas a producción: main.js con el Worker de producción» y **seguía adelante**. Además encontró `contacto.html` y `panel.html` con la configuración de Firebase **de producción inline** (apiKey y proyecto reales) y la CSP de `index.html` autorizando el Worker de producción.
 - **Corrección:** el recetario cubre `WORKER_LEADS` (el endpoint del formulario estándar, que no se parcheaba) y sustituye proyecto/apiKey/origen del Worker en todas las páginas. **La comprobación de fugas es ahora bloqueante:** si queda una referencia a producción, el staging no se genera y no se usa para pruebas.
+
+### D13 · Los datos personales del formulario quedaban en el navegador
+
+- **Evidencia:** `assets/js/main.js` guardaba la solicitud completa —nombre, correo, teléfono, servicio y mensaje— en `localStorage['kz_leads']` cada vez que el envío al Worker fallaba, y la acumulaba sin límite.
+- **Agravante:** `politica-privacidad.html` afirma por escrito que los datos «no los guarda en localStorage». El código contradecía la política publicada, así que cualquier visitante afectado recibía una promesa falsa.
+- **Corrección:** se eliminó la persistencia y la función que la escribía. El fallo muestra ahora un error que dice expresamente que **los datos no se han guardado**, y ofrece WhatsApp como alternativa. No se borró ningún otro dato del navegador: la única marca local que queda es `kz_lead_last` (un timestamp del cooldown del formulario premium, sin datos personales).
+
+### D14 · Endpoint ficticio de Formspree en el formulario de contacto
+
+- **Evidencia:** `contacto.html` declaraba `<form action="https://formspree.io/f/xxxxx" method="POST">`. Y `main.js` tenía una rama «Formspree» que enviaba los datos a **cualquier** `action` del HTML que no fuera un marcador: si el marcador cambiaba, los datos personales salían del circuito seguro sin que nadie lo notara.
+- **Corrección:** el formulario ya no tiene `action` ni `method`, de modo que **sin JavaScript no puede enviar los datos a ninguna parte**; se añadió un aviso `<noscript>` con el canal real (WhatsApp y correo). Se eliminó la rama «Formspree» completa: el único destino es el Worker `/leads`.
+- **Limpieza asociada:** `contacto.html` inicializaba Firebase y exponía `window.KZ_DB` «para escribir en `contactos`». Desde KZ-SEC-002 esa escritura está cerrada, nadie leía la variable y obligaba a cargar dos scripts de un CDN externo: se retiró junto con su comentario engañoso.
 
 ---
 
 ## 3. Permisos resultantes
-
 Autoridad única: `firestore.rules`. El panel solo oculta botones; no autoriza.
 
 | Colección | OPERADOR | ADMIN | SUPERADMIN |
@@ -139,7 +158,52 @@ Todo se ejecutó en **emuladores locales** con datos ficticios, sobre un staging
 | `pruebas-spark-panel-p1.js` | 18 | 18/18 |
 | `pruebas-financiero-card-spark-002.js` | 6 | 6/6 |
 | `pruebas-ops-001-e2e.js` | 43 | 43/43 |
-| **Total** | **192** | **192/192** |
+| `pruebas-qa-001-web-publica.js` (solo estáticas) | 186 | 186/186 |
+| `pruebas-qa-001-web-publica.js --base` (con runtime) | 196 | 196/196 |
+| **Total con runtime** | **388** | **388/388** |
+
+### Puerta de calidad de la web pública (KZ-QA-001)
+
+`herramientas/test/pruebas-qa-001-web-publica.js` es la puerta que protege lo que ve el
+cliente. Comprueba:
+
+- **Privacidad:** que no exista código que persista datos del formulario en el navegador,
+  que ningún `<form>` declare un destino externo y que no haya endpoints ficticios ni
+  marcadores sin completar.
+- **Captación:** que los dos formularios (premium y estándar) apunten al Worker `/leads` y
+  que el éxito solo se anuncie con `saved:true`.
+- **Coherencia con la política publicada:** si `politica-privacidad.html` promete no
+  guardar los datos, el código tiene que cumplirlo.
+- **Recursos:** que cada `src`/`href` local de las páginas públicas exista. Descarta
+  correctamente el prefijo de publicación `/card/`.
+- **Oferta:** que el código que ve el cliente no anuncie `$149.900` ni los planes
+  retirados, y que el respaldo del chat anuncie Mini Web Básica $49.900 y Pro $99.900.
+- **Credenciales:** que no haya claves privadas, cuentas de servicio, secretos OAuth ni
+  tokens en el código de cliente.
+- **Runtime** (con `--base`): somete los dos formularios a un envío fallido real y verifica
+  que no queda ningún dato en `localStorage`, que el mensaje es honesto, que no se muestra
+  ningún éxito, que ninguna petición va a un destino de envío de formularios y que los
+  únicos hosts externos son los de analítica ya existentes.
+- **Accesibilidad y móvil:** todos los campos con etiqueta, botón con texto accesible y sin
+  desbordamiento horizontal en 375×667, en Contacto e Inicio.
+
+### Integración continua
+
+`.github/workflows/calidad.yml` ejecuta en cada push y PR a `main`:
+
+| Trabajo | Qué hace |
+|---|---|
+| `estatica` | Sintaxis de los 23 módulos de cliente + puerta de calidad + `verificar-precios.js` |
+| `reglas` | Arranca los emuladores con el `firebase.json` del repositorio y ejecuta las 125 comprobaciones de reglas, seguridad, captación y modelo financiero |
+
+**No usa secretos y no despliega nada.** Las suites de navegador se ejecutan en local
+porque el staging aislado necesita el SDK de Firebase vendorizado, que no está en el
+repositorio; declararlo es preferible a un trabajo de CI que no puede pasar.
+
+Para que el trabajo `reglas` funcione fue necesario declarar el bloque `emulators` en
+`firebase.json`: sin él, `firebase emulators:start --only auth,firestore` responde
+«auth: Not starting the auth emulator, make sure you have run firebase init» y las suites
+no pueden autenticarse. Se detectó probando la CI antes de darla por buena.
 
 Asesor Konfi (fuente en `kz-workspace`, sin tocar el Worker desplegado): `saneamiento` 5/5, `aislamiento` 2/2, `pruebas-leads` 3/3 → **10/10**. El Worker ofrece Mini Web Básica $49.900 y Pro $99.900, responde de forma determinista ante el plan retirado Elite y conserva `/leads`.
 
