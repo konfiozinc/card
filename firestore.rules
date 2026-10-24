@@ -251,10 +251,11 @@ service cloud.firestore {
         && textoNoVacio(request.resource.data.get('clienteId', ''))
         && fechaTexto(request.resource.data.get('fechaPago', '2000-01-01'))
         && request.resource.data.get('registradoPor', '') == request.auth.uid
-        && request.resource.data.get('concepto', 'DESARROLLO') in [
-             'DESARROLLO', 'RENOVACION_DOMINIO', 'HOSTING', 'MANTENIMIENTO',
-             'SERVICIO_PERIODICO', 'AMPLIACION', 'OTRO'
-           ]
+        && (!('concepto' in request.resource.data)
+             || request.resource.data.concepto in [
+                  'DESARROLLO', 'RENOVACION_DOMINIO', 'HOSTING', 'MANTENIMIENTO',
+                  'SERVICIO_PERIODICO', 'AMPLIACION', 'OTRO'
+                ])
         && (!('descripcion' in request.resource.data)
              || (request.resource.data.descripcion is string
                  && request.resource.data.descripcion.size() <= 300))

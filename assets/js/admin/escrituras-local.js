@@ -144,13 +144,16 @@ export async function actualizarCliente(clienteId, datos) {
 export async function registrarPago(d) {
   const c = await requerir('OPERADOR');
   if (!d.clienteId || !Number(d.monto) || Number(d.monto) <= 0) throw new Error('Falta cliente o monto válido.');
+  const concepto = String(d.concepto || '').trim();
+  if (!concepto) throw new Error('Selecciona un concepto de cobro. No se asume «DESARROLLO» por omisión.');
+  if (!(CFG.conceptosPago || []).some((x) => x.codigo === concepto)) throw new Error('Concepto de cobro no válido.');
   const clienteSnap = await getDoc(doc(db, 'clientes', d.clienteId));
   if (!clienteSnap.exists()) throw new Error('Cliente no encontrado.');
   const referencia = String(d.referencia || '').trim();
   const pago = {
     clienteId: d.clienteId, clienteNombre: clienteSnap.data().nombre,
     servicioId: d.servicioId || null, monto: Number(d.monto),
-    concepto: d.concepto || 'DESARROLLO',
+    concepto: concepto,
     descripcion: String(d.descripcion || '').trim() || null,
     metodoPago: d.metodoPago || 'Efectivo', fechaPago: d.fechaPago || iso(new Date()),
     referencia: referencia || null, comprobanteUrl: d.comprobanteUrl || null,
@@ -194,6 +197,7 @@ export async function confirmarPago(pagoId) {
     const pago = pagoSnap.data();
     if (pago.estado === 'CONFIRMADO') throw new Error('Este pago ya está confirmado. No se renueva dos veces.');
     if (pago.estado === 'ANULADO') throw new Error('Este pago está anulado.');
+    if (!pago.concepto) throw new Error('Este pago no tiene concepto (registro histórico). Clasifícalo antes de confirmarlo; no se asume «DESARROLLO».');
 
     const clienteRef = doc(db, 'clientes', pago.clienteId);
     const clienteSnap = await tx.get(clienteRef);

@@ -409,6 +409,13 @@ function abrirPago(c) {
         <div class="campo"><label>Referencia</label><input id="p-ref"></div>
         <div class="campo"><label>Comprobante (URL)</label><input id="p-comp"></div>
       </div>
+      <div class="grid-2">
+        <div class="campo"><label>Concepto de cobro *</label>
+          <select id="p-concepto" required>
+            ${(window.KZ_CONFIG.conceptosPago || []).map(x => `<option value="${x.codigo}">${esc(x.etiqueta)}</option>`).join('')}
+          </select></div>
+        <div class="campo"><label>Descripción</label><input id="p-desc" maxlength="300" placeholder="Detalle del cobro (opcional)"></div>
+      </div>
       <div class="aviso aviso--error" id="p-error" hidden></div>
     </form>
     <div class="modal__foot">
@@ -423,14 +430,18 @@ function abrirPago(c) {
     e.preventDefault();
     const monto = Number(document.getElementById('p-monto').value);
     if (!monto || monto <= 0) { err.textContent = 'El monto debe ser mayor a cero.'; err.hidden = false; return; }
+    const concepto = document.getElementById('p-concepto').value;
+    if (!concepto) { err.textContent = 'Selecciona el concepto de cobro.'; err.hidden = false; return; }
     try {
       await escrituras.registrarPago({
-        clienteId: c.id, monto, metodoPago: document.getElementById('p-metodo').value,
+        clienteId: c.id, monto, concepto,
+        descripcion: document.getElementById('p-desc').value.trim() || null,
+        metodoPago: document.getElementById('p-metodo').value,
         fechaPago: document.getElementById('p-fecha').value,
         referencia: document.getElementById('p-ref').value.trim() || null,
         comprobanteUrl: document.getElementById('p-comp').value.trim() || null
       });
-      toast('Pago registrado como PENDIENTE. Un ADMIN debe confirmarlo para renovar.');
+      toast('Pago registrado como PENDIENTE (' + concepto + '). Un ADMIN lo confirma; solo los conceptos renovables extienden la vigencia.');
       cerrarDetalle(); recargar();
     } catch (ex) { err.textContent = ex.message; err.hidden = false; }
   });

@@ -19,9 +19,11 @@ function pintar() {
       <option value="">Todos</option>${CFG.estadosPago.map(e => `<option ${filtroEstado === e ? 'selected' : ''}>${e}</option>`).join('')}
     </select></div></div>
     <div class="tabla__wrap"><table class="tabla"><thead><tr>
-      <th>Cliente</th><th>Monto</th><th>Método</th><th>Fecha</th><th>Estado</th><th>Acciones</th>
+      <th>Cliente</th><th>Monto</th><th>Concepto</th><th>Método</th><th>Fecha</th><th>Estado</th><th>Acciones</th>
     </tr></thead><tbody>${f.map(p => `<tr data-id="${esc(p.id)}">
-      <td>${esc(p.clienteNombre || p.clienteId)}</td><td>${cop(p.monto)}</td><td>${esc(p.metodoPago)}</td>
+      <td>${esc(p.clienteNombre || p.clienteId)}</td><td>${cop(p.monto)}</td>
+      <td>${p.concepto ? esc((CFG.conceptosPago || []).find(x => x.codigo === p.concepto)?.etiqueta || p.concepto) : '<span class="celda-suave">Histórico (pendiente)</span>'}</td>
+      <td>${esc(p.metodoPago)}</td>
       <td>${fechaLarga(p.fechaPago)}</td><td>${badgeEstado(p.estado)}</td>
       <td><div class="acciones-fila">
         ${canAccess(sesion.rol, 'ADMIN') && p.estado === 'PENDIENTE' ? `<button data-a="confirmar" title="Confirmar y renovar"><i class="fas fa-check"></i></button>` : ''}
@@ -40,9 +42,17 @@ function pintar() {
     const id = b.closest('tr').dataset.id;
     try {
       if (b.dataset.a === 'confirmar') {
-        if (!await confirmar('¿Confirmar este pago? Renueva el servicio 12 meses y reinicia los avisos.', 'Confirmar')) return;
+        const p = pagos.find((x) => x.id === id);
+        const concepto = p && p.concepto ? p.concepto : '';
+        const etiqueta = (CFG.conceptosPago || []).find((x) => x.codigo === concepto);
+        const msg = !concepto
+          ? 'Este pago NO tiene concepto (registro histórico). No se asume «DESARROLLO»: asígnalo antes de confirmarlo.'
+          : (etiqueta && etiqueta.extensible)
+            ? `¿Confirmar este pago de ${etiqueta.etiqueta}? Extenderá la vigencia ${etiqueta.meses} meses.`
+            : `¿Confirmar este pago de ${(etiqueta && etiqueta.etiqueta) || concepto}? Es un pago único: NO extiende la vigencia.`;
+        if (!await confirmar(msg, 'Confirmar')) return;
         await escrituras.confirmarPago(id);
-        toast('Pago confirmado: servicio renovado 12 meses');
+        toast('Pago confirmado (' + (concepto || 'histórico sin clasificar') + ').');
       } else {
         const motivo = prompt('Motivo de la anulación (obligatorio):');
         if (!motivo) return;
