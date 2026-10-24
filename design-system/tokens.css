@@ -1,0 +1,125 @@
+/* KONFÍO ZINC · KZ-TECH-001 · tokens Neon Tech
+   Contrato público del design system. Ningún selector de producto vive aquí.
+
+   ─── PUENTE DE IDENTIDAD (KZ-NEON-INT-001) ────────────────────────────────
+   Este archivo NO define colores propios: los toma de `assets/css/kz-neon.css`,
+   que es la ÚNICA fuente de la paleta del sitio (la que ya usan las 40 páginas y
+   la que la auditoría de identidad verifica en 23/23).
+
+   Por qué: Codex declaraba aquí una segunda paleta con valores distintos (fondo
+   #07121e frente a #050B14; superficie #0d1d2c frente a #101C35) y conservaba el
+   oro retirado #F0B429 como --gold-500 y #ffd978 como --gold-300, usados en la
+   marca, la tarjeta destacada y el botón dorado. Eso son exactamente las «dos
+   paletas contradictorias» que la integración debía evitar.
+
+   Resolución: se conserva el NAMESPACE de Codex (--kz-tech-*) porque sus
+   componentes dependen de él, y se re-asignan los VALORES a los tokens de Neon.
+   El oro y el naranja heredados se mapean al violeta de la identidad, de modo que
+   la paleta queda cian + violeta, sin dorados.
+
+   ORDEN DE CARGA OBLIGATORIO:
+       assets/css/kz-neon.css  →  design-system/tokens.css  →  components.css
+   Cargar tokens.css sin kz-neon.css deja los colores sin resolver a propósito:
+   así el fallo se ve, en vez de aparecer una segunda paleta en silencio. */
+:root {
+  color-scheme: dark;
+
+  /* Marca — alias de la identidad Neon */
+  --kz-tech-navy-950: var(--kz-bg);
+  --kz-tech-navy-900: var(--kz-deep);
+  --kz-tech-navy-800: var(--kz-surface);
+  --kz-tech-cyan-500: var(--kz-cyan);
+  --kz-tech-cyan-300: var(--kz-cyan-light);
+  --kz-tech-violet-500: var(--kz-violet);      /* acento de marca (el oro esta retirado) */
+  --kz-tech-violet-300: var(--kz-violet-light); /* acento claro */
+  --kz-tech-orange-500: var(--kz-violet);
+  --kz-tech-white: var(--kz-text);
+  --kz-tech-slate-50: var(--kz-text);
+  --kz-tech-slate-100: var(--kz-text-secondary);
+  --kz-tech-slate-300: var(--kz-text-muted);
+  --kz-tech-slate-500: var(--kz-text-muted);
+  --kz-tech-slate-700: var(--kz-border);
+  --kz-tech-black: var(--kz-bg);
+
+  /* Semánticos: contraste AA sobre --surface-1 */
+  --kz-tech-bg: var(--kz-bg);
+  --kz-tech-surface-1: var(--kz-surface);
+  --kz-tech-surface-2: var(--kz-surface-raised);
+  --kz-tech-surface-raised: var(--kz-surface-raised);
+  --kz-tech-text: var(--kz-text);
+  --kz-tech-text-muted: var(--kz-text-muted);
+  --kz-tech-border: var(--kz-border);
+  --kz-tech-border-strong: var(--kz-violet-light);
+  --kz-tech-focus: var(--kz-focus);
+  --kz-tech-success: var(--kz-success);
+  --kz-tech-warning: var(--kz-violet-light);
+  --kz-tech-danger: #ff7b7b;
+  --kz-tech-info: var(--kz-tech-cyan-300);
+
+  /* Tipografía local/sistema */
+  --kz-tech-font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --kz-tech-font-display: "Arial Black", "Segoe UI", var(--kz-tech-font-body);
+  --kz-tech-font-mono: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  --kz-tech-text-xs: 0.75rem;
+  --kz-tech-text-sm: 0.875rem;
+  --kz-tech-text-md: 1rem;
+  --kz-tech-text-lg: 1.125rem;
+  --kz-tech-text-xl: clamp(1.25rem, 1.05rem + 0.8vw, 1.75rem);
+  --kz-tech-text-2xl: clamp(1.75rem, 1.25rem + 2vw, 3rem);
+  --kz-tech-text-hero: clamp(2.25rem, 1.3rem + 4vw, 5.5rem);
+  --kz-tech-leading-tight: 1.08;
+  --kz-tech-leading-body: 1.65;
+  --kz-tech-tracking-label: 0.12em;
+
+  /* Espaciado: múltiplos de 4px */
+  --kz-tech-space-1: 0.25rem;
+  --kz-tech-space-2: 0.5rem;
+  --kz-tech-space-3: 0.75rem;
+  --kz-tech-space-4: 1rem;
+  --kz-tech-space-5: 1.25rem;
+  --kz-tech-space-6: 1.5rem;
+  --kz-tech-space-8: 2rem;
+  --kz-tech-space-10: 2.5rem;
+  --kz-tech-space-12: 3rem;
+  --kz-tech-space-16: 4rem;
+  --kz-tech-space-20: 5rem;
+  --kz-tech-space-section: clamp(3.5rem, 8vw, 8rem);
+
+  /* Forma */
+  --kz-tech-radius-sm: 0.5rem;
+  --kz-tech-radius-md: 0.875rem;
+  --kz-tech-radius-lg: 1.25rem;
+  --kz-tech-radius-xl: 1.75rem;
+  --kz-tech-radius-pill: 999px;
+  --kz-tech-stroke: 1px;
+
+  /* Profundidad: el brillo se reserva para interacción y acentos */
+  --kz-tech-shadow-sm: 0 8px 24px rgba(0, 0, 0, 0.2);
+  --kz-tech-shadow-md: 0 20px 60px rgba(0, 0, 0, 0.3);
+  --kz-tech-shadow-cyan: 0 0 0 1px rgba(0, 229, 255, 0.24), 0 12px 38px rgba(0, 229, 255, 0.12);
+  --kz-tech-shadow-gold: 0 0 0 1px rgba(139, 92, 246, 0.24), 0 12px 38px rgba(139, 92, 246, 0.14); /* el nombre se conserva: la sombra ahora es violeta */
+
+  /* Movimiento */
+  --kz-tech-duration-fast: 140ms;
+  --kz-tech-duration: 220ms;
+  --kz-tech-duration-slow: 420ms;
+  --kz-tech-ease: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --kz-tech-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Layout */
+  --kz-tech-content: 75rem;
+  --kz-tech-reading: 68ch;
+  --kz-tech-gutter: clamp(1rem, 4vw, 2.5rem);
+  --kz-tech-touch: 2.75rem;
+  --kz-tech-z-nav: 50;
+  --kz-tech-z-modal: 100;
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --kz-tech-text-muted: #e8f0f5;
+    --kz-tech-border: rgba(255, 255, 255, 0.56);
+    --kz-tech-border-strong: var(--kz-tech-white);
+  }
+}
+

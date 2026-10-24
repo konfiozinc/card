@@ -366,7 +366,7 @@
       var html = '<div style="display:grid;gap:.5rem;">';
       PROJECTS.forEach(function (p) {
         html += '<a href="' + p[1] + '" target="_blank" rel="noopener noreferrer" style="display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:.7rem 1rem;border:1px solid var(--border);border-radius:10px;background:rgba(255,255,255,.02);font-size:.9rem;color:var(--fg);">' +
-          escapeHtml(p[0]) + ' <i class="fas fa-arrow-up-right-from-square" style="color:var(--gold);flex-shrink:0;"></i></a>';
+          escapeHtml(p[0]) + ' <i class="fas fa-arrow-up-right-from-square" style="color:var(--kz-cyan);flex-shrink:0;"></i></a>';
       });
       html += '</div>';
       openModal(html, 'Todos los proyectos (' + PROJECTS.length + ')');
@@ -583,7 +583,7 @@
            en el equipo del visitante y contradecía lo que promete
            `politica-privacidad.html`. El mensaje es explícito: los datos no se
            dan por recibidos, y se ofrece el canal directo. */
-        showBox(errorBox, 'No pudimos registrar tu solicitud: <strong>tus datos no se han guardado</strong>. Escríbenos por <a href="' + WHATSAPP + '" target="_blank" rel="noopener noreferrer" style="color:var(--gold);text-decoration:underline;">WhatsApp</a> o al correo konfiozinc@gmail.com.');
+        showBox(errorBox, 'No pudimos registrar tu solicitud: <strong>tus datos no se han guardado</strong>. Escríbenos por <a href="' + WHATSAPP + '" target="_blank" rel="noopener noreferrer" style="color:var(--kz-cyan);text-decoration:underline;">WhatsApp</a> o al correo konfiozinc@gmail.com.');
         track('form_error', { form: 'contacto', reason: 'worker' });
       });
     });

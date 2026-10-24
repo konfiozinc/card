@@ -2,12 +2,12 @@
    KONFÍO ZINC · premium/premium.css
    Sistema de componentes premium de Harness, en HTML+CSS+JS nativos.
    Carpeta propia: no reemplaza el diseño de Codex ni el sitio actual.
-   Paleta de marca: dorado #F0B429 sobre grafito, sin fondos negros planos.
+   Paleta de marca: dorado var(--kz-cyan) sobre grafito, sin fondos negros planos.
    Respeta prefers-reduced-motion y funciona sin JavaScript.
    ═══════════════════════════════════════════════════════════════════ */
 
 :root {
-  --kz-dorado: #F0B429;
+  --kz-dorado: var(--kz-cyan);
   --kz-dorado-suave: #FFD778;
   --kz-grafito: #1A1D24;
   --kz-grafito-2: #232833;

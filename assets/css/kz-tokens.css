@@ -1,0 +1,90 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   KONFÍO ZINC · assets/css/kz-tokens.css
+   FUENTE ÚNICA de la paleta oficial. Ningún otro archivo debe declarar un
+   color de identidad: los demás lo REFERENCIAN con var(--kz-*).
+
+   KZ-DESIGN-001 · Por qué existe este archivo
+   La identidad estaba partida: styles.css y admin.css declaraban su propia
+   paleta vieja (nombres heredados —el del oro, --bg, --fg— reapuntados al cian)
+   y kz-neon.css volvía a declarar los mismos nombres con valores nuevos. El resultado
+   dependía del orden de los <link>: en unas páginas mandaba el neón y en otras
+   el dorado. Además el panel no cargaba la identidad, así que seguía en oro.
+
+   Ahora hay un solo sitio con valores literales. Todo lo demás referencia.
+
+   ORDEN DE CARGA
+     · Páginas comerciales: kz-tokens.css → styles.css
+     · Portada premium:     kz-tokens.css → premium-assets/styles.css
+     · Panel:               kz-tokens.css → admin.css
+   Cualquier orden entre las dos últimas es válido porque ya no hay dos valores
+   distintos para el mismo nombre.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ─── 01. PRIMITIVAS ─────────────────────────────────────────────────── */
+:root {
+  /* Fondos y superficies */
+  --kz-bg: #050B14;
+  --kz-deep: #0A1424;            /* fondo de sección */
+  --kz-surface: #101C35;         /* tarjeta / panel */
+  --kz-surface-raised: #152746;  /* panel elevado, burbujas */
+
+  /* Identidad cromática */
+  --kz-cyan: #00E5FF;
+  --kz-cyan-light: #39DFF5;
+  --kz-violet: #8B5CF6;
+  --kz-violet-light: #A78BFA;
+  --kz-rgb-cyan: 0 229 255;
+  --kz-rgb-violet: 139 92 246;
+
+  /* Tipografía */
+  --kz-text: #FFFFFF;
+  --kz-text-secondary: #D4DEED;
+  --kz-text-muted: #A7B8D1;
+
+  /* Bordes: componente (≥3:1) y divisor decorativo */
+  --kz-border: #52678F;
+  --kz-border-soft: var(--kz-border);
+
+  /* Estados */
+  --kz-focus: #39DFF5;
+  --kz-success: #34D399;
+  --kz-danger: #FF9AA6;
+
+  /* Degradados. El de marca incluye el violeta aprobado en el centro y
+     cierra en violeta claro para que el texto oscuro conserve el contraste. */
+  --kz-gradient-brand: linear-gradient(110deg, #00E5FF, #8B5CF6 45%, #A78BFA);
+  --kz-gradient-hero: linear-gradient(145deg, #050B14, #101C35);
+  --kz-gradient-text: linear-gradient(100deg, #39DFF5, #A78BFA);
+
+  /* Resplandores: solo box-shadow (no filtros caros en elementos en scroll) */
+  --kz-glow-cyan: 0 0 24px rgb(var(--kz-rgb-cyan) / .18);
+  --kz-glow-violet: 0 0 24px rgb(var(--kz-rgb-violet) / .18);
+  --kz-glow-cta: 0 12px 40px rgb(var(--kz-rgb-cyan) / .22);
+  --kz-ease: cubic-bezier(.16, 1, .3, 1);
+}
+
+/* ─── 02. REASIGNACIÓN DEL TEMA HEREDADO (negro + dorado + naranja) ────
+   Estos nombres ya los usan las reglas existentes; al cambiarlos aquí,
+   toda la web comercial pasa a la identidad neón sin editar componentes. */
+:root {
+  --orange: var(--kz-violet-light);   /* extremo del degradado: mantiene AA */
+
+  --bg: var(--kz-bg);
+  --surface: var(--kz-deep);
+  --surface2: var(--kz-surface);
+  --surface-deep: var(--kz-deep);
+  --surface-chat: var(--kz-surface);
+  --elevated: var(--kz-surface-raised);
+
+  --fg: var(--kz-text);
+  --muted: var(--kz-text-muted);
+
+  --border: rgb(148 180 220 / .16);
+  --border-strong: var(--kz-border-soft);
+  --border-gold: rgb(var(--kz-rgb-cyan) / .28);
+  --on-accent: var(--kz-bg);
+
+  --success: var(--kz-success);
+  --danger: var(--kz-danger);
+  --shadow: 0 20px 50px rgb(0 0 0 / .55);
+}

@@ -121,3 +121,35 @@ jobs:
       - name: Registro de los emuladores
         if: always()
         run: tail -40 emuladores.log || true
+
+  visual-neon-tech:
+    name: KZ-TECH-001 · componentes y responsive
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CHROMIUM_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: herramientas/package-lock.json
+
+      - name: Dependencias de prueba bloqueadas
+        run: npm ci --prefix herramientas
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
+      - name: Laboratorio Neon Tech
+        run: npm run test:neon --prefix herramientas
+
+      - name: Evidencias visuales
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: kz-tech-001-${{ github.sha }}
+          path: test-results/kz-tech-001/
+          if-no-files-found: warn
+          retention-days: 14

@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "test:neon": "node test/pruebas-kz-tech-001-visual.js"
+  },
   "dependencies": {
     "playwright": "^1.63.0"
   }
