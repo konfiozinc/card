@@ -164,16 +164,37 @@ service cloud.firestore {
     }
 
     /* ── servicios ─────────────────────────────────────────────────── */
+    // KZ-SEC-002: un OPERADOR solo puede ajustar datos de contacto del
+    // servicio (clienteNombre). Los campos COMERCIALES (precio, fechas, plan,
+    // estado, activo) los toca únicamente ADMIN+, y con tipos válidos. La
+    // autorización vive aquí, no en los botones del panel.
     match /servicios/{servicioId} {
+      function camposContacto() {
+        return tocados().hasOnly(['clienteNombre', 'updatedAt']);
+      }
+      function camposComerciales() {
+        return tocados().hasOnly(['clienteNombre', 'planId', 'servicio', 'categoria',
+                                  'fechaInicio', 'fechaVencimiento', 'precio', 'estado',
+                                  'activo', 'updatedAt']);
+      }
       allow read: if esOperador();
       allow create: if esOperador()
         && textoNoVacio(request.resource.data.get('clienteId', ''))
-        && textoNoVacio(request.resource.data.get('servicio', ''));
+        && textoNoVacio(request.resource.data.get('servicio', ''))
+        && request.resource.data.keys().hasOnly([
+             'clienteId', 'clienteNombre', 'planId', 'servicio', 'categoria',
+             'fechaInicio', 'fechaVencimiento', 'precio', 'estado', 'activo', 'updatedAt'
+           ])
+        && request.resource.data.get('precio', 0) is number
+        && request.resource.data.get('precio', 0) >= 0;
       allow update: if esOperador()
         && request.resource.data.get('clienteId', '') == resource.data.get('clienteId', '')
-        && tocados().hasOnly(['clienteNombre', 'planId', 'servicio', 'categoria',
-                              'fechaInicio', 'fechaVencimiento', 'precio', 'estado',
-                              'activo', 'updatedAt']);
+        && (
+          camposContacto()
+          || (esAdmin() && camposComerciales()
+              && request.resource.data.get('precio', 0) is number
+              && request.resource.data.get('precio', 0) >= 0)
+        );
       allow delete: if false;
     }
 
@@ -277,11 +298,18 @@ service cloud.firestore {
     }
 
     /* ── tokens_notificacion ───────────────────────────────────────── */
+    // KZ-SEC-002: solo el panel (OPERADOR+) gestiona tokens, el id del
+    // documento debe ser el propio token y no se admiten campos arbitrarios.
+    // Un usuario autenticado cualquiera ya no puede inyectar tokens ajenos.
     match /tokens_notificacion/{token} {
       allow read: if esOperador();
-      allow create, update: if estaAutenticado()
-        && request.resource.data.clienteId is string
-        && request.resource.data.token is string;
+      allow create, update: if esOperador()
+        && textoNoVacio(request.resource.data.get('clienteId', ''))
+        && request.resource.data.get('token', '') == token
+        && request.resource.data.keys().hasOnly([
+             'clienteId', 'token', 'plataforma', 'navegador', 'activo',
+             'fechaRegistro', 'ultimaActividad'
+           ]);
       allow delete: if esAdmin();
     }
 
@@ -316,14 +344,29 @@ service cloud.firestore {
     }
 
     /* ── contactos (formulario público del sitio) ──────────────────── */
+    // KZ-SEC-002: creación pública con lista cerrada de campos, tamaños
+    // máximos y formato de correo. El formulario premium escribe aquí; el
+    // panel los lee. Sin campos arbitrarios ni mensajes gigantes.
     match /contactos/{contactoId} {
       allow create: if true
+        && request.resource.data.keys().hasOnly(
+             ['nombre', 'email', 'telefono', 'mensaje', 'servicio', 'pagina',
+              'origen', 'estado', 'createdAt', 'consentimiento']
+           )
         && request.resource.data.nombre is string
         && request.resource.data.nombre.size() > 1
-        && request.resource.data.email is string
-        && request.resource.data.email.size() > 3
+        && request.resource.data.nombre.size() <= 120
+        && (!('email' in request.resource.data)
+             || (request.resource.data.email is string
+                 && request.resource.data.email.size() > 3
+                 && request.resource.data.email.size() <= 200
+                 && request.resource.data.email.matches('^[^@ ]+@[^@ ]+\\.[^@ ]+$')))
         && request.resource.data.mensaje is string
-        && request.resource.data.mensaje.size() > 1;
+        && request.resource.data.mensaje.size() > 1
+        && request.resource.data.mensaje.size() <= 2000
+        && (!('telefono' in request.resource.data)
+             || (request.resource.data.telefono is string
+                 && request.resource.data.telefono.size() <= 40));
       allow read: if esOperador();
       allow update, delete: if esAdmin();
     }

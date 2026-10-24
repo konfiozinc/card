@@ -117,6 +117,14 @@
     if (select) select.value = link.dataset.serviceChoice;
   }));
 
+  /* KZ-SEC-002: el formulario premium escribía a `/api/leads`, una ruta que
+     GitHub Pages no sirve. Ahora escribe en la colección `contactos` de
+     Firestore (misma que lee el panel y que usa el formulario estándar), vía
+     la API REST con la clave web pública. La creación pública está protegida
+     por firestore.rules (campos cerrados, tamaños y formato). */
+  const FIREBASE_API_KEY = 'AIzaSyDbwAk9APwP2SeaEfWxeQG_bdL9eatciEA';
+  const LEADS_URL = 'https://firestore.googleapis.com/v1/projects/konfio-zinc/databases/(default)/documents/contactos?key=' + FIREBASE_API_KEY;
+
   const form = $('#lead-form');
   const fallback = $('#whatsapp-fallback');
   const status = $('#form-status');
@@ -174,22 +182,30 @@
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
     try {
-      const response = await fetch('/api/leads', {
+      const fieldsDoc = {
+        nombre: { stringValue: data.nombre },
+        telefono: { stringValue: data.telefono },
+        servicio: { stringValue: data.servicio },
+        mensaje: { stringValue: 'Negocio: ' + data.negocio + '. Objetivo: ' + data.objetivo },
+        origen: { stringValue: 'premium' },
+        estado: { stringValue: 'NUEVO' },
+        createdAt: { timestampValue: new Date().toISOString() }
+      };
+      const response = await fetch(LEADS_URL, {
         method: 'POST',
         headers: { 'content-type': 'application/json', accept: 'application/json' },
-        body: JSON.stringify({ ...data, website: '' }),
-        signal: controller.signal,
-        credentials: 'same-origin'
+        body: JSON.stringify({ fields: fieldsDoc }),
+        signal: controller.signal
       });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok || result.saved !== true) throw new Error('not-confirmed');
+      if (!response.ok || !result.name) throw new Error('not-confirmed');
       status.textContent = 'Solicitud recibida. Te contactaremos por WhatsApp en horario hábil.';
       status.dataset.kind = 'success';
       form.reset();
     } catch {
       fallback.href = whatsappUrl(data);
       fallback.hidden = false;
-      status.textContent = 'El servidor no confirmó el registro. Tus datos no se dan por recibidos; puedes continuar por WhatsApp.';
+      status.textContent = 'No pudimos registrar tu solicitud en este momento. Tus datos no se dan por recibidos; puedes continuar por WhatsApp.';
       status.dataset.kind = 'error';
     } finally {
       clearTimeout(timeout);
