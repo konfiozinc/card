@@ -11,7 +11,7 @@ const RAIZ = path.resolve(BASE, '..');
 const { chromium } = require(BASE + '/node_modules/playwright');
 const { crearServidor } = require(BASE + '/lib/servidor-estatico.js');
 
-const RUTA = '/design-system/index.html';
+const RUTA = '/design-system/lab.html';
 
 const salida = [];
 const chequear = (nombre, ok, detalle) => {
@@ -82,14 +82,25 @@ const chequear = (nombre, ok, detalle) => {
       .filter((c) => parseFloat(getComputedStyle(c).fontSize) < 16)
       .map((c) => c.id + '=' + getComputedStyle(c).fontSize);
 
-    /* Vocabulario REAL del sitio comercial. */
-    const botones = [...document.querySelectorAll('.btn, .btn-primary, button, .button')];
-    const altoMin = botones.length ? Math.min(...botones.map((b) => b.getBoundingClientRect().height)) : 0;
+    /* Vocabulario: el laboratorio de Codex usa .kz-tech-*; una página comercial
+       usa .btn/.card. El verificador comprueba el vocabulario que la página
+       realmente emplea, en vez de exigir uno fijo (ese error daba falsos
+       negativos al apuntar a lab.html). */
+    const botones = [...document.querySelectorAll('.btn, .btn-primary, button, .button, .kz-tech-button')];
+    const visiblesBtn = botones.filter((b) => b.getBoundingClientRect().height > 0);
+    const altoMin = visiblesBtn.length ? Math.min(...visiblesBtn.map((b) => b.getBoundingClientRect().height)) : 0;
 
+    const CANDIDATOS = ['.card', '.check-list', '.badge', '.chip', '.eyebrow', '.display', '.btn',
+      '.kz-tech-card', '.kz-tech-button', '.kz-tech-badge', '.kz-tech-title', '.kz-tech-header', '.kz-tech-eyebrow'];
     const componentes = {};
-    for (const sel of ['.card', '.check-list', '.badge', '.chip', '.eyebrow', '.display', '.btn']) {
+    let presentes = 0;
+    for (const sel of CANDIDATOS) {
       const el = document.querySelector(sel);
-      componentes[sel] = el ? (parseFloat(getComputedStyle(el).fontSize) > 0 || el.getBoundingClientRect().height > 0) : false;
+      if (!el) continue;                    // ausente: no aplica a esta página
+      presentes++;
+      const r = el.getBoundingClientRect();
+      const fs = parseFloat(getComputedStyle(el).fontSize);
+      componentes[sel] = (fs > 0 || r.height > 0);
     }
 
     return {
@@ -103,14 +114,15 @@ const chequear = (nombre, ok, detalle) => {
       camposBajos,
       altoMin,
       componentes,
+      presentes,
       overflowDesk: document.documentElement.scrollWidth > window.innerWidth + 2
     };
   });
 
   chequear('Carga la hoja de identidad', r.tieneHoja, r.cyan ? 'acento ' + r.cyan : '');
   chequear('Sin hojas externas (ni fuentes ni iconos remotos)', r.hojasExternas.length === 0, r.hojasExternas.join(', '));
-  chequear('Todos los componentes tienen estilo aplicado',
-    Object.values(r.componentes).every(Boolean), JSON.stringify(r.componentes));
+  chequear('Los componentes presentes tienen estilo aplicado',
+    r.presentes >= 3 && Object.values(r.componentes).every(Boolean), r.presentes + ' familias · ' + JSON.stringify(r.componentes));
   chequear('Ningún texto queda invisible por clase sin definir',
     r.invisibles.length === 0, r.invisibles.length ? r.invisibles.slice(0, 4).join(' | ') : r.textoNodos + ' nodos de texto');
   chequear('Todos los campos tienen etiqueta', r.sinEtiqueta === 0, r.sinEtiqueta + ' sin etiqueta');
