@@ -4,7 +4,7 @@
 import { readFileSync, writeFileSync, mkdirSync, cpSync, existsSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
-const REPO = 'C:/Users/usuario29/Documents/KONFIO_ZINC/6-LANDING-PAGES/card-pagos-p1';
+const REPO = 'C:/Users/usuario29/Documents/KONFIO_ZINC/6-LANDING-PAGES/Konfio-Zinc-Web';
 const VIEJA = 'C:/Users/usuario29/AppData/Local/Temp/kz-card-staging-p1';
 const DESTINO = 'C:/Users/usuario29/AppData/Local/Temp/kz-card-staging-b68108b';
 const SITIO = join(DESTINO, 'sitio');
@@ -61,6 +61,11 @@ parche('assets/js/firebase-config.js', DEMO);
 
 parche('assets/js/main.js', [
   ["var BACKEND_URL = 'https://calm-heart-6828.konfiozinc.workers.dev';", "var BACKEND_URL = 'http://127.0.0.1:9999/kz-agente-deshabilitado'; /* [AISLAMIENTO] */"],
+]);
+
+/* El formulario premium también apunta al Worker de producción: se apaga en staging. */
+parche('premium-assets/app.js', [
+  ["const LEADS_URL = 'https://calm-heart-6828.konfiozinc.workers.dev/leads';", "const LEADS_URL = 'http://127.0.0.1:9999/kz-leads-deshabilitado'; /* [AISLAMIENTO] */"],
 ]);
 
 /* 4. push.js apagado (el original sigue versionado en el repositorio) */

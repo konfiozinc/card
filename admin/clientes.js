@@ -427,7 +427,7 @@ function abrirPago(c) {
     </div>`;
   const err = document.getElementById('p-error');
   document.querySelectorAll('#modal-detalle [data-cerrar]').forEach(b => b.addEventListener('click', cerrarDetalle));
-  escrituras.cargarServicios(c.id).then((sv) => {
+  escrituras.cargarServiciosDeCliente(c.id).then((sv) => {
     const sel = document.getElementById('p-servicio');
     if (sel) sel.innerHTML = '<option value="">— (sin servicio) —</option>' + sv.map(s => `<option value="${esc(s.id)}">${esc(s.servicio)}${s.categoria ? ' · ' + esc(s.categoria) : ''}</option>`).join('');
   }).catch(() => {});
@@ -489,7 +489,7 @@ async function verDetalle(c) {
   document.querySelectorAll('#modal-detalle [data-cerrar]').forEach(b => b.addEventListener('click', cerrarDetalle));
   const ds = document.getElementById('det-servicios');
   if (ds) {
-    escrituras.cargarServicios(c.id).then((sv) => {
+    escrituras.cargarServiciosDeCliente(c.id).then((sv) => {
       ds.innerHTML = sv.length
         ? sv.map((s) => `<div class="celda-suave">${esc(s.servicio)}${s.categoria ? ' · ' + esc(s.categoria) : ''} · ${cop(s.precio)} · ${esc(s.estado || '')}${s.fechaVencimiento ? ' · vence ' + esc(s.fechaVencimiento) : ''}</div>`).join('')
         : 'Sin servicios registrados.';

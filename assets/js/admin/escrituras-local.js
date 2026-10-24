@@ -155,7 +155,7 @@ export async function crearServicio(d) {
   return { id: ref.id };
 }
 
-export async function cargarServicios(clienteId) {
+export async function cargarServiciosDeCliente(clienteId) {
   const snap = await getDocs(query(collection(db, 'servicios'), where('clienteId', '==', clienteId)));
   return snap.docs.map((x) => ({ id: x.id, ...x.data() }));
 }
