@@ -1,0 +1,184 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   KONFÍO ZINC · assets/css/kz-carrusel.css
+   KZ-WEB-003 · Carrusel de proyectos.
+
+   Sustituye el marquee infinito por navegación explícita: el movimiento
+   continuo no se puede pausar con el teclado ni detener sin ratón, y para
+   personas con sensibilidad al movimiento es un problema real. Aquí el
+   desplazamiento lo decide quien mira.
+
+   Usa scroll-snap, así que el gesto táctil es el del navegador: no hay
+   JavaScript intermediario para el swipe.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.kz-carrusel {
+  position: relative;
+}
+
+/* ── Barra superior: contador + flechas ───────────────────────────── */
+.kz-carrusel__barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.kz-carrusel__contador {
+  margin: 0;
+  font-family: Orbitron, "Arial Black", Arial, sans-serif;
+  font-size: .76rem;
+  font-weight: 600;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--kz-text-muted);
+}
+
+.kz-carrusel__contador b {
+  color: var(--kz-cyan);
+  font-weight: 800;
+}
+
+.kz-carrusel__botones {
+  display: flex;
+  gap: 10px;
+}
+
+.kz-carrusel__btn {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--kz-border);
+  background: rgba(16, 28, 53, .78);
+  color: var(--kz-text);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color .18s ease, color .18s ease, background .18s ease, transform .18s ease;
+}
+
+.kz-carrusel__btn:hover:not(:disabled),
+.kz-carrusel__btn:focus-visible:not(:disabled) {
+  border-color: var(--kz-cyan);
+  color: var(--kz-cyan);
+  background: rgba(0, 229, 255, .1);
+}
+
+.kz-carrusel__btn:active:not(:disabled) {
+  transform: scale(.94);
+}
+
+.kz-carrusel__btn:disabled {
+  opacity: .38;
+  cursor: not-allowed;
+}
+
+/* ── Pista ────────────────────────────────────────────────────────── */
+.kz-carrusel__pista {
+  display: flex;
+  gap: 18px;
+  margin: 0;
+  padding: 4px 2px 16px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: var(--kz-border) transparent;
+  /* Deja aire a la derecha para que la última tarjeta no quede pegada. */
+  scroll-padding-left: 2px;
+}
+
+.kz-carrusel__pista::-webkit-scrollbar {
+  height: 6px;
+}
+
+.kz-carrusel__pista::-webkit-scrollbar-thumb {
+  background: var(--kz-border);
+  border-radius: 999px;
+}
+
+.kz-carrusel__pista:focus-visible {
+  outline: 2px solid var(--kz-cyan);
+  outline-offset: 6px;
+  border-radius: 12px;
+}
+
+.kz-carrusel__slide {
+  flex: 0 0 min(84%, 360px);
+  scroll-snap-align: start;
+  display: flex;
+}
+
+.kz-carrusel__slide > * {
+  width: 100%;
+}
+
+@media (min-width: 760px) {
+  .kz-carrusel__slide {
+    flex-basis: calc((100% - 18px) / 2);
+  }
+}
+
+@media (min-width: 1100px) {
+  .kz-carrusel__slide {
+    flex-basis: calc((100% - 36px) / 3);
+  }
+}
+
+/* ── Puntos de posición ───────────────────────────────────────────── */
+.kz-carrusel__puntos {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.kz-carrusel__punto {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid var(--kz-border);
+  background: transparent;
+  cursor: pointer;
+  transition: width .2s ease, background .2s ease, border-color .2s ease;
+}
+
+/* Área táctil real de 24px sin agrandar el punto visible. */
+.kz-carrusel__punto::before {
+  content: "";
+  position: absolute;
+  inset: -8px;
+}
+
+.kz-carrusel__punto {
+  position: relative;
+}
+
+.kz-carrusel__punto[aria-current="true"] {
+  width: 24px;
+  background: var(--kz-cyan);
+  border-color: var(--kz-cyan);
+}
+
+/* ── Salida al portafolio completo ───────────────────────────────── */
+.kz-carrusel__salida {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kz-carrusel__pista {
+    scroll-behavior: auto;
+  }
+  .kz-carrusel__btn,
+  .kz-carrusel__punto {
+    transition: none;
+  }
+}

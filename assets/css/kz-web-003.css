@@ -1,0 +1,67 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   KONFÍO ZINC · assets/css/kz-web-003.css
+   KZ-WEB-003 · Adiciones de esta misión que no pertenecen a un componente
+   concreto del sistema. Se carga después de kz-carrusel.css.
+
+   Se mantiene aparte a propósito: premium-assets/styles.css es la hoja de la
+   portada y ya es grande; meter aquí lo nuevo evita tocar reglas que hoy
+   funcionan.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Composición de capas de la portada ──────────────────────────────
+   Sustituye el antiguo «hero__note» de solo texto. En escritorio ocupa la
+   esquina superior derecha donde ya estaba esa nota; en móvil, donde antes
+   se ocultaba por completo, pasa a mostrarse en flujo para no perder el
+   mensaje. */
+.hero__capas {
+  position: absolute;
+  top: 15%;
+  right: var(--pad);
+  width: min(34vw, 400px);
+  margin: 0;
+  text-align: right;
+  pointer-events: none;
+}
+
+.hero__capas img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.hero__capas figcaption {
+  margin-top: 10px;
+  color: var(--kz-text-muted);
+  font-size: 11px;
+  line-height: 1.6;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 900px) {
+  .hero__capas {
+    position: static;
+    width: 100%;
+    max-width: 320px;
+    margin: 30px 0 0;
+    text-align: left;
+  }
+
+  .hero__capas figcaption {
+    text-align: left;
+  }
+}
+
+/* ── Tabla de modalidades de aliados ─────────────────────────────────
+   La comparación necesita poder desplazarse en pantallas estrechas sin
+   romper la maquetación ni obligar a hacer zoom. */
+.kz-tabla-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 14px;
+}
+
+.kz-tabla-scroll:focus-visible {
+  outline: 2px solid var(--kz-cyan);
+  outline-offset: 4px;
+}

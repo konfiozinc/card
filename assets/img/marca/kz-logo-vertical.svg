@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 300" role="img" aria-label="KONFÍO ZINC">
+  <title>KONFÍO ZINC · vertical</title>
+  <g transform="translate(172,24) scale(2)">
+    <path d="M8 7h10v13L32 7h8L25 23l16 18H28L18 29v12H8z" fill="#00E5FF"/>
+  </g>
+  <text x="220" y="204" text-anchor="middle" fill="#FFFFFF" font-family="Orbitron, 'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="52" font-weight="800" letter-spacing="1">KONFÍO <tspan fill="#00E5FF">ZINC</tspan></text>
+  <text x="220" y="248" text-anchor="middle" fill="#8B5CF6" font-family="Orbitron, 'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="6">SOLUCIONES DIGITALES</text>
+</svg>

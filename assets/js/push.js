@@ -211,7 +211,14 @@
       if (chip) {
         chip.classList.add('kz-ok');
         chip.querySelector('.kz-accion').innerHTML = '<span>✅</span> Avisos activados';
-        panel('¡Listo!', '<p>Te contactaremos cuando lancemos novedades.</p>');
+        /* KZ-WEB-003: aquí se prometía «te contactaremos cuando lancemos novedades»,
+           una promesa que depende de que alguien envíe una campaña desde la consola de
+           Firebase. El alta queda registrada, pero no se promete una frecuencia ni una
+           automatización que el sitio no pueda garantizar por sí solo. */
+        panel('Quedaste en la lista',
+          '<p>Los avisos son <strong>ocasionales</strong>: se envían cuando hay algo que vale la pena contar. ' +
+          'No son automáticos ni tienen una frecuencia fija.</p>' +
+          '<p>Si necesitas algo ahora, escríbenos por <a href="https://wa.me/573206411340" target="_blank" rel="noopener">WhatsApp</a>.</p>');
         setTimeout(function () { chip.classList.remove('kz-visible'); }, 2600);
       }
     }).catch(function (err) {
@@ -221,7 +228,11 @@
       if (m === 'NO_PERMISO') {
         panel('No se activaron los avisos', '<p>No diste permiso de notificaciones. Puedes intentarlo de nuevo cuando quieras tocando el botón 🔔.</p>');
       } else if (/no soporta|not supported/i.test(m)) {
-        panel('Navegador no compatible', '<p>Este navegador no permite notificaciones push. En iPhone usa Safari y agrega el sitio a la pantalla de inicio.</p>');
+        panel('Este navegador no envía avisos',
+          '<p>No permite notificaciones push. En iPhone, usa Safari y agrega el sitio a la pantalla de inicio; ' +
+          'en Android o computador funcionan directamente.</p>' +
+          '<p>Mientras tanto, puedes consultar novedades por <a href="https://wa.me/573206411340" target="_blank" rel="noopener">WhatsApp</a>: ' +
+          'no enviamos avisos automáticos, pero te respondemos.</p>');
       } else {
         panel('No se pudieron activar', '<p>Ocurrió un detalle técnico: ' + m.slice(0, 140) + '</p><p>Vuelve a intentarlo en un momento.</p>');
         if (window.console) console.warn('[KZ push]', err);
@@ -262,7 +273,9 @@
     a.innerHTML = suscrito ? '🔔 Avisos activados' : '🔔 Recibir avisos de KONFÍO ZINC';
     a.addEventListener('click', function () {
       if (guardado(K_OK) === '1') {
-        panel('¡Listo!', '<p>Te contactaremos cuando lancemos novedades.</p>');
+        panel('Avisos activados',
+          '<p>Ya estás en la lista. Los avisos son <strong>ocasionales</strong>: se envían cuando hay algo que vale la pena contar.</p>' +
+          '<p>Si necesitas algo ahora, escríbenos por <a href="https://wa.me/573206411340" target="_blank" rel="noopener">WhatsApp</a>.</p>');
         return;
       }
       chip.classList.add('kz-visible');

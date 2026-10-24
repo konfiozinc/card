@@ -1,7 +1,7 @@
 {
-  "name": "KONFÍO ZINC · Soluciones digitales para negocios",
+  "name": "KONFÍO ZINC · Sitio web corporativo",
   "short_name": "KONFÍO ZINC",
-  "description": "Tarjetas digitales, catálogos, menús digitales con QR, landing pages, códigos QR y agentes IA para negocios colombianos.",
+  "description": "Sitio web corporativo multipágina de KONFÍO ZINC: portada orientada a conversión, servicios, portafolio, recursos, aliados, formularios de captación y Asesor Konfi.",
   "lang": "es-CO",
   "dir": "ltr",
   "start_url": "/card/",
@@ -9,8 +9,8 @@
   "id": "/card/",
   "display": "standalone",
   "orientation": "portrait-primary",
-  "background_color": "#000000",
-  "theme_color": "#F0B429",
+  "background_color": "#050B14",
+  "theme_color": "#00E5FF",
   "categories": ["business", "productivity", "marketing"],
   "icons": [
     {
@@ -36,6 +36,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "assets/img/marca/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
     }
   ]
 }

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" role="img" aria-labelledby="capas-titulo capas-desc">
+  <title id="capas-titulo">Las cuatro capas de una construcción digital</title>
+  <desc id="capas-desc">Cuatro planos isométricos apilados: diseño, contenido, interacción y tecnología. Cada capa se apoya en la anterior.</desc>
+  <defs>
+    <linearGradient id="kzCapas1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#00E5FF" stop-opacity=".26"/>
+      <stop offset="1" stop-color="#00E5FF" stop-opacity=".04"/>
+    </linearGradient>
+    <linearGradient id="kzCapas2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8B5CF6" stop-opacity=".30"/>
+      <stop offset="1" stop-color="#8B5CF6" stop-opacity=".05"/>
+    </linearGradient>
+    <linearGradient id="kzCapas3" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#39DFF5" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#39DFF5" stop-opacity=".03"/>
+    </linearGradient>
+    <linearGradient id="kzCapas4" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A78BFA" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#A78BFA" stop-opacity=".04"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Ejes que sostienen la pila: dan la sensación de construcción. -->
+  <g stroke="#52678F" stroke-width="1" stroke-dasharray="3 7" opacity=".55">
+    <path d="M540 60v300"/>
+    <path d="M220 60v300"/>
+  </g>
+
+  <!-- Capa 04 · tecnología (base) -->
+  <g>
+    <path d="M380 240 540 320 380 400 220 320Z" fill="url(#kzCapas4)" stroke="#A78BFA" stroke-width="1.6"/>
+    <text x="24" y="325" fill="#A78BFA" font-family="Orbitron, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="2.4">04 · TECNOLOGÍA</text>
+  </g>
+
+  <!-- Capa 03 · interacción -->
+  <g>
+    <path d="M380 170 540 250 380 330 220 250Z" fill="url(#kzCapas3)" stroke="#39DFF5" stroke-width="1.6"/>
+    <text x="24" y="255" fill="#39DFF5" font-family="Orbitron, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="2.4">03 · INTERACCIÓN</text>
+  </g>
+
+  <!-- Capa 02 · contenido -->
+  <g>
+    <path d="M380 100 540 180 380 260 220 180Z" fill="url(#kzCapas2)" stroke="#8B5CF6" stroke-width="1.6"/>
+    <text x="24" y="185" fill="#C4B5FD" font-family="Orbitron, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="2.4">02 · CONTENIDO</text>
+  </g>
+
+  <!-- Capa 01 · diseño (cima, la que se ve primero) -->
+  <g>
+    <path d="M380 30 540 110 380 190 220 110Z" fill="url(#kzCapas1)" stroke="#00E5FF" stroke-width="2.2"/>
+    <circle cx="380" cy="110" r="7" fill="#00E5FF"/>
+    <circle cx="380" cy="110" r="16" fill="none" stroke="#00E5FF" stroke-width="1.2" opacity=".55"/>
+    <text x="24" y="115" fill="#00E5FF" font-family="Orbitron, Arial, sans-serif" font-size="13" font-weight="700" letter-spacing="2.4">01 · DISEÑO</text>
+  </g>
+
+  <!-- Vértices de apoyo entre capas -->
+  <g stroke="#00E5FF" stroke-width="1.4" opacity=".5">
+    <path d="M380 190v40"/>
+    <path d="M380 260v40"/>
+    <path d="M380 330v40"/>
+  </g>
+</svg>

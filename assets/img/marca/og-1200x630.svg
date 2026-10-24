@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="glowV" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#8B5CF6" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#050B14" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowC" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#00E5FF" stop-opacity=".38"/>
+      <stop offset="1" stop-color="#050B14" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="linea" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#00E5FF" stop-opacity="0"/>
+      <stop offset=".5" stop-color="#00E5FF" stop-opacity=".9"/>
+      <stop offset="1" stop-color="#8B5CF6" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="#050B14"/>
+  <circle cx="1010" cy="70" r="470" fill="url(#glowV)"/>
+  <circle cx="150" cy="640" r="430" fill="url(#glowC)"/>
+  <g opacity=".16" stroke="#00E5FF" stroke-width="1" fill="none">
+    <path d="M0 210h1200M0 420h1200M300 0v630M900 0v630"/>
+  </g>
+  <g transform="translate(84,118) scale(1.9)">
+    <path d="M8 7h10v13L32 7h8L25 23l16 18H28L18 29v12H8z" fill="#00E5FF"/>
+  </g>
+  <text x="200" y="212" fill="#FFFFFF" font-family="Orbitron, 'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="74" font-weight="800" letter-spacing="1">KONFÍO <tspan fill="#00E5FF">ZINC</tspan></text>
+  <text x="202" y="268" fill="#00E5FF" font-family="Orbitron, 'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="26" font-weight="600" letter-spacing="9">SOLUCIONES DIGITALES A MEDIDA</text>
+  <rect x="200" y="310" width="880" height="2" fill="url(#linea)"/>
+  <text x="202" y="384" fill="#FFFFFF" opacity=".92" font-family="Inter, Arial, sans-serif" font-size="34">Sitio web corporativo · servicios, portafolio y recursos</text>
+  <text x="202" y="438" fill="#FFFFFF" opacity=".68" font-family="Inter, Arial, sans-serif" font-size="28">Mini Webs · Catálogos · Menús QR · Landing pages · Agentes IA</text>
+  <g transform="translate(202,510)">
+    <rect x="0" y="0" rx="999" width="274" height="62" fill="#00E5FF"/>
+    <text x="137" y="40" text-anchor="middle" fill="#050B14" font-family="Orbitron, 'Arial Black', 'Helvetica Neue', Arial, sans-serif" font-size="24" font-weight="800" letter-spacing="1">konfiozinc.github.io</text>
+  </g>
+</svg>

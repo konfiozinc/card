@@ -11,10 +11,17 @@
   <meta property="og:description" content="Diseño, código y automatización para negocios que quieren crecer.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://konfiozinc.github.io/card/">
-  <meta property="og:image" content="https://konfiozinc.github.io/card/premium-assets/og-cover.svg">
+  <meta property="og:image" content="https://konfiozinc.github.io/card/assets/img/og/og-1200x630.png">
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Konfío Zinc — Soluciones digitales a medida" />
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://konfiozinc.github.io/card/assets/img/og/og-1200x630.png">
   <link rel="canonical" href="https://konfiozinc.github.io/card/">
   <title>Konfío Zinc — Soluciones digitales a medida</title>
-  <link rel="icon" href="premium-assets/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="assets/img/marca/favicon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/logos/favicon-32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" onload="this.rel='stylesheet'" />
@@ -22,6 +29,8 @@
   <link rel="stylesheet" href="assets/css/kz-neon.css">
   <link rel="stylesheet" href="premium-assets/styles.css">
   <link rel="stylesheet" href="premium-assets/chat.css">
+<link rel="stylesheet" href="assets/css/kz-carrusel.css">
+<link rel="stylesheet" href="assets/css/kz-web-003.css">
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -64,7 +73,11 @@
         </div>
       </div>
       <div class="hero__rail" aria-hidden="true"><span>SCROLL TO DISCOVER</span><i></i></div>
-      <p class="hero__note reveal">Sin plantillas genéricas.<br>Cada píxel tiene una razón.</p>
+      <figure class="hero__capas reveal">
+        <img src="assets/img/marca/capas-kz.svg" width="760" height="420" loading="eager" decoding="async"
+             alt="Cuatro capas apiladas que representan el diseño, el contenido, la interacción y la tecnología de cada proyecto.">
+        <figcaption>Sin plantillas genéricas.<br>Cada píxel tiene una razón.</figcaption>
+      </figure>
     </section>
 
     <section class="statement" aria-label="Nuestro enfoque">
@@ -126,20 +139,50 @@
         <div><p class="section-kicker reveal">03 / TRABAJO REAL</p><h2 id="work-title" class="reveal">Proyectos que ya<br><span>están en movimiento.</span></h2></div>
         <p class="reveal">Explora casos públicos desarrollados para negocios con necesidades, públicos y ritmos diferentes.</p>
       </div>
-      <div class="marquee" data-marquee aria-label="Portafolio de proyectos">
-        <div class="marquee__track">
-          <a class="project project--snoopy" href="https://konfiozinc.github.io/postres/" target="_blank" rel="noopener noreferrer">
-            <span class="project__meta">E-COMMERCE LIGERO · 2026</span><strong>POSTRES<br>SNOOPY</strong><span class="project__arrow" aria-hidden="true">↗</span>
-          </a>
-          <a class="project project--calinet" href="https://konfiozinc.github.io/redcalinet/" target="_blank" rel="noopener noreferrer">
-            <span class="project__meta">CONECTIVIDAD · 2026</span><strong>RED<br>CALINET</strong><span class="project__arrow" aria-hidden="true">↗</span>
-          </a>
-          <a class="project project--unefibra" href="https://konfiozinc.github.io/unefibra/" target="_blank" rel="noopener noreferrer">
-            <span class="project__meta">TELECOM · 2026</span><strong>UNE<br>FIBRA</strong><span class="project__arrow" aria-hidden="true">↗</span>
-          </a>
-          <a class="project project--eltiti" href="https://konfiozinc.github.io/eltiti/" target="_blank" rel="noopener noreferrer">
-            <span class="project__meta">MENÚ DIGITAL · 2026</span><strong>EL<br>TITI</strong><span class="project__arrow" aria-hidden="true">↗</span>
-          </a>
+      <div class="kz-carrusel" data-carrusel aria-roledescription="carrusel" aria-label="Proyectos publicados">
+        <div class="kz-carrusel__barra">
+          <p class="kz-carrusel__contador">
+            <b data-actual>1</b> / <span data-total>4</span> proyectos publicados
+          </p>
+          <div class="kz-carrusel__botones">
+            <button class="kz-carrusel__btn" type="button" data-prev aria-label="Proyecto anterior" aria-controls="pista-proyectos">
+              <span aria-hidden="true">←</span>
+            </button>
+            <button class="kz-carrusel__btn" type="button" data-next aria-label="Proyecto siguiente" aria-controls="pista-proyectos">
+              <span aria-hidden="true">→</span>
+            </button>
+          </div>
+        </div>
+
+        <ul class="kz-carrusel__pista" id="pista-proyectos" data-pista
+            role="group" aria-roledescription="diapositivas" aria-label="Desliza o usa las flechas para ver los cuatro proyectos">
+          <li class="kz-carrusel__slide" role="group" aria-roledescription="diapositiva" aria-label="1 de 4: Postres Snoopy">
+            <a class="project project--snoopy" href="https://konfiozinc.github.io/postres/" target="_blank" rel="noopener noreferrer">
+              <span class="project__meta">E-COMMERCE LIGERO · 2026</span><strong>POSTRES<br>SNOOPY</strong><span class="project__arrow" aria-hidden="true">↗</span>
+            </a>
+          </li>
+          <li class="kz-carrusel__slide" role="group" aria-roledescription="diapositiva" aria-label="2 de 4: Red CaliNet">
+            <a class="project project--calinet" href="https://konfiozinc.github.io/redcalinet/" target="_blank" rel="noopener noreferrer">
+              <span class="project__meta">CONECTIVIDAD · 2026</span><strong>RED<br>CALINET</strong><span class="project__arrow" aria-hidden="true">↗</span>
+            </a>
+          </li>
+          <li class="kz-carrusel__slide" role="group" aria-roledescription="diapositiva" aria-label="3 de 4: UneFibra">
+            <a class="project project--unefibra" href="https://konfiozinc.github.io/unefibra/" target="_blank" rel="noopener noreferrer">
+              <span class="project__meta">TELECOM · 2026</span><strong>UNE<br>FIBRA</strong><span class="project__arrow" aria-hidden="true">↗</span>
+            </a>
+          </li>
+          <li class="kz-carrusel__slide" role="group" aria-roledescription="diapositiva" aria-label="4 de 4: El Titi">
+            <a class="project project--eltiti" href="https://konfiozinc.github.io/eltiti/" target="_blank" rel="noopener noreferrer">
+              <span class="project__meta">MENÚ DIGITAL · 2026</span><strong>EL<br>TITI</strong><span class="project__arrow" aria-hidden="true">↗</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="kz-carrusel__puntos" data-puntos role="group" aria-label="Ir a un proyecto"></div>
+        <p class="sr-only" data-anuncio aria-live="polite"></p>
+
+        <div class="kz-carrusel__salida">
+          <a class="button button--line" href="portafolio.html">Ver el portafolio completo <span aria-hidden="true">→</span></a>
         </div>
       </div>
     </section>
@@ -329,5 +372,7 @@
   <!-- Asesor Konfi: configuración de marca y motor de respuestas -->
   <script src="assets/js/config.js"></script>
   <script src="assets/js/main.js" defer></script>
+<script src="assets/js/kz-carrusel.js" defer></script>
+<script src="assets/js/push.js" defer></script>
 </body>
 </html>
