@@ -88,3 +88,10 @@ La herramienta vive en `herramientas/`, que `_config.yml` **excluye** del sitio 
 - `herramientas/test/pruebas-spark-panel-p1.js` — 18 comprobaciones de panel con reglas activas
   (login, listas, vencimientos, aviso preparado, suspender/reactivar, usuarios solo lectura, móvil,
   cero peticiones externas).
+
+## 7. Modelo financiero (CARD-SPARK-002)
+
+Los pagos se clasifican por **concepto** y la confirmación aplica solo su efecto; el desarrollo es
+pago único (no renueva) y la renovación afecta únicamente al servicio asociado (`servicioId`).
+Clientes con varios servicios, migración de históricos sin concepto y despliegue/reversión:
+ver **`docs/CARD-SPARK-002-FINANCIERO.md`**.
