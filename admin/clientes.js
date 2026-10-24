@@ -414,8 +414,9 @@ function abrirPago(c) {
           <select id="p-concepto" required>
             ${(window.KZ_CONFIG.conceptosPago || []).map(x => `<option value="${x.codigo}">${esc(x.etiqueta)}</option>`).join('')}
           </select></div>
-        <div class="campo"><label>Descripción</label><input id="p-desc" maxlength="300" placeholder="Detalle del cobro (opcional)"></div>
+        <div class="campo"><label>Servicio asociado</label><select id="p-servicio"><option value="">— (sin servicio) —</option></select></div>
       </div>
+      <div class="campo"><label>Descripción</label><input id="p-desc" maxlength="300" placeholder="Detalle del cobro (opcional)"></div>
       <div class="aviso aviso--error" id="p-error" hidden></div>
     </form>
     <div class="modal__foot">
@@ -426,6 +427,10 @@ function abrirPago(c) {
     </div>`;
   const err = document.getElementById('p-error');
   document.querySelectorAll('#modal-detalle [data-cerrar]').forEach(b => b.addEventListener('click', cerrarDetalle));
+  escrituras.cargarServicios(c.id).then((sv) => {
+    const sel = document.getElementById('p-servicio');
+    if (sel) sel.innerHTML = '<option value="">— (sin servicio) —</option>' + sv.map(s => `<option value="${esc(s.id)}">${esc(s.servicio)}${s.categoria ? ' · ' + esc(s.categoria) : ''}</option>`).join('');
+  }).catch(() => {});
   document.getElementById('pago-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const monto = Number(document.getElementById('p-monto').value);
@@ -435,6 +440,7 @@ function abrirPago(c) {
     try {
       await escrituras.registrarPago({
         clienteId: c.id, monto, concepto,
+        servicioId: document.getElementById('p-servicio') ? document.getElementById('p-servicio').value || null : null,
         descripcion: document.getElementById('p-desc').value.trim() || null,
         metodoPago: document.getElementById('p-metodo').value,
         fechaPago: document.getElementById('p-fecha').value,

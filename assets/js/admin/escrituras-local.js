@@ -225,6 +225,11 @@ export async function confirmarPago(pagoId) {
 
     const concepto = (CFG.conceptosPago || []).find((x) => x.codigo === (pago.concepto || 'DESARROLLO'))
       || { codigo: 'DESARROLLO', extensible: false, meses: 0 };
+    /* Una renovación DEBE identificar su servicio. Sin servicioId no se
+       modifica ninguna fecha (ni genérica): se bloquea con error claro. */
+    if (concepto.extensible && !pago.servicioId) {
+      throw new Error('Esta renovación no tiene servicio asociado. Asígnale el servicio en el pago antes de confirmar (no se modifica la fecha genérica del cliente).');
+    }
     const hoy = new Date();
     let nuevoVenc = null;
 
