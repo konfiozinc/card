@@ -48,6 +48,7 @@ const { crearServidor } = require('../lib/servidor-estatico');
         assert.ok(estado.horizontal <= 1, `${ancho}px: desbordamiento horizontal`);
         await pagina.keyboard.press('Escape');
         assert.equal(await boton.getAttribute('aria-expanded'), 'false');
+        await pagina.waitForTimeout(400);
         assert.equal(await pagina.locator('#nav-principal').evaluate(e => getComputedStyle(e).visibility), 'hidden');
         console.log(`OK ${ancho}px scroll=${desplazamiento}`);
       }
