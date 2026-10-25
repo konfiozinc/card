@@ -17,6 +17,11 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; background: var(--black); }
 body { margin: 0; color: var(--white); background: var(--black); font-family: var(--body); overflow-x: hidden; }
+/* KZ-MOB-001: el bloqueo tiene que ir en <html>. El body ya tiene
+   overflow-x:hidden, y el html tiene overflow-x:clip; eso corta la propagación
+   del overflow del body al viewport, así que la página seguía desplazándose
+   bajo el menú abierto. */
+html.menu-open { overflow: hidden; }
 body.menu-open { overflow: hidden; }
 a { color: inherit; }
 button, input, select, textarea { font: inherit; }
@@ -220,10 +225,42 @@ button, a { -webkit-tap-highlight-color: transparent; }
 
 @media (max-width: 900px) {
   .site-header { height: 68px; }
-  .menu-toggle { display: block; }
-  .nav { position: fixed; inset: 68px 0 0; display: flex; flex-direction: column; align-items: stretch; justify-content: center; padding: 35px var(--pad); background: rgb(5 11 20 / .98); transform: translateX(105%); transition: transform .35s cubic-bezier(.2,.8,.2,1); }
-  .nav.is-open { transform: none; }
-  .nav > a { padding: 12px 0; font-family: var(--display); font-size: clamp(1.9rem,8vw,4rem); letter-spacing: -.04em; text-transform: uppercase; }
+  body.menu-open .site-header { background: #050b14; border-bottom-color: var(--line); }
+  /* KZ-MOB-001: el botón flotante del Asesor Konfi vive en z-index 9995, muy por
+     encima de la cabecera (40). Con el menú abierto se dibujaba sobre el panel y
+     tapaba navegación. Se oculta mientras el menú está abierto; al cerrarlo
+     vuelve solo porque la regla deja de aplicar. */
+  body.menu-open .kz-fab-wrapper {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+  }
+  .menu-toggle { display: block; flex-shrink: 0; }
+  /* El panel es absoluto respecto a la cabecera fija: un hijo fixed se
+     limita al alto de la cabecera cuando backdrop-filter crea su bloque
+     contenedor, dejando los enlaces superpuestos al hero en Android. */
+  .nav {
+    position: absolute;
+    inset: 100% 0 auto;
+    width: 100%;
+    height: calc(100vh - 68px);
+    height: calc(100dvh - 68px);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: clamp(16px, 3vh, 35px) var(--pad) 30px;
+    background: #050b14;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(105%);
+    transition: transform .35s cubic-bezier(.2,.8,.2,1), visibility .35s;
+  }
+  .nav.is-open { visibility: visible; pointer-events: auto; transform: none; }
+  .nav > a { padding: 11px 0; font-family: var(--display); font-size: clamp(1.5rem,6vw,2.6rem); letter-spacing: -.04em; text-transform: uppercase; }
   .nav .nav__cta { margin-top: 22px; padding: 15px 20px; font-family: var(--body); font-size: 15px; text-align: center; text-transform: none; }
   .menu-toggle[aria-expanded="true"] > span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
   .menu-toggle[aria-expanded="true"] > span:nth-child(2) { opacity: 0; }
