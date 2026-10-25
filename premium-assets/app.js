@@ -7,20 +7,26 @@
   const header = $('[data-header]');
   const menuButton = $('.menu-toggle');
   const nav = $('#nav-principal');
+  const menuLabel = $('.menu-toggle .sr-only');
   const closeMenu = () => {
     menuButton?.setAttribute('aria-expanded', 'false');
+    if (menuLabel) menuLabel.textContent = 'Abrir menú';
     nav?.classList.remove('is-open');
     document.body.classList.remove('menu-open');
   };
   menuButton?.addEventListener('click', () => {
     const open = menuButton.getAttribute('aria-expanded') !== 'true';
     menuButton.setAttribute('aria-expanded', String(open));
+    if (menuLabel) menuLabel.textContent = open ? 'Cerrar menú' : 'Abrir menú';
     nav.classList.toggle('is-open', open);
     document.body.classList.toggle('menu-open', open);
   });
   $$('#nav-principal a').forEach(link => link.addEventListener('click', closeMenu));
+  addEventListener('resize', () => {
+    if (innerWidth > 900 && nav?.classList.contains('is-open')) closeMenu();
+  });
   addEventListener('keydown', event => {
-    if (event.key === 'Escape') {
+    if (event.key === 'Escape' && nav?.classList.contains('is-open')) {
       closeMenu();
       menuButton?.focus();
     }
