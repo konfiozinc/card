@@ -281,7 +281,7 @@ Página pública que explica cómo ganar dinero vendiendo las tarjetas digitales
 | **Distribuidor** (recomendado) | Compra a precio de aliado y vende al precio que defina | La diferencia. Niveles por ventas mensuales: **Bronce** 1–4 ventas (30%), **Plata** 5–9 (40%), **Oro** 10+ (50%) |
 | **Referido** (sin inversión) | Presenta el cliente; KONFÍO ZINC cierra y cobra | **20%** de comisión: $9.980 START · $19.980 PRO · $29.980 ELITE |
 
-**Incentivo de activación:** tarjeta PRO de muestra con 50% de descuento (.950) al activarse; gratis al cerrar las primeras 3 ventas.
+**Incentivo de activación:** Mini Web Pro de muestra con 50% de descuento ($49.950) al activarse; gratis al completar 5 ventas cerradas.
 
 **Reglas:** el aliado gestiona la venta y el cobro; KONFÍO ZINC hace diseño, publicación, hosting del primer año y soporte. Precios en COP. Medios de pago: Bancolombia, Davivienda, Nequi, Daviplata, Bre-B, Transfiya, Mercado Pago y efectivo.
 
