@@ -45,8 +45,13 @@ try {
     $rama = git rev-parse --abbrev-ref HEAD
     $mainSha = git rev-parse main
 
+    # Ojo: los comandos de git devuelven ARRAYS. Si se meten tal cual en un
+    # -join, PowerShell los convierte a "System.Object[]" en vez de unirlos.
+    $logTxt  = (git log --format='%h  %ad  %s' --date=short main..HEAD) -join "`n"
+    $statTxt = (git diff --stat main..HEAD) -join "`n"
+
     $cab = @(
-        "KONFIO ZINC · Historial de la rama para revision",
+        "KONFIO ZINC - Historial de la rama para revision",
         "",
         "Rama            : $rama",
         "HEAD            : $sha",
@@ -54,10 +59,10 @@ try {
         "Fecha del corte : $(Get-Date -Format 'yyyy-MM-dd HH:mm')",
         "",
         "=== COMMITS SOBRE main ===",
-        (git log --format='%h  %ad  %s' --date=short main..HEAD),
+        $logTxt,
         "",
         "=== FICHEROS TOCADOS ===",
-        (git diff --stat main..HEAD)
+        $statTxt
     ) -join "`n"
     $cab | Set-Content -Path (Join-Path $STAGE '01-INFORMES\git-historial.txt') -Encoding UTF8
 
