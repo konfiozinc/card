@@ -16,7 +16,9 @@ if (!archivos.length) {
 }
 
 (async () => {
-  const nav = await chromium.launch({ headless: true });
+  const opciones = { headless: true };
+  if (process.env.CHROMIUM_PATH) opciones.executablePath = process.env.CHROMIUM_PATH;
+  const nav = await chromium.launch(opciones);
   const pag = await nav.newPage();
   await pag.setContent('<canvas id=c></canvas>');
   let fallos = 0;

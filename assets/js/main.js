@@ -172,9 +172,47 @@
     if (header) header.classList.toggle('scrolled', window.scrollY > 20);
     var backTop = $('#backTop');
     if (backTop) backTop.classList.toggle('show', window.scrollY > 500);
+    programarProteccionCta();
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+
+  /* KZ-FIX-004 · Un control fijo no debe interceptar un CTA que pasa por
+     debajo. La clase solo cambia visibilidad/puntero, no la geometría; así la
+     medición sigue siendo estable mientras se desplaza la página. El chat
+     abierto es un diálogo iniciado por la persona y se mantiene visible. */
+  var ajusteCtaPendiente = false;
+  function seVeParaProteccion(el) {
+    if (!el) return false;
+    var s = window.getComputedStyle(el);
+    var r = el.getBoundingClientRect();
+    return s.display !== 'none' && s.visibility !== 'hidden' && r.width > 0 && r.height > 0;
+  }
+  function intersecan(a, b) {
+    return a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+  }
+  function protegerCtaDeFlotantes() {
+    ajusteCtaPendiente = false;
+    var acciones = $$('a.btn, a.button, button.btn, button.button, form button[type="submit"], input[type="submit"]')
+      .filter(function (el) { return !el.closest('.kz-fab-wrapper') && seVeParaProteccion(el); });
+    $$('.kz-fab-wrapper, .back-top').forEach(function (flotante) {
+      var chatAbierto = flotante.classList.contains('kz-fab-wrapper') && !!flotante.querySelector('.kz-fab-chat.open');
+      var conFoco = flotante.matches(':focus-within');
+      var caja = flotante.getBoundingClientRect();
+      var invade = !chatAbierto && !conFoco && acciones.some(function (accion) {
+        return intersecan(caja, accion.getBoundingClientRect());
+      });
+      flotante.classList.toggle('kz-fab-evitar-cta', invade);
+    });
+  }
+  function programarProteccionCta() {
+    if (ajusteCtaPendiente) return;
+    ajusteCtaPendiente = true;
+    window.requestAnimationFrame(protegerCtaDeFlotantes);
+  }
+  window.addEventListener('resize', programarProteccionCta);
+  window.addEventListener('load', programarProteccionCta, { once: true });
+  programarProteccionCta();
 
   if (navToggle && navLinks) {
     navToggle.addEventListener('click', function () {

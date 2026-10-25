@@ -140,21 +140,39 @@ textarea {
 }
 
 
-/* ─── 12. AJUSTE DE MOVIL (KZ-DESIGN-001) ────────────────────────────────
-   Los tres flotantes (chat, WhatsApp y volver arriba) viven en la franja
-   inferior de la pantalla, en una sola fila, para no quedar a media altura
-   sobre los botones de llamada a la accion del hero.
-   La etiqueta «¿Te ayudo?» se oculta en movil: ocupaba el ancho util y tapaba
-   contenido; el boton conserva su aria-label y sigue siendo accesible. */
+/* ─── 12. FLOTANTES SEGUROS (KZ-FIX-004) ──────────────────────────────────
+   La web ya ofrece WhatsApp en sus CTA y dentro del Asesor Konfi. Mantener
+   además el acceso circular fijo duplicaba la misma acción y formaba una
+   columna de tres controles en escritorio. El Asesor queda como único acceso
+   flotante; su aria-label conserva un nombre accesible sin la burbuja visual. */
+.wa-float,
+.kz-bubble {
+  display: none !important;
+}
+
+/* main.js aplica esta clase únicamente mientras un flotante invade un CTA.
+   Se conserva su caja geométrica para poder recalcular la colisión sin saltos. */
+.kz-fab-evitar-cta {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.kz-fab-wrapper {
+  right: max(16px, env(safe-area-inset-right));
+  bottom: max(16px, env(safe-area-inset-bottom));
+  transition: opacity .18s ease, visibility .18s ease;
+}
+
+.back-top {
+  left: max(16px, env(safe-area-inset-left));
+  bottom: max(16px, env(safe-area-inset-bottom));
+}
+
 @media (max-width: 560px) {
-  .kz-bubble { display: none !important; }
-  /* Un solo flotante en movil: el boton de WhatsApp fijo se retira porque
-     competia con el chat y ambos tapaban los CTA del hero. WhatsApp sigue
-     accesible desde el propio chat y desde los botones de la pagina. */
-  .wa-float { display: none !important; }
   /* Hueco al final del documento para que el ultimo contenido no quede bajo
      los flotantes cuando se llega al pie. */
-  body { padding-bottom: 78px; }
+  body { padding-bottom: calc(78px + env(safe-area-inset-bottom)); }
 }
 
 /* ═══ LOGOTIPO OFICIAL (KZ-ID-001) ═══ */

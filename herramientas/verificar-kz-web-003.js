@@ -104,7 +104,9 @@ const rel = (p) => path.relative(RAIZ, p).replace(/\\/g, '/');
 
   /* ═══ C, D, F, G: navegador real ═══ */
   const srv = await crearServidor({ raiz: RAIZ, puerto: 5444 });
-  const nav = await chromium.launch({ headless: true });
+  const opciones = { headless: true };
+  if (process.env.CHROMIUM_PATH) opciones.executablePath = process.env.CHROMIUM_PATH;
+  const nav = await chromium.launch(opciones);
 
   for (const vp of [{ n: 'ESCRITORIO', w: 1440, h: 900 }, { n: 'MÓVIL', w: 375, h: 667 }]) {
     sección('=== C/F/G · PORTADA ' + vp.n + ' (' + vp.w + 'x' + vp.h + ') ===');

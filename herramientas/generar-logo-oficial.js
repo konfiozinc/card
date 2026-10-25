@@ -34,9 +34,14 @@ const ORIGEN = 'assets/img/marca/fuente/logo.jpeg';
 const SALIDA = 'assets/img/marca';
 const FONDO_MARCA = '#050B14';   /* --kz-bg */
 const CIAN = '#00E5FF';
+/* El contenido real empieza en y=121 (acento de la Í). Por encima de y=110
+   solo existe el resplandor ambiental del fondo del JPEG. */
+const CORTE_SUPERIOR_FONDO = 110;
 
 (async () => {
-  const nav = await chromium.launch({ headless: true });
+  const opcionesNavegador = { headless: true };
+  if (process.env.CHROMIUM_PATH) opcionesNavegador.executablePath = process.env.CHROMIUM_PATH;
+  const nav = await chromium.launch(opcionesNavegador);
   const pag = await nav.newPage({ viewport: { width: 1400, height: 800 } });
   await pag.setContent('<!DOCTYPE html><html><head><meta charset="utf-8">' +
     '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;600&display=block">' +
@@ -111,7 +116,7 @@ const CIAN = '#00E5FF';
 
   /* ── 2. Exportación con fondo transparente ───────────────────────── */
   async function exportar(destino, caja, W, H, margen, opciones = {}) {
-    const buffer = await pag.evaluate(async ({ data, caja, W, H, margen, bgHex, maskable }) => {
+    const buffer = await pag.evaluate(async ({ data, caja, W, H, margen, bgHex, maskable, corteSuperior }) => {
       const img = new Image(); img.src = 'data:image/jpeg;base64,' + data; await img.decode();
       const src = document.createElement('canvas');
       src.width = img.naturalWidth; src.height = img.naturalHeight;
@@ -132,12 +137,16 @@ const CIAN = '#00E5FF';
         for (let x = 0; x < caja.w; x++) {
           const si = ((y + caja.y) * src.width + (x + caja.x)) * 4;
           const R = sd[si], G = sd[si + 1], B = sd[si + 2];
+          const di = (y * caja.w + x) * 4;
+          if (y + caja.y < corteSuperior) { od.data[di + 3] = 0; continue; }
           const lum = 0.2126 * R + 0.7152 * G + 0.0722 * B;
           let a = (lum - bgLum) / (255 - bgLum);
           a = Math.max(0, Math.min(1, a));
-          /* Curva suave: quita el ruido del fondo sin comerse el brillo. */
-          a = a <= 0.06 ? 0 : Math.min(1, (a - 0.06) / 0.86);
-          const di = (y * caja.w + x) * 4;
+          /* El JPEG contiene resplandores ambientales cian en el fondo, sobre
+             todo por encima del logotipo. Con 0.06 se convertían en una mancha
+             semitransparente independiente. El umbral 0.12 elimina ese fondo y
+             conserva los trazos luminosos reales, cuya señal es muy superior. */
+          a = a <= 0.12 ? 0 : Math.min(1, (a - 0.12) / 0.80);
           if (a <= 0) { od.data[di + 3] = 0; continue; }
           od.data[di] = Math.max(0, Math.min(255, (R - bg[0] * (1 - a)) / a));
           od.data[di + 1] = Math.max(0, Math.min(255, (G - bg[1] * (1 - a)) / a));
@@ -162,7 +171,7 @@ const CIAN = '#00E5FF';
       fctx.imageSmoothingQuality = 'high';
       fctx.drawImage(out, Math.round((W - dw) / 2), Math.round((H - dh) / 2), dw, dh);
       return fc.toDataURL('image/png');
-    }, { data: b64, caja, W, H, margen, bgHex: medida.bg, maskable: opciones.relleno || false });
+    }, { data: b64, caja, W, H, margen, bgHex: medida.bg, maskable: opciones.relleno || false, corteSuperior: CORTE_SUPERIOR_FONDO });
 
     const raw = Buffer.from(buffer.split(',')[1], 'base64');
     fs.writeFileSync(path.join(RAIZ, destino), raw);
