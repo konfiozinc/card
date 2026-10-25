@@ -57,7 +57,7 @@ function copiar(origen, destino) {
     const errores = [];
     pagina.on('pageerror', (e) => errores.push(e.message));
     pagina.on('console', (m) => {
-      if (m.type() === 'error' && !/ERR_FAILED|Content Security Policy directive/.test(m.text())) errores.push(m.text());
+      if (m.type() === 'error' && !/ERR_FAILED/.test(m.text())) errores.push(m.text());
     });
     await pagina.route('**/*', async (ruta) => {
       const url = ruta.request().url();
