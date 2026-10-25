@@ -82,3 +82,12 @@ herramientas/admin-spark.log
 
 # Evidencias locales reproducibles de KZ-TECH-001
 test-results/
+
+# Restos de escritura atómica de herramientas de edición.
+# Se colaron una vez en el repo (un archivo de 0 bytes en blog/) y llegaban a
+# publicarse en GitHub Pages con una URL absurda. Nunca deben versionarse.
+*.tmpdir/
+*.tmp
+*~
+*.bak
+*.orig
