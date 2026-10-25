@@ -21,7 +21,21 @@ const { crearServidor } = require('../lib/servidor-estatico');
         await pagina.waitForTimeout(50);
         const boton = pagina.locator('.menu-toggle');
         await boton.click();
-        await pagina.waitForTimeout(400);
+        /* KZ-MOB-001: se espera a la CONDICIÓN, no a un número fijo.
+           OJO: `visibility` pasa a visible al INICIO de la apertura (es una
+           propiedad discreta), no al final; esperar por ella medía el panel a
+           medio entrar y hacía fallar la comprobación de cobertura. Lo que hay
+           que esperar es a que el panel esté en su sitio: desplazamiento
+           horizontal terminado. */
+        await pagina.waitForFunction(
+          () => {
+            const n = document.querySelector('#nav-principal');
+            if (!n || !n.classList.contains('is-open')) return false;
+            return n.getBoundingClientRect().left <= 1;
+          },
+          null,
+          { timeout: 5000 }
+        );
         const estado = await pagina.evaluate(() => {
           const nav = document.querySelector('#nav-principal');
           const caja = nav.getBoundingClientRect();
@@ -48,7 +62,14 @@ const { crearServidor } = require('../lib/servidor-estatico');
         assert.ok(estado.horizontal <= 1, `${ancho}px: desbordamiento horizontal`);
         await pagina.keyboard.press('Escape');
         assert.equal(await boton.getAttribute('aria-expanded'), 'false');
-        await pagina.waitForTimeout(400);
+        /* Igual que al abrir: se espera a que `visibility` sea hidden de verdad,
+           con un límite amplio. Así el resultado no depende de la carga del
+           equipo y deja de ser intermitente. */
+        await pagina.waitForFunction(
+          () => getComputedStyle(document.querySelector('#nav-principal')).visibility === 'hidden',
+          null,
+          { timeout: 5000 }
+        );
         assert.equal(await pagina.locator('#nav-principal').evaluate(e => getComputedStyle(e).visibility), 'hidden');
         console.log(`OK ${ancho}px scroll=${desplazamiento}`);
       }

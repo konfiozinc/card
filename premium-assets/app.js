@@ -8,11 +8,18 @@
   const menuButton = $('.menu-toggle');
   const nav = $('#nav-principal');
   const menuLabel = $('.menu-toggle .sr-only');
+  /* KZ-MOB-001: el bloqueo de scroll se marca en <html> y no solo en <body>.
+     `html` tiene `overflow-x: clip` para evitar desbordes; eso impide que el
+     `overflow: hidden` del body se propague al viewport, así que la página
+     seguía desplazándose por debajo del menú abierto. Medido: con el bloqueo
+     solo en body la rueda movía scrollY de 500 a 1100; marcándolo también en
+     html se queda quieto. */
   const closeMenu = () => {
     menuButton?.setAttribute('aria-expanded', 'false');
     if (menuLabel) menuLabel.textContent = 'Abrir menú';
     nav?.classList.remove('is-open');
     document.body.classList.remove('menu-open');
+    document.documentElement.classList.remove('menu-open');
   };
   menuButton?.addEventListener('click', () => {
     const open = menuButton.getAttribute('aria-expanded') !== 'true';
@@ -20,6 +27,7 @@
     if (menuLabel) menuLabel.textContent = open ? 'Cerrar menú' : 'Abrir menú';
     nav.classList.toggle('is-open', open);
     document.body.classList.toggle('menu-open', open);
+    document.documentElement.classList.toggle('menu-open', open);
   });
   $$('#nav-principal a').forEach(link => link.addEventListener('click', closeMenu));
   addEventListener('resize', () => {
