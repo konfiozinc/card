@@ -812,7 +812,7 @@
         return { text: 'La tarjeta digital es tu presentación en un solo enlace 💳: contacto, WhatsApp, redes, ubicación, servicios y galería. Se actualiza al instante y reemplaza el papel.\n\nHay dos planes: Mini Web Básica $49.900 y Mini Web Pro $99.900, las dos de pago único.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
       }
       if (has(['landing', 'pagina', 'landing page', 'landing pages'])) {
-        return { text: 'Creamos landing pages profesionales en 3 planes 🚀:\n\n• *ECO $699.000* — diseño estándar, banner estático, hasta 5 bloques y 1 correo corporativo.\n• *SMART $1.099.000* ⭐ la más pedida — diseño profesional, hasta 10 bloques, formulario personalizado, 5 correos y SEO.\n• *POWER $1.399.000* — diseño exclusivo, animaciones, reCAPTCHA, panel de administración y Google Analytics 4.\n\nLos tres incluyen hosting y dominio por 1 año ✅\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
+        return { text: 'Creamos landing pages profesionales en 3 planes 🚀:\n\n• *ECO $699.000* — diseño estándar, banner estático, hasta 5 bloques y 1 correo corporativo.\n• *SMART $1.099.000* ⭐ la más pedida — diseño profesional, hasta 10 bloques, formulario personalizado, 5 correos y optimización SEO técnica.\n• *POWER $1.399.000* — diseño exclusivo, animaciones, reCAPTCHA, panel de administración, Google Analytics 4 y optimización SEO técnica.\n\nLos tres incluyen hosting y dominio por 1 año ✅\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
       }
       if (has(['catalogo', 'catalogos'])) {
         return { text: 'Tu catálogo digital te permite mostrar productos con fotos y precios actualizables, y compartirlo por WhatsApp o redes 📖. Desde $120.000.\n\n¿Qué tipo de productos o servicios ofreces?', cta: true };
@@ -829,9 +829,14 @@
 
 
       /* ── Consultas generales ──────────────────────────────────────── */
-      if (has(['seo', 'posicionamiento', 'google ads', 'pauta', 'publicidad', 'redes sociales',
+      /* KZ-AI-003 · SEO con distinción obligatoria: sí optimización técnica
+         básica; no campañas, posicionamiento garantizado ni gestión mensual. */
+      if (has(['seo', 'posicionamiento'])) {
+        return { text: 'Sobre SEO te aclaro la diferencia 🙂: SÍ hacemos *optimización técnica básica* —estructura HTML, metadatos y buenas prácticas de indexación—, y va incluida en las landing SMART y POWER. Lo que NO hacemos son campañas SEO, posicionamiento garantizado, consultoría continua ni gestión mensual de posicionamiento.\n\n¿Quieres que te cuente qué incluye la optimización técnica de tu página?', cta: true };
+      }
+      if (has(['google ads', 'pauta', 'publicidad', 'redes sociales',
                'community manager', 'branding', 'email marketing', 'diseno de marca'])) {
-        return { text: 'Esos servicios no los ofrecemos directamente 🙌. Lo que sí hacemos son seis soluciones digitales:\n\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nOjo: la landing page y la tarjeta sí salen optimizadas para que te encuentren en Google. ¿Cuál te interesa?', cta: true };
+        return { text: 'Esos servicios no los ofrecemos directamente 🙌. Lo que sí hacemos son seis soluciones digitales:\n\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
       }
       if (has(['servicio', 'servicios', 'producto', 'productos', 'que ofrecen', 'que hacen', 'que venden'])) {
         return { text: 'Estas son nuestras seis soluciones 📱:\n\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
