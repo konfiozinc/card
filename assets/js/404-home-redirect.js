@@ -1,7 +1,9 @@
-/* Rescate del enlace oficial de KONFÍO ZINC si GitHub Pages sirve el 404 de la carpeta. */
+/* Recuperación para enlaces compartidos que terminan en el 404 de GitHub Pages.
+   No cambia rutas válidas: este archivo solo se carga desde 404.html. */
 (function () {
   var ruta = window.location.pathname;
-  if (ruta === "/card" || ruta === "/card/") {
-    window.location.replace("/card/index.html" + window.location.search + window.location.hash);
+  if (ruta === "/card/index.html") return;
+  if (ruta === "/card" || ruta.indexOf("/card/") === 0) {
+    window.location.replace("/card/index.html");
   }
 })();
