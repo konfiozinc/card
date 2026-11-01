@@ -1,0 +1,42 @@
+=== 0 · Juego de reglas cargado ===
+    REGLAS CANDIDATAS (nuevas) · borrado directo admin = HTTP 403
+  PASS  0 · el borrado directo responde de forma coherente con el juego cargado  (HTTP 403)
+  PASS  preparación: 3 prospectos (2 heredados + 1 con UUID)
+
+=== 2 · El panel que quedará publicado funciona con estas reglas ===
+  PASS  el administrador entra en el panel
+  PASS  el panel lista los 3 prospectos  (3 filas)
+  PASS  abre el detalle de un prospecto heredado
+  PASS  el cambio de estado en un heredado se guarda
+  PASS  se puede añadir una nota  (2 notas)
+  PASS  se puede registrar una cotización
+  PASS  se puede confirmar una venta
+  PASS  se puede asignar el prospecto a un asesor
+  PASS  el panel no lanzó errores de JavaScript
+
+=== 3 · La migración es idempotente ===
+  PASS  la migración termina bien  (código 0)
+  PASS  migra los 2 heredados (el UUID nativo no se toca)  (3 con UUID)
+  PASS  la segunda pasada no migra nada
+  PASS  no hay ninguna migración duplicada
+  PASS  el total de prospectos no cambia
+
+=== 4 · Verificación posterior: integridad referencial ===
+  PASS  ninguna cotización apunta a un prospecto inexistente
+  PASS  ninguna venta apunta a un prospecto inexistente
+  PASS  ningún marcador apunta a un prospecto inexistente
+  PASS  cada prospecto migrado tiene su marcador
+
+=== 5 · Recuperación segura ante errores ===
+  PASS  con el commit caído, la migración NO termina en verde  (código 2)
+  PASS  el estado queda en «pendiente», no en «hecho»
+  PASS  la reanudación completa la migración  (código 0)
+  PASS  sin duplicar ningún prospecto
+  PASS  todas las entradas quedan en «hecho»
+
+=== 6 · Reversión sin pérdida posterior ===
+  PASS  la reversión se NIEGA con código 3  (código 3)
+  PASS  el prospecto migrado sigue existiendo
+  PASS  y la información posterior sigue intacta
+
+RESULTADO TRANSICIÓN R07 (reglas NUEVAS): PASS 28 · FALLA 0

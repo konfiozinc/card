@@ -18,6 +18,7 @@
 */
 
 const crypto = require("node:crypto");
+const fs = require("node:fs");
 const path = require("node:path");
 const { spawn } = require("node:child_process");
 const { crearProxy } = require("./lib/proxy-fallos.cjs");
@@ -127,6 +128,14 @@ async function limpiar() {
   }
   for (const c of ["crm_quotes", "crm_sales", "crm_dedup", "crm_supresion", "crm_config"]) {
     for (const d of await listar(c)) await fetch(`${FS}/${c}/${d.id}`, { method: "DELETE", headers: OWNER });
+  }
+  /* AISLAMIENTO · El mapa y el respaldo de la migración viven en disco, no en el emulador: si
+     una corrida anterior se cortó a mitad —o terminó a propósito con el mapa vivo, como T02 y
+     T06— la siguiente empezaría con entradas fantasma. Eso producía un fallo intermitente de
+     la sección 5 que no tenía nada que ver con una carrera: se borran aquí. */
+  for (const f of ["migracion-uuid.json", "migracion-respaldo.json"]) {
+    const p = path.join(__dirname, f);
+    if (fs.existsSync(p)) fs.unlinkSync(p);
   }
 }
 
@@ -306,7 +315,6 @@ async function limpiar() {
   chk("5 · no quedó ningún testigo", (await estadoHTTP(`crm_supresion/${uuidR}`, TOK)) === 404);
   /* ══ 6 · B1-B4: fallo cerrado, precondiciones y recuperación ═════════ */
   console.log("\n=== 6 · B1-B4 · precondiciones obligatorias y recuperación ===");
-  const fs = require("node:fs");
   const MAPA = path.join(__dirname, "migracion-uuid.json");
   const RESP = path.join(__dirname, "migracion-respaldo.json");
   const resetMigracion = async () => {
@@ -474,6 +482,271 @@ async function limpiar() {
   chk("T10 · el heredado conserva su nota",
     (await estadoHTTP("crm_leads/3209500017", TOK)) === 200 && (await listar("crm_leads/3209500017/notas")).length === 1);
   chk("T10 · no quedan testigos ni mapa", (await listar("crm_supresion")).length === 0 && !fs.existsSync(MAPA));
+
+  /* ═══════════════════════════════════════════════════════════════════════════════════
+     T04, T05, T07 y T08 · las cuatro pruebas que faltaban de la reversión.
+     Cada una mide las seis cosas que la misión exige: resultado del proceso, estado de
+     TODOS los documentos afectados, conservación de lo que otro escribió a la vez, estado
+     del mapa, estado de los testigos y recuperación con idempotencia.
+     ═══════════════════════════════════════════════════════════════════════════════════ */
+  const leerMapa = () => JSON.parse(fs.readFileSync(MAPA, "utf8"));
+  const crearCotizacion = (leadId) => fetch(`${FS}/crm_quotes`, { method: "POST", headers: H(TOK),
+    body: JSON.stringify({ fields: {
+      lead_id: { stringValue: leadId }, plan: { stringValue: "pro" }, monto: { integerValue: 99900 },
+      moneda: { stringValue: "COP" }, estado: { stringValue: "enviada" },
+      creado_por: { stringValue: UID }, creado_en: { timestampValue: TS(0) } } }) })
+    .then((r) => r.ok ? r.json().then((j) => j.name.split("/").pop()) : null);
+  const crearVenta = (leadId, cotId) => fetch(`${FS}/crm_sales?documentId=${cotId}`, { method: "POST", headers: H(TOK),
+    body: JSON.stringify({ fields: {
+      lead_id: { stringValue: leadId }, quote_id: { stringValue: cotId }, monto: { integerValue: 99900 },
+      moneda: { stringValue: "COP" }, confirmado_por: { stringValue: UID },
+      confirmado_en: { timestampValue: TS(0) } } }) })
+    .then((r) => r.ok ? r.json().then((j) => j.name.split("/").pop()) : null);
+  /** Prospecto heredado (id = teléfono) con nota y, opcionalmente, cotización y venta vivas. */
+  const prepararMigradoConRefs = async (tel, opciones = {}) => {
+    await fetch(`${FS}/crm_leads?documentId=${tel}`, { method: "POST", headers: OWNER,
+      body: JSON.stringify({ fields: camposLead(tel, UID) }) });
+    await nota(tel, "nota heredada " + tel, TOK);
+    let cot = null, ven = null;
+    if (opciones.cotizacion || opciones.venta) cot = await crearCotizacion(tel);
+    if (opciones.venta) ven = await crearVenta(tel, cot);
+    const fin = await lanzarScript("migrar-uuid.cjs", ["--confirmar"], null).terminado;
+    const m = (await listar("crm_leads"))
+      .filter((l) => /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(l.id) && val(l.fields, "telefono") === tel);
+    return { fin, uuid: m.length ? m[0].id : null, cot, ven };
+  };
+  /* Coincide SÓLO con el commit que borra el prospecto migrado: la comilla que sigue al
+     identificador excluye los borrados de sus notas (/crm_leads/<uuid>/notas/...). */
+  const borradoDeLead = (uuid) => (i) => i.method === "POST" && /:commit$/.test(i.url.split("?")[0]) &&
+    /"delete"/.test(i.cuerpo || "") && (i.cuerpo || "").includes(`/crm_leads/${uuid}"`);
+
+  /* ── T04 · COTIZACIÓN MODIFICADA DURANTE EL REPUNTE ────────────────────────
+     El repunte de la cotización usa updateMask(lead_id) con precondición updateTime. La
+     prueba hace una escritura REAL de fuera de banda —no una simulación del proxy— justo
+     antes de que se reenvíe ese commit: el almacén sube el updateTime de la cotización y la
+     precondición queda obsoleta. Lo que se mide es que la reversión NO pise el cambio. */
+  console.log("\n--- T04 · cotización modificada durante el repunte ---");
+  await resetMigracion();
+  const TEL04 = "3209500018";
+  const p04 = await prepararMigradoConRefs(TEL04, { cotizacion: true });
+  chk("T04 · preparación: migrado con cotización viva", p04.fin.codigo === 0 && !!p04.uuid && !!p04.cot);
+  chk("T04 · la cotización apunta al UUID tras migrar",
+    val((await leerDoc(`crm_quotes/${p04.cot}`)).fields, "lead_id") === p04.uuid);
+
+  proxy.limpiarReglas();
+  proxy.regla({ id: "cot-modificada", veces: 1,
+    prueba: (i) => i.method === "POST" && /:commit$/.test(i.url.split("?")[0]) &&
+      (i.cuerpo || "").includes("/crm_quotes/" + p04.cot) && /"lead_id"/.test(i.cuerpo || ""),
+    accion: "inmutar",
+    mutar: { method: "PATCH", url: `/v1/${PREFIJO}/crm_quotes/${p04.cot}?updateMask.fieldPaths=estado`,
+      fields: { estado: { stringValue: "aceptada" } } } });
+  const r04 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T04 · la reversión NO declara éxito", r04.codigo !== 0, "código " + r04.codigo);
+  chk("T04 · se reporta como precondición rechazada",
+    /precondici[óo]n rechazada \(HTTP (400|409)\)/i.test(r04.salida),
+    String(r04.salida).replace(/\s+/g, " ").slice(-160));
+  const cot04 = (await leerDoc(`crm_quotes/${p04.cot}`)).fields;
+  chk("T04 · la modificación concurrente se conserva", val(cot04, "estado") === "aceptada");
+  chk("T04 · el repunte NO se aplicó: sigue apuntando al UUID", val(cot04, "lead_id") === p04.uuid);
+  chk("T04 · el prospecto migrado no se borró", (await estadoHTTP(`crm_leads/${p04.uuid}`, TOK)) === 200);
+  chk("T04 · la nota del migrado sobrevive", (await listar(`crm_leads/${p04.uuid}/notas`)).length === 1);
+  chk("T04 · el heredado no se tocó", (await estadoHTTP(`crm_leads/${TEL04}`, TOK)) === 200);
+  chk("T04 · el marcador sigue apuntando al migrado",
+    val((await leerDoc(`crm_dedup/${TEL04}`)).fields, "lead_id") === p04.uuid);
+  chk("T04 · el testigo queda protegiendo el trabajo pendiente",
+    (await estadoHTTP(`crm_supresion/${p04.uuid}`, TOK)) === 200);
+  chk("T04 · el mapa marca la entrada como INICIADA, no terminada",
+    leerMapa()[TEL04].reversion === "iniciada", String(leerMapa()[TEL04].reversion));
+
+  proxy.limpiarReglas();
+  const r04b = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T04 · la reanudación completa la reversión", r04b.codigo === 0, "código " + r04b.codigo);
+  const cot04b = (await leerDoc(`crm_quotes/${p04.cot}`)).fields;
+  chk("T04 · al reanudar sí se repunta la cotización", val(cot04b, "lead_id") === TEL04);
+  chk("T04 · la modificación concurrente SOBREVIVE a la reanudación", val(cot04b, "estado") === "aceptada");
+  chk("T04 · el migrado se retiró y el heredado conserva su nota",
+    (await estadoHTTP(`crm_leads/${p04.uuid}`, TOK)) === 404 &&
+    (await listar(`crm_leads/${TEL04}/notas`)).length === 1);
+  chk("T04 · sin testigos, sin marcador y sin mapa",
+    (await listar("crm_supresion")).length === 0 &&
+    (await estadoHTTP(`crm_dedup/${TEL04}`, TOK)) === 404 && !fs.existsSync(MAPA));
+  const lim04 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--limpiar-testigos"], proxy.urlBase).terminado;
+  chk("T04 · la limpieza de testigos es idempotente", lim04.codigo === 0, "código " + lim04.codigo);
+
+  /* ── T05 · VENTA MODIFICADA DURANTE EL REPUNTE ─────────────────────────────
+     La misma precondición protege el repunte de la venta (B3). Aquí el cambio concurrente
+     es de negocio —el importe— y debe sobrevivir intacto. */
+  console.log("\n--- T05 · venta modificada durante el repunte ---");
+  await resetMigracion();
+  const TEL05 = "3209500019";
+  const p05 = await prepararMigradoConRefs(TEL05, { venta: true });
+  chk("T05 · preparación: migrado con cotización y venta vivas",
+    p05.fin.codigo === 0 && !!p05.uuid && !!p05.cot && !!p05.ven);
+  chk("T05 · la venta apunta al UUID tras migrar",
+    val((await leerDoc(`crm_sales/${p05.ven}`)).fields, "lead_id") === p05.uuid);
+
+  proxy.limpiarReglas();
+  proxy.regla({ id: "venta-modificada", veces: 1,
+    prueba: (i) => i.method === "POST" && /:commit$/.test(i.url.split("?")[0]) &&
+      (i.cuerpo || "").includes("/crm_sales/" + p05.ven) && /"lead_id"/.test(i.cuerpo || ""),
+    accion: "inmutar",
+    mutar: { method: "PATCH", url: `/v1/${PREFIJO}/crm_sales/${p05.ven}?updateMask.fieldPaths=monto`,
+      fields: { monto: { integerValue: 120000 } } } });
+  const r05 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T05 · la reversión NO declara éxito", r05.codigo !== 0, "código " + r05.codigo);
+  chk("T05 · se reporta como precondición rechazada",
+    /precondici[óo]n rechazada \(HTTP (400|409)\)/i.test(r05.salida),
+    String(r05.salida).replace(/\s+/g, " ").slice(-160));
+  const ven05 = (await leerDoc(`crm_sales/${p05.ven}`)).fields;
+  chk("T05 · el cambio de importe se conserva", String(val(ven05, "monto")) === "120000");
+  chk("T05 · el repunte NO se aplicó: sigue apuntando al UUID", val(ven05, "lead_id") === p05.uuid);
+  chk("T05 · la cotización hermana sí se repuntó antes del fallo",
+    val((await leerDoc(`crm_quotes/${p05.cot}`)).fields, "lead_id") === TEL05);
+  chk("T05 · el prospecto migrado no se borró", (await estadoHTTP(`crm_leads/${p05.uuid}`, TOK)) === 200);
+  chk("T05 · la nota del migrado sobrevive", (await listar(`crm_leads/${p05.uuid}/notas`)).length === 1);
+  chk("T05 · el heredado no se tocó", (await estadoHTTP(`crm_leads/${TEL05}`, TOK)) === 200);
+  chk("T05 · el testigo queda protegiendo el trabajo pendiente",
+    (await estadoHTTP(`crm_supresion/${p05.uuid}`, TOK)) === 200);
+  chk("T05 · el mapa marca la entrada como INICIADA, no terminada",
+    leerMapa()[TEL05].reversion === "iniciada", String(leerMapa()[TEL05].reversion));
+
+  proxy.limpiarReglas();
+  const r05b = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T05 · la reanudación completa la reversión", r05b.codigo === 0, "código " + r05b.codigo);
+  const ven05b = (await leerDoc(`crm_sales/${p05.ven}`)).fields;
+  chk("T05 · al reanudar sí se repunta la venta", val(ven05b, "lead_id") === TEL05);
+  chk("T05 · el importe concurrente SOBREVIVE a la reanudación", String(val(ven05b, "monto")) === "120000");
+  chk("T05 · el migrado se retiró y el heredado conserva su nota",
+    (await estadoHTTP(`crm_leads/${p05.uuid}`, TOK)) === 404 &&
+    (await listar(`crm_leads/${TEL05}/notas`)).length === 1);
+  chk("T05 · sin testigos, sin marcador y sin mapa",
+    (await listar("crm_supresion")).length === 0 &&
+    (await estadoHTTP(`crm_dedup/${TEL05}`, TOK)) === 404 && !fs.existsSync(MAPA));
+
+  /* ── T07 · UNA ENTRADA TERMINADA Y OTRA PENDIENTE ──────────────────────────
+     El mapa guarda el avance por entrada. Al reanudar, la entrada ya terminada no puede
+     bloquear a la pendiente ni volver a procesarse (ni volver a poner su testigo). */
+  console.log("\n--- T07 · una entrada terminada y otra pendiente ---");
+  await resetMigracion();
+  const TA07 = "3209500021", TB07 = "3209500022";
+  /* Dos migraciones separadas para fijar el orden del mapa: A primero, B después. */
+  const pa07 = await prepararMigrado(TA07);
+  const pb07 = await prepararMigrado(TB07);
+  chk("T07 · preparación: dos entradas en el mapa, en orden",
+    pa07.fin.codigo === 0 && pb07.fin.codigo === 0 &&
+    Object.keys(leerMapa()).join(",") === [TA07, TB07].join(","));
+
+  proxy.limpiarReglas();
+  proxy.regla({ id: "corte-entrada-b", veces: 1, prueba: borradoDeLead(pb07.uuid), accion: "colgar-antes" });
+  const rev07 = lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase);
+  await proxy.esperar("corte-entrada-b");
+  rev07.hijo.kill();
+  const fin07 = await rev07.terminado;
+  chk("T07 · la reversión interrumpida no termina en verde", fin07.codigo !== 0 || fin07.senal != null);
+  const mapa07 = leerMapa();
+  chk("T07 · la primera entrada quedó TERMINADA", mapa07[TA07] && mapa07[TA07].reversion === "hecha",
+    String(mapa07[TA07] && mapa07[TA07].reversion));
+  chk("T07 · la segunda quedó PENDIENTE", mapa07[TB07] && mapa07[TB07].reversion !== "hecha",
+    String(mapa07[TB07] && mapa07[TB07].reversion));
+  chk("T07 · la entrada terminada ya no tiene testigo",
+    (await estadoHTTP(`crm_supresion/${pa07.uuid}`, TOK)) === 404);
+  chk("T07 · la entrada pendiente SÍ conserva su testigo",
+    (await estadoHTTP(`crm_supresion/${pb07.uuid}`, TOK)) === 200);
+  chk("T07 · la terminada se revirtió del todo",
+    (await estadoHTTP(`crm_leads/${pa07.uuid}`, TOK)) === 404 &&
+    (await estadoHTTP(`crm_leads/${TA07}`, TOK)) === 200 &&
+    (await listar(`crm_leads/${TA07}/notas`)).length === 1);
+  chk("T07 · la pendiente sigue a medias y sin perder su heredado",
+    (await estadoHTTP(`crm_leads/${pb07.uuid}`, TOK)) === 200 &&
+    (await estadoHTTP(`crm_leads/${TB07}`, TOK)) === 200 &&
+    (await estadoHTTP(`crm_dedup/${TB07}`, TOK)) === 200);
+
+  proxy.limpiarReglas();
+  const r07 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T07 · la reanudación completa lo pendiente pese a haber una entrada terminada",
+    r07.codigo === 0, "código " + r07.codigo + " · " + String(r07.salida).replace(/\s+/g, " ").slice(-200));
+  chk("T07 · la entrada terminada NO se vuelve a procesar",
+    !String(r07.salida).includes(TA07 + " ← "), String(r07.salida).replace(/\s+/g, " ").slice(-200));
+  chk("T07 · la pendiente sí se procesó", String(r07.salida).includes(TB07 + " ← "));
+  chk("T07 · ambas revertidas, ambos heredados con su nota",
+    (await estadoHTTP(`crm_leads/${pa07.uuid}`, TOK)) === 404 &&
+    (await estadoHTTP(`crm_leads/${pb07.uuid}`, TOK)) === 404 &&
+    (await listar(`crm_leads/${TA07}/notas`)).length === 1 &&
+    (await listar(`crm_leads/${TB07}/notas`)).length === 1);
+  chk("T07 · no queda ningún testigo huérfano de la entrada terminada",
+    (await listar("crm_supresion")).length === 0);
+  chk("T07 · el mapa se retira al terminar todo", !fs.existsSync(MAPA));
+  const r07b = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T07 · reanudar sin mapa es idempotente y termina bien", r07b.codigo === 0, "código " + r07b.codigo);
+
+  /* ── T08 · RESPUESTA PERDIDA DESPUÉS DE APLICAR UNA ESCRITURA ─────────────
+     La escritura llega al almacén y la respuesta se pierde: el procedimiento no puede saber
+     si se aplicó. Lo que se exige es que (a) no lo dé por hecho, (b) no repita a ciegas, y
+     (c) al reanudar reconozca lo ya aplicado y cierre sin duplicar ni perder nada. */
+  console.log("\n--- T08 · respuesta perdida después de aplicar una escritura ---");
+  await resetMigracion();
+  const TEL08 = "3209500023";
+  const p08 = await prepararMigradoConRefs(TEL08, { cotizacion: true });
+  chk("T08 · preparación: migrado con cotización y nota",
+    p08.fin.codigo === 0 && !!p08.uuid && !!p08.cot);
+
+  proxy.limpiarReglas();
+  proxy.regla({ id: "respuesta-perdida-lead", veces: 1, prueba: borradoDeLead(p08.uuid), accion: "cortar-despues" });
+  const r08 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T08 · la reversión NO declara éxito sin respuesta", r08.codigo !== 0, "código " + r08.codigo);
+  chk("T08 · el fallo se reporta como falta de respuesta al almacén",
+    /sin respuesta del almac[ée]n/i.test(r08.salida), String(r08.salida).replace(/\s+/g, " ").slice(-160));
+  chk("T08 · la escritura SÍ se había aplicado (la ventana es real)",
+    (await estadoHTTP(`crm_leads/${p08.uuid}`, TOK)) === 404);
+  chk("T08 · el repunte de la cotización sí se aplicó antes del corte",
+    val((await leerDoc(`crm_quotes/${p08.cot}`)).fields, "lead_id") === TEL08);
+  chk("T08 · el marcador quedó pendiente (no se borró a ciegas)",
+    (await estadoHTTP(`crm_dedup/${TEL08}`, TOK)) === 200);
+  chk("T08 · el heredado y su nota siguen intactos",
+    (await estadoHTTP(`crm_leads/${TEL08}`, TOK)) === 200 &&
+    (await listar(`crm_leads/${TEL08}/notas`)).length === 1);
+  chk("T08 · el testigo sigue protegiendo el trabajo a medias",
+    (await estadoHTTP(`crm_supresion/${p08.uuid}`, TOK)) === 200);
+  chk("T08 · el mapa NO da la entrada por terminada",
+    leerMapa()[TEL08].reversion === "iniciada", String(leerMapa()[TEL08].reversion));
+
+  const r08b = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T08 · la reanudación reconoce lo ya aplicado y termina", r08b.codigo === 0,
+    "código " + r08b.codigo + " · " + String(r08b.salida).replace(/\s+/g, " ").slice(-240));
+  chk("T08 · el marcador se retiró al reanudar", (await estadoHTTP(`crm_dedup/${TEL08}`, TOK)) === 404);
+  chk("T08 · el testigo se liberó", (await listar("crm_supresion")).length === 0);
+  chk("T08 · el mapa se retiró", !fs.existsSync(MAPA));
+  chk("T08 · el heredado conserva su nota y la cotización su repunte",
+    (await estadoHTTP(`crm_leads/${TEL08}`, TOK)) === 200 &&
+    (await listar(`crm_leads/${TEL08}/notas`)).length === 1 &&
+    val((await leerDoc(`crm_quotes/${p08.cot}`)).fields, "lead_id") === TEL08);
+
+  /* T08.2 · la respuesta perdida en la ÚLTIMA escritura: no queda nada por hacer y la
+     reanudación debe cerrar el expediente sin escribir de más. */
+  await resetMigracion();
+  const TEL082 = "3209500024";
+  const p082 = await prepararMigrado(TEL082);
+  chk("T08.2 · preparación: migrado con su nota", p082.fin.codigo === 0 && !!p082.uuid);
+  proxy.limpiarReglas();
+  proxy.regla({ id: "respuesta-perdida-marcador", veces: 1,
+    prueba: (i) => i.method === "POST" && /:commit$/.test(i.url.split("?")[0]) &&
+      /"delete"/.test(i.cuerpo || "") && (i.cuerpo || "").includes(`/crm_dedup/${TEL082}`),
+    accion: "cortar-despues" });
+  const r082 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T08.2 · la reversión NO declara éxito sin respuesta", r082.codigo !== 0, "código " + r082.codigo);
+  chk("T08.2 · el borrado del marcador sí se había aplicado",
+    (await estadoHTTP(`crm_dedup/${TEL082}`, TOK)) === 404);
+  chk("T08.2 · el testigo sigue puesto y el mapa sin terminar",
+    (await estadoHTTP(`crm_supresion/${p082.uuid}`, TOK)) === 200 &&
+    leerMapa()[TEL082].reversion === "iniciada");
+  const r082b = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T08.2 · la reanudación cierra sin nada más que escribir", r082b.codigo === 0,
+    "código " + r082b.codigo + " · " + String(r082b.salida).replace(/\s+/g, " ").slice(-240));
+  chk("T08.2 · estado final coherente: sin migrado, sin testigo, sin mapa, heredado intacto",
+    (await estadoHTTP(`crm_leads/${p082.uuid}`, TOK)) === 404 &&
+    (await listar("crm_supresion")).length === 0 && !fs.existsSync(MAPA) &&
+    (await listar(`crm_leads/${TEL082}/notas`)).length === 1);
+
   proxy.limpiarReglas();
   await proxy.cerrar();
   console.log("\nRESULTADO CONCURRENCIA: PASS " + ok + " · FALLA " + ko);

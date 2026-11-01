@@ -1,0 +1,224 @@
+[
+ {
+  "archivo": "pruebas.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO CRM PRIVADO: PASS 32 · FALLA 0",
+  "pass": 32,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 23926
+ },
+ {
+  "archivo": "pruebas-a03.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO A03: PASS 23 · FALLA 0",
+  "pass": 23,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 3476
+ },
+ {
+  "archivo": "pruebas-notas.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO H03: PASS 42 · FALLA 0",
+  "pass": 42,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 1495
+ },
+ {
+  "archivo": "pruebas-equipo.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO EQUIPO: PASS 54 · FALLA 0",
+  "pass": 54,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 1869
+ },
+ {
+  "archivo": "pruebas-admin-actual.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO ADMIN ACTUAL: PASS 16 · FALLA 0",
+  "pass": 16,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 611
+ },
+ {
+  "archivo": "pruebas-formularios.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO FORMULARIOS: PASS 48 · FALLA 0",
+  "pass": 48,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 8706
+ },
+ {
+  "archivo": "pruebas-privado.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO CRM PRIVADO (persistencia/roles/modificaciones): PASS 59 · FALLA 0",
+  "pass": 59,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 9698
+ },
+ {
+  "archivo": "pruebas-panel-real.cjs",
+  "codigo": 2,
+  "senal": null,
+  "resumen": "(sin línea de resultado)",
+  "pass": null,
+  "falla": null,
+  "fallas": [],
+  "errores": [
+   "ERROR: page.goto: net::ERR_CONNECTION_REFUSED at http://127.0.0.1:8321/crm/index.html"
+  ],
+  "ms": 2088
+ },
+ {
+  "archivo": "pruebas-migracion.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO MIGRACIÓN: PASS 30 · FALLA 0",
+  "pass": 30,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 2029
+ },
+ {
+  "archivo": "pruebas-reglas-r06.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO P1/R06: PASS 53 · FALLA 0",
+  "pass": 53,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 1326
+ },
+ {
+  "archivo": "pruebas-paginacion-r08.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO OPERACIÓN: OK 12 · FALLA 0)",
+  "pass": null,
+  "falla": null,
+  "fallas": [],
+  "errores": [],
+  "ms": 39581
+ },
+ {
+  "archivo": "pruebas-concurrencia.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO CONCURRENCIA: PASS 160 · FALLA 0",
+  "pass": 160,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 30842
+ },
+ {
+  "archivo": "pruebas-reversion-segura.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO R01: PASS 39 · FALLA 0",
+  "pass": 39,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 6127
+ },
+ {
+  "archivo": "pruebas-fallos.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO FALLOS: PASS 54 · FALLA 0",
+  "pass": 54,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 10960
+ },
+ {
+  "archivo": "pruebas-r02.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO R02: PASS 26 · FALLA 0",
+  "pass": 26,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 2696
+ },
+ {
+  "archivo": "pruebas-r03.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO R03: PASS 34 · FALLA 0",
+  "pass": 34,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 5701
+ },
+ {
+  "archivo": "pruebas-supresion-r04.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO R04/R05: PASS 43 · FALLA 0",
+  "pass": 43,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 5230
+ },
+ {
+  "archivo": "pruebas-transicion-r07.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO TRANSICIÓN R07 (reglas NUEVAS): PASS 28 · FALLA 0",
+  "pass": 28,
+  "falla": 0,
+  "fallas": [],
+  "errores": [],
+  "ms": 17257
+ },
+ {
+  "archivo": "verificar-aislamiento.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "RESULTADO AISLAMIENTO: OK 15 · FALLA 0",
+  "pass": null,
+  "falla": null,
+  "fallas": [],
+  "errores": [],
+  "ms": 95
+ },
+ {
+  "archivo": "retencion-vencida.cjs",
+  "codigo": 0,
+  "senal": null,
+  "resumen": "(sin línea de resultado)",
+  "pass": null,
+  "falla": null,
+  "fallas": [],
+  "errores": [],
+  "ms": 1408
+ }
+]

@@ -14,7 +14,11 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const PUERTO = Number(process.argv[2] || 8321);
-const RAIZ = path.join(__dirname);
+/* El panel vive en `crm/` y este servidor en `crm-dev/`: la raíz es la carpeta del panel, no
+   la del script. Estaba puesta como `__dirname`, así que servía desde `crm-dev/`, donde no hay
+   `index.html`, y todas las peticiones respondían 404. Por eso `pruebas-panel-real.cjs` no
+   podía ejecutarse. */
+const RAIZ = path.join(__dirname, "..", "crm");
 
 const MIME = {
   ".html": "text/html; charset=utf-8",

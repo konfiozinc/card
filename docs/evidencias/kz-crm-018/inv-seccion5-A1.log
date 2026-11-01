@@ -1,0 +1,118 @@
+i  emulators: Starting emulators: auth, firestore
+i  emulators: Detected demo project ID "demo-crm-016", emulated services will use a demo configuration and attempts to access non-emulated services for this project will fail.
+i  firestore: Firestore Emulator logging to firestore-debug.log
++  firestore: Firestore Emulator was started in standard edition.
++  firestore: Firestore Emulator UI websocket is running on 9150.
+i  Running script: node crm-dev/pruebas-concurrencia.cjs
+=== 1 · Una nota no puede crearse mientras existe el testigo ===
+  PASS  1 · preparación: se crea una nota sin testigo
+  PASS  1 · preparación: se crea una cotización sin testigo
+  PASS  1 · se escribe el testigo crm_supresion
+  PASS  1 · con testigo, la NOTA se rechaza
+  PASS  1 · con testigo, el CAMBIO DE ESTADO se rechaza
+  PASS  1 · con testigo, una COTIZACIÓN nueva se rechaza
+  PASS  1 · con testigo, una VENTA se rechaza
+  PASS  1 · no se perdió ni se duplicó ninguna nota
+  PASS  1 · el estado del prospecto no cambió
+  PASS  1 · no se creó ninguna venta
+  PASS  1 · al retirar el testigo se libera la escritura
+  PASS  1 · control positivo: la nota vuelve a estar permitida
+  PASS  1 · ahora hay dos notas
+
+=== 2 · Una modificación posterior a la lectura impide el borrado ===
+  PASS  2 · se lee el updateTime inicial
+  PASS  2 · se modifica el prospecto después de la lectura
+  PASS  2 · el updateTime cambió
+  PASS  2 · el borrado con el updateTime OBSOLETO se rechaza  (HTTP 400)
+  PASS  2 · el prospecto sigue existiendo tras el intento
+  PASS  2 · la modificación posterior se conserva
+  PASS  2 · el borrado con el updateTime VIGENTE se acepta
+  PASS  2 · y el prospecto ya no está
+
+=== 3 · Operaciones que compiten no pierden datos ===
+  PASS  3 · sin testigo, las 8 notas simultáneas se aceptan  (200,200,200,200,200,200,200,200)
+  PASS  3 · no se pierde ninguna: están las 8, exactamente  (8)
+  PASS  3 · con testigo, las 8 que llegan tarde se rechazan  (403,403,403,403,403,403,403,403)
+  PASS  3 · la nota simultánea no se perdió: siguen las 8
+  PASS  3 · ninguna nota a medias: no hay texto de las rechazadas
+
+=== 4 · Una supresión interrumpida se reanuda sin destruir nada nuevo ===
+  PASS  4 · preparación: prospecto con 2 notas y 1 cotización
+  PASS  4 · la supresión interrumpida no termina en verde  (código null · señal SIGTERM)
+  PASS  4 · el testigo sigue puesto tras la interrupción
+  PASS  4 · el prospecto NO se borró
+  PASS  4 · durante la interrupción el testigo sigue bloqueando notas  (HTTP 403)
+  PASS  4 · esa nota nunca llegó a existir
+  PASS  4 · la reanudación completa la supresión  (código 0)
+  PASS  4 · el prospecto quedó eliminado
+  PASS  4 · no quedan notas accesibles
+  PASS  4 · el marcador del número se liberó
+  PASS  4 · la cotización quedó DESASOCIADA
+  PASS  4 · el testigo se liberó al completar
+
+=== 5 · Modificación concurrente durante la adquisición del testigo ===
+  PASS  5 · preparación: la migración termina bien  (código 0)
+  PASS  5 · el prospecto migrado existe con UUID  (1)
+  PASS  5 · el testigo ya está escrito con la reversión en vuelo
+  PASS  5 · una modificación concurrente durante la adquisición se rechaza  (HTTP 403)
+  PASS  5 · la reversión interrumpida no termina en verde
+  PASS  5 · el prospecto migrado NO se perdió
+  PASS  5 · la nota concurrente nunca existió (sin pérdida silenciosa)
+  PASS  5 · las notas previas siguen intactas
+  PASS  5 · la reanudación completa la reversión  (código 0 · VERSIÓN Entradas en el mapa: 1 · respaldo: 1 prospectos --- COMPARACIÓN CONTRA EL RESPALDO --- 3209500005: notas ahora 1 · en respaldo 1 sin datos posteriores: la reversión es segura 3209500005 ← 3209500005 · notas 1 · refs 0 · verificado ✓ REVERSIÓN COMPLETA · referencias repuntadas: 0 · documentos nuevos borrados: 2 )
+  PASS  5 · el migrado se retiró y el heredado sigue
+  PASS  5 · no quedó ningún testigo
+
+=== 6 · B1-B4 · precondiciones obligatorias y recuperación ===
+  PASS  6.1 · preparación: prospecto migrado con su nota
+  PASS  6.1 · la simulación termina sin error  (código 0)
+  PASS  6.1 · la simulación NO crea testigos
+  PASS  6.1 · la simulación no borra el prospecto
+  PASS  6.2 · con el GET de updateTime caído, la reversión ABORTA  (código 2)
+  PASS  6.2 · el prospecto migrado sigue existiendo
+  PASS  6.2 · la nota no se destruyó
+  PASS  6.3 · con el GET del marcador caído, ABORTA  (código 2)
+  PASS  6.3 · el marcador sigue intacto
+  PASS  6.3 · el prospecto migrado sigue existiendo
+  PASS  6.4 · preparación: dos prospectos migrados  (código 0)
+  PASS  6.4 · hay dos testigos posibles y cero antes de revertir
+  PASS  6.4 · la reversión interrumpida no termina en verde
+  PASS  6.4 · quedan testigos de reversión tras el corte  (2)
+  PASS  6.4 · con trabajo pendiente, la limpieza NO retira los testigos  (código 3)
+  PASS  6.4 · los dos testigos siguen protegiendo
+  PASS  6.4 · la reanudación completa la reversión  (código 0)
+  PASS  6.4 · los migrados se retiraron
+  PASS  6.4 · los heredados siguen existiendo con su nota
+  PASS  6.4 · no queda ningún testigo tras completar y verificar
+  PASS  6.4 · la limpieza es idempotente y termina bien  (código 0)
+
+=== 7 · Pruebas discriminantes (estado validado y política HTTP) ===
+  PASS  T01 · preparación
+  PASS  T01 · un 404 falso hace ABORTAR la reversión  (código 3)
+  PASS  T01 · el estado completo no cambió
+  PASS  T01 · el prospecto existe de verdad
+  PASS  T02 · preparación
+  PASS  T02 · el 404 del commit NO se declara éxito  (código 2)
+  PASS  T02 · la salida lo reporta como fallo  (código 2)
+  PASS  T02 · el prospecto no se dio por revertido
+  PASS  T03 · un marcador repuntado impide la reversión  (código 3)
+  PASS  T03 · el estado completo no cambió
+  PASS  T03 · el marcador NO se eliminó
+  PASS  T06 · un 500 al retirar el testigo ABORTA  (código 2)
+  PASS  T06 · el testigo sigue puesto (protege el trabajo pendiente)
+  PASS  T06 · la entrada NO se marca como terminada  (["iniciada"])
+  PASS  T09 · la simulación termina bien  (código 0)
+  PASS  T09 · no escribió absolutamente nada
+  PASS  T10 · la reversión completa termina bien  (código 0)
+  PASS  T10 · el migrado se retiró
+  PASS  T10 · el heredado conserva su nota
+  PASS  T10 · no quedan testigos ni mapa
+
+RESULTADO CONCURRENCIA: PASS 90 · FALLA 0
++  Script exited successfully (code 0)
+i  emulators: Shutting down emulators.
+i  firestore: Stopping Firestore Emulator
+!  Firestore Emulator has exited upon receiving signal: SIGINT
+i  auth: Stopping Authentication Emulator
+i  hub: Stopping emulator hub
+i  logging: Stopping Logging Emulator

@@ -88,6 +88,25 @@ function crearProxy({ puerto = 8099, hostDestino = "127.0.0.1", puertoDestino = 
     res.end(texto);
   };
 
+  /* ESCRITURA FUERA DE BANDA · acción «inmutar».
+     Escribe DIRECTAMENTE en el almacén antes de reenviar la petición observada. Es la única
+     forma de reproducir de manera estable la ventana que hay entre la lectura validada y la
+     escritura con precondición: la escritura de fuera de banda sube el updateTime del
+     documento y la precondición de la petición original queda obsoleta. Sin este modo, la
+     «modificación concurrente durante el repunte» sólo podría provocarse con una carrera de
+     tiempos que unas veces ocurre y otras no —y una prueba que a veces no mide nada no
+     demuestra nada.
+     Se usa el token de la propia petición observada (en el emulador, `Bearer owner`). */
+  const mutarFueraDeBanda = (info, mutar) => pedirDestino({
+    url: mutar.url,
+    method: mutar.method || "PATCH",
+    cuerpo: JSON.stringify({ fields: mutar.fields }),
+    cabeceras: {
+      authorization: (info.cabeceras && info.cabeceras.authorization) || "Bearer owner",
+      "content-type": "application/json",
+    },
+  });
+
   const servidor = http.createServer(async (req, res) => {
     const cuerpo = await leerCuerpo(req);
     const info = { method: req.method, url: req.url, cuerpo, cabeceras: req.headers };
@@ -108,6 +127,16 @@ function crearProxy({ puerto = 8099, hostDestino = "127.0.0.1", puertoDestino = 
       /* 404 fabricado: sirve para demostrar que un 404 del endpoint NUNCA se toma como éxito. */
       if (regla && regla.accion === "404") return responder(res, 404, '{"error":{"status":"NOT_FOUND"}}');
       if (regla && regla.accion === "colgar-antes") { emitir(regla.id); return; }  // nunca responde
+
+      /* Modificación concurrente REAL en el almacén, y después se reenvía la petición tal
+         cual: así el almacén decide con su propia precondición, no el proxy. */
+      if (regla && regla.accion === "inmutar") {
+        const fuera = await mutarFueraDeBanda(info, regla.mutar || {});
+        if (fuera.estado < 200 || fuera.estado > 299) {
+          return responder(res, 502, JSON.stringify({ error: "mutación fuera de banda falló: HTTP " + fuera.estado }));
+        }
+        emitir(regla.id);
+      }
 
       /* Paginación sintética: se sirve la lista real en dos páginas fabricadas. */
       if (regla && regla.accion === "paginar") {
@@ -136,6 +165,17 @@ function crearProxy({ puerto = 8099, hostDestino = "127.0.0.1", puertoDestino = 
       /* Aplicado en el almacén, pero la respuesta NO llega: simula la caída del proceso
          justo después de una escritura, que es la ventana más peligrosa. */
       if (regla && regla.accion === "colgar-despues") { emitir(regla.id); return; }
+
+      /* Aplicado en el almacén y la CONEXIÓN SE CORTA: la escritura está hecha y la
+         respuesta se pierde. A diferencia de «colgar-despues» —que deja al cliente colgado
+         y sólo se puede sacar de ahí matándolo—, aquí el cliente recibe un error de red y
+         tiene que decidir qué hacer, que es justo lo que hay que probar. */
+      if (regla && regla.accion === "cortar-despues") {
+        emitir(regla.id);
+        try { req.destroy(); } catch { /* ya cerrado */ }
+        try { res.destroy(); } catch { /* ya cerrado */ }
+        return;
+      }
 
       return responder(res, destino.estado, destino.texto);
     } catch (e) {

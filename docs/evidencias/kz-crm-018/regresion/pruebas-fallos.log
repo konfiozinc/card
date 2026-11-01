@@ -1,0 +1,73 @@
+=== 1 · HTTP 503 al inventariar prospectos ===
+  PASS  1 · termina con código distinto de cero  (código 2)
+  PASS  1 · informa del fallo de listado, no de éxito
+  PASS  1 · NO interpreta el error como «colección vacía»
+  PASS  1 · no escribió el mapa ni el respaldo
+  PASS  1 · no creó marcadores
+  PASS  1 · no creó prospectos
+
+=== 2 · Fallo de paginación en el inventario ===
+  PASS  2 · termina con código distinto de cero  (código 2)
+  PASS  2 · detecta el fallo de la segunda página  (ERROR: No se pudo listar crm_leads: HTTP 503)
+  PASS  2 · no migró nada a medias
+
+=== 2 bis · El inventario recorre TODAS las páginas (R08) ===
+  PASS  2 bis · termina bien con la lista repartida en dos páginas  (código 0)
+  PASS  2 bis · ve los 4 prospectos, no sólo la primera página  (Prospectos: 4)
+  PASS  2 bis · migra los 4
+
+=== 3 · Error de lectura de las notas ===
+  PASS  3 · termina con código distinto de cero  (código 2)
+  PASS  3 · no da por bueno un prospecto cuyas notas no pudo leer
+
+=== 4 · Error durante el commit (escritura rechazada) ===
+  PASS  4 · termina con código distinto de cero  (código 2)
+  PASS  4 · informa del fallo de commit
+  PASS  4 · la entrada queda PENDIENTE, no «hecho»  (["pendiente"])
+  PASS  4 · no hay migraciones duplicadas tras el fallo
+  PASS  4 · la reanudación completa sin duplicar  (código 0)
+  PASS  4 · no quedan migraciones duplicadas del mismo número
+  PASS  4 · quedan 2 heredados + 2 migrados
+  PASS  4 · todas las entradas pasan a «hecho»
+
+=== 5 · Error al repuntar una cotización ===
+  PASS  5 · termina con código distinto de cero  (código 2)
+  PASS  5 · la entrada NO se marca como terminada (repunte incompleto)  (["pendiente"])
+  PASS  5 · la reanudación repunta y termina bien  (código 0)
+  PASS  5 · la cotización acaba apuntando al UUID
+  PASS  5 · sin migraciones duplicadas
+
+=== 6 · Interrupción durante la migración ===
+  PASS  6 · el proceso interrumpido no termina en verde  (código null · señal SIGTERM)
+  PASS  6 · la intención quedó escrita ANTES del commit (mapa presente)
+  PASS  6 · el mapa guarda el UUID ya elegido  (2 entradas)
+  PASS  6 · el commit en vuelo SÍ se había aplicado (2 prospectos con UUID)  (2 UUID)
+  PASS  6 · el mapa ya tenía las DOS intenciones antes del corte  (2 entradas)
+  PASS  6 · la reanudación termina bien  (código 0)
+  PASS  6 · NO se duplicó ninguna migración del mismo número
+  PASS  6 · el UUID elegido antes del corte se reutiliza, no se inventa otro
+  PASS  6 · quedan 2 heredados + 2 migrados
+  PASS  6 · tras reanudar siguen siendo 2 UUID, no 3
+  PASS  6 · las notas heredadas siguen intactas
+
+=== 7 · Interrupción durante la reversión ===
+  PASS  7 · preparación: la migración termina bien  (código 0)
+  PASS  7 · la reversión interrumpida no termina en verde  (código null · señal SIGTERM)
+  PASS  7 · el mapa se conserva para poder reanudar
+  PASS  7 · el mapa anota que la reversión de esa entrada ya empezó  (["iniciada",null])
+  PASS  7 · la reanudación de la reversión termina bien  (código 0)
+  PASS  7 · informa de reversión completa
+  PASS  7 · no queda ningún prospecto migrado
+  PASS  7 · los heredados conservan su información
+  PASS  7 · los marcadores desaparecieron
+  PASS  7 · la cotización volvió al identificador heredado
+  PASS  7 · el mapa se elimina al completar
+
+=== 8 · Reversión con el inventario ilegible ===
+  PASS  8 · preparación: la migración termina bien  (código 0)
+  PASS  8 · la reversión se detiene con código distinto de cero  (código 2)
+  PASS  8 · no revierte a ciegas
+  PASS  8 · no borró nada: el prospecto migrado sigue existiendo
+  PASS  8 · el mapa se conserva
+
+RESULTADO FALLOS: PASS 54 · FALLA 0

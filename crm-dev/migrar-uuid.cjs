@@ -399,14 +399,20 @@ async function revertir(H) {
   const respaldo = JSON.parse(fs.readFileSync(RESP, "utf8"));
   console.log("Entradas en el mapa: " + entradas.length + " · respaldo: " + (respaldo.leads || []).length + " prospectos");
 
-  const ponerTestigos = () => escribirValidado(H, entradas.map(([, e]) => ({ update: {
+  /* T07 · Una entrada con `reversion: "hecha"` ya se revirtió y se verificó en una ejecución
+     anterior: no se le vuelve a poner testigo ni se vuelve a tocar. Volver a ponérselo sería
+     un fallo silencioso, porque el bucle de abajo la salta y ya nadie lo retiraría; y antes,
+     además, la entrada terminada hacía abortar la reanudación de la pendiente. */
+  const pendientesDeRevertir = entradas.filter(([, e]) => e.reversion !== "hecha");
+
+  const ponerTestigos = () => escribirValidado(H, pendientesDeRevertir.map(([, e]) => ({ update: {
     name: `${PREFIJO}/crm_supresion/${e.uuid}`,
     fields: { estado: { stringValue: "reversion" }, desde: { timestampValue: new Date().toISOString() },
       id_sha256: { stringValue: sha(e.uuid).slice(0, 16) } } } })), "escribir los testigos");
 
   const retirarTestigos = async () => {
     let fallos = 0;
-    for (const [, e] of entradas) {
+    for (const [, e] of pendientesDeRevertir) {
       let r = null;
       try { r = await fetch(`${DOCS}/crm_supresion/${e.uuid}`, { method: "DELETE", headers: H }); } catch { r = null; }
       if (!r || (!r.ok && r.status !== 404)) fallos++;
@@ -454,32 +460,36 @@ async function revertir(H) {
           }
         }
       }
-
-      const notasResp = (respaldo.notas || []).filter((n) => n.lead === e.viejo);
-      const idsResp = notasResp.map((n) => n.id);
-      for (const n of await listarNotas(H, e.uuid)) {
-        const ln = await leerValidado(H, `crm_leads/${e.uuid}/notas/${n.id}`, "nota " + n.id);
-        if (!ln.existe) { problemas.push(`${tel}: la nota ${n.id} aparece en el listado y no se puede leer`); continue; }
-        reg.notas.push({ id: n.id, updateTime: ln.updateTime, fields: ln.fields });
-      }
-      const reversionIniciada = !!e.reversion;
-      const nuevas = reg.notas.filter((n) => !idsResp.includes(n.id));
-      if (nuevas.length) problemas.push(`${tel}: ${nuevas.length} nota(s) creadas después de la migración`);
-      if (!reversionIniciada) {
-        const faltan = idsResp.filter((id) => !reg.notas.some((n) => n.id === id));
-        if (faltan.length) problemas.push(`${tel}: ${faltan.length} nota(s) desaparecidas después de la migración`);
-      } else {
-        detalle.push(`${tel}: reversión ya iniciada en una ejecución anterior (notas borradas por nosotros)`);
-      }
-      /* Las ediciones se comparan SIEMPRE, también al reanudar. */
-      const editadas = [];
-      for (const r of notasResp) {
-        const ahora = reg.notas.find((n) => n.id === r.id);
-        if (ahora && r.campos && huellaCampos(r.campos) !== huellaCampos(ahora.fields)) editadas.push(r.id);
-      }
-      if (editadas.length) problemas.push(`${tel}: ${editadas.length} nota(s) editadas después de la migración`);
-      detalle.push(`${tel}: notas ahora ${reg.notas.length} · en respaldo ${idsResp.length}`);
     }
+
+    /* T08 · Las notas se leen SIEMPRE, también cuando el prospecto ya no existe. Una entrada
+       cuya destrucción se aplicó a medias tiene exactamente esa forma —prospecto ausente,
+       notas propias todavía por borrar— y sin esta lectura no se podría distinguir de una
+       entrada fantasma del mapa ni comprobar que no queda nada por destruir. */
+    const notasResp = (respaldo.notas || []).filter((n) => n.lead === e.viejo);
+    const idsResp = notasResp.map((n) => n.id);
+    for (const n of await listarNotas(H, e.uuid)) {
+      const ln = await leerValidado(H, `crm_leads/${e.uuid}/notas/${n.id}`, "nota " + n.id);
+      if (!ln.existe) { problemas.push(`${tel}: la nota ${n.id} aparece en el listado y no se puede leer`); continue; }
+      reg.notas.push({ id: n.id, updateTime: ln.updateTime, fields: ln.fields });
+    }
+    const reversionIniciada = !!e.reversion;
+    const nuevas = reg.notas.filter((n) => !idsResp.includes(n.id));
+    if (nuevas.length) problemas.push(`${tel}: ${nuevas.length} nota(s) creadas después de la migración`);
+    if (!reversionIniciada) {
+      const faltan = idsResp.filter((id) => !reg.notas.some((n) => n.id === id));
+      if (faltan.length) problemas.push(`${tel}: ${faltan.length} nota(s) desaparecidas después de la migración`);
+    } else {
+      detalle.push(`${tel}: reversión ya iniciada en una ejecución anterior (notas borradas por nosotros)`);
+    }
+    /* Las ediciones se comparan SIEMPRE, también al reanudar. */
+    const editadas = [];
+    for (const r of notasResp) {
+      const ahora = reg.notas.find((n) => n.id === r.id);
+      if (ahora && r.campos && huellaCampos(r.campos) !== huellaCampos(ahora.fields)) editadas.push(r.id);
+    }
+    if (editadas.length) problemas.push(`${tel}: ${editadas.length} nota(s) editadas después de la migración`);
+    detalle.push(`${tel}: notas ahora ${reg.notas.length} · en respaldo ${idsResp.length}`);
 
     const marca = dedupAhora.find((d) => d.id === tel);
     if (marca) {
@@ -535,7 +545,23 @@ async function revertir(H) {
   let repuntadas = 0, borrados = 0;
   for (const [tel, e] of entradas) {
     const reg = validado.get(tel);
-    if (!reg || (!reg.lead && reg.notas.length === 0)) {
+
+    /* T07 · Entrada YA TERMINADA en una ejecución anterior: no se vuelve a destruir, no se le
+       vuelve a escribir el estado y no se le pone testigo. Sólo se comprueba que el mapa no
+       mienta; si el prospecto migrado sigue vivo, el mapa es falso y se aborta. */
+    if (e.reversion === "hecha") {
+      const sigue = await leerValidado(H, `crm_leads/${e.uuid}`, "verificar entrada terminada " + tel);
+      if (sigue.existe) throw new Error(`${tel}: el mapa la da por terminada pero el prospecto migrado sigue existiendo`);
+      continue;
+    }
+
+    /* T08 · Sin estado que validar. Ocurre cuando la escritura destructiva llegó al almacén y
+       su respuesta se perdió: no queda prospecto ni notas, sólo el marcador, las referencias y
+       el testigo. Se autoriza SÓLO si el mapa demuestra que esta reversión la empezó —el campo
+       `reversion` se escribe antes de la primera escritura—; si el prospecto desapareció sin
+       que esta reversión lo tocara, el mapa miente y se aborta como siempre. */
+    const sinEstado = !reg || (!reg.lead && reg.notas.length === 0 && !e.reversion);
+    if (sinEstado) {
       console.error(`\nINCOMPLETO: ${tel} no tiene estado validado utilizable. Se conserva el mapa y el testigo.`);
       process.exit(3);
     }
@@ -588,10 +614,10 @@ async function revertir(H) {
       const ahora = venFin.find((x) => x.id === v.id);
       if (!ahora || val(ahora.fields, "lead_id") !== e.viejo) throw new Error(`${tel}: la venta ${v.id} no quedó repuntada`);
     }
-    if (reg.lead) {
-      const heredado = await leerValidado(H, `crm_leads/${e.viejo}`, "verificar heredado " + tel);
-      if (!heredado.existe) throw new Error(`${tel}: el documento heredado no está tras la reversión`);
-    }
+    /* El heredado debe existir SIEMPRE tras la reversión, también en una reanudación que sólo
+       tenía que cerrar el marcador y el testigo: es el documento que la migración nunca toca. */
+    const heredado = await leerValidado(H, `crm_leads/${e.viejo}`, "verificar heredado " + tel);
+    if (!heredado.existe) throw new Error(`${tel}: el documento heredado no está tras la reversión`);
 
     /* §5.6 · El testigo se retira y se CONFIRMA su retirada antes de marcar «hecha». */
     let rt = null;

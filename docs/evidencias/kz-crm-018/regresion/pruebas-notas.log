@@ -1,0 +1,62 @@
+  PASS  el admin crea el prospecto (asignado a A)
+  PASS  se simula el historial heredado por vía privilegiada  (HTTP 200)
+
+=== A. Quién puede crear notas ===
+  PASS  el asesor A (asignado) SÍ crea una nota
+  PASS  el asesor B (NO asignado) recibe permiso denegado
+  PASS  el rol lectura NO puede crear notas
+  PASS  un anónimo NO puede crear notas  (HTTP 400)
+  PASS  el admin sí puede añadir una nota
+
+=== B. No se pueden falsificar autor ni fecha ===
+  PASS  A no puede firmar como B
+  PASS  A no puede fechar la nota en el pasado
+  PASS  A no puede fechar la nota en el futuro
+  PASS  texto demasiado corto rechazado
+  PASS  texto desmedido rechazado
+  PASS  tipo inventado rechazado
+  PASS  campo no declarado rechazado
+
+=== C. Las notas son INMUTABLES ===
+  PASS  A NO puede modificar su propia nota
+  PASS  A NO puede borrar su propia nota
+  PASS  el ADMIN tampoco puede modificar una nota
+  PASS  el ADMIN tampoco puede borrar una nota
+
+=== D. Lectura de notas por asignación ===
+  PASS  A lee las notas de su prospecto
+  PASS  B NO lee las notas del prospecto ajeno
+  PASS  lectura del rol lectura: sin escritura pero sólo de lo asignado
+  PASS  el admin lee todas las notas
+
+=== E. H03 sobre el historial HEREDADO (congelado) ===
+  PASS  A NO puede sustituir el historial por otra lista del mismo tamaño
+  PASS  A NO puede añadir una entrada al historial
+  PASS  A NO puede vaciar el historial
+  PASS  el ADMIN tampoco puede reescribir el historial
+
+=== F. El historial heredado se conserva intacto ===
+  PASS  las dos notas heredadas siguen ahí  (2 entradas)
+  PASS  el prospecto conserva teléfono e industria
+  PASS  el prospecto conserva su asignación
+
+=== G. Seguimiento normal sigue funcionando ===
+  PASS  A puede cambiar el estado (sin tocar el historial)
+  PASS  y el historial sigue intacto tras el cambio de estado
+
+=== H. Revocación impide nuevas notas ===
+  PASS  asesor A revocado NO puede añadir notas
+  PASS  asesor A revocado tampoco lee las notas
+  PASS  las notas anteriores siguen existiendo para el admin
+
+=== I. Hallazgos de la auditoría Codex (A01 y A02) ===
+  PASS  A01 · el admin actualiza un prospecto SIN historial  (HTTP 200)
+  PASS  A01 · el asesor asignado también lo actualiza  (HTTP 200)
+  PASS  A02 · el admin NO puede vaciar el historial desde el cliente (va por vía privilegiada)  (HTTP 403)
+  PASS  A02 · el historial sigue intacto tras el intento
+  PASS  A05 · corrección sin referencia rechazada
+  PASS  A05 · corrección con referencia inexistente rechazada
+  PASS  A05 · corrección con referencia válida aceptada
+  PASS  A12 · nota huérfana rechazada (prospecto inexistente)
+
+RESULTADO H03: PASS 42 · FALLA 0
