@@ -308,7 +308,7 @@ const leerMapa = () => (fs.existsSync(MAPA) ? JSON.parse(fs.readFileSync(MAPA, "
   chk("7 · preparación: la migración termina bien", mig7.codigo === 0, "código " + mig7.codigo);
   const uuid7 = leerMapa()["3209500017"].uuid;
   proxy.regla({ id: "corte-reversion", veces: 1,
-    prueba: (i) => i.method === "DELETE" && /\/notas\//.test(i.url), accion: "colgar-despues" });
+    prueba: (i) => (i.method === "DELETE" && /\/notas\//.test(i.url)) || (i.method === "POST" && /:commit$/.test(i.url.split("?")[0]) && /notas/.test(i.cuerpo || "")), accion: "colgar-despues" });
   const m7 = lanzar(["--revertir", "--confirmar"], proxy.urlBase);
   await proxy.esperar("corte-reversion");
   m7.hijo.kill();

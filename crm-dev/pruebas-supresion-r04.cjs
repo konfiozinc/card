@@ -207,7 +207,7 @@ async function crearCaso(tel) {
   await limpiar(); proxy.limpiarReglas();
   const casE = await crearCaso("3209700003");
   proxy.regla({ id: "delete-nota", veces: 1,
-    prueba: (i) => i.method === "DELETE" && /\/notas\//.test(i.url), accion: "500" });
+    prueba: (i) => (i.method === "DELETE" && /\/notas\//.test(i.url)) || (i.method === "POST" && /:commit$/.test(i.url.split("?")[0]) && /notas/.test(i.cuerpo || "")), accion: "500" });
   const e = await ejecutar(["--id", casE.id, "--confirmar"], "SUPRIMIR", proxy.urlBase);
   chk("E · termina con código distinto de cero", e.codigo !== 0, "código " + e.codigo);
   chk("E · el prospecto NO se ha borrado", await existe(`crm_leads/${casE.id}`));
