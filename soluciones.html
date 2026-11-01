@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="es-CO" data-base="." data-root=".">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Soluciones digitales por tipo de negocio | KONFÍO ZINC</title>
+<meta name="description" content="Elige tu tipo de negocio, prueba una demostración real de tarjeta digital, menú o Mini Web y solicita una propuesta. Precios oficiales: Mini Web Básica $49.900 y Pro $99.900 COP.">
+<meta name="robots" content="index, follow">
+<meta name="theme-color" content="#050B14">
+<link rel="canonical" href="https://konfiozinc.github.io/card/soluciones.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="KONFÍO ZINC">
+<meta property="og:locale" content="es_CO">
+<meta property="og:title" content="Descubre, prueba y solicita tu solución digital | KONFÍO ZINC">
+<meta property="og:description" content="Demostraciones interactivas de tarjeta digital, menú digital y Mini Web. Elige tu industria y pide una propuesta.">
+<meta property="og:url" content="https://konfiozinc.github.io/card/soluciones.html">
+
+<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="assets/css/kz-neon.css">
+<link rel="stylesheet" href="assets/css/conversion-015.css">
+</head>
+<body class="sol-page">
+
+<header class="site-header">
+  <nav id="nav-principal" class="nav" aria-label="Navegación principal">
+    <a href="index.html">Inicio</a>
+    <a href="servicios.html">Servicios</a>
+    <a href="soluciones.html" aria-current="page">Soluciones</a>
+    <a href="portafolio.html">Portafolio</a>
+    <a href="precios.html">Precios</a>
+    <a href="nosotros.html">Nosotros</a>
+    <a href="contacto.html">Contacto</a>
+  </nav>
+</header>
+<main class="sol-wrap">
+
+  <header class="sol-hero">
+    <h1>Descubre, prueba y solicita tu solución digital</h1>
+    <p>Elige tu tipo de negocio, prueba una demostración real con datos ficticios y pide una propuesta.
+       Sin compromiso y sin pagos en línea.</p>
+  </header>
+
+  <!-- A. Selector de negocio -->
+  <section class="sol-seccion" aria-labelledby="t-industria">
+    <h2 id="t-industria">1. ¿Qué tipo de negocio tienes?</h2>
+    <p class="sub">Según tu respuesta te sugerimos una solución concreta. Puedes cambiarla cuando quieras.</p>
+    <div class="industrias" id="industrias"></div>
+    <div class="reco" id="reco" role="status" aria-live="polite"></div>
+  </section>
+
+  <!-- B. Demostraciones -->
+  <section class="sol-seccion" aria-labelledby="t-demos" id="demos">
+    <h2 id="t-demos">2. Prueba antes de decidir</h2>
+    <p class="sub">Tres demostraciones funcionales. Todos los datos son ficticios y están marcados como tales:
+       no se envía nada a ningún negocio real.</p>
+
+    <div class="tabs" role="tablist" aria-label="Demostraciones">
+      <button class="tab" role="tab" id="tab-tarjeta" data-demo="tarjeta" aria-selected="true" aria-controls="demo-tarjeta" tabindex="0">Tarjeta digital</button>
+      <button class="tab" role="tab" id="tab-menu" data-demo="menu" aria-selected="false" aria-controls="demo-menu" tabindex="-1">Menú / catálogo</button>
+      <button class="tab" role="tab" id="tab-miniweb" data-demo="miniweb" aria-selected="false" aria-controls="demo-miniweb" tabindex="-1">Mini Web</button>
+    </div>
+
+    <!-- Demo 1 -->
+    <div class="demo" id="demo-tarjeta" data-demo="tarjeta" role="tabpanel" aria-labelledby="tab-tarjeta">
+      <span class="demo-sello">Demostración · datos ficticios</span>
+      <div class="tdc">
+        <div class="tdc__avatar" aria-hidden="true">🌿</div>
+        <p class="tdc__nombre">Valentina Ríos</p>
+        <p class="tdc__rol">Estudio Aurora · ejemplo de tarjeta digital</p>
+        <div class="tdc__acciones">
+          <button type="button" class="btn" id="tdc-guardar">Guardar contacto</button>
+          <button type="button" class="btn" id="tdc-compartir">Compartir tarjeta</button>
+        </div>
+      </div>
+      <p class="nota">«Guardar contacto» descarga un archivo <code>.vcf</code> de ejemplo y «Compartir» usa el menú del sistema
+         o copia el enlace. Son acciones reales, sobre datos ficticios.</p>
+    </div>
+
+    <!-- Demo 2 -->
+    <div class="demo" id="demo-menu" data-demo="menu" role="tabpanel" aria-labelledby="tab-menu" hidden>
+      <span class="demo-sello">Demostración · ningún pedido se envía</span>
+      <div class="menu-demo" id="menu-items"></div>
+      <div class="menu-demo__pie">
+        <div><span class="menu-demo__total">Total de la demostración: <span id="menu-total">$0</span></span>
+          <span class="nota" id="menu-cuenta">0 productos</span></div>
+        <button type="button" class="btn" id="menu-limpiar">Limpiar</button>
+      </div>
+      <p class="nota">Este carrito es una simulación: no existe pasarela de pago ni envío a un restaurante real.</p>
+    </div>
+
+    <!-- Demo 3 -->
+    <div class="demo" id="demo-miniweb" data-demo="miniweb" role="tabpanel" aria-labelledby="tab-miniweb" hidden>
+      <span class="demo-sello">Demostración · vista previa</span>
+      <div class="mw">
+        <div class="mw__panel">
+          <label for="mw-nombre">Nombre de tu negocio</label>
+          <input id="mw-nombre" type="text" value="Café Aurora" maxlength="40" autocomplete="organization">
+          <label for="mw-plantilla">Plantilla</label>
+          <select id="mw-plantilla">
+            <option>Tibia</option>
+            <option>Colorida</option>
+            <option>Minimalista</option>
+          </select>
+          <label for="mw-acento">Color de acento</label>
+          <input id="mw-acento" type="color" value="#35d0ff">
+          <label for="mw-fondo">Color de fondo</label>
+          <input id="mw-fondo" type="color" value="#0b1622">
+        </div>
+        <div class="mw__vista" id="mw-vista">
+          <div class="mw__barra"><span class="mw__punto"></span><span class="mw__punto"></span><span class="mw__punto"></span>
+            <span id="mw-url">tu-negocio.kzfio.com</span></div>
+          <div class="mw__cuerpo">
+            <h3 id="mw-titulo">Café Aurora</h3>
+            <p id="mw-texto">Plantilla «Tibia» · vista previa de demostración con datos ficticios.</p>
+            <span class="falso-boton">Contactar por WhatsApp</span>
+          </div>
+        </div>
+      </div>
+      <p class="nota">La vista previa es una demostración: el botón de la maqueta no envía nada.</p>
+    </div>
+  </section>
+
+  <!-- C. Recorrido comercial -->
+  <section class="sol-seccion" aria-labelledby="t-recorrido">
+    <h2 id="t-recorrido">3. Tu recorrido</h2>
+    <p class="sub">Se marca solo cuando completas cada paso de verdad. Sin trampas: si no pruebas la demostración, no se marca.</p>
+    <div class="pasos">
+      <div class="paso" id="paso-industria"><b>1. Elegir industria</b>Selecciona tu tipo de negocio.</div>
+      <div class="paso" id="paso-demo"><b>2. Probar la solución</b>Usa una demostración.</div>
+      <div class="paso" id="paso-alcance"><b>3. Conocer el alcance</b><label><input type="checkbox" id="alcance"> He leído cómo funciona el servicio</label></div>
+      <div class="paso" id="paso-cotiza"><b>4. Elegir servicio</b>Mira el precio oficial.</div>
+      <div class="paso" id="paso-solicitud"><b>5. Solicitar propuesta</b>Envía tus datos.</div>
+    </div>
+    <p class="estado-sol info" id="progreso" role="status" aria-live="polite">0 de 5 pasos completados</p>
+    <details class="nota" style="margin-top:10px">
+      <summary>Qué incluye cada servicio (alcance real, sin promesas de más)</summary>
+      <ul>
+        <li><b>Mini Web Básica · $49.900 COP</b> (pago único): contacto, WhatsApp y redes; ubicación con mapa; 
+            código QR con tu marca; dominio incluido el primer año; entrega en 24–48 horas.</li>
+        <li><b>Mini Web Pro · $99.900 COP</b> (pago único): todo lo de la Básica, más catálogo <i>o</i> menú digital, 
+            galería de productos o trabajos, botón de pedido por WhatsApp y soporte prioritario.</li>
+        <li><b>Proyectos a medida</b>: no tienen precio de lista; se evalúan contigo.</li>
+        <li>El dominio está incluido el primer año en ambos planes; su renovación se cotiza aparte.</li>
+      </ul>
+    </details>
+  </section>
+
+  <!-- D. Cotizador -->
+  <section class="sol-seccion" aria-labelledby="t-cotiza">
+    <h2 id="t-cotiza">4. Cotizador</h2>
+    <p class="sub">Precios oficiales publicados por la agencia. Aquí no se inventan descuentos ni se confirma ninguna compra.</p>
+    <div class="cotizador" id="planes">
+      <button type="button" class="plan" data-plan="basica" aria-pressed="false">
+        Mini Web Básica <span class="precio">$49.900</span><small>COP · pago único</small>
+      </button>
+      <button type="button" class="plan" data-plan="pro" aria-pressed="false">
+        Mini Web Pro <span class="precio">$99.900</span><small>COP · pago único</small>
+      </button>
+      <button type="button" class="plan" data-plan="medida" aria-pressed="false">
+        Proyecto a medida <span class="precio">A evaluar</span><small>Sin precio de lista</small>
+      </button>
+    </div>
+    <div class="cotiza-resumen" id="cotiza-resumen" role="status" aria-live="polite"></div>
+  </section>
+
+  <!-- E. Solicitud -->
+  <section class="sol-seccion" aria-labelledby="t-solicitud">
+    <h2 id="t-solicitud">5. Solicita tu propuesta</h2>
+    <p class="sub">Deja tus datos y se abre WhatsApp con el mensaje escrito. Nada queda confirmado hasta que tú lo envíes y te respondamos.</p>
+    <form class="form-sol" id="form-sol" novalidate>
+      <label for="f-nombre">Tu nombre</label>
+      <input type="text" id="f-nombre" name="nombre" autocomplete="name" maxlength="60" aria-describedby="err-f-nombre">
+      <p class="campo-error" id="err-f-nombre" role="alert"></p>
+
+      <label for="f-tel">Tu WhatsApp (con indicativo si es de otro país)</label>
+      <input type="tel" id="f-tel" name="telefono" inputmode="numeric" autocomplete="tel" maxlength="18" aria-describedby="err-f-tel">
+      <p class="campo-error" id="err-f-tel" role="alert"></p>
+
+      <label class="consent">
+        <input type="checkbox" id="f-consent" aria-describedby="err-f-consent">
+        <span>Autorizo a KONFÍO ZINC a contactarme por WhatsApp para responder esta solicitud. Mis datos no se comparten con terceros. El borrador se guarda <b>solo en este navegador</b> hasta que lo borres con el botón de abajo y también puedes pedir su eliminación al negocio.</span>
+      </label>
+      <p class="campo-error" id="err-f-consent" role="alert"></p>
+
+      <button type="submit" class="btn" id="f-enviar">Preparar solicitud en WhatsApp</button>
+      <div class="estado-sol" id="estado-sol" role="status" aria-live="polite"></div>
+      <button type="button" class="btn" id="f-borrar" style="margin-top:8px">Borrar los datos guardados en este navegador</button>
+    </form>
+    <p class="nota">No se cobra nada en este sitio. No hay pagos, ni contratos automáticos, ni ventas «confirmadas» por abrir WhatsApp.</p>
+  </section>
+
+  <!-- F. Métricas -->
+  <section class="sol-seccion" aria-labelledby="t-metricas">
+    <h2 id="t-metricas">6. Actividad de esta visita — solo en tu navegador</h2>
+    <p class="sub">Estos contadores son de <b>tu propia sesión</b> y viven en este navegador. No son un CRM, no son estadísticas de la agencia y no llegan a ningún servidor.</p>
+    <div class="metricas" id="metricas"></div>
+    <p class="nota"><b>Dónde queda tu solicitud:</b> se guarda un borrador <b>solo en este navegador</b> (puedes borrarlo y no se envía a ningún servidor). La agencia <b>no recibe nada</b> hasta que tú pulses «Enviar» dentro de WhatsApp y nosotros lo leamos. El seguimiento comercial real exige un CRM con autenticación: está diseñado pero <b>no está publicado</b>, pendiente de revisión de seguridad y privacidad.</p>
+  </section>
+
+</main>
+
+<script src="assets/js/conversion-015.js" defer></script>
+</body>
+</html>
