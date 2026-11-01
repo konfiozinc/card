@@ -330,6 +330,8 @@ async function revertir(H) {
         if (faltan.length) problemas.push(`${tel}: ${faltan.length} nota(s) desaparecidas después de la migración`);
 
         /* Sólo se puede comparar el contenido si el respaldo lo guardó. */
+        /* Se comparan SIEMPRE las notas que aún existen, también al reanudar: una nota
+           editada después de migrar se perdería igual, se haya interrumpido o no. */
         const editadas = [];
         for (const r of notasResp) {
           const ahora = notasAhora.find((n) => n.id === r.id);
@@ -384,6 +386,13 @@ async function revertir(H) {
       mapa[tel] = { ...e, reversion: "iniciada" };
       guardarMapa(mapa);
     }
+    /* B · TESTIGO: mientras se revierte esta entrada, las reglas candidatas deniegan
+       notas, cambios de estado, cotizaciones y ventas sobre el prospecto. Sin esto queda
+       una ventana entre la comprobación y el borrado en la que puede entrar una nota
+       nueva, y se destruiría con una precondición perfectamente válida. */
+    await commit(H, [{ update: { name: `${PREFIJO}/crm_supresion/${e.uuid}`, fields: {
+      estado: { stringValue: "reversion" }, desde: { timestampValue: new Date().toISOString() },
+      id_sha256: { stringValue: sha(e.uuid).slice(0, 16) } } } }]);
 
     for (const c of cotsAhora.filter((x) => val(x.fields, "lead_id") === e.uuid))
       { await patch(H, `crm_quotes/${c.id}`, { lead_id: { stringValue: e.viejo } }, "lead_id"); repuntadas++; }
@@ -396,6 +405,7 @@ async function revertir(H) {
     await borrarSiNoCambio(H, `crm_leads/${e.uuid}`, await updateTimeDe(H, `crm_leads/${e.uuid}`)); borrados++;
     await borrar(H, `crm_dedup/${tel}`);
 
+    await fetch(`${DOCS}/crm_supresion/${e.uuid}`, { method: "DELETE", headers: H }).catch(() => {});
     mapa[tel] = { ...mapa[tel], reversion: "hecha" };
     guardarMapa(mapa);
   }

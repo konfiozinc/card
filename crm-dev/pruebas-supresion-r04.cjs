@@ -223,7 +223,7 @@ async function crearCaso(tel) {
   await limpiar(); proxy.limpiarReglas();
   const casF = await crearCaso("3209700004");
   proxy.regla({ id: "delete-marcador", veces: 1,
-    prueba: (i) => i.method === "DELETE" && /\/crm_dedup\//.test(i.url), accion: "500" });
+    prueba: (i) => (i.method === "DELETE" && /\/crm_dedup\//.test(i.url)) || (i.method === "POST" && /:commit$/.test(i.url.split("?")[0]) && /crm_dedup/.test(i.cuerpo || "")), accion: "500" });
   const f = await ejecutar(["--id", casF.id, "--confirmar"], "SUPRIMIR", proxy.urlBase);
   chk("F · termina con código distinto de cero", f.codigo !== 0, "código " + f.codigo);
   chk("F · el prospecto NO se ha borrado (el número seguiría reservado)", await existe(`crm_leads/${casF.id}`));

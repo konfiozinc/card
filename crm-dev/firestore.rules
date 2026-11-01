@@ -174,6 +174,7 @@ service cloud.firestore {
         /* La comprobación debe ser getAfter(): dentro del mismo lote, exists()/get()
            ven el estado ANTERIOR, y el prospecto se está creando en esta misma
            operación. Con getAfter() se ve el resultado, que es lo que queremos. */
+        && !enSupresion(request.resource.data.lead_id)
         && getAfter(/databases/$(database)/documents/crm_leads/$(request.resource.data.lead_id)).data.telefono == telefono;
       allow update, delete: if false;
     }
@@ -379,6 +380,7 @@ service cloud.firestore {
               ? request.resource.data.monto == (request.resource.data.plan == 'basica' ? 49900 : 99900)
               : request.resource.data.monto == null);
       allow update: if tieneRol(['admin', 'comercial'])
+        && !enSupresion(resource.data.lead_id)
         && (esAdmin() || leadEsMio(resource.data.lead_id))
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado'])
         && request.resource.data.estado in ['enviada','aceptada','rechazada','vencida'];
