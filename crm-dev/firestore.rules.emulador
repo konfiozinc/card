@@ -131,6 +131,20 @@ service cloud.firestore {
        Un único documento que gobierna la ventana de compatibilidad. Nadie lo escribe
        desde el navegador: lo fija el procedimiento privilegiado. Lo lee sólo
        administración, para poder comprobar en qué estado está la transición. */
+    /* A · TESTIGO DE SUPRESIÓN (bloqueo de escrituras concurrentes).
+       Mientras exista crm_supresion/{leadId} NADIE puede escribir en ese prospecto: ni
+       notas, ni cambios de estado, ni cotizaciones, ni ventas. Lo crea el procedimiento
+       privilegiado antes de inventariar y lo borra solo al terminar con exito. Asi una
+       nota que llegue a mitad de la supresion no se queda huerfana: se rechaza.
+       Nadie lo escribe desde el navegador: solo el procedimiento (Admin SDK). */
+    function enSupresion(leadId) {
+      return exists(/databases/$(database)/documents/crm_supresion/$(leadId));
+    }
+
+    match /crm_supresion/{leadId} {
+      allow read: if esAdmin();
+      allow write: if false;
+    }
     match /crm_config/{doc} {
       allow read: if esAdmin();
       allow write: if false;
@@ -250,6 +264,7 @@ service cloud.firestore {
            sólo mientras la ventana de transición esté abierta. Con la ventana cerrada,
            tocar un prospecto heredado deja de estar permitido: hay que migrarlo. */
         && identificadorOperable(leadId)
+        && !enSupresion(leadId)
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['nombre','industria','servicio_interes','retencion_hasta',
                        'estado','historial','origen','anonimizado',
@@ -332,6 +347,7 @@ service cloud.firestore {
       allow read: if puedoVerlo();
 
       allow create: if puedoEscribir()
+        && !enSupresion(leadId)
         /* A12: el prospecto padre debe existir, también para el admin: una nota
            huérfana quedaría accesible si el teléfono se reutilizara. */
         && exists(/databases/$(database)/documents/crm_leads/$(leadId))
@@ -364,6 +380,7 @@ service cloud.firestore {
       allow read: if esAdmin()
         || (tieneRol(equipo()) && leadEsMio(resource.data.lead_id));
       allow create: if tieneRol(['admin', 'comercial'])
+        && !enSupresion(request.resource.data.lead_id)
         && (esAdmin() || leadEsMio(request.resource.data.lead_id))
         && request.resource.data.keys().hasOnly([
              'lead_id','plan','monto','moneda','estado','creado_por','creado_en'])
@@ -392,6 +409,7 @@ service cloud.firestore {
       allow read: if esAdmin()
         || (tieneRol(['ventas']) && leadEsMio(resource.data.lead_id));
       allow create: if tieneRol(['admin', 'ventas'])
+        && !enSupresion(request.resource.data.lead_id)
         && (esAdmin() || leadEsMio(request.resource.data.lead_id))
         && ventaId == request.resource.data.quote_id
         && request.resource.data.keys().hasOnly([

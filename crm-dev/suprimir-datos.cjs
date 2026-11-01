@@ -72,6 +72,8 @@ const DOCS = EMULADOR
    enlazado a la persona no está suprimido. Aquí se DESASOCIAN: se conserva el importe
    —que es registro contable y no identifica a nadie— y se corta el enlace personal. */
 const DESASOCIADO = "suprimido";
+const PREFIJO = `projects/${PROYECTO}/databases/${BASE}/documents`;
+const sha256 = (s) => crypto.createHash("sha256").update(String(s)).digest("hex").slice(0, 16);
 
 const listarTodas = async (H, ruta, etiqueta) => {
   const salida = [];
@@ -178,48 +180,87 @@ function confirmarDoble() {
     process.exit(1);
   }
 
-  /* 3a. Desasociación de referencias comerciales (R04).
-     ORDEN Y ABORTO: si no se consigue desasociar, NO se borra nada más.
-     Antes se seguía adelante y se borraba el prospecto igualmente, dejando una
-     cotización apuntando a un documento que ya no existía; y como la reiteración
-     empieza leyendo el prospecto, al no existir respondía «nada que hacer»: la
-     referencia colgando quedaba IRREPARABLE. Abortando aquí, el procedimiento se puede
-     repetir: la desasociación es idempotente y el resto del trabajo sigue pendiente. */
+  /* 3a. TESTIGO DE SUPRESIÓN (A.1). Se escribe ANTES de inventariar: mientras exista,
+     las reglas candidatas deniegan notas, cambios de estado, cotizaciones y ventas sobre
+     este prospecto, así que no pueden entrar datos nuevos a mitad de la supresión. */
+  const shaId = sha256(ID);
+  const bloqueo = async (estado) => {
+    const r = await fetch(`${DOCS}/crm_supresion/${ID}`, {
+      method: "PATCH", headers: { ...H, "content-type": "application/json" },
+      body: JSON.stringify({ fields: {
+        estado: { stringValue: estado }, desde: { timestampValue: new Date().toISOString() },
+        id_sha256: { stringValue: shaId } } }),
+    });
+    if (!r.ok) throw new Error("No se pudo escribir el testigo de supresión: HTTP " + r.status);
+  };
+  await bloqueo("preparado");
+
+  /* 3b. RE-INVENTARIO BAJO BLOQUEO (A.2). Si algo cambió entre la simulación y el testigo,
+     se aborta sin borrar: el estado ya no es el que se autorizó. */
+  const notasAhora = (await listarTodas(H, `crm_leads/${ID}/notas`, "notas de " + ID)).map((n) => n.id);
+  const cotAhora = (await listarTodas(H, "crm_quotes", "crm_quotes")).filter((c) => valorDe(c.fields, "lead_id") === ID);
+  const venAhora = (await listarTodas(H, "crm_sales", "crm_sales")).filter((v) => valorDe(v.fields, "lead_id") === ID);
+  const cambio = notasAhora.length !== notas.length ||
+    cotAhora.length !== cotizaciones.length || venAhora.length !== ventas.length;
+  if (cambio) {
+    console.error("\nABORTADO: el prospecto cambió entre la simulación y el testigo.");
+    console.error("  notas " + notas.length + " → " + notasAhora.length +
+      " · cotizaciones " + cotizaciones.length + " → " + cotAhora.length +
+      " · ventas " + ventas.length + " → " + venAhora.length);
+    console.error("  El testigo queda puesto: nadie puede escribir en el prospecto hasta que");
+    console.error("  se repita la supresión. No se ha borrado nada.");
+    registrar("ABORTADO_POR_CAMBIO · testigo_conservado=true");
+    process.exit(3);
+  }
+  await bloqueo("borrando");
+
+  /* 3c. Desasociación de referencias comerciales (R04). */
   let desasociadas = 0, fallosRefs = 0;
-  for (const c of cotizaciones) {
+  for (const c of cotAhora) {
     try { await desasociar(H, "crm_quotes", c.id); desasociadas++; }
     catch (e) { fallosRefs++; console.error("  " + e.message); }
   }
-  for (const v of ventas) {
+  for (const v of venAhora) {
     try { await desasociar(H, "crm_sales", v.id); desasociadas++; }
     catch (e) { fallosRefs++; console.error("  " + e.message); }
   }
   if (fallosRefs) {
     console.error("\nINCOMPLETO: no se pudieron desasociar " + fallosRefs + " referencia(s).");
-    console.error("El prospecto NO se ha borrado: el número queda reservado y el procedimiento");
-    console.error("puede repetirse tal cual cuando se resuelva el problema.");
-    registrar("INCOMPLETO_REFERENCIAS · refs_fallidas=" + fallosRefs + " · prospecto_conservado=true");
+    console.error("El prospecto NO se ha borrado y el testigo sigue puesto: la supresión puede");
+    console.error("repetirse tal cual cuando se resuelva el problema.");
+    registrar("INCOMPLETO_REFERENCIAS · refs_fallidas=" + fallosRefs + " · testigo_conservado=true");
     process.exit(3);
   }
 
-  /* 3b. Notas. Si alguna no se borra, tampoco se borra el prospecto ni el marcador:
-     unas notas huérfanas ya no se podrían localizar después ni con este procedimiento. */
+  /* 3d. Notas y prospecto, con PRECONDICIÓN de escritura (B.2/B.3 aplicado aquí también):
+     se borra sólo si el documento sigue siendo el que se leyó. Si alguien lo tocó entre la
+     lectura y el borrado, el almacén rechaza la operación en vez de destruir a ciegas. */
+  const borrarSiNoCambio = async (ruta, updateTime, etiqueta) => {
+    const writes = [{ delete: `${PREFIJO}/${ruta}` }];
+    if (updateTime) writes[0].currentDocument = { updateTime };
+    const r = await fetch(`${DOCS}:commit`, { method: "POST", headers: { ...H, "content-type": "application/json" },
+      body: JSON.stringify({ writes }) });
+    if (r.ok) return true;
+    if (r.status === 404) return true;              // ya no estaba: el estado deseado
+    console.error("  ERROR al borrar " + etiqueta + ": HTTP " + r.status + " " + (await r.text()).slice(0, 120));
+    return false;
+  };
+
   let borradas = 0, fallosNotas = 0;
-  for (const n of notas) {
-    const r = await fetch(`${DOCS}/crm_leads/${ID}/notas/${n}`, { method: "DELETE", headers: H });
-    if (r.ok) borradas++; else { fallosNotas++; console.error("  ERROR al borrar la nota " + n + ": HTTP " + r.status); }
+  for (const n of await listarTodas(H, `crm_leads/${ID}/notas`, "notas a borrar")) {
+    const doc = await fetch(`${DOCS}/crm_leads/${ID}/notas/${n.id}`, { headers: H });
+    const ut = doc.ok ? (await doc.json()).updateTime : null;
+    if (await borrarSiNoCambio(`crm_leads/${ID}/notas/${n.id}`, ut, "la nota " + n.id)) borradas++;
+    else fallosNotas++;
   }
   if (fallosNotas) {
     console.error("\nINCOMPLETO: quedan " + fallosNotas + " nota(s) sin borrar.");
-    console.error("El prospecto NO se ha borrado: sus notas siguen siendo alcanzables y el");
-    console.error("procedimiento puede repetirse tal cual.");
-    registrar("INCOMPLETO_NOTAS · fallos_notas=" + fallosNotas + " · prospecto_conservado=true");
+    console.error("El prospecto NO se ha borrado y el testigo sigue puesto.");
+    registrar("INCOMPLETO_NOTAS · fallos_notas=" + fallosNotas + " · testigo_conservado=true");
     process.exit(3);
   }
 
-  /* 3c. Marcador. Si sobrevive, el número queda reservado para siempre por un prospecto
-     que ya no existe: eso no es una supresión completa. Un 404 significa que ya no
-     estaba, que es justo el estado deseado (reanudación tras una ejecución anterior). */
+  /* 3e. Marcador del número. */
   const telefono = doc.fields && doc.fields.telefono && doc.fields.telefono.stringValue;
   let borradoMarcador = "no aplica";
   if (telefono) {
@@ -227,15 +268,22 @@ function confirmarDoble() {
     borradoMarcador = rm.ok ? "sí" : (rm.status === 404 ? "sí (ya no estaba)" : ("NO (HTTP " + rm.status + ")"));
   }
   if (telefono && borradoMarcador.startsWith("NO")) {
-    console.error("\nINCOMPLETO: el marcador de deduplicación sigue reservando el número.");
-    console.error("El prospecto NO se ha borrado: el número no quedaría libre y el procedimiento");
-    console.error("puede repetirse tal cual.");
-    registrar("INCOMPLETO_MARCADOR · prospecto_conservado=true");
+    console.error("\nINCOMPLETO: el marcador sigue reservando el número. El prospecto NO se ha");
+    console.error("borrado y el testigo sigue puesto.");
+    registrar("INCOMPLETO_MARCADOR · testigo_conservado=true");
     process.exit(3);
   }
 
-  /* 3d. Prospecto. Es lo ÚLTIMO: mientras exista, el trabajo pendiente es localizable. */
-  const borradoLead = await fetch(`${DOCS}/crm_leads/${ID}`, { method: "DELETE", headers: H });
+  /* 3f. Prospecto, también con precondición. */
+  const docActual = await fetch(`${DOCS}/crm_leads/${ID}`, { headers: H });
+  const utLead = docActual.ok ? (await docActual.json()).updateTime : null;
+  const borradoLead = await borrarSiNoCambio(`crm_leads/${ID}`, utLead, "el prospecto");
+  if (!borradoLead) {
+    console.error("\nINCOMPLETO: el prospecto no se pudo borrar (fue modificado o falló la escritura).");
+    console.error("El testigo sigue puesto: repetir la supresión retomará el trabajo pendiente.");
+    registrar("INCOMPLETO_PROSPECTO · testigo_conservado=true");
+    process.exit(3);
+  }
 
   /* 4. Verificación posterior */
   const quedaLead = await fetch(`${DOCS}/crm_leads/${ID}`, { headers: H });
@@ -255,7 +303,7 @@ function confirmarDoble() {
     (fallosRefs ? "  (fallos: " + fallosRefs + ")" : ""));
   console.log("  notas borradas ......... " + borradas + "/" + notas.length + (fallosNotas ? "  (fallos: " + fallosNotas + ")" : ""));
   console.log("  marcador de deduplicación borrado ... " + borradoMarcador);
-  console.log("  prospecto borrado ...... " + (borradoLead.ok ? "sí" : "NO (HTTP " + borradoLead.status + ")"));
+  console.log("  prospecto borrado ...... " + (borradoLead ? "sí" : "NO"));
   console.log("  verificación: prospecto " + (quedaLead.status === 404 ? "ausente ✓" : "TODAVÍA EXISTE ✗"));
   console.log("  verificación: notas restantes " + restantes + (restantes === 0 ? " ✓" : " ✗"));
   console.log("  verificación: referencias vivas " + refsVivas.length +
@@ -263,6 +311,14 @@ function confirmarDoble() {
   const ok = quedaLead.status === 404 && restantes === 0 && fallosNotas === 0 &&
     fallosRefs === 0 && refsVivas.length === 0 && !falloVerificacion &&
     (!telefono || borradoMarcador.startsWith("sí"));
+  /* A.6 · El testigo se libera SOLO si todo quedó verificado. Si no, se queda puesto:
+     bloquea escrituras hasta que alguien repita la supresión o decida a mano. */
+  if (ok) {
+    const rl = await fetch(`${DOCS}/crm_supresion/${ID}`, { method: "DELETE", headers: H });
+    console.log("  testigo de supresión liberado ... " + (rl.ok || rl.status === 404 ? "sí" : "NO (HTTP " + rl.status + ")"));
+  } else {
+    console.log("  testigo de supresión CONSERVADO: el prospecto queda bloqueado hasta repetir.");
+  }
   registrar((ok ? "COMPLETADO" : "INCOMPLETO") + " · notas_borradas=" + borradas +
     "/" + notas.length + " · refs_desasociadas=" + desasociadas + "/" + (cotizaciones.length + ventas.length) +
     " · lead_eliminado=" + (quedaLead.status === 404) + " · notas_restantes=" + restantes +

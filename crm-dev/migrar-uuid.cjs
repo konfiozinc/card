@@ -98,6 +98,25 @@ const borrar = async (H, ruta) => {
   if (!r.ok && r.status !== 404) throw new Error(`DELETE ${ruta} falló: HTTP ${r.status}`);
 };
 
+/* B.2/B.3 · Borrado con PRECONDICIÓN: se ejecuta sólo si el documento sigue siendo el que
+   se leyó (updateTime). Si alguien lo modificó entre la lectura y el borrado, el almacén
+   rechaza la operación en vez de destruir a ciegas. No hay atomicidad global: cada borrado
+   es su propio commit, y ese límite se declara en vez de disimularse. */
+const borrarSiNoCambio = async (H, ruta, updateTime) => {
+  const writes = [{ delete: `${PREFIJO}/${ruta}` }];
+  if (updateTime) writes[0].currentDocument = { updateTime };
+  let r;
+  try {
+    r = await fetch(`${DOCS}:commit`, { method: "POST", headers: H, body: JSON.stringify({ writes }) });
+  } catch (e) { throw new Error("commit de borrado sin respuesta: " + e.message); }
+  if (r.ok || r.status === 404) return true;
+  throw new Error(`el borrado de ${ruta} fue rechazado (HTTP ${r.status}): el documento cambió mientras se revertía`);
+};
+const updateTimeDe = async (H, ruta) => {
+  const r = await fetch(`${DOCS}/${ruta}`, { headers: H });
+  if (!r.ok) return null;
+  return (await r.json()).updateTime || null;
+};
 const leerMapa = () => (fs.existsSync(MAPA) ? JSON.parse(fs.readFileSync(MAPA, "utf8")) : {});
 const guardarMapa = (m) => fs.writeFileSync(MAPA, JSON.stringify(m, null, 1), "utf8");
 
@@ -370,8 +389,11 @@ async function revertir(H) {
       { await patch(H, `crm_quotes/${c.id}`, { lead_id: { stringValue: e.viejo } }, "lead_id"); repuntadas++; }
     for (const v of vensAhora.filter((x) => val(x.fields, "lead_id") === e.uuid))
       { await patch(H, `crm_sales/${v.id}`, { lead_id: { stringValue: e.viejo } }, "lead_id"); repuntadas++; }
-    for (const n of await listarNotas(H, e.uuid)) { await borrar(H, `crm_leads/${e.uuid}/notas/${n.id}`); borrados++; }
-    await borrar(H, `crm_leads/${e.uuid}`); borrados++;
+    for (const n of await listarNotas(H, e.uuid)) {
+      await borrarSiNoCambio(H, `crm_leads/${e.uuid}/notas/${n.id}`, await updateTimeDe(H, `crm_leads/${e.uuid}/notas/${n.id}`));
+      borrados++;
+    }
+    await borrarSiNoCambio(H, `crm_leads/${e.uuid}`, await updateTimeDe(H, `crm_leads/${e.uuid}`)); borrados++;
     await borrar(H, `crm_dedup/${tel}`);
 
     mapa[tel] = { ...mapa[tel], reversion: "hecha" };
