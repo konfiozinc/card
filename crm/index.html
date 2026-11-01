@@ -113,6 +113,7 @@
 
       <div class="bloque" id="bloque-cotizar">
         <h3>Crear cotización</h3>
+        <label for="q-plan">Plan que se cotiza</label>
         <select id="q-plan">
           <option value="basica">Mini Web Básica · $49.900</option>
           <option value="pro">Mini Web Pro · $99.900</option>
@@ -124,8 +125,10 @@
 
       <div class="bloque" id="bloque-venta">
         <h3>Registrar venta confirmada</h3>
-        <input id="s-quote" type="text" placeholder="ID de la cotización">
-        <input id="s-monto" type="number" min="1" step="1" placeholder="Monto confirmado (COP)">
+        <label for="s-quote">ID de la cotización que origina la venta</label>
+        <input id="s-quote" type="text" placeholder="ID de la cotización" autocomplete="off">
+        <label for="s-monto">Monto confirmado (COP)</label>
+        <input id="s-monto" type="number" min="1" step="1" placeholder="Monto confirmado (COP)" inputmode="numeric">
         <button id="btn-venta" class="btn btn--peligro">Confirmar venta</button>
         <p class="nota">Sólo admin y ventas. Exige una cotización existente de este prospecto.</p>
       </div>

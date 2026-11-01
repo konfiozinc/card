@@ -86,6 +86,41 @@ button:focus-visible, tr[data-id]:focus-visible {
 }
 textarea { min-height: 76px; resize: vertical; }
 
+/* ── Casilla de consentimiento ──────────────────────────────────────────
+   DEFECTO CORREGIDO (KZ-CRM-017): la casilla es un <input>, así que heredaba
+   `width:100%; min-height:44px` del selector genérico y se dibujaba como un
+   rectángulo blanco desproporcionado, desalineado de su texto. Aquí recupera su
+   tamaño natural y se alinea con la primera línea del texto. */
+.consent {
+  display: flex;
+  align-items: flex-start;       /* casilla arriba, a la altura de la primera línea */
+  gap: 12px;
+  margin: 14px 0 0;
+  padding: 8px 0;
+  min-height: 44px;              /* toda la fila es área táctil */
+  font-weight: 400;
+  cursor: pointer;
+}
+.consent input[type="checkbox"] {
+  /* Se anula explícitamente lo heredado del selector genérico. */
+  width: 20px;
+  min-width: 20px;
+  max-width: 20px;
+  height: 20px;
+  min-height: 0;
+  flex: 0 0 20px;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: var(--kz-cyan, #00E5FF);   /* casilla cian, no un bloque blanco */
+  cursor: pointer;
+}
+.consent span {
+  flex: 1 1 auto;
+  font-size: .88rem;
+  line-height: 1.45;
+  color: var(--kz-text-secondary, #D4DEED);
+}
+
 /* ── Botones ────────────────────────────────────────────────────────── */
 button {
   min-height: 44px;
@@ -208,6 +243,8 @@ tr[data-id]:hover { background: rgb(0 229 255 / .07); }
   .barra strong { font-size: .95rem; }
   .filtros select { flex: 1 1 100%; }
   .btn, .filtros button { width: 100%; }
+  /* En móvil TODO control mide al menos 44 px, también los botones pequeños. */
+  button, .mini { min-height: 44px; }
   .stats { grid-template-columns: repeat(2, 1fr); }
   .login { margin: 18px auto; }
 }
