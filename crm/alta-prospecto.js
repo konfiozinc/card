@@ -50,6 +50,21 @@ export function validar(datos) {
   return { ok: true, telefono, nombre, industria };
 }
 
+/** UUID v4 de reserva cuando el navegador no ofrece crypto.randomUUID.
+ *  IMPORTANTE: tiene que cumplir la forma 8-4-4-4-12 con versión 4 y variante RFC 4122.
+ *  Antes, el respaldo generaba algo como «u<base36>», que las reglas rechazan por no ser
+ *  un UUID v4: en un navegador antiguo el alta fallaba y el mensaje decía «duplicado»,
+ *  que era engañoso. */
+function uuidV4Reserva() {
+  const hex = "0123456789abcdef";
+  const rnd = (n) => Array.from({ length: n }, () => hex[Math.floor(Math.random() * 16)]).join("");
+  const variante = "89ab"[Math.floor(Math.random() * 4)];
+  return rnd(8) + "-" + rnd(4) + "-4" + rnd(3) + "-" + variante + rnd(3) + "-" + rnd(12);
+}
+const nuevoUuid = () => (globalThis.crypto && crypto.randomUUID)
+  ? crypto.randomUUID()
+  : uuidV4Reserva();
+
 /**
  * Registra un prospecto. Devuelve { ok, motivo, telefono }.
  * Motivos de rechazo: "nombre" | "telefono" | "industria" | "consentimiento" |
@@ -67,9 +82,7 @@ export async function registrarProspecto(db, datos) {
 
   /* R06: el identificador es un UUID, nunca el teléfono. Un id derivado del número
      sobrevive a cualquier supresión, que es justo lo que el modelo evita. */
-  const id = (globalThis.crypto && crypto.randomUUID)
-    ? crypto.randomUUID()
-    : "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  const id = nuevoUuid();
 
   const ref = doc(db, "crm_leads", id);
   /* A03: la unicidad del número la garantiza el marcador, no el id del prospecto. */
@@ -138,9 +151,7 @@ export async function registrarProspectoInterno(db, datos, usuario) {
      marcador crm_dedup/{telefono}, que se crea en la MISMA transacción: o nacen los
      dos o no nace ninguno. Las reglas lo verifican con getAfter(), así que dos altas
      simultáneas del mismo número no pueden prosperar las dos. */
-  const id = (globalThis.crypto && crypto.randomUUID)
-    ? crypto.randomUUID()
-    : "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+  const id = nuevoUuid();
 
   const ref = doc(db, "crm_leads", id);
   const refDedup = doc(db, "crm_dedup", v.telefono);

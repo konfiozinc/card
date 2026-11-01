@@ -120,6 +120,7 @@ service cloud.firestore {
        seguridad, es pérdida de información. */
     function transicionCerrada() {
       return exists(/databases/$(database)/documents/crm_config/transicion)
+        && ('acepta_heredados' in get(/databases/$(database)/documents/crm_config/transicion).data)
         && get(/databases/$(database)/documents/crm_config/transicion).data.acepta_heredados == false;
     }
     function identificadorOperable(leadId) {

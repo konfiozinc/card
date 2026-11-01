@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, setDoc, getDocs, query, orderBy, limit, updateDoc,
-  addDoc, serverTimestamp, where, arrayUnion, writeBatch, startAfter }
+  addDoc, serverTimestamp, where, arrayUnion, writeBatch, startAfter, documentId }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { registrarProspectoInterno } from "./alta-prospecto.js";
 
@@ -409,8 +409,13 @@ let carteraPaginas = 0;
 async function leerCartera() {
   const admin = sesion.rol === "admin";
   const construir = (despues) => {
+    /* R08 · El orden de paginación NO puede depender de un campo opcional:
+       `orderBy("creado_en")` DEJA FUERA, en silencio, a todo documento heredado que no
+       tenga ese campo —y los heredados son justo los que hay que ver y migrar—. Se ordena
+       por el identificador del documento, que siempre existe, y después se ordena en el
+       cliente por fecha. */
     const partes = admin
-      ? [collection(db, "crm_leads"), orderBy("creado_en", "desc")]
+      ? [collection(db, "crm_leads"), orderBy(documentId())]
       : [collection(db, "crm_leads"), where("asignado_a", "==", sesion.uid)];
     if (despues) partes.push(startAfter(despues));
     partes.push(limit(PAGINA_LEADS));
@@ -456,13 +461,14 @@ async function cargarLeads() {
       " prospectos: la lista está INCOMPLETA, no vacía.";
   }
 
-  if (!admin) {
-    leads.sort((a, b) => {
-      const fa = a.creado_en && a.creado_en.toMillis ? a.creado_en.toMillis() : 0;
-      const fb = b.creado_en && b.creado_en.toMillis ? b.creado_en.toMillis() : 0;
-      return fb - fa;
-    });
-  }
+  /* El orden de presentación se aplica SIEMPRE en el cliente, porque la consulta ordena
+     por identificador de documento (así no se pierde ningún heredado sin `creado_en`).
+     Los heredados sin fecha van al final, que es donde menos estorban. */
+  leads.sort((a, b) => {
+    const fa = a.creado_en && a.creado_en.toMillis ? a.creado_en.toMillis() : 0;
+    const fb = b.creado_en && b.creado_en.toMillis ? b.creado_en.toMillis() : 0;
+    return fb - fa;
+  });
   pintarTabla();
   pintarResumenBandeja();
   if (admin) await pintarEquipo();

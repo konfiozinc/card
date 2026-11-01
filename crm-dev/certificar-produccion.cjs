@@ -106,8 +106,12 @@ const anon = (metodo, ruta, cuerpo) => fetch(`${FS}${ruta}`, {
     tokenPagina = j.nextPageToken || null;
   } while (tokenPagina && ++paginasLeidas < 200);
   chk("lectura privilegiada funciona", estadoLectura === 200, "HTTP " + estadoLectura);
-  chk("el inventario se recorre completo (sin corte silencioso)", !tokenPagina,
-    tokenPagina ? "quedaron páginas sin leer" : "");
+  /* La comprobación de «inventario completo» sólo tiene sentido si la lectura funcionó:
+     si la primera página falló, `tokenPagina` es nulo y decir «se recorrió completo» sería
+     una falsa tranquilidad. */
+  chk("el inventario se recorre completo (sin corte silencioso)",
+    estadoLectura === 200 && !tokenPagina,
+    estadoLectura !== 200 ? "no se pudo leer" : (tokenPagina ? "quedaron páginas sin leer" : ""));
   console.log("    prospectos en crm_leads: " + totalLeads + " en " + (paginasLeidas + 1) + " página(s)");
 
   console.log("\nE. Las reglas publicadas son las privadas");

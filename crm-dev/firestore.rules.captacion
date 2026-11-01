@@ -155,7 +155,11 @@ service cloud.firestore {
         && industriaValida(request.resource.data.industria)
         && retencionValida(request.resource.data.retencion_hasta);
 
-      allow delete: if tieneRol(['admin']);
+      /* P1 · Igual que en el modo privado: el borrado directo NO existe para ningún rol.
+         Antes esta candidata conservaba `allow delete: if tieneRol(['admin'])`, que es el
+         mismo recorrido inseguro que se retiró de producción. Un candidato no puede dejar
+         abierta una vía que el otro ya cerró. */
+      allow delete: if false;
     }
 
     /* Cotizaciones: no son ventas. Importe amarrado a la lista de precios vigente. */
