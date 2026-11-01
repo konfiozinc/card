@@ -71,3 +71,23 @@ Ver `git log --oneline main..feature/kz-conversion-015` en el repositorio local 
 3. Revisión visual de Codex Sites si la herramienta está disponible; no lo estaba en esta ronda.
 
 **Riesgos que siguen abiertos:** sin antispam en el formulario, borrador local que se pierde al limpiar el navegador y CRM sin implementar (fase 3 pendiente de autorización y revisión de privacidad).
+## 8. Ronda 3 — cierre de revisión (2-nov-2026)
+
+**Batería de cierre: 41/41 PASS.** Verificaciones y capturas finales:
+
+| Comprobación | Resultado |
+|---|---|
+| Portada, servicios y Soluciones a 375 y 1440 | 200, sin desbordamiento, sin 404 |
+| «Soluciones» en la navegación de las tres páginas | presente |
+| Botón «Guardar contacto» | descarga `contacto-demostracion.vcf` |
+| Botón del menú de demostración | suma ($7.900) |
+| Vista previa Mini Web con fondo claro | cambia el color del texto |
+| Cotización | muestra el precio oficial $49.900 |
+| Botón de WhatsApp | abre `573206411340` con el mensaje escrito |
+| Aviso tras preparar la solicitud | «la agencia no ha recibido nada» |
+| Ninguna pantalla afirma que el CRM esté operativo | confirmado en las tres páginas |
+| Recorrido | 5 de 5 con acciones reales |
+
+Capturas en `docs/capturas/kz-conversion-015/final/`: `portada`, `servicios` y `soluciones` en `movil` (375×812) y `escritorio` (1440×900).
+
+Aviso preexistente detectado y no introducido por esta misión: la portada declara un `Content-Security-Policy` que bloquea estilos en línea y genera un aviso en consola. Ya está en `main` (`git show main:index.html`), no se tocó.
