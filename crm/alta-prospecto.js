@@ -53,7 +53,7 @@ export function validar(datos) {
 /**
  * Registra un prospecto. Devuelve { ok, motivo, telefono }.
  * Motivos de rechazo: "nombre" | "telefono" | "industria" | "consentimiento" |
- *                     "duplicado" | "red" | "permiso".
+ *                     "duplicado" | "conflicto" | "red" | "permiso".
  */
 export async function registrarProspecto(db, datos) {
   const v = validar(datos);
@@ -92,6 +92,9 @@ export async function registrarProspecto(db, datos) {
     /* Tras validar en cliente, un permission-denied en el create implica que el
        documento ya existía (o que el teléfono se pisó con otra pestaña). */
     if (err && err.code === "permission-denied") return { ok: false, motivo: "duplicado" };
+    /* Aquí el identificador ES el teléfono, así que una escritura concurrente abortada
+       sólo puede significar que otra pestaña lo registró en el mismo instante. */
+    if (err && err.code === "aborted") return { ok: false, motivo: "duplicado" };
     return { ok: false, motivo: "red", detalle: err && err.code ? err.code : String(err) };
   }
 }
@@ -173,6 +176,13 @@ export async function registrarProspectoInterno(db, datos, usuario) {
   } catch (err) {
     if (err && err.message === "KZ_DUPLICADO") return { ok: false, motivo: "duplicado" };
     if (err && err.code === "already-exists") return { ok: false, motivo: "duplicado" };
+    /* R02 (certificado en crm-dev/pruebas-r02.cjs): con ocho altas simultáneas del mismo
+       número, los lotes perdedores se rechazan de dos maneras — 403 porque las reglas no
+       permiten sobrescribir el marcador, o `aborted` (409) porque el almacén detecta la
+       escritura concurrente y aborta el lote antes de aplicarlo. `aborted` NO es un fallo
+       de red: es una carrera perdida, y decírselo al operador evita que reintente a ciegas
+       creyendo que se cayó la conexión. */
+    if (err && err.code === "aborted") return { ok: false, motivo: "conflicto" };
     if (err && err.code === "permission-denied") return { ok: false, motivo: "permiso" };
     return { ok: false, motivo: "red", detalle: err && err.code ? err.code : String(err) };
   }

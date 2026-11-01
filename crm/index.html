@@ -153,12 +153,21 @@
 
       <div class="bloque" id="bloque-privacidad" hidden>
         <h3>Privacidad del dato</h3>
-        <button id="btn-anonimizar" class="btn">Suprimir datos personales</button>
-        <button id="btn-borrar-lead" class="btn btn--peligro">Borrar prospecto</button>
-        <p class="nota">Sólo administración. <b>Suprimir</b> borra el nombre y <b>todo el historial
-          de notas</b>, y conserva el número de teléfono porque es el identificador que impide
-          volver a duplicar el prospecto: por eso es <b>supresión parcial</b>, no anonimización
-          completa. <b>Borrar</b> elimina el documento entero: libera el número y no se puede deshacer.</p>
+        <p class="nota">
+          <b>Esta pantalla ya no borra ni suprime prospectos.</b> Los dos botones que había
+          antes (<i>Suprimir datos personales</i> y <i>Borrar prospecto</i>) eran recorridos
+          incompletos y se han retirado: dejaban notas, el marcador del número y las
+          cotizaciones apuntando a un prospecto que ya no existía. En el caso de
+          <i>Borrar</i>, además, el aviso decía que el número quedaba libre cuando el
+          marcador seguía reservándolo.
+        </p>
+        <p class="nota">
+          La supresión y el borrado son ahora un <b>procedimiento privilegiado</b>, fuera del
+          navegador: <code>node crm-dev/suprimir-datos.cjs --id &lt;id del prospecto&gt;</code>.
+          Exige confirmación escrita, desasocia las cotizaciones y las ventas, y verifica al
+          terminar que no queda ninguna referencia viva. Ninguna credencial privilegiada
+          llega a esta página.
+        </p>
       </div>
     </section>
 

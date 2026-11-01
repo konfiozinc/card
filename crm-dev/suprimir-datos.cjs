@@ -12,7 +12,13 @@
      · SIN --confirmar sólo simula: enseña qué documentos borraría y no toca nada.
      · Exige el identificador exacto del prospecto y una segunda confirmación escrita.
      · Borra las notas de la subcolección ANTES del prospecto.
-     · Verifica después que todo quedó realmente eliminado.
+     · R04: DESASOCIA las cotizaciones y las ventas del prospecto (lead_id →
+       "suprimido"). Antes sólo se borraban prospecto, notas y marcador, así que las
+       referencias comerciales seguían apuntando a la persona suprimida: el dato no
+       estaba realmente suprimido. Se conserva el importe —registro comercial que no
+       identifica a nadie— y se corta el enlace personal.
+     · Verifica después que todo quedó realmente eliminado Y que no queda ninguna
+       referencia viva al prospecto.
      · Escribe un registro mínimo SIN datos personales: no guarda nombre, teléfono
        ni el contenido de las notas, sólo un hash del identificador y los conteos.
 
@@ -58,8 +64,36 @@ if (process.env.GCLOUD_PROJECT && process.env.GCLOUD_PROJECT !== PROYECTO) {
 }
 
 const DOCS = EMULADOR
-  ? `http://127.0.0.1:8080/v1/projects/${PROYECTO}/databases/${BASE}/documents`
+  ? (process.env.KZ_FIRESTORE_URL || `http://127.0.0.1:8080/v1/projects/${PROYECTO}/databases/${BASE}/documents`)
   : `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/${BASE}/documents`;
+
+/* R04 · La supresión dejaba VIVAS las cotizaciones y las ventas del prospecto: el
+   documento desaparecía pero las referencias seguían apuntando a él. Un dato que sigue
+   enlazado a la persona no está suprimido. Aquí se DESASOCIAN: se conserva el importe
+   —que es registro contable y no identifica a nadie— y se corta el enlace personal. */
+const DESASOCIADO = "suprimido";
+
+const listarTodas = async (H, ruta, etiqueta) => {
+  const salida = [];
+  let token = null, paginas = 0;
+  do {
+    const url = `${DOCS}/${ruta}?pageSize=300` + (token ? "&pageToken=" + encodeURIComponent(token) : "");
+    const r = await fetch(url, { headers: H });
+    if (!r.ok) throw new Error(`No se pudo listar ${etiqueta}: HTTP ${r.status}`);
+    const j = await r.json();
+    for (const d of (j.documents || [])) salida.push({ id: d.name.split("/").pop(), fields: d.fields || {} });
+    token = j.nextPageToken || null;
+    if (++paginas > 200) throw new Error("Demasiadas páginas listando " + etiqueta);
+  } while (token);
+  return salida;
+};
+const valorDe = (f, k) => (f && f[k] ? Object.values(f[k])[0] : null);
+const desasociar = async (H, coleccion, id) => {
+  const r = await fetch(`${DOCS}/${coleccion}/${id}?updateMask.fieldPaths=lead_id`, {
+    method: "PATCH", headers: { ...H, "content-type": "application/json" },
+    body: JSON.stringify({ fields: { lead_id: { stringValue: DESASOCIADO } } }) });
+  if (!r.ok) throw new Error(`No se pudo desasociar ${coleccion}/${id}: HTTP ${r.status}`);
+};
 
 const REGISTRO = path.join(__dirname, "supresiones.log");
 
@@ -106,6 +140,12 @@ function confirmarDoble() {
   const notasJson = notasResp.ok ? await notasResp.json() : {};
   const notas = (notasJson.documents || []).map((n) => n.name.split("/").pop());
 
+  /* R04: referencias comerciales que también hay que resolver. */
+  const cotizaciones = (await listarTodas(H, "crm_quotes", "crm_quotes"))
+    .filter((c) => valorDe(c.fields, "lead_id") === ID);
+  const ventas = (await listarTodas(H, "crm_sales", "crm_sales"))
+    .filter((v) => valorDe(v.fields, "lead_id") === ID);
+
   const campos = Object.keys(doc.fields || {});
   console.log("\n--- DOCUMENTOS AFECTADOS ---");
   console.log("  crm_leads/" + ID);
@@ -113,10 +153,16 @@ function confirmarDoble() {
     ? "  (" + ((doc.fields.historial.arrayValue && doc.fields.historial.arrayValue.values) || []).length + " entradas)"
     : "")));
   const telSim = doc.fields && doc.fields.telefono && doc.fields.telefono.stringValue;
-  console.log("  crm_dedup/" + (telSim || "(sin teléfono)") + "  → marcador que reserva el número");
-  console.log("  crm_leads/" + ID + "/notas  → " + notas.length + " documento(s)");
+  console.log("  crm_dedup/" + (telSim || "(sin teléfono)") + "  → marcador que reserva el número  [SE BORRA]");
+  console.log("  crm_leads/" + ID + "/notas  → " + notas.length + " documento(s)  [SE BORRAN]");
   notas.forEach((n) => console.log("     · nota: " + n));
-  console.log("\n  (No se muestran los VALORES de los campos personales: no hace falta verlos para suprimirlos.)");
+  console.log("  crm_quotes  → " + cotizaciones.length + " cotización(es)  [SE DESASOCIAN: lead_id → \"" +
+    DESASOCIADO + "\"]");
+  cotizaciones.forEach((c) => console.log("     · cotización: " + c.id));
+  console.log("  crm_sales   → " + ventas.length + " venta(s)  [SE DESASOCIAN: lead_id → \"" + DESASOCIADO + "\"]");
+  ventas.forEach((v) => console.log("     · venta: " + v.id));
+  console.log("\n  Los importes se conservan: son registro comercial y no identifican a la persona.");
+  console.log("  (No se muestran los VALORES de los campos personales: no hace falta verlos para suprimirlos.)");
 
   if (!CONFIRMAR) {
     console.log("\nSIMULACIÓN. No se ha borrado nada.");
@@ -131,22 +177,63 @@ function confirmarDoble() {
     process.exit(1);
   }
 
-  /* 3. Borrado: primero las notas, después el prospecto */
+  /* 3a. Desasociación de referencias comerciales (R04).
+     ORDEN Y ABORTO: si no se consigue desasociar, NO se borra nada más.
+     Antes se seguía adelante y se borraba el prospecto igualmente, dejando una
+     cotización apuntando a un documento que ya no existía; y como la reiteración
+     empieza leyendo el prospecto, al no existir respondía «nada que hacer»: la
+     referencia colgando quedaba IRREPARABLE. Abortando aquí, el procedimiento se puede
+     repetir: la desasociación es idempotente y el resto del trabajo sigue pendiente. */
+  let desasociadas = 0, fallosRefs = 0;
+  for (const c of cotizaciones) {
+    try { await desasociar(H, "crm_quotes", c.id); desasociadas++; }
+    catch (e) { fallosRefs++; console.error("  " + e.message); }
+  }
+  for (const v of ventas) {
+    try { await desasociar(H, "crm_sales", v.id); desasociadas++; }
+    catch (e) { fallosRefs++; console.error("  " + e.message); }
+  }
+  if (fallosRefs) {
+    console.error("\nINCOMPLETO: no se pudieron desasociar " + fallosRefs + " referencia(s).");
+    console.error("El prospecto NO se ha borrado: el número queda reservado y el procedimiento");
+    console.error("puede repetirse tal cual cuando se resuelva el problema.");
+    registrar("INCOMPLETO_REFERENCIAS · refs_fallidas=" + fallosRefs + " · prospecto_conservado=true");
+    process.exit(3);
+  }
+
+  /* 3b. Notas. Si alguna no se borra, tampoco se borra el prospecto ni el marcador:
+     unas notas huérfanas ya no se podrían localizar después ni con este procedimiento. */
   let borradas = 0, fallosNotas = 0;
   for (const n of notas) {
     const r = await fetch(`${DOCS}/crm_leads/${ID}/notas/${n}`, { method: "DELETE", headers: H });
     if (r.ok) borradas++; else { fallosNotas++; console.error("  ERROR al borrar la nota " + n + ": HTTP " + r.status); }
   }
-  /* A03: el marcador crm_dedup/{telefono} impide volver a registrar el número. Si no se
-     borra, el teléfono quedaría «reservado» para siempre por un prospecto que ya no
-     existe. Se elimina junto con el prospecto. */
+  if (fallosNotas) {
+    console.error("\nINCOMPLETO: quedan " + fallosNotas + " nota(s) sin borrar.");
+    console.error("El prospecto NO se ha borrado: sus notas siguen siendo alcanzables y el");
+    console.error("procedimiento puede repetirse tal cual.");
+    registrar("INCOMPLETO_NOTAS · fallos_notas=" + fallosNotas + " · prospecto_conservado=true");
+    process.exit(3);
+  }
+
+  /* 3c. Marcador. Si sobrevive, el número queda reservado para siempre por un prospecto
+     que ya no existe: eso no es una supresión completa. Un 404 significa que ya no
+     estaba, que es justo el estado deseado (reanudación tras una ejecución anterior). */
   const telefono = doc.fields && doc.fields.telefono && doc.fields.telefono.stringValue;
   let borradoMarcador = "no aplica";
   if (telefono) {
     const rm = await fetch(`${DOCS}/crm_dedup/${telefono}`, { method: "DELETE", headers: H });
-    borradoMarcador = rm.ok ? "sí" : ("NO (HTTP " + rm.status + ")");
+    borradoMarcador = rm.ok ? "sí" : (rm.status === 404 ? "sí (ya no estaba)" : ("NO (HTTP " + rm.status + ")"));
+  }
+  if (telefono && borradoMarcador.startsWith("NO")) {
+    console.error("\nINCOMPLETO: el marcador de deduplicación sigue reservando el número.");
+    console.error("El prospecto NO se ha borrado: el número no quedaría libre y el procedimiento");
+    console.error("puede repetirse tal cual.");
+    registrar("INCOMPLETO_MARCADOR · prospecto_conservado=true");
+    process.exit(3);
   }
 
+  /* 3d. Prospecto. Es lo ÚLTIMO: mientras exista, el trabajo pendiente es localizable. */
   const borradoLead = await fetch(`${DOCS}/crm_leads/${ID}`, { method: "DELETE", headers: H });
 
   /* 4. Verificación posterior */
@@ -154,16 +241,29 @@ function confirmarDoble() {
   const quedanNotas = await fetch(`${DOCS}/crm_leads/${ID}/notas?pageSize=300`, { headers: H });
   const restantes = quedanNotas.ok ? ((await quedanNotas.json()).documents || []).length : 0;
 
+  /* R04: ninguna referencia puede seguir apuntando al prospecto suprimido. */
+  const refsVivas = (await listarTodas(H, "crm_quotes", "crm_quotes"))
+    .filter((c) => valorDe(c.fields, "lead_id") === ID).map((c) => "cotización " + c.id)
+    .concat((await listarTodas(H, "crm_sales", "crm_sales"))
+      .filter((v) => valorDe(v.fields, "lead_id") === ID).map((v) => "venta " + v.id));
+
   console.log("\n--- RESULTADO ---");
+  console.log("  referencias desasociadas " + desasociadas + "/" + (cotizaciones.length + ventas.length) +
+    (fallosRefs ? "  (fallos: " + fallosRefs + ")" : ""));
   console.log("  notas borradas ......... " + borradas + "/" + notas.length + (fallosNotas ? "  (fallos: " + fallosNotas + ")" : ""));
   console.log("  marcador de deduplicación borrado ... " + borradoMarcador);
   console.log("  prospecto borrado ...... " + (borradoLead.ok ? "sí" : "NO (HTTP " + borradoLead.status + ")"));
   console.log("  verificación: prospecto " + (quedaLead.status === 404 ? "ausente ✓" : "TODAVÍA EXISTE ✗"));
   console.log("  verificación: notas restantes " + restantes + (restantes === 0 ? " ✓" : " ✗"));
-
-  const ok = quedaLead.status === 404 && restantes === 0 && fallosNotas === 0;
+  console.log("  verificación: referencias vivas " + refsVivas.length +
+    (refsVivas.length === 0 ? " ✓" : " ✗  → " + refsVivas.join(", ")));
+  const ok = quedaLead.status === 404 && restantes === 0 && fallosNotas === 0 &&
+    fallosRefs === 0 && refsVivas.length === 0 &&
+    (!telefono || borradoMarcador.startsWith("sí"));
   registrar((ok ? "COMPLETADO" : "INCOMPLETO") + " · notas_borradas=" + borradas +
-    "/" + notas.length + " · lead_eliminado=" + (quedaLead.status === 404) + " · notas_restantes=" + restantes);
+    "/" + notas.length + " · refs_desasociadas=" + desasociadas + "/" + (cotizaciones.length + ventas.length) +
+    " · lead_eliminado=" + (quedaLead.status === 404) + " · notas_restantes=" + restantes +
+    " · refs_vivas=" + refsVivas.length);
   console.log("  registro escrito en crm-dev/supresiones.log (sin datos personales)");
 
   process.exit(ok ? 0 : 3);

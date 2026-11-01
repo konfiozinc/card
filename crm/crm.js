@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, setDoc, getDocs, query, orderBy, limit, updateDoc,
-  addDoc, serverTimestamp, where, arrayUnion, deleteDoc, writeBatch }
+  addDoc, serverTimestamp, where, arrayUnion, writeBatch }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { registrarProspectoInterno } from "./alta-prospecto.js";
 
@@ -353,6 +353,7 @@ $("#btn-alta").addEventListener("click", async () => {
     industria: "Elige una industria válida.",
     consentimiento: "Debes confirmar que el prospecto autorizó el contacto.",
     duplicado: "Ya existe un prospecto con ese WhatsApp.",
+    conflicto: "Otra operación simultánea está registrando ese WhatsApp. Vuelve a intentarlo.",
     permiso: "Tu rol no puede registrar prospectos.",
     sesion: "Vuelve a iniciar sesión.",
   };
@@ -639,47 +640,20 @@ $("#btn-venta").addEventListener("click", async () => {
   aviso("Venta confirmada registrada por " + pesos(monto) + ".", "ok");
 });
 
-/* ── privacidad: supresión de datos y borrado (sólo administración) ── */
-$("#btn-anonimizar").addEventListener("click", async () => {
-  if (!leadActual) return;
-  if (sesion.rol !== "admin") { aviso("Tu rol no puede suprimir datos de prospectos.", "err"); return; }
-  if (!window.confirm("¿Suprimir los datos personales de este prospecto?\n\nSe borrarán el nombre y todo el historial de notas. Se conservará el número de teléfono, porque es el identificador que impide volver a duplicarlo. Esta acción no se puede deshacer.")) return;
-  try {
-    /* SEG-02: se vacía el historial, que es donde de verdad viven los datos
-       personales (nombres, direcciones, notas libres). El teléfono se conserva
-       porque ES el id del documento; por eso esto se presenta como supresión
-       parcial y no como anonimización completa. */
-    await updateDoc(doc(db, "crm_leads", leadActual.id), {
-      nombre: "[eliminado]",
-      servicio_interes: null,
-      anonimizado: true,
-      historial: [],
-    });
-    await auditar("lead_anonimizado", leadActual.id);
-    await cargarLeads(); await pintarStats(); await abrirLead(leadActual.id);
-    await pintarAuditoria();
-    aviso("Datos personales suprimidos: nombre e historial borrados. El número se conserva para no volver a duplicarlo.", "ok");
-  } catch (e) {
-    aviso("No se pudieron suprimir los datos: " + (e.code || e.message), "err");
-  }
-});
-
-$("#btn-borrar-lead").addEventListener("click", async () => {
-  if (!leadActual) return;
-  if (sesion.rol !== "admin") { aviso("Tu rol no puede borrar prospectos.", "err"); return; }
-  const id = leadActual.id;
-  if (!window.confirm("¿Borrar definitivamente el prospecto " + id + "? Esta acción no se puede deshacer.")) return;
-  try {
-    await auditar("lead_borrado", id);
-    await deleteDoc(doc(db, "crm_leads", id));
-    $("#detalle").hidden = true;
-    leadActual = null;
-    await cargarLeads(); await pintarStats();
-    aviso("Prospecto borrado. El número queda libre.", "ok");
-  } catch (e) {
-    aviso("No se pudo borrar: " + (e.code || e.message), "err");
-  }
-});
+/* ── privacidad: los recorridos del navegador SE HAN RETIRADO (R05) ──────────
+   Aquí vivían dos manejadores, «Suprimir datos personales» y «Borrar prospecto».
+   Los dos eran incompletos y se han eliminado:
+     · el de supresión escribía `historial: []`, que las reglas ya NO permiten —el
+       historial es inmutable incluso para administración—, así que en la práctica
+       fallaba con permission-denied; y aunque hubiera funcionado no tocaba la
+       subcolección de notas ni el marcador del número;
+     · el de borrado hacía un deleteDoc del prospecto y nada más: dejaba las notas, el
+       marcador crm_dedup y las cotizaciones y ventas apuntando a un documento que ya no
+       existía. Peor aún, avisaba de que «el número queda libre» cuando el marcador
+       seguía reservándolo, de modo que el número NO se podía volver a registrar.
+   La supresión y el borrado son ahora un procedimiento privilegiado (crm-dev/
+   suprimir-datos.cjs) que se ejecuta desde un equipo de confianza. Esta página no
+   conserva ninguna vía para hacerlo: el bloque de privacidad sólo informa. */
 
 /* ── estadísticas y auditoría ── */
 async function pintarStats() {
