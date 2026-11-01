@@ -170,12 +170,29 @@ function confirmarDoble() {
     console.log("  · copia heredada del mismo número: " +
       (gemeloIlegible ? "NO SE PUDO COMPROBAR" : (hayGemelo ? "PRESENTE" : "no existía")));
 
+    if (!telResidual) {
+      console.error("\nINCOMPLETO: el marcador del número ya no existe, así que NO se puede");
+      console.error("comprobar si queda la copia heredada de la MISMA persona. No se libera el");
+      console.error("testigo: el prospecto sigue bloqueado hasta resolverlo a mano.");
+      registrar("INCOMPLETO_SIN_MARCADOR · testigo_conservado=true");
+      process.exit(3);
+    }
     if (!CONFIRMAR) {
       console.log("\nSIMULACIÓN. No se ha modificado nada.");
       console.log("Para limpiar los residuos y liberar el testigo: añade --confirmar.");
       process.exit(0);
     }
 
+    /* Helper LOCAL: en esta rama no se puede usar el borrarSiNoCambio del flujo
+       principal porque está definido más abajo (se llamaba antes de existir). */
+    const borrarConPrecond = async (ruta, ut, etiqueta) => {
+      if (!ut) { console.error("  ERROR: sin updateTime no se borra " + etiqueta); return false; }
+      const r = await fetch(`${DOCS}:commit`, { method: "POST", headers: { ...H, "content-type": "application/json" },
+        body: JSON.stringify({ writes: [{ delete: `${PREFIJO}/${ruta}`, currentDocument: { updateTime: ut } }] }) });
+      if (r.ok || r.status === 404) return true;
+      console.error("  ERROR al borrar " + etiqueta + ": HTTP " + r.status);
+      return false;
+    };
     let fallos = 0;
     for (const c of cotRes) { try { await desasociar(H, "crm_quotes", c.id); } catch (e) { fallos++; console.error("  " + e.message); } }
     for (const v of venRes) { try { await desasociar(H, "crm_sales", v.id); } catch (e) { fallos++; console.error("  " + e.message); } }
@@ -188,9 +205,9 @@ function confirmarDoble() {
       for (const n of await listarTodas(H, `crm_leads/${telResidual}/notas`, "notas heredadas")) {
         const d = await fetch(`${DOCS}/crm_leads/${telResidual}/notas/${n.id}`, { headers: H });
         const utn = d.ok ? (await d.json()).updateTime : null;
-        if (!(await borrarSiNoCambio(`crm_leads/${telResidual}/notas/${n.id}`, utn, "nota heredada"))) fallos++;
+        if (!(await borrarConPrecond(`crm_leads/${telResidual}/notas/${n.id}`, utn, "nota heredada"))) fallos++;
       }
-      if (!(await borrarSiNoCambio(`crm_leads/${telResidual}`, ut, "el prospecto heredado"))) fallos++;
+      if (!(await borrarConPrecond(`crm_leads/${telResidual}`, ut, "el prospecto heredado"))) fallos++;
     }
     if (gemeloIlegible) { fallos++; console.error("  no se pudo comprobar la copia heredada: no se libera el testigo"); }
 

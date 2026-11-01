@@ -289,10 +289,12 @@ async function revertir(H) {
      borrado en la que puede entrar una nota nueva, que se destruiria con una precondicion
      perfectamente valida. Se pone para todas las entradas; si la comprobacion rechaza la
      reversion, se retira sin dejar bloqueos. */
-  await commit(H, entradas.map(([, e]) => ({ update: {
+  const ponerTestigos = () => commit(H, entradas.map(([, e]) => ({ update: {
     name: `${PREFIJO}/crm_supresion/${e.uuid}`,
     fields: { estado: { stringValue: "reversion" }, desde: { timestampValue: new Date().toISOString() },
       id_sha256: { stringValue: sha(e.uuid).slice(0, 16) } } } })));
+  /* En SIMULACIÓN no se escribe nada: los testigos sólo se ponen si se va a ejecutar. */
+  if (CONFIRMAR) await ponerTestigos();
 
   const problemas = [], detalle = [];
 
@@ -374,9 +376,12 @@ async function revertir(H) {
   if (problemas.length) {
     console.error("\nREVERSIÓN RECHAZADA: se perdería información creada después de la migración.");
     problemas.forEach((p) => console.error("  · " + p));
+    let fallosRetirada = 0;
     for (const [, e] of entradas) {
-      await fetch(`${DOCS}/crm_supresion/${e.uuid}`, { method: "DELETE", headers: H }).catch(() => {});
+      const rl = await fetch(`${DOCS}/crm_supresion/${e.uuid}`, { method: "DELETE", headers: H }).catch(() => null);
+      if (!rl || (!rl.ok && rl.status !== 404)) fallosRetirada++;
     }
+    if (fallosRetirada) console.error("  ATENCIÓN: " + fallosRetirada + " testigo(s) no se pudieron retirar; ejecuta crm-dev/suprimir-datos.cjs --id <id> --confirmar para limpiarlos.");
     console.error("\nNo se ha modificado ningún documento (se retiraron los testigos).");
     process.exit(3);
   }
