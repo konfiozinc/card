@@ -43,14 +43,19 @@ const sembrarRol = (uid, rol, nombre, activo) => fetch(`${FS}/crm_usuarios/${uid
 const H = (tok) => tok ? { authorization: "Bearer " + tok, "content-type": "application/json" }
                        : { "content-type": "application/json" };
 
+/* R06: desde el modelo UUID el identificador del prospecto ya NO es el teléfono. Para no
+   reescribir cada llamada de esta batería, el id de prueba se DERIVA del teléfono
+   (ver crm-dev/lib/alta-uuid.cjs): cada suite sigue hablando de TEL_A y calcula su id. */
+const { idDePrueba } = require("./lib/alta-uuid.cjs");
+
 /* A03: alta atómica prospecto + marcador de deduplicación (las reglas lo exigen con
    getAfter). Devuelve el código HTTP. */
 const altaConMarcador = (tel, uid, tok, camposLead) => fetch(FS + ":commit", {
   method: "POST", headers: H(tok),
   body: JSON.stringify({ writes: [
-    { update: { name: "projects/demo-crm-016/databases/default/documents/crm_leads/" + tel, fields: camposLead } },
+    { update: { name: "projects/demo-crm-016/databases/default/documents/crm_leads/" + idDePrueba(tel), fields: camposLead } },
     { update: { name: "projects/demo-crm-016/databases/default/documents/crm_dedup/" + tel,
-      fields: { lead_id: { stringValue: tel }, creado_en: { timestampValue: TS(0) },
+      fields: { lead_id: { stringValue: idDePrueba(tel) }, creado_en: { timestampValue: TS(0) },
                 creado_por: { stringValue: uid } } } },
   ] }),
 }).then((r) => r.status);
@@ -81,16 +86,16 @@ const camposLead = (tel, uid, asignado) => {
 const crearLead = (tel, uid, tok, asignado) =>
   altaConMarcador(tel, uid, tok, camposLead(tel, uid, asignado));
 
-const leerLead = (tel, tok) => fetch(`${FS}/crm_leads/${tel}`, { headers: H(tok) }).then((r) => r.status);
+const leerLead = (tel, tok) => fetch(`${FS}/crm_leads/${idDePrueba(tel)}`, { headers: H(tok) }).then((r) => r.status);
 
-const parche = (tel, fields, tok, mask) => fetch(`${FS}/crm_leads/${tel}${mask ? "?updateMask.fieldPaths=" + mask : ""}`, {
+const parche = (tel, fields, tok, mask) => fetch(`${FS}/crm_leads/${idDePrueba(tel)}${mask ? "?updateMask.fieldPaths=" + mask : ""}`, {
   method: "PATCH", headers: H(tok), body: JSON.stringify({ fields }),
 }).then((r) => r.status);
 
 const crearCotizacion = (leadId, uid, tok, plan, monto) => fetch(`${FS}/crm_quotes`, {
   method: "POST", headers: H(tok),
   body: JSON.stringify({ fields: {
-    lead_id: { stringValue: leadId }, plan: { stringValue: plan || "pro" },
+    lead_id: { stringValue: idDePrueba(leadId) }, plan: { stringValue: plan || "pro" },
     monto: { integerValue: monto || 99900 }, moneda: { stringValue: "COP" },
     estado: { stringValue: "enviada" }, creado_por: { stringValue: uid },
     creado_en: { timestampValue: TS(0) },
@@ -100,7 +105,7 @@ const crearCotizacion = (leadId, uid, tok, plan, monto) => fetch(`${FS}/crm_quot
 const crearVenta = (leadId, quoteId, uid, tok, monto) => fetch(`${FS}/crm_sales?documentId=${quoteId}`, {
   method: "POST", headers: H(tok),
   body: JSON.stringify({ fields: {
-    lead_id: { stringValue: leadId }, quote_id: { stringValue: quoteId },
+    lead_id: { stringValue: idDePrueba(leadId) }, quote_id: { stringValue: quoteId },
     monto: { integerValue: monto || 99900 }, moneda: { stringValue: "COP" },
     confirmado_por: { stringValue: uid }, confirmado_en: { timestampValue: TS(0) },
   } }),

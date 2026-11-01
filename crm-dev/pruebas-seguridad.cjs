@@ -42,12 +42,27 @@ const valido = (tel) => ({
   origen: { stringValue: "formulario-web" },
 });
 
-/** Alta anónima con id explícito: el id ES el teléfono. */
-const alta = (id, campos) => fetch(`${FS}/crm_leads?documentId=${id}`, {
-  method: "POST",
-  headers: { "content-type": "application/json" },
-  body: JSON.stringify({ fields: campos }),
-}).then((r) => r.status);
+/** Alta anónima tal como la hace ahora el formulario (KZ-CRM-018 · P4): el prospecto
+ *  nace con un UUID v4 y el número se reserva con el marcador crm_dedup en el MISMO lote.
+ *  Devuelve el código HTTP.
+ *  @param tel  teléfono del prospecto (identifica el marcador, no el documento)
+ *  @param campos campos del prospecto
+ *  @param idElegido id concreto para probar identificadores inválidos */
+const crypto = require("node:crypto");
+const PREFIJO = "projects/demo-crm-016/databases/default/documents";
+const alta = (tel, campos, idElegido) => {
+  const id = idElegido || crypto.randomUUID();
+  return fetch(`${FS}:commit`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ writes: [
+      { update: { name: `${PREFIJO}/crm_leads/${id}`, fields: campos } },
+      { update: { name: `${PREFIJO}/crm_dedup/${tel}`, fields: {
+        lead_id: { stringValue: id }, creado_en: { timestampValue: TS(0) },
+        creado_por: { stringValue: "formulario-web" } } } },
+    ] }),
+  }).then((r) => r.status);
+};
 
 const parche = (ruta, campos, headers) => fetch(`${FS}/${ruta}`, {
   method: "PATCH",
@@ -68,12 +83,16 @@ const altaUsuario = async (email) => {
 
 (async () => {
   console.log("=== A. Alta pública válida (control positivo)");
-  chk("alta válida anónima con id = teléfono", (await alta("3101110001", valido("3101110001"))) === 200);
+  /* R06 · El prospecto nace con UUID v4, no con el teléfono como id. */
+  chk("alta válida anónima con UUID v4", (await alta("3101110001", valido("3101110001"))) === 200);
+  chk("alta anónima con id = teléfono RECHAZADA",
+    (await alta("3101110021", valido("3101110021"), "3101110021")) === 403);
+  chk("alta anónima con id que no es UUID v4 RECHAZADA",
+    (await alta("3101110022", valido("3101110022"), "otro-id")) === 403);
 
-  console.log("\n=== B. Teléfono duplicado (deduplicación por identidad de documento)");
+  console.log("\n=== B. Teléfono duplicado (deduplicación por marcador)");
   const dup = await alta("3101110001", valido("3101110001"));
   chk("segundo alta del mismo teléfono rechazada", dup === 409 || dup === 403, "HTTP " + dup);
-  chk("id distinto del teléfono rechazado", (await alta("otro-id", valido("3101110002"))) === 403);
 
   console.log("\n=== C. Campo no permitido");
   const extra = Object.assign(valido("3101110003"), { rol: { stringValue: "admin" } });
@@ -120,18 +139,24 @@ const altaUsuario = async (email) => {
   chk("estado inicial distinto de «nuevo» rechazado", (await alta("3101110018", estadoMalo)) === 403);
 
   console.log("\n=== G. Manipulación del marcador de deduplicación");
-  /* El diseño vigente NO usa una colección de marcadores reservables: el id del
-     prospecto es el teléfono. Estas comprobaciones demuestran que (1) no existe
-     ninguna colección paralela que un anónimo pueda ocupar, y (2) aun intentándolo,
-     no puede liberar ni reservar un número. */
-  chk("anónimo NO puede crear un marcador en crm_dedupe",
-    (await fetch(`${FS}/crm_dedupe?documentId=3101110001`, {
+  /* El número se reserva con `crm_dedup/{telefono}`. Un anónimo participa en su creación
+     sólo como parte del alta (prospecto + marcador), y no puede leerlo, borrarlo,
+     sobrescribirlo ni crear uno suelto. */
+  chk("anónimo NO puede crear un marcador suelto (sin prospecto detrás)",
+    (await fetch(`${FS}/crm_dedup/3101110031`, {
       method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ fields: { telefono: { stringValue: "3101110001" } } }),
-    }).then((r) => r.status)) === 403);
-  chk("anónimo NO puede leer crm_dedupe", (await fetch(`${FS}/crm_dedupe`)).status === 403);
+      body: JSON.stringify({ fields: {
+        lead_id: { stringValue: crypto.randomUUID() },
+        creado_en: { timestampValue: TS(0) }, creado_por: { stringValue: "anonimo" } } }),
+    }).then((r) => r.status)) >= 400);
+  chk("anónimo NO puede leer crm_dedup", (await fetch(`${FS}/crm_dedup`)).status === 403);
   chk("anónimo NO puede borrar un marcador",
-    (await fetch(`${FS}/crm_dedupe/3101110001`, { method: "DELETE" })).status === 403);
+    (await fetch(`${FS}/crm_dedup/3101110001`, { method: "DELETE" })).status === 403);
+  chk("anónimo NO puede sobrescribir el marcador de un número ya reservado",
+    (await fetch(`${FS}/crm_dedup/3101110001`, {
+      method: "PATCH", headers: { "content-type": "application/json" },
+      body: JSON.stringify({ fields: { lead_id: { stringValue: crypto.randomUUID() } } }),
+    }).then((r) => r.status)) === 403);
   chk("el número ya registrado sigue bloqueado pese a intentar liberarlo",
     (await alta("3101110001", valido("3101110001"))) !== 200);
 
@@ -180,14 +205,19 @@ const altaUsuario = async (email) => {
   const docs = cuerpo.documents || [];
   chk("el miembro del equipo con rol admin lee los prospectos", lectura.status === 200, "documentos=" + docs.length);
 
-  const ocurrencias = docs.filter((d) => d.name.endsWith("/" + telConcurrente)).length;
+  /* El id ya no es el teléfono: se cuenta por el campo `telefono`. */
+  const ocurrencias = docs.filter((d) => {
+    const f = (d.fields || {}).telefono;
+    return f && f.stringValue === telConcurrente;
+  }).length;
   chk("el prospecto concurrente quedó guardado una sola vez", ocurrencias === 1, "ocurrencias=" + ocurrencias);
 
-  const marcadores = await fetch(`${FS}/crm_dedupe`, { headers: OWNER });
-  const cuerpoMarcadores = await marcadores.json().catch(() => ({}));
-  chk("crm_dedupe existe pero está vacía: no hay marcadores reservables",
-    marcadores.status === 200 && (cuerpoMarcadores.documentCount || 0) === 0,
-    "documentCount=" + (cuerpoMarcadores.documentCount || 0));
+  const marcadorConcurrente = await fetch(`${FS}/crm_dedup/${telConcurrente}`, { headers: OWNER })
+    .then((r) => r.ok ? r.json() : null);
+  chk("hay exactamente un marcador para el número disputado", !!marcadorConcurrente);
+  chk("el marcador apunta al prospecto que sí se guardó",
+    !!marcadorConcurrente &&
+    docs.some((d) => d.name.endsWith("/" + marcadorConcurrente.fields.lead_id.stringValue)));
 
   console.log("\nRESULTADO SEGURIDAD (reglas de producción): PASS " + ok + " · FALLA " + ko);
   process.exit(ko ? 3 : 0);

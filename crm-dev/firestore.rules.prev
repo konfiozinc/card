@@ -1,0 +1,351 @@
+rules_version = '2';
+
+/* KZ-CRM-018 · reglas de PRODUCCIÓN — MODO PRIVADO CON ASIGNACIÓN
+   Proyecto kzfio-crm · base Firestore «default» (identificador literal)
+   · release de destino: cloud.firestore/default
+
+   MODELO DE ACCESO (decidido por Darwin, 2-nov-2026)
+   ┌───────────┬──────────────────────┬──────────────────────────────────────┐
+   │ Rol       │ Ve                   │ Puede                                │
+   ├───────────┼──────────────────────┼──────────────────────────────────────┤
+   │ admin     │ toda la cartera      │ todo, incluidas asignaciones         │
+   │ comercial │ sólo lo asignado     │ seguimiento y cotizaciones           │
+   │ ventas    │ sólo lo asignado     │ seguimiento y confirmar ventas       │
+   │ lectura   │ sólo lo asignado     │ nada: ninguna escritura              │
+   └───────────┴──────────────────────┴──────────────────────────────────────┘
+   Sólo admin asigna y reasigna.
+
+   PRINCIPIO: la restricción vive en las reglas, no en la interfaz. Ocultar un botón
+   no es seguridad; que el servidor rechace la operación sí lo es.
+
+   La captación pública sigue CERRADA: no hay ninguna escritura anónima. */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function autenticado() { return request.auth != null; }
+
+    function ficha() {
+      return get(/databases/$(database)/documents/crm_usuarios/$(request.auth.uid)).data;
+    }
+    function existeFicha() {
+      return exists(/databases/$(database)/documents/crm_usuarios/$(request.auth.uid));
+    }
+    function tieneRol(roles) {
+      return autenticado() && existeFicha() && ficha().activo == true && ficha().rol in roles;
+    }
+    function equipo() { return ['admin', 'comercial', 'ventas', 'lectura']; }
+    function esAdmin() { return tieneRol(['admin']); }
+
+    /* Asignación: devuelve el asesor de un prospecto, o null si no tiene.
+       Se comprueba `in` antes de leer para no provocar error en documentos
+       antiguos creados antes de esta fase (no tienen el campo). */
+    function asignadoA(doc) {
+      return ('asignado_a' in doc && doc.asignado_a is string) ? doc.asignado_a : null;
+    }
+    function esMio(doc) {
+      return asignadoA(doc) != null && asignadoA(doc) == request.auth.uid;
+    }
+
+    /* Verdadero si el prospecto con ese id está asignado al usuario actual. */
+    function leadEsMio(leadId) {
+      return exists(/databases/$(database)/documents/crm_leads/$(leadId))
+        && asignadoA(get(/databases/$(database)/documents/crm_leads/$(leadId)).data) == request.auth.uid;
+    }
+
+    /* Versión de consentimiento vigente: debe coincidir con la del cliente. */
+    function versionConsentimiento() { return 'v1-2026-11'; }
+
+    /* Retención: nunca en el pasado y nunca más de 3 años. */
+    function retencionValida(ts) {
+      return ts is timestamp
+        && ts > request.time
+        && ts <= request.time + duration.value(1095, 'd');
+    }
+
+    /* Fecha: instante del servidor con ±5 min de tolerancia de reloj. */
+    function fechaValida(ts) {
+      return ts is timestamp
+        && ts >= request.time - duration.value(5, 'm')
+        && ts <= request.time + duration.value(5, 'm');
+    }
+
+    function nombreValido(n) {
+      return n is string && n.size() >= 2 && n.size() <= 60;
+    }
+    function telefonoValido(t) {
+      return t is string && t.size() >= 10 && t.size() <= 15 && t.matches('^[0-9]+$');
+    }
+    function industriaValida(i) {
+      return i is string && i.size() >= 2 && i.size() <= 40 && i.matches('^[a-z0-9-]+$');
+    }
+
+    /* ── Roles ────────────────────────────────────────────────────────────
+       Cada usuario lee su ficha; el administrador lee todas para poder
+       gestionar el equipo. NADIE escribe roles desde el navegador: ni siquiera
+       admin. El alta y la baja de roles es un procedimiento privilegiado. */
+    match /crm_usuarios/{uid} {
+      allow read: if autenticado() && (request.auth.uid == uid || esAdmin());
+      allow write: if false;
+    }
+
+    /* ── Deduplicación por teléfono (A03) ─────────────────────────────────
+       Marcador que garantiza un solo prospecto vivo por número. Se crea en la MISMA
+       transacción que el prospecto; no puede existir sin él (se verifica el teléfono
+       del prospecto referido) ni el prospecto sin él. Dos altas simultáneas del mismo
+       número no pueden prosperar las dos.
+       Es inmutable desde el navegador: sólo el procedimiento privilegiado de supresión
+       lo elimina, cuando se suprime el prospecto al que apunta.
+       Sólo lo lee administración: un asesor no puede deducir números de otros. */
+    match /crm_dedup/{telefono} {
+      allow read: if esAdmin();
+      allow create: if tieneRol(['admin','comercial','ventas'])
+        && request.resource.data.keys().hasOnly(['lead_id','creado_en','creado_por'])
+        && request.resource.data.keys().hasAll(['lead_id','creado_en','creado_por'])
+        && request.resource.data.creado_por == request.auth.uid
+        && request.resource.data.lead_id is string
+        && request.resource.data.lead_id.size() >= 8
+        && fechaValida(request.resource.data.creado_en)
+        /* La comprobación debe ser getAfter(): dentro del mismo lote, exists()/get()
+           ven el estado ANTERIOR, y el prospecto se está creando en esta misma
+           operación. Con getAfter() se ve el resultado, que es lo que queremos. */
+        && getAfter(/databases/$(database)/documents/crm_leads/$(request.resource.data.lead_id)).data.telefono == telefono;
+      allow update, delete: if false;
+    }
+    /* ── Prospectos ───────────────────────────────────────────────────────
+       El identificador del documento ES el teléfono: la unicidad la impone el
+       almacén y el prospecto no puede duplicarse ni desincronizarse. */
+    match /crm_leads/{leadId} {
+      allow read: if esAdmin()
+        || (tieneRol(equipo()) && esMio(resource.data));
+
+      allow create: if tieneRol(['admin', 'comercial', 'ventas'])
+        /* A03: el id del prospecto es un UUID, no el teléfono. La unicidad del número
+           se garantiza con el marcador crm_dedup/{telefono}, que debe existir DESPUÉS de
+           la transacción y apuntar a ESTE prospecto. getAfter() ve el estado posterior,
+           así que el alta del prospecto y la del marcador van juntas o no van. */
+        && getAfter(/databases/$(database)/documents/crm_dedup/$(request.resource.data.telefono)).data.lead_id == leadId
+        && request.resource.data.keys().hasOnly([
+             'nombre','telefono','industria','servicio_interes','consentimiento',
+             'consentimiento_version','retencion_hasta','estado','creado_en',
+             'historial','origen','anonimizado','creado_por',
+             'asignado_a','asignado_en','asignado_por'])
+        && request.resource.data.keys().hasAll([
+             'nombre','telefono','industria','consentimiento','consentimiento_version',
+             'retencion_hasta','estado','creado_en','creado_por'])
+        && request.resource.data.creado_por == request.auth.uid
+        /* H01 (auditoría KZ-CRM-018): SÓLO admin puede rellenar los campos de
+           asignación al crear. Antes se permitía «asignarme a mí mismo», que es
+           autoasignación y contradice el modelo decidido. Un prospecto creado por
+           comercial/ventas nace SIN asignar y lo asigna la administración. */
+        && (esAdmin()
+             ? (!('asignado_a' in request.resource.data)
+                 || request.resource.data.asignado_a == null
+                 || request.resource.data.asignado_a is string)
+             : (!('asignado_a' in request.resource.data) || request.resource.data.asignado_a == null))
+        && (esAdmin() || !('asignado_en' in request.resource.data))
+        && (esAdmin() || !('asignado_por' in request.resource.data))
+        && nombreValido(request.resource.data.nombre)
+        && telefonoValido(request.resource.data.telefono)
+        && industriaValida(request.resource.data.industria)
+        /* A02 (auditoría Codex): la supresión pone servicio_interes a null, y la
+           validación exigía que fuera cadena. Se permite null explícitamente. */
+        && (!('servicio_interes' in request.resource.data)
+             || request.resource.data.servicio_interes == null
+             || (request.resource.data.servicio_interes is string
+                 && request.resource.data.servicio_interes.size() <= 40))
+        && (!('origen' in request.resource.data)
+             || request.resource.data.origen in ['manual','whatsapp','presencial','formulario-web'])
+        && request.resource.data.consentimiento == true
+        && request.resource.data.consentimiento_version == versionConsentimiento()
+        && fechaValida(request.resource.data.creado_en)
+        && retencionValida(request.resource.data.retencion_hasta)
+        && request.resource.data.estado == 'nuevo'
+        && (!('historial' in request.resource.data) || request.resource.data.historial.size() == 0)
+        && (!('anonimizado' in request.resource.data) || request.resource.data.anonimizado == false);
+
+      /* Actualización, con dos caminos distintos:
+         · admin: puede todo lo editable, incluida la asignación;
+         · comercial/ventas: SÓLO sobre lo asignado, y SÓLO seguimiento;
+           no pueden tocar la asignación (eso reasignaría a otro o a sí mismos).
+         · lectura: no llega aquí, `equipo()` no lo incluye en este `allow`. */
+      allow update: if (
+          esAdmin()
+          || (tieneRol(['comercial', 'ventas'])
+              && esMio(resource.data)
+              && !request.resource.data.diff(resource.data).affectedKeys()
+                   .hasAny(['asignado_a','asignado_en','asignado_por','creado_por']))
+        )
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['nombre','industria','servicio_interes','retencion_hasta',
+                       'estado','historial','origen','anonimizado',
+                       'asignado_a','asignado_en','asignado_por'])
+        && (!('anonimizado' in request.resource.data.diff(resource.data).affectedKeys())
+             || esAdmin())
+        && (!request.resource.data.diff(resource.data).affectedKeys()
+              .hasAny(['asignado_a','asignado_en','asignado_por'])
+             || esAdmin())
+        /* H03 CORREGIDO (2-nov-2026). El historial heredado queda CONGELADO:
+             · `historial` ya no está en la lista de claves editables, así que no se
+               puede reescribir ni sustituir por otra lista del mismo tamaño;
+             · el valor debe ser idéntico al que ya había, salvo la ÚNICA excepción
+               legítima: la supresión de datos personales por administración, que lo
+               deja vacío.
+           Las notas nuevas ya no viven aquí: están en la subcolección inmutable
+           crm_leads/{leadId}/notas, donde no se puede modificar ni borrar nada. */
+        /* A01 (auditoría Codex): si el documento NO tenía 'historial' no se puede leer
+           el campo, o la evaluación deniega actualizaciones legítimas (daba 403 al
+           cambiar el estado de un prospecto antiguo). Se comprueba su presencia antes.
+           A02: la excepción de supresión era inalcanzable porque 'historial' estaba
+           excluido de las claves permitidas; ahora vuelve a estarlo, y lo que impide
+           reescribirlo es la igualdad de aquí abajo, no la lista. */
+        /* A02 · OPCIÓN 2 (aprobada por Darwin). El cliente NO puede modificar el
+           historial en ningún caso: se eliminó la excepción de supresión. La supresión
+           de datos personales, incluido el historial y las notas, pasa a ser un
+           procedimiento administrativo privilegiado (crm-dev/suprimir-datos.cjs) que
+           no atraviesa estas reglas. Con esto el historial es inmutable también para
+           el administrador desde el navegador.
+           Se comprueba la presencia del campo antes de leerlo, para no denegar
+           actualizaciones legítimas de prospectos antiguos que no lo tienen. */
+        && (('historial' in resource.data)
+             ? request.resource.data.historial == resource.data.historial
+             : (!('historial' in request.resource.data)
+                || request.resource.data.historial.size() == 0))
+        && (('anonimizado' in resource.data && resource.data.anonimizado == true)
+              ? (esAdmin()
+                 && request.resource.data.nombre == '[eliminado]'
+                 && (!('servicio_interes' in request.resource.data)
+                     || request.resource.data.servicio_interes == null))
+              : true)
+        && request.resource.data.estado in ['nuevo','contactado','cotizado','ganado','perdido']
+        && nombreValido(request.resource.data.nombre)
+        && industriaValida(request.resource.data.industria)
+        && retencionValida(request.resource.data.retencion_hasta);
+
+      allow delete: if esAdmin();
+    }
+
+    /* ── Notas del prospecto: INMUTABLES (corrección de H03) ─────────────
+       Cada nota es un documento propio. NO se puede modificar ni borrar desde el
+       cliente —ni siquiera por el administrador—, así que la historia comercial no
+       se puede reescribir. Corregir una nota no la sobrescribe: se añade otra de
+       tipo «correccion» que la referencia con `referencia_a`.
+
+       Autor y fecha no se pueden falsificar: `autor` debe ser el uid autenticado y
+       `fecha` debe caer en la ventana de reloj del servidor (fechaValida). */
+    match /crm_leads/{leadId}/notas/{notaId} {
+      function leadData() {
+        return get(/databases/$(database)/documents/crm_leads/$(leadId)).data;
+      }
+      function puedoVerlo() {
+        return esAdmin() || (tieneRol(equipo()) && asignadoA(leadData()) == request.auth.uid);
+      }
+      function puedoEscribir() {
+        return esAdmin()
+          || (tieneRol(['comercial','ventas']) && asignadoA(leadData()) == request.auth.uid);
+      }
+
+      allow read: if puedoVerlo();
+
+      allow create: if puedoEscribir()
+        /* A12: el prospecto padre debe existir, también para el admin: una nota
+           huérfana quedaría accesible si el teléfono se reutilizara. */
+        && exists(/databases/$(database)/documents/crm_leads/$(leadId))
+        && request.resource.data.keys().hasOnly(['texto','autor','fecha','tipo','referencia_a'])
+        && request.resource.data.keys().hasAll(['texto','autor','fecha','tipo'])
+        && request.resource.data.autor == request.auth.uid
+        && request.resource.data.texto is string
+        && request.resource.data.texto.size() >= 3
+        && request.resource.data.texto.size() <= 500
+        && request.resource.data.tipo in ['nota','correccion','evento']
+        /* A05: una corrección debe apuntar a una nota real del mismo prospecto. */
+        && (request.resource.data.tipo == 'correccion'
+             ? (('referencia_a' in request.resource.data)
+                && request.resource.data.referencia_a is string
+                && request.resource.data.referencia_a.size() > 0
+                && exists(/databases/$(database)/documents/crm_leads/$(leadId)/notas/$(request.resource.data.referencia_a)))
+             : (!('referencia_a' in request.resource.data)
+                || (request.resource.data.referencia_a is string
+                    && request.resource.data.referencia_a.size() <= 120)))
+        && fechaValida(request.resource.data.fecha);
+
+      /* Inmutables para todos, incluido el administrador. */
+      allow update, delete: if false;
+    }
+
+    /* ── Cotizaciones ─────────────────────────────────────────────────────
+       No son ventas. Importe amarrado a la lista de precios vigente.
+       Un comercial sólo cotiza sobre prospectos asignados a él. */
+    match /crm_quotes/{id} {
+      allow read: if esAdmin()
+        || (tieneRol(equipo()) && leadEsMio(resource.data.lead_id));
+      allow create: if tieneRol(['admin', 'comercial'])
+        && (esAdmin() || leadEsMio(request.resource.data.lead_id))
+        && request.resource.data.keys().hasOnly([
+             'lead_id','plan','monto','moneda','estado','creado_por','creado_en'])
+        && request.resource.data.keys().hasAll(['lead_id','plan','moneda','estado','creado_por','creado_en'])
+        && request.resource.data.creado_por == request.auth.uid
+        && request.resource.data.plan in ['basica','pro','medida']
+        && request.resource.data.moneda == 'COP'
+        && request.resource.data.estado == 'enviada'
+        && fechaValida(request.resource.data.creado_en)
+        && exists(/databases/$(database)/documents/crm_leads/$(request.resource.data.lead_id))
+        && (request.resource.data.plan != 'medida'
+              ? request.resource.data.monto == (request.resource.data.plan == 'basica' ? 49900 : 99900)
+              : request.resource.data.monto == null);
+      allow update: if tieneRol(['admin', 'comercial'])
+        && (esAdmin() || leadEsMio(resource.data.lead_id))
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado'])
+        && request.resource.data.estado in ['enviada','aceptada','rechazada','vencida'];
+      allow delete: if false;
+    }
+
+    /* ── Ventas confirmadas ───────────────────────────────────────────────
+       Una venta por cotización: el id del documento ES el id de la cotización.
+       Moneda COP, importe amarrado al de la cotización (salvo «a medida»),
+       cotización enviada o aceptada, y el prospecto debe existir. */
+    match /crm_sales/{ventaId} {
+      allow read: if esAdmin()
+        || (tieneRol(['ventas']) && leadEsMio(resource.data.lead_id));
+      allow create: if tieneRol(['admin', 'ventas'])
+        && (esAdmin() || leadEsMio(request.resource.data.lead_id))
+        && ventaId == request.resource.data.quote_id
+        && request.resource.data.keys().hasOnly([
+             'lead_id','quote_id','monto','moneda','confirmado_por','confirmado_en'])
+        && request.resource.data.keys().hasAll(['lead_id','quote_id','monto','confirmado_en','confirmado_por'])
+        && request.resource.data.monto is int && request.resource.data.monto > 0
+        && request.resource.data.moneda == 'COP'
+        && request.resource.data.confirmado_por == request.auth.uid
+        && fechaValida(request.resource.data.confirmado_en)
+        && exists(/databases/$(database)/documents/crm_quotes/$(request.resource.data.quote_id))
+        && exists(/databases/$(database)/documents/crm_leads/$(request.resource.data.lead_id))
+        && get(/databases/$(database)/documents/crm_quotes/$(request.resource.data.quote_id)).data.lead_id
+             == request.resource.data.lead_id
+        && get(/databases/$(database)/documents/crm_quotes/$(request.resource.data.quote_id)).data.estado
+             in ['enviada','aceptada']
+        && (get(/databases/$(database)/documents/crm_quotes/$(request.resource.data.quote_id)).data.plan == 'medida'
+              ? true
+              : request.resource.data.monto
+                  == get(/databases/$(database)/documents/crm_quotes/$(request.resource.data.quote_id)).data.monto);
+      allow update, delete: if false;
+    }
+
+    /* ── Auditoría ────────────────────────────────────────────────────────
+       No falsificable e inmutable. Sólo la lee administración. */
+    match /crm_audit/{id} {
+      allow read: if esAdmin();
+      allow create: if tieneRol(['admin','comercial','ventas'])
+        && request.resource.data.keys().hasOnly(['accion','detalle','autor','rol','fecha'])
+        && request.resource.data.autor == request.auth.uid
+        && request.resource.data.rol == ficha().rol
+        && request.resource.data.accion in [
+             'estado_cambiado','nota_añadida','cotizacion_creada','venta_confirmada',
+             'exportacion_csv','lead_anonimizado','lead_borrado','consentimiento_revocado',
+             'prospecto_creado','prospecto_asignado','prospecto_reasignado']
+        && request.resource.data.detalle is string
+        && request.resource.data.detalle.size() <= 300
+        && fechaValida(request.resource.data.fecha);
+      allow update, delete: if false;
+    }
+  }
+}

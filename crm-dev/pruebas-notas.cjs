@@ -21,14 +21,18 @@ let ok = 0, ko = 0;
 const chk = (n, c, e) => { c ? ok++ : ko++; console.log((c ? "  PASS  " : "  FALLA ") + n + (e ? "  (" + e + ")" : "")); };
 const H = (tok) => ({ authorization: "Bearer " + tok, "content-type": "application/json" });
 
+/* R06: desde el modelo UUID el id del prospecto ya no es el teléfono. El id de prueba se
+   deriva del teléfono para no tener que reescribir cada llamada de esta batería. */
+const { idDePrueba } = require("./lib/alta-uuid.cjs");
+
 /* A03: alta atómica prospecto + marcador de deduplicación (las reglas lo exigen con
    getAfter). Devuelve el código HTTP. */
 const altaConMarcador = (tel, uid, tok, camposLead) => fetch(FS + ":commit", {
   method: "POST", headers: H(tok),
   body: JSON.stringify({ writes: [
-    { update: { name: "projects/demo-crm-016/databases/default/documents/crm_leads/" + tel, fields: camposLead } },
+    { update: { name: "projects/demo-crm-016/databases/default/documents/crm_leads/" + idDePrueba(tel), fields: camposLead } },
     { update: { name: "projects/demo-crm-016/databases/default/documents/crm_dedup/" + tel,
-      fields: { lead_id: { stringValue: tel }, creado_en: { timestampValue: TS(0) },
+      fields: { lead_id: { stringValue: idDePrueba(tel) }, creado_en: { timestampValue: TS(0) },
                 creado_por: { stringValue: uid } } } },
   ] }),
 }).then((r) => r.status);
@@ -63,7 +67,7 @@ const crearLead = (tel, uid, tok, asignado) => {
   return altaConMarcador(tel, uid, tok, f);
 };
 
-const nota = (tok, campos) => fetch(`${FS}/crm_leads/3200000001/notas`, {
+const nota = (tok, campos) => fetch(`${FS}/crm_leads/${idDePrueba("3200000001")}/notas`, {
   method: "POST", headers: H(tok), body: JSON.stringify({ fields: campos }) }).then((r) => r.status);
 
 const notaOk = (uid, extra) => Object.assign({
@@ -72,7 +76,7 @@ const notaOk = (uid, extra) => Object.assign({
   tipo: { stringValue: "nota" },
 }, extra || {});
 
-const leerNotas = (tok) => fetch(`${FS}/crm_leads/3200000001/notas`, { headers: H(tok) }).then((r) => r.status);
+const leerNotas = (tok) => fetch(`${FS}/crm_leads/${idDePrueba("3200000001")}/notas`, { headers: H(tok) }).then((r) => r.status);
 
 (async () => {
   const admin = await altaUsuario("admin@notas.test");
@@ -91,7 +95,7 @@ const leerNotas = (tok) => fetch(`${FS}/crm_leads/3200000001/notas`, { headers: 
   /* Se simula un registro HEREDADO de antes de esta fase: se le pone el historial
      antiguo con la credencial privilegiada (que no pasa por las reglas), que es lo
      mismo que ocurre en producción con los prospectos ya existentes. */
-  const legacy = await fetch(FS + "/crm_leads/" + TEL + "?updateMask.fieldPaths=historial", {
+  const legacy = await fetch(FS + "/crm_leads/" + idDePrueba(TEL) + "?updateMask.fieldPaths=historial", {
     method: "PATCH", headers: OWNER,
     body: JSON.stringify({ fields: { historial: { arrayValue: { values: [
       { stringValue: "2026-10-01 · nota antigua del asesor anterior" },
@@ -125,9 +129,9 @@ const leerNotas = (tok) => fetch(`${FS}/crm_leads/3200000001/notas`, { headers: 
     (await nota(asesorA.idToken, notaOk(asesorA.localId, { editada: { booleanValue: true } }))) === 403);
 
   console.log("\n=== C. Las notas son INMUTABLES ===");
-  const listado = await fetch(`${FS}/crm_leads/${TEL}/notas`, { headers: H(admin.idToken) }).then((r) => r.json());
+  const listado = await fetch(`${FS}/crm_leads/${idDePrueba(TEL)}/notas`, { headers: H(admin.idToken) }).then((r) => r.json());
   const idNota = (listado.documents || [])[0].name.split("/").pop();
-  const rutaNota = `${FS}/crm_leads/${TEL}/notas/${idNota}`;
+  const rutaNota = `${FS}/crm_leads/${idDePrueba(TEL)}/notas/${idNota}`;
 
   chk("A NO puede modificar su propia nota",
     (await fetch(`${rutaNota}?updateMask.fieldPaths=texto`, { method: "PATCH", headers: H(asesorA.idToken),
@@ -148,7 +152,7 @@ const leerNotas = (tok) => fetch(`${FS}/crm_leads/3200000001/notas`, { headers: 
   chk("el admin lee todas las notas", (await leerNotas(admin.idToken)) === 200);
 
   console.log("\n=== E. H03 sobre el historial HEREDADO (congelado) ===");
-  const parche = (campos, tok, mask) => fetch(`${FS}/crm_leads/${TEL}?updateMask.fieldPaths=${mask}`, {
+  const parche = (campos, tok, mask) => fetch(`${FS}/crm_leads/${idDePrueba(TEL)}?updateMask.fieldPaths=${mask}`, {
     method: "PATCH", headers: H(tok), body: JSON.stringify({ fields: campos }) }).then((r) => r.status);
 
   chk("A NO puede sustituir el historial por otra lista del mismo tamaño",
@@ -163,7 +167,7 @@ const leerNotas = (tok) => fetch(`${FS}/crm_leads/3200000001/notas`, { headers: 
     (await parche({ historial: { arrayValue: { values: [{ stringValue: "x" }, { stringValue: "y" }] } } }, admin.idToken, "historial")) === 403);
 
   console.log("\n=== F. El historial heredado se conserva intacto ===");
-  const doc = await fetch(`${FS}/crm_leads/${TEL}`, { headers: H(admin.idToken) }).then((r) => r.json());
+  const doc = await fetch(`${FS}/crm_leads/${idDePrueba(TEL)}`, { headers: H(admin.idToken) }).then((r) => r.json());
   const entradas = (doc.fields.historial.arrayValue.values || []).map((v) => v.stringValue);
   chk("las dos notas heredadas siguen ahí", entradas.length === 2 && /nota antigua/.test(entradas[0]), entradas.length + " entradas");
   chk("el prospecto conserva teléfono e industria", !!doc.fields.telefono && !!doc.fields.industria);
@@ -173,7 +177,7 @@ const leerNotas = (tok) => fetch(`${FS}/crm_leads/3200000001/notas`, { headers: 
   chk("A puede cambiar el estado (sin tocar el historial)",
     (await parche({ estado: { stringValue: "contactado" } }, asesorA.idToken, "estado")) === 200);
   chk("y el historial sigue intacto tras el cambio de estado",
-    (await fetch(`${FS}/crm_leads/${TEL}`, { headers: H(admin.idToken) }).then((r) => r.json()))
+    (await fetch(`${FS}/crm_leads/${idDePrueba(TEL)}`, { headers: H(admin.idToken) }).then((r) => r.json()))
       .fields.historial.arrayValue.values.length === 2);
 
   console.log("\n=== H. Revocación impide nuevas notas ===");
@@ -188,7 +192,7 @@ const leerNotas = (tok) => fetch(`${FS}/crm_leads/3200000001/notas`, { headers: 
   /* A01: un prospecto SIN campo historial debe poder actualizarse. Se crea uno por
      vía privilegiada sin ese campo y se prueba el seguimiento como admin y como asesor. */
   const TEL_SIN = "3200000002";
-  await fetch(FS + "/crm_leads?documentId=" + TEL_SIN, { method: "POST", headers: OWNER,
+  await fetch(FS + "/crm_leads?documentId=" + idDePrueba(TEL_SIN), { method: "POST", headers: OWNER,
     body: JSON.stringify({ fields: {
       nombre: { stringValue: "Sin Historial" }, telefono: { stringValue: TEL_SIN },
       industria: { stringValue: "tiendas" }, consentimiento: { booleanValue: true },
@@ -198,13 +202,13 @@ const leerNotas = (tok) => fetch(`${FS}/crm_leads/3200000001/notas`, { headers: 
       origen: { stringValue: "manual" }, asignado_a: { stringValue: asesorA.localId },
     } }) });
 
-  const sSinAdmin = await fetch(FS + "/crm_leads/" + TEL_SIN + "?updateMask.fieldPaths=estado", {
+  const sSinAdmin = await fetch(FS + "/crm_leads/" + idDePrueba(TEL_SIN) + "?updateMask.fieldPaths=estado", {
     method: "PATCH", headers: H(admin.idToken),
     body: JSON.stringify({ fields: { estado: { stringValue: "contactado" } } }) }).then((r) => r.status);
   chk("A01 · el admin actualiza un prospecto SIN historial", sSinAdmin === 200, "HTTP " + sSinAdmin);
 
   await sembrarRol(asesorA.localId, "comercial", true);
-  const sSinAsesor = await fetch(FS + "/crm_leads/" + TEL_SIN + "?updateMask.fieldPaths=estado", {
+  const sSinAsesor = await fetch(FS + "/crm_leads/" + idDePrueba(TEL_SIN) + "?updateMask.fieldPaths=estado", {
     method: "PATCH", headers: H(asesorA.idToken),
     body: JSON.stringify({ fields: { estado: { stringValue: "cotizado" } } }) }).then((r) => r.status);
   chk("A01 · el asesor asignado también lo actualiza", sSinAsesor === 200, "HTTP " + sSinAsesor);
@@ -212,19 +216,19 @@ const leerNotas = (tok) => fetch(`${FS}/crm_leads/3200000001/notas`, { headers: 
   /* A02 · OPCIÓN 2: la supresión de datos personales YA NO se hace desde el cliente.
      El historial es inmutable incluso para el admin; suprimir exige el procedimiento
      privilegiado. Aquí se demuestra que el navegador NO puede hacerlo. */
-  const sup = await fetch(FS + "/crm_leads/" + TEL, { method: "PATCH", headers: H(admin.idToken),
+  const sup = await fetch(FS + "/crm_leads/" + idDePrueba(TEL), { method: "PATCH", headers: H(admin.idToken),
     body: JSON.stringify({ fields: {
       nombre: { stringValue: "[eliminado]" }, servicio_interes: { nullValue: "NULL_VALUE" },
       anonimizado: { booleanValue: true }, historial: { arrayValue: { values: [] } },
     } }) }).then((r) => r.status);
   chk("A02 · el admin NO puede vaciar el historial desde el cliente (va por vía privilegiada)",
     sup === 403, "HTTP " + sup);
-  const docSup = await fetch(FS + "/crm_leads/" + TEL, { headers: H(admin.idToken) }).then((r) => r.json());
+  const docSup = await fetch(FS + "/crm_leads/" + idDePrueba(TEL), { headers: H(admin.idToken) }).then((r) => r.json());
   chk("A02 · el historial sigue intacto tras el intento",
     (docSup.fields.historial.arrayValue.values || []).length === 2);
 
   /* A05: una corrección debe referenciar una nota real del mismo prospecto. */
-  const listaN = await fetch(FS + "/crm_leads/" + TEL + "/notas", { headers: H(admin.idToken) }).then((r) => r.json());
+  const listaN = await fetch(FS + "/crm_leads/" + idDePrueba(TEL) + "/notas", { headers: H(admin.idToken) }).then((r) => r.json());
   const unaNota = (listaN.documents || [])[0].name.split("/").pop();
   chk("A05 · corrección sin referencia rechazada",
     (await nota(admin.idToken, { texto: { stringValue: "corrijo esto" }, autor: { stringValue: admin.localId },

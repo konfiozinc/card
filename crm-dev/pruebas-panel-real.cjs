@@ -85,8 +85,12 @@ const chk = (n, c, e) => { c ? ok++ : ko++; console.log((c ? "  PASS  " : "  FAL
   const mensaje = await p.evaluate(() => document.querySelector("#login-error").textContent.trim());
 
   console.log("    mensaje del panel: «" + mensaje + "»");
-  chk("el panel informa del fallo de credenciales (auth/*)",
-    /auth\//.test(mensaje), mensaje || "(vacío)");
+  /* El panel NO muestra el código crudo de Firebase: lo traduce a un mensaje en español
+     (ERRORES_AUTH en crm.js). Exigir «auth/» en el texto contradecía justo ese diseño, y
+     por eso esta comprobación fallaba. Lo que importa —y se sigue exigiendo— es que el
+     panel llegue a Auth, informe de un fallo de CREDENCIALES y no de configuración. */
+  chk("el panel informa del fallo de credenciales",
+    /credencial|contraseña|correo|incorrect/i.test(mensaje), mensaje || "(vacío)");
   chk("NO es un fallo de configuración del proyecto",
     !/configuration-not-found|api-key-not-valid|project-not-found/i.test(mensaje));
   chk("sigue en la pantalla de acceso (no ha entrado)",

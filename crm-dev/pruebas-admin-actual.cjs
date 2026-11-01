@@ -23,14 +23,18 @@ let ok = 0, ko = 0;
 const chk = (n, c, e) => { c ? ok++ : ko++; console.log((c ? "  PASS  " : "  FALLA ") + n + (e ? "  (" + e + ")" : "")); };
 const H = (tok) => ({ authorization: "Bearer " + tok, "content-type": "application/json" });
 
+/* R06: el id del prospecto ya no es el teléfono. El id de prueba se deriva del teléfono
+   para conservar el vocabulario de esta batería sin reescribir cada llamada. */
+const { idDePrueba } = require("./lib/alta-uuid.cjs");
+
 /* A03: alta atómica prospecto + marcador de deduplicación (las reglas lo exigen con
    getAfter). Devuelve el código HTTP. */
 const altaConMarcador = (tel, uid, tok, camposLead) => fetch(FS + ":commit", {
   method: "POST", headers: H(tok),
   body: JSON.stringify({ writes: [
-    { update: { name: "projects/demo-crm-016/databases/default/documents/crm_leads/" + tel, fields: camposLead } },
+    { update: { name: "projects/demo-crm-016/databases/default/documents/crm_leads/" + idDePrueba(tel), fields: camposLead } },
     { update: { name: "projects/demo-crm-016/databases/default/documents/crm_dedup/" + tel,
-      fields: { lead_id: { stringValue: tel }, creado_en: { timestampValue: TS(0) },
+      fields: { lead_id: { stringValue: idDePrueba(tel) }, creado_en: { timestampValue: TS(0) },
                 creado_por: { stringValue: uid } } } },
   ] }),
 }).then((r) => r.status);
@@ -88,17 +92,30 @@ const altaUsuario = async (email) => {
   chk("el admin puede crear un prospecto sin asignación", altaHeredado === 200, "HTTP " + altaHeredado);
 
   chk("el admin LEE el prospecto heredado sin asignado_a",
-    (await fetch(`${FS}/crm_leads/${TEL_HEREDADO}`, { headers: adminH })).status === 200);
+    (await fetch(`${FS}/crm_leads/${idDePrueba(TEL_HEREDADO)}`, { headers: adminH })).status === 200);
   chk("el admin LO LISTA sin filtro (no se rompe por el campo ausente)",
     (await fetch(`${FS}:runQuery`, { method: "POST", headers: adminH,
       body: JSON.stringify({ structuredQuery: { from: [{ collectionId: "crm_leads" }] } }) })).status === 200);
   chk("el admin LO ACTUALIZA (seguimiento)",
-    (await fetch(`${FS}/crm_leads/${TEL_HEREDADO}?updateMask.fieldPaths=estado`, { method: "PATCH", headers: adminH,
+    (await fetch(`${FS}/crm_leads/${idDePrueba(TEL_HEREDADO)}?updateMask.fieldPaths=estado`, { method: "PATCH", headers: adminH,
       body: JSON.stringify({ fields: { estado: { stringValue: "contactado" } } }) })).status === 200);
   chk("el admin LO ASIGNA después",
-    (await fetch(`${FS}/crm_leads/${TEL_HEREDADO}?updateMask.fieldPaths=asignado_a`, { method: "PATCH", headers: adminH,
+    (await fetch(`${FS}/crm_leads/${idDePrueba(TEL_HEREDADO)}?updateMask.fieldPaths=asignado_a`, { method: "PATCH", headers: adminH,
       body: JSON.stringify({ fields: { asignado_a: { stringValue: admin.localId } } }) })).status === 200);
-  chk("el admin LO BORRA", (await fetch(`${FS}/crm_leads/${TEL_HEREDADO}`, { method: "DELETE", headers: adminH })).status === 200);
+
+  /* P1 · El borrado directo se ha RETIRADO para todos los roles, también para admin.
+     Antes esta comprobación exigía 200 y borraba el prospecto dejando huérfanas las
+     notas, el marcador del número y las referencias comerciales. La aserción no se
+     elimina: se invierte, y se demuestra que el dato sigue ahí y que la vía
+     privilegiada (Admin SDK) conserva la capacidad. */
+  chk("el admin YA NO puede borrarlo desde el navegador",
+    (await fetch(`${FS}/crm_leads/${idDePrueba(TEL_HEREDADO)}`, { method: "DELETE", headers: adminH })).status === 403);
+  chk("tras el intento, el prospecto sigue existiendo",
+    (await fetch(`${FS}/crm_leads/${idDePrueba(TEL_HEREDADO)}`, { headers: adminH })).status === 200);
+  chk("la vía privilegiada (Admin SDK) conserva la capacidad de borrar",
+    (await fetch(`${FS}/crm_leads/${idDePrueba(TEL_HEREDADO)}`, { method: "DELETE", headers: OWNER })).status === 200);
+  chk("y el prospecto ya no está",
+    (await fetch(`${FS}/crm_leads/${idDePrueba(TEL_HEREDADO)}`, { headers: OWNER })).status === 404);
 
   console.log("\n=== El admin conserva además lo que ya tenía ===");
   chk("lee la ficha de cualquier usuario (necesario para asignar)",

@@ -48,21 +48,45 @@ const camposLead = (nombre, tel, uid) => ({
   origen: { stringValue: "manual" },
 });
 
-/** Alta por un operador autenticado (id del documento = teléfono). */
-const fsAlta = async (campos, token) => fetch(`${FS}/crm_leads?documentId=${campos.telefono.stringValue}`, {
-  method: "POST",
-  headers: Object.assign({ "content-type": "application/json" }, token ? { authorization: "Bearer " + token } : {}),
-  body: JSON.stringify({ fields: campos }),
-}).then((r) => r.status);
+/* R06: el prospecto nace con UUID v4 y su número se reserva con el marcador crm_dedup en
+   el MISMO lote; el teléfono ya no es el identificador del documento. El id de prueba se
+   deriva del teléfono para que la batería pueda localizarlo. */
+const { idDePrueba } = require("./lib/alta-uuid.cjs");
+const PREFIJO = "projects/demo-crm-016/databases/default/documents";
+const fsAlta = async (campos, token) => {
+  const tel = campos.telefono.stringValue;
+  const id = idDePrueba(tel);
+  return fetch(`${FS}:commit`, {
+    method: "POST",
+    headers: Object.assign({ "content-type": "application/json" }, token ? { authorization: "Bearer " + token } : {}),
+    body: JSON.stringify({ writes: [
+      { update: { name: `${PREFIJO}/crm_leads/${id}`, fields: campos } },
+      { update: { name: `${PREFIJO}/crm_dedup/${tel}`, fields: {
+        lead_id: { stringValue: id },
+        creado_en: campos.creado_en || { timestampValue: new Date().toISOString() },
+        creado_por: campos.creado_por || { stringValue: "pruebas" } } } },
+    ] }),
+  }).then((r) => r.status);
+};
 
 const fsList = async (coleccion, token) => fetch(`${FS}/${coleccion}`, { headers: token ? { authorization: "Bearer " + token } : {} }).then((r) => r.json());
 
 (async () => {
+  /* El panel se sirve con la conexión al emulador inyectada (ver lib/panel-emulador.cjs):
+     el publicado apunta al proyecto real y no tiene —ni debe tener— ruta de emulador. */
+  const { inyectarEmulador } = require("./lib/panel-emulador.cjs");
+  const JS_PANEL = path.join(RAIZ, "crm", "crm.js");
   const srv = http.createServer((q, w) => {
     let u = decodeURIComponent(q.url.split("?")[0]);
     if (u === "/favicon.ico") { w.writeHead(204); return w.end(); }
     if (u === "/") u = "/crm/index.html";
     const f = path.join(RAIZ, u);
+    if (path.resolve(f) === path.resolve(JS_PANEL)) {
+      const { js, aplicado } = inyectarEmulador(fs.readFileSync(f, "utf8"));
+      if (!aplicado) console.warn("  AVISO: no se pudo inyectar el emulador en crm.js");
+      w.writeHead(200, { "content-type": MIME[".js"] });
+      return w.end(js);
+    }
     fs.readFile(f, (e, b) => { if (e) { w.writeHead(404); return w.end("404"); } w.writeHead(200, { "content-type": MIME[path.extname(f)] || "application/octet-stream" }); w.end(b); });
   });
   await new Promise((r) => srv.listen(PUERTO, r));
@@ -127,8 +151,12 @@ const fsList = async (coleccion, token) => fetch(`${FS}/${coleccion}`, { headers
   const C = await entrar("comercial");
   chk("bloque de venta oculto para comercial", await C.p.evaluate(() => document.querySelector("#bloque-venta").hidden === true));
   chk("comercial puede cotizar", await C.p.evaluate(() => document.querySelector("#bloque-cotizar").hidden === false));
-  const q = await fsList("crm_quotes", comercial.idToken);
-  const leadId = (q.documents || [])[0].fields.lead_id.stringValue;
+  /* Un comercial NO puede listar cotizaciones ajenas —consulta sin filtro: el servidor no
+     puede demostrar que todas sean suyas y la rechaza—, así que el dato que necesita esta
+     comprobación se lee con la credencial de administración. */
+  const q = await fetch(`${FS}/crm_quotes/${quoteId}`,
+    { headers: { authorization: "Bearer " + admin.idToken } }).then((r) => r.json());
+  const leadId = q.fields.lead_id.stringValue;
   const intento = await fetch(`${FS}/crm_sales`, {
     method: "POST", headers: { "content-type": "application/json", authorization: "Bearer " + comercial.idToken },
     body: JSON.stringify({ fields: {
@@ -165,6 +193,16 @@ const fsList = async (coleccion, token) => fetch(`${FS}/${coleccion}`, { headers
   chk("el alta del operador queda auditada",
     /prospecto_creado/.test(await A2.p.evaluate(() => document.querySelector("#tabla-audit").textContent)));
 
+  /* R06: el panel genera un UUID ALEATORIO en cada alta, así que el id del prospecto recién
+     creado no se puede calcular: se localiza por su teléfono. */
+  const TEL_ALTA = "573009998877";
+  const cartera = await fetch(`${FS}/crm_leads`, { headers: { authorization: "Bearer " + admin.idToken } })
+    .then((r) => r.json());
+  const idNuevo = ((cartera.documents || []).find((d) =>
+    d.fields.telefono && d.fields.telefono.stringValue === TEL_ALTA) || { name: "/" }).name.split("/").pop();
+  chk("el prospecto del panel se localiza por teléfono y tiene id UUID",
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(idNuevo), idNuevo);
+
   await A2.p.fill("#n-nombre", "Camila Otra Vez");
   await A2.p.fill("#n-telefono", "+57 300 999 8877");
   await A2.p.check("#n-consent");
@@ -178,10 +216,10 @@ const fsList = async (coleccion, token) => fetch(`${FS}/${coleccion}`, { headers
   const TEL = "573009998877";
   await A2.p.fill("#f-texto", TEL);
   await A2.p.waitForTimeout(300);
-  await A2.p.click(`#tabla-leads tr[data-id="${TEL}"]`);
+  await A2.p.click(`#tabla-leads tr[data-id="${idNuevo}"]`);
   await A2.p.waitForSelector("#detalle:not([hidden])");
 
-  const intentoAnon = await fetch(`${FS}/crm_leads/${TEL}?updateMask.fieldPaths=anonimizado`, {
+  const intentoAnon = await fetch(`${FS}/crm_leads/${idNuevo}?updateMask.fieldPaths=anonimizado`, {
     method: "PATCH",
     headers: { "content-type": "application/json", authorization: "Bearer " + comercial.idToken },
     body: JSON.stringify({ fields: { anonimizado: { booleanValue: true } } }),
