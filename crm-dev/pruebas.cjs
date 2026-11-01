@@ -188,19 +188,20 @@ const fsList = async (coleccion, token) => fetch(`${FS}/${coleccion}`, { headers
   }).then((r) => r.status);
   chk("comercial NO puede anonimizar (reglas)", intentoAnon === 403, "HTTP " + intentoAnon);
 
-  await A2.p.click("#btn-anonimizar");
-  await A2.p.waitForTimeout(900);
-  chk("admin anonimiza: el nombre deja de ser personal",
-    (await A2.p.evaluate(() => document.querySelector("#d-nombre").textContent)) === "[eliminado]");
-  chk("la anonimización queda auditada",
-    /lead_anonimizado/.test(await A2.p.evaluate(() => document.querySelector("#tabla-audit").textContent)));
-
-  await A2.p.click("#btn-borrar-lead");
-  await A2.p.waitForTimeout(1000);
-  chk("admin borra el prospecto",
-    (await A2.p.evaluate(() => document.querySelectorAll("#tabla-leads tr[data-id]").length)) === 0);
-  chk("el número queda libre tras el borrado",
-    (await fsAlta(camposLead("Camila Nueva", TEL, admin.localId), admin.idToken)) === 200);
+  /* R05 · Los recorridos antiguos de supresión y borrado se han RETIRADO del panel.
+     Antes el panel ofrecía «Suprimir datos personales» —que escribía `historial: []`,
+     algo que las reglas ya no permiten, y que no tocaba notas ni marcador— y «Borrar
+     prospecto», que borraba sólo el documento y avisaba falsamente de que el número
+     quedaba libre. La supresión es ahora un procedimiento privilegiado. */
+  chk("R05: el panel ya NO ofrece «Borrar prospecto»",
+    (await A2.p.evaluate(() => !!document.querySelector("#btn-borrar-lead"))) === false);
+  chk("R05: el panel ya NO ofrece la supresión parcial antigua",
+    (await A2.p.evaluate(() => !!document.querySelector("#btn-anonimizar"))) === false);
+  chk("R05: el bloque de privacidad remite al procedimiento privilegiado",
+    /procedimiento privilegiado/.test(
+      await A2.p.evaluate(() => document.querySelector("#bloque-privacidad").textContent)));
+  chk("R05: el prospecto sigue existiendo (el panel ya no puede borrarlo)",
+    (await A2.p.evaluate(() => document.querySelectorAll("#tabla-leads tr[data-id]").length)) >= 1);
   await A2.p.close();
 
   await b.close(); srv.close();

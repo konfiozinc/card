@@ -221,8 +221,19 @@ const listarTodos = (tok) => fetch(`${FS}:runQuery`, {
   chk("B recupera el acceso a su prospecto", (await leerLead(TEL_A, comercialB.idToken)) === 200);
 
   console.log("\n=== I. Separación cotización / venta ===");
-  chk("una venta confirmada vive en crm_sales, no en crm_quotes",
-    (await fetch(`${FS}/crm_sales`, { headers: H(admin.idToken) }).then((r) => r.json()).then((j) => (j.documents || []).length)) === 1);
+  /* Antes esta comprobación contaba TODA la colección crm_sales y exigía exactamente 1.
+     Eso sólo era cierto en una base recién creada: si antes se ejecutaba cualquier otra
+     suite que hubiera vendido algo (por ejemplo pruebas-a03), fallaba sin que hubiera
+     ningún defecto en el producto. Ahora se comprueba el hecho concreto: la venta de
+     ESTA cotización vive en crm_sales y no quedó como campo dentro de crm_quotes. */
+  const ventaDeCot = await fetch(`${FS}/crm_sales/${cotV.id}`, { headers: H(admin.idToken) })
+    .then((r) => r.ok ? r.json() : null);
+  chk("una venta confirmada vive en crm_sales",
+    !!ventaDeCot && Object.values(ventaDeCot.fields.quote_id)[0] === cotV.id);
+  const cotFinal = await fetch(`${FS}/crm_quotes/${cotV.id}`, { headers: H(admin.idToken) })
+    .then((r) => r.ok ? r.json() : null);
+  chk("la venta NO se guarda dentro de la cotización",
+    !!cotFinal && !("venta" in cotFinal.fields) && !("confirmada" in cotFinal.fields));
 
   console.log("\n=== J. Anónimo (sigue cerrado) ===");
   chk("anónimo NO lee prospectos", (await leerLead(TEL_A, null)) === 403);

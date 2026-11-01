@@ -10,8 +10,10 @@
 const fs = require("node:fs");
 const path = require("node:path");
 
-const CRM = __dirname;
-const RAIZ = path.join(__dirname, "..");
+const CRM = fs.existsSync(path.join(__dirname, "crm.js"))
+  ? __dirname
+  : path.join(__dirname, "..", "crm");   /* el script vive en crm-dev/ y revisa crm/ */
+const RAIZ = path.join(CRM, "..");
 const PROYECTO = "kzfio-crm";
 const PROYECTO_EMU = "demo-crm-016";
 
@@ -87,7 +89,12 @@ chk("el repositorio mantiene un proyecto predeterminado DISTINTO de kzfio-crm",
   rc && rc.projects && rc.projects.default !== PROYECTO,
   "por eso TODO despliegue del CRM debe pasar --project explícito");
 
-const confDespliegue = path.join(CRM, "despliegue.json");
+/* Los artefactos de DESPLIEGUE viven junto a este verificador (crm-dev/), igual que los
+   procedimientos privilegiados: no forman parte del panel y no se publican. Buscarlos en
+   crm/ hacía que estas comprobaciones fallaran siempre por una cuestión de ruta, no de
+   seguridad — y un verificador que siempre falla se acaba ignorando. */
+const CONF = __dirname;
+const confDespliegue = path.join(CONF, "despliegue.json");
 chk("existe una configuración de despliegue propia y aislada", fs.existsSync(confDespliegue));
 if (fs.existsSync(confDespliegue)) {
   const cfg = JSON.parse(leer(confDespliegue));
@@ -97,7 +104,7 @@ if (fs.existsSync(confDespliegue)) {
     (esArray && fs2.length === 1 && fs2[0].database === "default") || (!esArray && fs2.database === "default"),
     JSON.stringify(fs2));
   const reglas = esArray ? fs2[0].rules : fs2.rules;
-  chk("apunta a crm/firestore.rules (modo privado), no al fichero de la raíz",
+  chk("apunta al fichero de reglas del modo privado, no al de la raíz del sitio",
     reglas === "firestore.rules", String(reglas));
   chk("NO contiene bloque de hosting ni functions (no publica nada)",
     !cfg.hosting && !cfg.functions);
@@ -108,8 +115,8 @@ if (fs.existsSync(confDespliegue)) {
 
 /* 4. El script de despliegue exige el proyecto correcto ------------------ */
 console.log("\n4. Script de despliegue");
-const script = path.join(CRM, "desplegar-reglas.cjs");
-chk("existe crm/desplegar-reglas.cjs", fs.existsSync(script));
+const script = path.join(CONF, "desplegar-reglas.cjs");
+chk("existe el script de despliegue de reglas", fs.existsSync(script));
 if (fs.existsSync(script)) {
   const t = leer(script);
   chk("el proyecto está fijado en el script (no se deduce del entorno)",
