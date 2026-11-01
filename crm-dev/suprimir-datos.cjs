@@ -135,29 +135,79 @@ function confirmarDoble() {
   /* 1. Inventario de lo que se va a borrar */
   const lead = await fetch(`${DOCS}/crm_leads/${ID}`, { headers: H });
   if (lead.status === 404) {
-    /* A.6 · El prospecto ya no existe. Si quedo el testigo de una ejecucion anterior, se
-       limpian los residuos y se libera: si no, ese bloqueo quedaria puesto para siempre y
-       el trabajo pendiente (referencias) seria imposible de localizar. */
+    /* A.6 · RECUPERACIÓN de una supresión interrumpida después de borrar el prospecto.
+       El testigo pudo quedar puesto: hay que resolver los residuos y liberarlo, o el
+       bloqueo sería eterno y el trabajo pendiente irrecuperable.
+       Salvaguardas: (a) NO toca nada si falta --confirmar; (b) libera el testigo SÓLO si
+       no queda ninguna referencia viva ni copia heredada; (c) un fallo de lectura NO se
+       interpreta como «no hay nada». */
     const testigoResidual = await fetch(`${DOCS}/crm_supresion/${ID}`, { headers: H });
     if (testigoResidual.status === 404) {
       console.error("\nNo existe ese prospecto y no hay testigo pendiente. Nada que hacer.");
       process.exit(2);
     }
-    console.error("\nNo existe el prospecto, pero SI hay un testigo pendiente: se revisan residuos.");
-    let residuos = 0;
-    for (const c of (await listarTodas(H, "crm_quotes", "crm_quotes")).filter((x) => valorDe(x.fields, "lead_id") === ID)) {
-      try { await desasociar(H, "crm_quotes", c.id); residuos++; } catch (e) { console.error("  " + e.message); }
+    if (!testigoResidual.ok) {
+      console.error("\nNo se pudo leer el testigo (HTTP " + testigoResidual.status + "). No se toca nada.");
+      process.exit(2);
     }
-    for (const v of (await listarTodas(H, "crm_sales", "crm_sales")).filter((x) => valorDe(x.fields, "lead_id") === ID)) {
-      try { await desasociar(H, "crm_sales", v.id); residuos++; } catch (e) { console.error("  " + e.message); }
+    /* El teléfono se deduce del marcador que apunta a este prospecto: desde aquí el
+       documento ya no existe y no hay otra forma de saberlo. */
+    const marca = (await listarTodas(H, "crm_dedup", "crm_dedup"))
+      .find((m) => valorDe(m.fields, "lead_id") === ID);
+    const telResidual = marca ? marca.id : null;
+
+    const cotRes = (await listarTodas(H, "crm_quotes", "crm_quotes"))
+      .filter((x) => valorDe(x.fields, "lead_id") === ID);
+    const venRes = (await listarTodas(H, "crm_sales", "crm_sales"))
+      .filter((x) => valorDe(x.fields, "lead_id") === ID);
+    const gemeloRes = telResidual ? await fetch(`${DOCS}/crm_leads/${telResidual}`, { headers: H }) : null;
+    const hayGemelo = !!(gemeloRes && gemeloRes.ok);
+    const gemeloIlegible = !!(gemeloRes && !gemeloRes.ok && gemeloRes.status !== 404);
+
+    console.log("\nHay un testigo PENDIENTE de una ejecución anterior. Residuos detectados:");
+    console.log("  · referencias comerciales vivas: " + (cotRes.length + venRes.length));
+    console.log("  · marcador del número: " + (telResidual ? "presente" : "no encontrado"));
+    console.log("  · copia heredada del mismo número: " +
+      (gemeloIlegible ? "NO SE PUDO COMPROBAR" : (hayGemelo ? "PRESENTE" : "no existía")));
+
+    if (!CONFIRMAR) {
+      console.log("\nSIMULACIÓN. No se ha modificado nada.");
+      console.log("Para limpiar los residuos y liberar el testigo: añade --confirmar.");
+      process.exit(0);
     }
-    const refsVivasRes = (await listarTodas(H, "crm_quotes", "crm_quotes")).filter((x) => valorDe(x.fields, "lead_id") === ID).length
+
+    let fallos = 0;
+    for (const c of cotRes) { try { await desasociar(H, "crm_quotes", c.id); } catch (e) { fallos++; console.error("  " + e.message); } }
+    for (const v of venRes) { try { await desasociar(H, "crm_sales", v.id); } catch (e) { fallos++; console.error("  " + e.message); } }
+    if (telResidual) {
+      const rm = await fetch(`${DOCS}/crm_dedup/${telResidual}`, { method: "DELETE", headers: H });
+      if (!rm.ok && rm.status !== 404) { fallos++; console.error("  no se pudo borrar el marcador: HTTP " + rm.status); }
+    }
+    if (hayGemelo) {
+      const ut = (await gemeloRes.json()).updateTime || null;
+      for (const n of await listarTodas(H, `crm_leads/${telResidual}/notas`, "notas heredadas")) {
+        const d = await fetch(`${DOCS}/crm_leads/${telResidual}/notas/${n.id}`, { headers: H });
+        const utn = d.ok ? (await d.json()).updateTime : null;
+        if (!(await borrarSiNoCambio(`crm_leads/${telResidual}/notas/${n.id}`, utn, "nota heredada"))) fallos++;
+      }
+      if (!(await borrarSiNoCambio(`crm_leads/${telResidual}`, ut, "el prospecto heredado"))) fallos++;
+    }
+    if (gemeloIlegible) { fallos++; console.error("  no se pudo comprobar la copia heredada: no se libera el testigo"); }
+
+    const vivas = (await listarTodas(H, "crm_quotes", "crm_quotes")).filter((x) => valorDe(x.fields, "lead_id") === ID).length
       + (await listarTodas(H, "crm_sales", "crm_sales")).filter((x) => valorDe(x.fields, "lead_id") === ID).length;
-    const rlRes = await fetch(`${DOCS}/crm_supresion/${ID}`, { method: "DELETE", headers: H });
-    console.log("  referencias desasociadas ... " + residuos + " · referencias vivas " + refsVivasRes +
-      " · testigo liberado ... " + (rlRes.ok || rlRes.status === 404 ? "sí" : "NO (HTTP " + rlRes.status + ")"));
-    registrar("RESIDUOS_LIMPIADOS · refs=" + residuos + " · vivas=" + refsVivasRes);
-    process.exit(refsVivasRes === 0 && (rlRes.ok || rlRes.status === 404) ? 0 : 3);
+    const limpio = fallos === 0 && vivas === 0;
+    if (limpio) {
+      const rl = await fetch(`${DOCS}/crm_supresion/${ID}`, { method: "DELETE", headers: H });
+      const libre = rl.ok || rl.status === 404;
+      console.log("\n  referencias vivas 0 · testigo liberado ... " + (libre ? "sí" : "NO (HTTP " + rl.status + ")"));
+      registrar("RESIDUOS_LIMPIADOS · vivas=0 · testigo_liberado=" + libre);
+      process.exit(libre ? 0 : 3);
+    }
+    console.error("\nINCOMPLETO: fallos=" + fallos + " · referencias vivas=" + vivas + ".");
+    console.error("El testigo se CONSERVA: el prospecto sigue bloqueado y el trabajo es localizable.");
+    registrar("INCOMPLETO_RESIDUOS · fallos=" + fallos + " · vivas=" + vivas + " · testigo_conservado=true");
+    process.exit(3);
   }
   if (!lead.ok) { console.error("\nNo se pudo leer el prospecto: HTTP " + lead.status); process.exit(2); }
   const doc = await lead.json();
@@ -323,7 +373,12 @@ function confirmarDoble() {
   if (telefono && telefono !== ID) {
     const gemelo = await fetch(`${DOCS}/crm_leads/${telefono}`, { headers: H });
     if (gemelo.status === 404) borradoHeredado = "no existía";
-    else if (!gemelo.ok) borradoHeredado = "NO (HTTP " + gemelo.status + ")";
+    else if (!gemelo.ok) {
+      console.error("\nINCOMPLETO: no se pudo leer la copia heredada del número (HTTP " + gemelo.status + ").");
+      console.error("No se declara la supresión completa. El testigo se conserva.");
+      registrar("INCOMPLETO_HEREDADO_ILEGIBLE · testigo_conservado=true");
+      process.exit(3);
+    }
     else {
       const utGemelo = (await gemelo.json()).updateTime || null;
       let fallosGemelo = 0;
@@ -369,7 +424,7 @@ function confirmarDoble() {
     (refsVivas.length === 0 ? " ✓" : " ✗  → " + refsVivas.join(", ")));
   let ok = quedaLead.status === 404 && restantes === 0 && fallosNotas === 0 &&
     fallosRefs === 0 && refsVivas.length === 0 && !falloVerificacion &&
-    (!telefono || borradoMarcador.startsWith("sí"));
+    (!telefono || borradoMarcador.startsWith("sí")) && !borradoHeredado.startsWith("NO");
   /* A.6 · El testigo se libera SOLO si todo quedó verificado. Si no, se queda puesto:
      bloquea escrituras hasta que alguien repita la supresión o decida a mano. */
   let testigoLiberado = false;

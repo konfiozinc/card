@@ -285,6 +285,15 @@ async function revertir(H) {
   const vensAhora = await listarVen(H);
   const dedupAhora = await listarDedup(H);
 
+  /* B · TESTIGO ANTES DE COMPROBAR: sin esto queda una ventana entre la comprobacion y el
+     borrado en la que puede entrar una nota nueva, que se destruiria con una precondicion
+     perfectamente valida. Se pone para todas las entradas; si la comprobacion rechaza la
+     reversion, se retira sin dejar bloqueos. */
+  await commit(H, entradas.map(([, e]) => ({ update: {
+    name: `${PREFIJO}/crm_supresion/${e.uuid}`,
+    fields: { estado: { stringValue: "reversion" }, desde: { timestampValue: new Date().toISOString() },
+      id_sha256: { stringValue: sha(e.uuid).slice(0, 16) } } } })));
+
   const problemas = [], detalle = [];
 
   for (const [tel, e] of entradas) {
@@ -328,19 +337,17 @@ async function revertir(H) {
       if (!reversionIniciada) {
         const faltan = idsResp.filter((id) => !notasAhora.some((n) => n.id === id));
         if (faltan.length) problemas.push(`${tel}: ${faltan.length} nota(s) desaparecidas después de la migración`);
-
-        /* Sólo se puede comparar el contenido si el respaldo lo guardó. */
-        /* Se comparan SIEMPRE las notas que aún existen, también al reanudar: una nota
-           editada después de migrar se perdería igual, se haya interrumpido o no. */
-        const editadas = [];
-        for (const r of notasResp) {
-          const ahora = notasAhora.find((n) => n.id === r.id);
-          if (ahora && r.campos && huellaCampos(r.campos) !== huellaCampos(ahora.fields)) editadas.push(r.id);
-        }
-        if (editadas.length) problemas.push(`${tel}: ${editadas.length} nota(s) editadas después de la migración`);
       } else {
         detalle.push(`${tel}: reversión ya iniciada en una ejecución anterior (notas borradas por nosotros)`);
       }
+      /* Las EDICIONES se comparan SIEMPRE, también al reanudar: una nota editada después
+         de migrar se perdería igual, se haya interrumpido la reversión o no. */
+      const editadas = [];
+      for (const r of notasResp) {
+        const ahora = notasAhora.find((n) => n.id === r.id);
+        if (ahora && r.campos && huellaCampos(r.campos) !== huellaCampos(ahora.fields)) editadas.push(r.id);
+      }
+      if (editadas.length) problemas.push(`${tel}: ${editadas.length} nota(s) editadas después de la migración`);
 
       detalle.push(`${tel}: notas ahora ${notasAhora.length} · en respaldo ${idsResp.length}`);
     }
@@ -367,7 +374,10 @@ async function revertir(H) {
   if (problemas.length) {
     console.error("\nREVERSIÓN RECHAZADA: se perdería información creada después de la migración.");
     problemas.forEach((p) => console.error("  · " + p));
-    console.error("\nNo se ha modificado ningún documento.");
+    for (const [, e] of entradas) {
+      await fetch(`${DOCS}/crm_supresion/${e.uuid}`, { method: "DELETE", headers: H }).catch(() => {});
+    }
+    console.error("\nNo se ha modificado ningún documento (se retiraron los testigos).");
     process.exit(3);
   }
   console.log("  sin datos posteriores: la reversión es segura");
