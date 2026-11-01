@@ -75,6 +75,33 @@ service cloud.firestore {
       return i is string && i.size() >= 2 && i.size() <= 40 && i.matches('^[a-z0-9-]+$');
     }
 
+    /* KZ-CRM-018 · R06/P4 — IDENTIFICADOR DEL PROSPETO.
+       Esta candidata ya NO identifica el prospecto por su teléfono: usa UUID v4, igual que
+       el modo privado. El número pasa a ser un dato de contacto y su unicidad la garantiza
+       el marcador `crm_dedup/{telefono}`.
+
+       IMPORTANTE: este archivo NO se ha desplegado y la captación pública sigue CERRADA y
+       deshabilitada. Se adapta aquí sólo para que las dos configuraciones del proyecto no
+       digan cosas distintas sobre cómo se identifica un prospecto. */
+    function esUuidV4(id) {
+      return id is string
+        && id.matches('^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$');
+    }
+
+    /* Marcador de deduplicación: se crea en el mismo lote que el prospecto y verifica,
+       con getAfter(), que el prospecto referido lleva ese mismo teléfono. Igual que en
+       producción, pero sin exigir rol: aquí quien escribe es el formulario anónimo. */
+    match /crm_dedup/{telefono} {
+      allow read: if false;              /* el anónimo no puede consultar números ajenos */
+      allow create: if request.resource.data.keys().hasOnly(['lead_id','creado_en','creado_por'])
+        && request.resource.data.keys().hasAll(['lead_id','creado_en','creado_por'])
+        && request.resource.data.lead_id is string
+        && esUuidV4(request.resource.data.lead_id)
+        && fechaValida(request.resource.data.creado_en)
+        && getAfter(/databases/$(database)/documents/crm_leads/$(request.resource.data.lead_id)).data.telefono == telefono;
+      allow update, delete: if false;
+    }
+
     /* Roles: lectura propia; escritura sólo desde administración privilegiada.
        Sin create desde el cliente: aquí se evita la auto-asignación. */
     match /crm_usuarios/{uid} {
@@ -86,7 +113,8 @@ service cloud.firestore {
     match /crm_leads/{leadId} {
       allow read: if tieneRol(equipo());
 
-      allow create: if leadId == request.resource.data.telefono
+      allow create: if esUuidV4(leadId)
+        && getAfter(/databases/$(database)/documents/crm_dedup/$(request.resource.data.telefono)).data.lead_id == leadId
         && request.resource.data.keys().hasOnly([
              'nombre','telefono','industria','servicio_interes','consentimiento',
              'consentimiento_version','retencion_hasta','estado','creado_en',

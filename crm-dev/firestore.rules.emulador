@@ -85,6 +85,56 @@ service cloud.firestore {
       return i is string && i.size() >= 2 && i.size() <= 40 && i.matches('^[a-z0-9-]+$');
     }
 
+    /* ── Identificadores del prospecto (R06) ──────────────────────────────
+       Un prospecto NUEVO se identifica SIEMPRE con un UUID v4. Se rechaza cualquier
+       identificador basado en el teléfono: el número es un dato personal y no debe ser
+       la clave del documento, porque una clave no se puede cambiar y sobrevive a
+       cualquier intento de supresión.
+
+       `esUuidV4` exige la forma completa: 8-4-4-4-12 en minúsculas, versión «4» en el
+       primer nibble del tercer grupo y variante RFC 4122 (8, 9, a o b) en el primero
+       del cuarto grupo. No basta con «tiene guiones»: un UUID v1 o una cadena con
+       pinta de UUID pero versión equivocada también se rechazan. */
+    function esUuidV4(id) {
+      return id is string
+        && id.matches('^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$');
+    }
+
+    /* Identificador heredado del modelo anterior: el propio teléfono como id. */
+    function esTelefonoHeredado(id) {
+      return id is string && id.size() >= 10 && id.size() <= 15 && id.matches('^[0-9]+$');
+    }
+
+    /* COMPATIBILIDAD EXPLÍCITA CON REGISTROS HEREDADOS (transición).
+       Mientras exista el documento de control `crm_config/transicion` y NO declare
+       `acepta_heredados == true` de forma negativa... en concreto: la ventana está
+       ABIERTA por defecto y se CIERRA escribiendo `{"acepta_heredados": false}`.
+
+       Se abre por defecto a propósito: desplegar estas reglas no puede romper el panel
+       que está en producción, donde casi todos los prospectos son heredados (id =
+       teléfono). El cierre es un acto deliberado y auditable que se ejecuta cuando la
+       migración a UUID está verificada; en ese momento los documentos heredados dejan
+       de admitir escrituras y sólo quedan operativos los UUID.
+
+       La LECTURA de un heredado NUNCA se bloquea: ocultar datos del equipo no es
+       seguridad, es pérdida de información. */
+    function transicionCerrada() {
+      return exists(/databases/$(database)/documents/crm_config/transicion)
+        && get(/databases/$(database)/documents/crm_config/transicion).data.acepta_heredados == false;
+    }
+    function identificadorOperable(leadId) {
+      return esUuidV4(leadId) || (esTelefonoHeredado(leadId) && !transicionCerrada());
+    }
+
+    /* ── Configuración de control (transición) ────────────────────────────
+       Un único documento que gobierna la ventana de compatibilidad. Nadie lo escribe
+       desde el navegador: lo fija el procedimiento privilegiado. Lo lee sólo
+       administración, para poder comprobar en qué estado está la transición. */
+    match /crm_config/{doc} {
+      allow read: if esAdmin();
+      allow write: if false;
+    }
+
     /* ── Roles ────────────────────────────────────────────────────────────
        Cada usuario lee su ficha; el administrador lee todas para poder
        gestionar el equipo. NADIE escribe roles desde el navegador: ni siquiera
@@ -136,6 +186,9 @@ service cloud.firestore {
         || (tieneRol(equipo()) && esMio(resource.data));
 
       allow create: if tieneRol(['admin', 'comercial', 'ventas'])
+        /* R06: un prospecto nuevo nace con UUID v4. Un id con forma de teléfono se
+           rechaza aunque venga con el resto de campos en regla. */
+        && esUuidV4(leadId)
         /* A03: el id del prospecto es un UUID, no el teléfono. La unicidad del número
            se garantiza con el marcador crm_dedup/{telefono}, que debe existir DESPUÉS de
            la transacción y apuntar a ESTE prospecto. getAfter() ve el estado posterior,
@@ -192,6 +245,10 @@ service cloud.firestore {
               && !request.resource.data.diff(resource.data).affectedKeys()
                    .hasAny(['asignado_a','asignado_en','asignado_por','creado_por']))
         )
+        /* R06 · Compatibilidad explícita: se admite escribir un heredado (id = teléfono)
+           sólo mientras la ventana de transición esté abierta. Con la ventana cerrada,
+           tocar un prospecto heredado deja de estar permitido: hay que migrarlo. */
+        && identificadorOperable(leadId)
         && request.resource.data.diff(resource.data).affectedKeys()
              .hasOnly(['nombre','industria','servicio_interes','retencion_hasta',
                        'estado','historial','origen','anonimizado',
@@ -238,7 +295,17 @@ service cloud.firestore {
         && industriaValida(request.resource.data.industria)
         && retencionValida(request.resource.data.retencion_hasta);
 
-      allow delete: if esAdmin();
+      /* ── Borrado: NADIE lo hace desde el navegador (R07/P1) ─────────────
+         Antes: `allow delete: if esAdmin()`. Era un recorrido inseguro: borrar sólo el
+         documento dejaba huérfanos las notas de la subcolección, el marcador
+         crm_dedup/{telefono} (que seguía reservando el número para siempre) y las
+         cotizaciones y ventas apuntando a un prospecto inexistente. El panel ya no
+         ofrecía ese botón, pero la CAPACIDAD seguía viva para cualquiera con sesión de
+         administración, incluida una consola del navegador.
+         Ahora el borrado es exclusivamente el procedimiento privilegiado
+         crm-dev/suprimir-datos.cjs, que desasocia referencias, borra notas y marcador,
+         verifica el resultado y aborta antes de destruir si algo falla. */
+      allow delete: if false;
     }
 
     /* ── Notas del prospecto: INMUTABLES (corrección de H03) ─────────────

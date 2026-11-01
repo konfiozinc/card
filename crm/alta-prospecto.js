@@ -54,12 +54,26 @@ export function validar(datos) {
  * Registra un prospecto. Devuelve { ok, motivo, telefono }.
  * Motivos de rechazo: "nombre" | "telefono" | "industria" | "consentimiento" |
  *                     "duplicado" | "conflicto" | "red" | "permiso".
+ *
+ * OJO (KZ-CRM-018 · P4): esta función es la del FORMULARIO PÚBLICO, que está
+ * DESHABILITADO. Se adapta al modelo UUID sólo por coherencia técnica: ya no usa el
+ * teléfono como identificador, sino un UUID, y reserva el número con el marcador
+ * crm_dedup en el mismo lote. No se ha habilitado ninguna captación pública ni se ha
+ * desplegado firestore.rules.captacion.
  */
 export async function registrarProspecto(db, datos) {
   const v = validar(datos);
   if (!v.ok) return v;
 
-  const ref = doc(db, "crm_leads", v.telefono);
+  /* R06: el identificador es un UUID, nunca el teléfono. Un id derivado del número
+     sobrevive a cualquier supresión, que es justo lo que el modelo evita. */
+  const id = (globalThis.crypto && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+
+  const ref = doc(db, "crm_leads", id);
+  /* A03: la unicidad del número la garantiza el marcador, no el id del prospecto. */
+  const refDedup = doc(db, "crm_dedup", v.telefono);
   const retencion = Timestamp.fromDate(
     new Date(Date.now() + DIAS_RETENCION * 24 * 60 * 60 * 1000)
   );
@@ -83,17 +97,23 @@ export async function registrarProspecto(db, datos) {
   if (servicio) registro.servicio_interes = servicio;
 
   try {
-    /* setDoc sobre un id existente sería un update: la regla del anónimo sólo
-       permite create, así que se rechaza con permission-denied. */
-    await setDoc(ref, registro);
-    return { ok: true, telefono: v.telefono };
+    /* Prospecto + marcador en el MISMO lote: o nacen los dos o no nace ninguno. Las
+       reglas lo verifican con getAfter(), así que dos envíos simultáneos del mismo
+       número no pueden prosperar los dos. */
+    const lote = writeBatch(db);
+    lote.set(ref, registro);
+    lote.set(refDedup, {
+      lead_id: id,
+      creado_en: serverTimestamp(),
+      creado_por: "formulario-web",
+    });
+    await lote.commit();
+    return { ok: true, id, telefono: v.telefono };
   } catch (err) {
     if (err && err.code === "already-exists") return { ok: false, motivo: "duplicado" };
-    /* Tras validar en cliente, un permission-denied en el create implica que el
-       documento ya existía (o que el teléfono se pisó con otra pestaña). */
+    /* El marcador ya existe y las reglas no permiten sobrescribirlo: es un duplicado. */
     if (err && err.code === "permission-denied") return { ok: false, motivo: "duplicado" };
-    /* Aquí el identificador ES el teléfono, así que una escritura concurrente abortada
-       sólo puede significar que otra pestaña lo registró en el mismo instante. */
+    /* Escritura concurrente abortada: otra pestaña registró el número en el mismo instante. */
     if (err && err.code === "aborted") return { ok: false, motivo: "duplicado" };
     return { ok: false, motivo: "red", detalle: err && err.code ? err.code : String(err) };
   }
