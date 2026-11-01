@@ -19,7 +19,7 @@
    · El consentimiento lleva versión explícita. Cambiar el texto legal exige subir la
      versión en las reglas, aquí y en el HTML: si no coinciden, la escritura falla. */
 
-import { doc, setDoc, getDoc, serverTimestamp, Timestamp } from
+import { doc, setDoc, getDoc, runTransaction, serverTimestamp, Timestamp } from
   "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /** Versión vigente del consentimiento. Debe coincidir con la función
@@ -110,17 +110,31 @@ export async function registrarProspectoInterno(db, datos, usuario) {
   if (!v.ok) return v;
   if (!usuario || !usuario.uid) return { ok: false, motivo: "sesion" };
 
-  const ref = doc(db, "crm_leads", v.telefono);
+  /* A03: el prospecto se identifica con un UUID v4, NO con el teléfono. El número
+     pasa a ser un atributo de contacto. La unicidad del número la garantiza el
+     marcador crm_dedup/{telefono}, que se crea en la MISMA transacción: o nacen los
+     dos o no nace ninguno. Las reglas lo verifican con getAfter(), así que dos altas
+     simultáneas del mismo número no pueden prosperar las dos. */
+  const id = (globalThis.crypto && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : "u" + Date.now().toString(36) + Math.random().toString(36).slice(2, 10);
+
+  const ref = doc(db, "crm_leads", id);
+  const refDedup = doc(db, "crm_dedup", v.telefono);
   const retencion = Timestamp.fromDate(
     new Date(Date.now() + DIAS_RETENCION * 24 * 60 * 60 * 1000)
   );
 
-  try {
-    const yaEsta = await getDoc(ref);
-    if (yaEsta.exists()) return { ok: false, motivo: "duplicado" };
-  } catch (err) {
-    if (err && err.code === "permission-denied") return { ok: false, motivo: "permiso" };
-    return { ok: false, motivo: "red", detalle: err && err.code ? err.code : String(err) };
+  /* Consulta previa: sólo administración puede leer; y ahora lo que se consulta es el
+     MARCADOR, no el prospecto, así que nunca se revela un prospecto ajeno. */
+  if (usuario && usuario.esAdmin) {
+    try {
+      const yaEsta = await getDoc(refDedup);
+      if (yaEsta.exists()) return { ok: false, motivo: "duplicado" };
+    } catch (err) {
+      if (err && err.code === "permission-denied") return { ok: false, motivo: "permiso" };
+      return { ok: false, motivo: "red", detalle: err && err.code ? err.code : String(err) };
+    }
   }
 
   const registro = {
@@ -140,9 +154,19 @@ export async function registrarProspectoInterno(db, datos, usuario) {
   if (servicio) registro.servicio_interes = servicio;
 
   try {
-    await setDoc(ref, registro);
-    return { ok: true, telefono: v.telefono };
+    await runTransaction(db, async (tx) => {
+      const yaEsta = await tx.get(refDedup);
+      if (yaEsta.exists()) throw new Error("KZ_DUPLICADO");
+      tx.set(ref, registro);
+      tx.set(refDedup, {
+        lead_id: id,
+        creado_en: serverTimestamp(),
+        creado_por: usuario.uid,
+      });
+    });
+    return { ok: true, id, telefono: v.telefono };
   } catch (err) {
+    if (err && err.message === "KZ_DUPLICADO") return { ok: false, motivo: "duplicado" };
     if (err && err.code === "already-exists") return { ok: false, motivo: "duplicado" };
     if (err && err.code === "permission-denied") return { ok: false, motivo: "permiso" };
     return { ok: false, motivo: "red", detalle: err && err.code ? err.code : String(err) };

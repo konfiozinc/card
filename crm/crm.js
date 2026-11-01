@@ -54,7 +54,9 @@ const pesos = (n) => n == null ? "—" : "$" + Number(n).toLocaleString("es-CO")
 
 const sesion = { uid: null, rol: null, email: null };
 let leads = [];
-let filtro = { estado: "", texto: "" };
+let filtro = { estado: "", texto: "", sinAsignar: false };
+/* Equipo cargado sólo por administración, para el selector de asignación. */
+let usuariosCargados = [];
 
 function aviso(texto, tipo) {
   const caja = $("#estado-panel");
@@ -193,6 +195,9 @@ onAuthStateChanged(auth, async (u) => {
   $("#btn-salir").hidden = false;
   $("#quien").textContent = u.email + " · " + rol.rol;
   aplicarPermisos();
+  const labSin = $("#lab-sin-asignar");
+  if (labSin) labSin.hidden = sesion.rol !== "admin";
+  await cargarUsuarios();
   await cargarLeads();
   await pintarStats();
   if (rol.rol === "admin") await pintarAuditoria();
@@ -204,14 +209,130 @@ onAuthStateChanged(auth, async (u) => {
 });
 
 function aplicarPermisos() {
+  const esAdmin = sesion.rol === "admin";
+  const esLectura = sesion.rol === "lectura";
   const puedeCotizar = ["admin", "comercial"].includes(sesion.rol);
   const puedeVender = ["admin", "ventas"].includes(sesion.rol);
-  const esAdmin = sesion.rol === "admin";
-  $("#bloque-cotizar").hidden = !puedeCotizar;
-  $("#bloque-venta").hidden = !puedeVender;
+  /* El rol «lectura» no escribe nada: no ve ningún bloque de acción. */
+  $("#bloque-cotizar").hidden = !puedeCotizar || esLectura;
+  $("#bloque-venta").hidden = !puedeVender || esLectura;
   $("#btn-exportar").hidden = !["admin", "comercial"].includes(sesion.rol);
   $("#bloque-auditoria").hidden = !esAdmin;
   $("#bloque-privacidad").hidden = !esAdmin;
+  /* Asignar y reasignar: sólo administración (coherente con las reglas). */
+  $("#bloque-asignacion").hidden = !esAdmin;
+  $("#bloque-equipo").hidden = !esAdmin;
+  /* Alta de prospecto: lectura no crea; el resto sí, según las reglas. */
+  $("#bloque-alta").hidden = esLectura;
+  /* Estado y nota: lectura no modifica seguimiento. */
+  $("#btn-estado").hidden = esLectura;
+  $("#d-estado").disabled = esLectura;
+  $("#btn-nota").hidden = esLectura;
+  $("#d-nota").disabled = esLectura;
+}
+
+/* ── gestión de equipo (sólo administración) ──────────────────────────────────
+   El administrador puede leer todas las fichas de rol; el resto sólo la suya.
+   Las cuentas NO se crean desde el navegador: eso sigue siendo un procedimiento
+   privilegiado. Aquí sólo se listan para poder asignar. */
+async function cargarUsuarios() {
+  if (sesion.rol !== "admin") { usuariosCargados = []; return; }
+  try {
+    const snap = await getDocs(query(collection(db, "crm_usuarios"), limit(100)));
+    usuariosCargados = snap.docs.map((d) => Object.assign({ uid: d.id }, d.data()));
+    usuariosCargados.sort((a, b) => String(a.rol).localeCompare(String(b.rol)));
+  } catch (e) {
+    usuariosCargados = [];
+    console.warn("no se pudo cargar el equipo:", e.code || e.message);
+  }
+  pintarSelectorAsesores();
+}
+
+function pintarSelectorAsesores() {
+  const sel = $("#a-asesor");
+  if (!sel) return;
+  const activos = usuariosCargados.filter((u) => u.activo === true);
+  sel.innerHTML = '<option value="">— sin asignar —</option>' + activos.map((u) =>
+    `<option value="${esc(u.uid)}">${esc((u.nombre || u.email || u.uid) + " · " + u.rol)}</option>`
+  ).join("");
+}
+
+/* Asignar o reasignar. Sólo admin lo intenta; las reglas lo exigen igualmente. */
+$("#btn-asignar").addEventListener("click", async () => {
+  if (!leadActual) return;
+  if (sesion.rol !== "admin") { aviso("Sólo administración puede asignar prospectos.", "err"); return; }
+  const nuevo = $("#a-asesor").value || null;
+  const antes = leadActual.asignado_a || null;
+  if (nuevo === antes) { aviso("El prospecto ya está asignado así.", "err"); return; }
+
+  const destino = nuevo ? nombreAsesor(nuevo) : "nadie";
+  const texto = new Date().toISOString() + " · " +
+    (antes ? "reasignado de " + nombreAsesor(antes) : "asignado") +
+    " a " + destino + " (por " + sesion.email + ")";
+  try {
+    await updateDoc(doc(db, "crm_leads", leadActual.id), {
+      asignado_a: nuevo,
+      asignado_en: serverTimestamp(),
+      asignado_por: sesion.uid,
+    });
+    /* El rastro de la asignación va como nota inmutable (H03), no al historial. */
+    await agregarNota(leadActual.id, texto, "evento");
+  } catch (e) {
+    aviso("No se pudo asignar: " + (e.code || e.message), "err");
+    return;
+  }
+  await auditar(antes ? "prospecto_reasignado" : "prospecto_asignado", leadActual.id + " → " + destino);
+  await cargarLeads(); await pintarStats(); await abrirLead(leadActual.id);
+  await pintarAuditoria();
+  aviso(antes ? "Prospecto reasignado a " + destino + "." : "Prospecto asignado a " + destino + ".", "ok");
+});
+
+/* ── Equipo: solicitudes e indicadores por asesor (sólo administración) ──────
+   El panel NO crea cuentas ni cambia roles: deja una solicitud en crm_invitaciones
+   que ejecuta un procedimiento privilegiado. Así se incorporan asesores desde la
+   interfaz sin que ninguna credencial administrativa llegue al navegador. */
+/* Indicadores por asesor: se calculan sobre la cartera que el admin ya ve.
+   No hay consulta global nueva: se reutilizan los prospectos cargados y las ventas. */
+async function pintarEquipo() {
+  const tbody = $("#tabla-equipo");
+  if (!tbody || sesion.rol !== "admin") return;
+
+  let ventas = [];
+  try {
+    const snapS = await getDocs(collection(db, "crm_sales"));
+    ventas = snapS.docs.map((d) => d.data());
+  } catch (e) { ventas = []; }
+
+  const porLead = {};
+  for (const l of leads) porLead[l.id] = l.asignado_a || null;
+  const vendidoPorAsesor = {};
+  for (const v of ventas) {
+    const asesor = porLead[v.lead_id] || null;
+    if (asesor) vendidoPorAsesor[asesor] = (vendidoPorAsesor[asesor] || 0) + (v.monto || 0);
+  }
+
+  const filas = usuariosCargados.length ? usuariosCargados : [];
+  const asignados = (uid) => leads.filter((l) => (l.asignado_a || null) === uid);
+  const sinAsignar = leads.filter((l) => !l.asignado_a).length;
+
+  tbody.innerHTML = filas.map((u) => {
+    const mios = asignados(u.uid);
+    const ganados = mios.filter((l) => l.estado === "ganado").length;
+    const perdidos = mios.filter((l) => l.estado === "perdido").length;
+    const enCurso = mios.length - ganados - perdidos;
+    return `<tr>
+      <td>${esc(u.nombre || u.email || u.uid)}</td>
+      <td>${esc(u.rol)}${u.activo === true ? "" : " · <b>inactivo</b>"}</td>
+      <td>${mios.length}</td>
+      <td>${ganados}</td>
+      <td>${perdidos}</td>
+      <td>${enCurso}</td>
+      <td>${pesos(vendidoPorAsesor[u.uid] || 0)}</td>
+    </tr>`;
+  }).join("") + `<tr>
+      <td><i>sin asignar</i></td><td>—</td><td>${sinAsignar}</td>
+      <td>—</td><td>—</td><td>—</td><td>—</td>
+    </tr>`;
 }
 
 /* ── alta de prospecto por el operador (modo privado) ── */
@@ -224,7 +345,7 @@ $("#btn-alta").addEventListener("click", async () => {
     industria: $("#n-industria").value,
     origen: $("#n-origen").value,
     consentimiento: $("#n-consent").checked,
-  }, { uid: sesion.uid });
+  }, { uid: sesion.uid, esAdmin: sesion.rol === "admin" });
 
   const MENSAJES_ALTA = {
     nombre: "Escribe el nombre (entre 2 y 60 caracteres).",
@@ -249,10 +370,46 @@ $("#btn-alta").addEventListener("click", async () => {
 });
 
 /* ── leads ── */
+/* ── Carga de prospectos, según el rol ────────────────────────────────────────
+   KZ-CRM-018 · esto no es cosmética: Firestore RECHAZA una consulta que no pueda
+   demostrar que todos sus resultados cumplen las reglas. Un `collection('crm_leads')`
+   a secas falla con permission-denied para comercial/ventas/lectura, porque el
+   servidor no puede probar que cada documento esté asignado a quien pregunta.
+   Por eso el filtro por `asignado_a` es obligatorio, no opcional.
+
+   Se evita además `orderBy('creado_en')` en ese caso, porque exigiría un índice
+   compuesto (asignado_a + creado_en) que habría que desplegar aparte. Se ordena en
+   el cliente: mismo resultado, sin dependencia de índices nuevos. */
 async function cargarLeads() {
-  const snap = await getDocs(query(collection(db, "crm_leads"), orderBy("creado_en", "desc"), limit(200)));
+  const esAdmin = sesion.rol === "admin";
+  const q = esAdmin
+    ? query(collection(db, "crm_leads"), orderBy("creado_en", "desc"), limit(200))
+    : query(collection(db, "crm_leads"), where("asignado_a", "==", sesion.uid), limit(200));
+
+  const snap = await getDocs(q);
   leads = snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+  if (!esAdmin) {
+    leads.sort((a, b) => {
+      const fa = a.creado_en && a.creado_en.toMillis ? a.creado_en.toMillis() : 0;
+      const fb = b.creado_en && b.creado_en.toMillis ? b.creado_en.toMillis() : 0;
+      return fb - fa;
+    });
+  }
   pintarTabla();
+  pintarResumenBandeja();
+  if (sesion.rol === "admin") await pintarEquipo();
+}
+
+/* Bandeja personal: deja claro de quién es la cartera que se está viendo. */
+function pintarResumenBandeja() {
+  const caja = $("#bandeja");
+  if (!caja) return;
+  if (sesion.rol === "admin") {
+    caja.textContent = "Cartera completa · " + leads.length + " prospectos · " +
+      leads.filter((l) => !l.asignado_a).length + " sin asignar";
+  } else {
+    caja.textContent = "Tu bandeja · " + leads.length + " prospectos asignados";
+  }
 }
 
 function leadsFiltrados() {
@@ -260,26 +417,44 @@ function leadsFiltrados() {
     const okEstado = !filtro.estado || l.estado === filtro.estado;
     const t = (filtro.texto || "").toLowerCase();
     const okTexto = !t || [l.nombre, l.telefono, l.industria, l.servicio_interes].join(" ").toLowerCase().includes(t);
-    return okEstado && okTexto;
+    const okAsig = !filtro.sinAsignar || !l.asignado_a;
+    return okEstado && okTexto && okAsig;
   });
+}
+
+function nombreAsesor(uid) {
+  if (!uid) return "sin asignar";
+  const u = usuariosCargados.find((x) => x.uid === uid);
+  if (u) return u.nombre || u.email || uid;
+  return uid === sesion.uid ? "ti" : uid.slice(0, 6) + "…";
 }
 
 function pintarTabla() {
   const filas = leadsFiltrados();
+  const esAdmin = sesion.rol === "admin";
+  const cab = $("#tabla-cabecera");
+  if (cab) {
+    cab.innerHTML = esAdmin
+      ? "<tr><th>Nombre</th><th>Teléfono</th><th>Industria</th><th>Estado</th><th>Asignado a</th><th>Consent.</th><th></th></tr>"
+      : "<tr><th>Nombre</th><th>Teléfono</th><th>Industria</th><th>Estado</th><th>Consent.</th><th></th></tr>";
+  }
   $("#tabla-leads").innerHTML = filas.length ? filas.map((l) => `
     <tr data-id="${esc(l.id)}">
       <td>${esc(l.nombre)}</td>
       <td>${esc(l.telefono)}</td>
       <td>${esc(l.industria)}</td>
       <td><span class="pill pill--${esc(l.estado)}">${esc(l.estado)}</span></td>
+      ${esAdmin ? `<td>${esc(nombreAsesor(l.asignado_a))}</td>` : ""}
       <td>${esc(l.consentimiento ? "sí" : "no")}</td>
       <td><button class="mini" data-abrir="${esc(l.id)}">Abrir</button></td>
-    </tr>`).join("") : '<tr><td colspan="6">Sin prospectos que coincidan.</td></tr>';
+    </tr>`).join("")
+    : `<tr><td colspan="${esAdmin ? 7 : 6}">Sin prospectos que coincidan.</td></tr>`;
   $("#contador").textContent = filas.length + " de " + leads.length + " prospectos";
 }
 
 $("#f-estado").addEventListener("change", (e) => { filtro.estado = e.target.value; pintarTabla(); });
 $("#f-texto").addEventListener("input", (e) => { filtro.texto = e.target.value; pintarTabla(); });
+$("#f-sin-asignar").addEventListener("change", (e) => { filtro.sinAsignar = e.target.checked; pintarTabla(); });
 $("#tabla-leads").addEventListener("click", (e) => {
   const b = e.target.closest("[data-abrir]") || e.target.closest("tr[data-id]");
   if (b) abrirLead(b.dataset.abrir || b.dataset.id);
@@ -293,22 +468,57 @@ async function abrirLead(id) {
   $("#d-nombre").textContent = leadActual.nombre;
   $("#d-meta").textContent = [leadActual.telefono, leadActual.industria, leadActual.servicio_interes].filter(Boolean).join(" · ");
   $("#d-estado").value = leadActual.estado || "nuevo";
-  $("#d-historial").innerHTML = (leadActual.historial || []).map((h) => `<li>${esc(h)}</li>`).join("") || "<li>Sin notas todavía.</li>";
+
+  /* Asignación: el admin ve a quién está asignado y puede cambiarlo; el resto
+     ve una frase informativa (y, si no es suyo, ni siquiera llega aquí). */
+  const cajaAsig = $("#d-asignado");
+  if (cajaAsig) {
+    cajaAsig.textContent = leadActual.asignado_a
+      ? "Asignado a: " + nombreAsesor(leadActual.asignado_a)
+      : "Sin asignar";
+  }
+  const selAsesor = $("#a-asesor");
+  if (selAsesor && sesion.rol === "admin") selAsesor.value = leadActual.asignado_a || "";
+
+  /* H03: el historial heredado se muestra como legado de sólo lectura; las notas
+     reales viven en la subcolección inmutable y se muestran cronológicamente. */
+  /* A10: en datos heredados el campo puede no ser un array; sin esta guarda el
+     panel revienta al pintar y ni siquiera el bloque de recuperación lo salva. */
+  const legado = Array.isArray(leadActual.historial) ? leadActual.historial : [];
+  $("#d-historial").innerHTML = "<li>Cargando notas…</li>";
+  try {
+    pintarNotas(await cargarNotas(leadActual.id));
+    if (legado.length) {
+      $("#d-historial").innerHTML += legado.map((h) =>
+        `<li class="muted">[historial anterior] ${esc(h)}</li>`).join("");
+    }
+  } catch (e) {
+    $("#d-historial").innerHTML = legado.map((h) => `<li class="muted">[historial anterior] ${esc(h)}</li>`).join("")
+      || "<li>No se pudieron cargar las notas (" + esc(e.code || "error") + ").</li>";
+  }
   $("#d-cotizaciones").textContent = "—";
-  const snapQ = await getDocs(query(collection(db, "crm_quotes"), where("lead_id", "==", id)));
-  const qs = snapQ.docs.map((d) => Object.assign({ id: d.id }, d.data()));
-  $("#d-cotizaciones").innerHTML = qs.length
-    ? qs.map((q) => `<div>${esc(q.plan)} · ${pesos(q.monto)} · ${esc(q.estado)} <span class="muted">(${esc(q.id)})</span></div>`).join("")
-    : "Sin cotizaciones.";
+  try {
+    const snapQ = await getDocs(query(collection(db, "crm_quotes"), where("lead_id", "==", id)));
+    const qs = snapQ.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+    $("#d-cotizaciones").innerHTML = qs.length
+      ? qs.map((q) => `<div>${esc(q.plan)} · ${pesos(q.monto)} · ${esc(q.estado)} <span class="muted">(${esc(q.id)})</span></div>`).join("")
+      : "Sin cotizaciones.";
+  } catch (e) {
+    $("#d-cotizaciones").textContent = "No se pudieron cargar las cotizaciones (" + (e.code || "error") + ").";
+  }
 }
 
 $("#btn-estado").addEventListener("click", async () => {
   if (!leadActual) return;
   const nuevo = $("#d-estado").value;
-  await updateDoc(doc(db, "crm_leads", leadActual.id), {
-    estado: nuevo,
-    historial: arrayUnion(new Date().toISOString() + " · estado → " + nuevo + " (por " + sesion.email + ")"),
-  });
+  /* H03: el historial del prospecto está congelado en las reglas. El cambio de estado
+     se guarda en el prospecto y el rastro va como nota inmutable aparte. */
+  try {
+    await updateDoc(doc(db, "crm_leads", leadActual.id), { estado: nuevo });
+  } catch (e) {
+    aviso("No se pudo cambiar el estado: " + (e.code || e.message), "err"); return;
+  }
+  await agregarNota(leadActual.id, "estado → " + nuevo, "evento");
   await auditar("estado_cambiado", leadActual.id + " → " + nuevo);
   await cargarLeads(); await pintarStats();
   abrirLead(leadActual.id);
@@ -319,15 +529,55 @@ $("#btn-nota").addEventListener("click", async () => {
   if (!leadActual) return;
   const nota = $("#d-nota").value.trim();
   if (nota.length < 3) { aviso("Escribe una nota de al menos 3 caracteres.", "err"); return; }
-  await updateDoc(doc(db, "crm_leads", leadActual.id), {
-    historial: arrayUnion(new Date().toISOString() + " · " + sesion.email + ": " + nota),
-  });
+  /* H03: la nota se guarda como documento propio e inmutable. Corregirla después no
+     la sobrescribe: se añade otra de tipo «correccion» que la referencia. */
+  const r = await agregarNota(leadActual.id, nota, "nota");
+  if (!r.ok) { aviso("No se pudo guardar la nota: " + (r.motivo || "error"), "err"); return; }
   await auditar("nota_añadida", leadActual.id);
   $("#d-nota").value = "";
-  await cargarLeads();
   await abrirLead(leadActual.id);
-  aviso("Nota añadida al historial.", "ok");
+  aviso("Nota añadida. Las notas no se pueden modificar ni borrar.", "ok");
 });
+
+/* ── Notas inmutables del prospecto (H03) ────────────────────────────────────
+   Cada nota es un documento propio en crm_leads/{id}/notas. Las reglas prohíben
+   modificarlas y borrarlas —incluso para el administrador—, y exigen que `autor`
+   sea el uid autenticado y que `fecha` caiga en la ventana del servidor.
+   Corregir una nota NO la sobrescribe: se añade otra de tipo «correccion». */
+async function agregarNota(leadId, texto, tipo, referencia) {
+  try {
+    const campos = {
+      texto: String(texto).slice(0, 500),
+      autor: sesion.uid,
+      fecha: serverTimestamp(),
+      tipo: tipo || "nota",
+    };
+    if (referencia) campos.referencia_a = referencia;
+    await addDoc(collection(db, "crm_leads", leadId, "notas"), campos);
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, motivo: e.code || e.message };
+  }
+}
+
+async function cargarNotas(leadId) {
+  const snap = await getDocs(query(collection(db, "crm_leads", leadId, "notas"), orderBy("fecha", "asc")));
+  return snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+}
+
+function pintarNotas(lista) {
+  const nuevas = lista.filter((n) => n.tipo !== "evento");
+  const eventos = lista.filter((n) => n.tipo === "evento");
+  const fmt = (n) => {
+    const cuando = n.fecha && n.fecha.toDate ? n.fecha.toDate().toLocaleString("es-CO") : "(sin fecha)";
+    const quien = n.autor === sesion.uid ? "ti" : nombreAsesor(n.autor);
+    const tipo = n.tipo === "correccion" ? ' <b>[corrección]</b>' : "";
+    return `<li><span class="muted">${esc(cuando)} · ${esc(quien)}${tipo}:</span> ${esc(n.texto)}</li>`;
+  };
+  $("#d-historial").innerHTML = (nuevas.length || eventos.length)
+    ? nuevas.map(fmt).join("") + eventos.map(fmt).join("")
+    : "<li>Sin notas todavía.</li>";
+}
 
 /* ── cotización ── */
 $("#btn-cotizar").addEventListener("click", async () => {
@@ -373,11 +623,11 @@ $("#btn-venta").addEventListener("click", async () => {
       lead_id: leadActual.id, quote_id: quoteId, monto, moneda: "COP",
       confirmado_por: sesion.uid, confirmado_en: serverTimestamp(),
     });
-    lote.update(doc(db, "crm_leads", leadActual.id), {
-      estado: "ganado",
-      historial: arrayUnion(new Date().toISOString() + " · venta confirmada " + pesos(monto)),
-    });
+    lote.update(doc(db, "crm_leads", leadActual.id), { estado: "ganado" });
     await lote.commit();
+    /* El rastro de la venta va como nota inmutable, fuera del lote: si fallara, la
+       venta ya está confirmada y el hecho es real; la nota es el registro, no el dato. */
+    await agregarNota(leadActual.id, "venta confirmada " + pesos(monto), "evento");
   } catch (e) {
     aviso(e.code === "already-exists"
       ? "Esa cotización ya tiene una venta registrada."
@@ -442,7 +692,12 @@ async function pintarStats() {
      quedaba con un error de permisos sin manejar. Ahora se piden sólo si el rol
      puede leerlas, y si la lectura falla el panel sigue funcionando sin ese dato. */
   let bloqueVentas = "";
-  if (["admin", "ventas"].includes(sesion.rol)) {
+  /* H05 (auditoría KZ-CRM-018): antes «ventas» pedía TODA la colección crm_sales, pero
+     las reglas sólo le permiten las ventas de sus prospectos asignados: la consulta
+     global se rechaza y el panel lo disimulaba mostrando «no disponibles».
+     Una consulta que la regla no puede demostrar segura no se disimula: el total
+     agregado queda para administración, que sí puede verlo. */
+  if (sesion.rol === "admin") {
     try {
       const snapS = await getDocs(collection(db, "crm_sales"));
       const vendido = snapS.docs.reduce((s, d) => s + (d.data().monto || 0), 0);
@@ -450,6 +705,8 @@ async function pintarStats() {
     } catch (e) {
       bloqueVentas = `<div class="stat stat--venta"><b>—</b><span>ventas no disponibles</span></div>`;
     }
+  } else if (sesion.rol === "ventas") {
+    bloqueVentas = `<div class="stat stat--venta"><b>—</b><span>consulta el detalle de cada prospecto</span></div>`;
   }
   $("#stats").innerHTML = estados.map((e) => `<div class="stat"><b>${cuenta[e]}</b><span>${e}</span></div>`).join("")
     + bloqueVentas;

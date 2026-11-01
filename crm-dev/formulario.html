@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KONFÍO ZINC · Solicitud de propuesta</title>
+<link rel="stylesheet" href="crm.css">
+<style>
+  body { display: block; padding: 24px; }
+  .caja { max-width: 520px; margin: 0 auto; }
+  label { display: block; margin-top: 14px; font-weight: 600; }
+  input, select { width: 100%; padding: 12px; font-size: 16px; margin-top: 6px; }
+  .consent { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; }
+  .consent input { width: auto; margin-top: 3px; }
+  button { margin-top: 18px; width: 100%; }
+  #estado-alta { margin-top: 16px; min-height: 24px; }
+  .nota-alta { margin-top: 18px; font-size: 13px; color: #555; }
+</style>
+</head>
+<body>
+<div class="caja">
+  <h1>Solicita tu propuesta</h1>
+  <p class="muted">Este formulario registra la solicitud en el CRM comercial de KONFÍO ZINC.
+     No cobra nada ni confirma ninguna venta.</p>
+
+  <form id="form-alta" novalidate>
+    <label for="a-nombre">Tu nombre</label>
+    <input id="a-nombre" name="nombre" autocomplete="name" maxlength="60">
+
+    <label for="a-telefono">Tu WhatsApp</label>
+    <input id="a-telefono" name="telefono" inputmode="numeric" autocomplete="tel" maxlength="18">
+
+    <label for="a-industria">Tu negocio</label>
+    <select id="a-industria" name="industria">
+      <option value="restaurantes">Restaurantes y comidas</option>
+      <option value="tiendas">Tiendas y comercio</option>
+      <option value="servicios">Servicios profesionales</option>
+      <option value="belleza">Belleza y estética</option>
+      <option value="otro">Otro</option>
+    </select>
+
+    <label class="consent">
+      <input type="checkbox" id="a-consent">
+      <span>Autorizo a KONFÍO ZINC a contactarme por WhatsApp para responder esta solicitud.
+        Mis datos se guardan en el CRM de la agencia y puedo pedir su eliminación.</span>
+    </label>
+
+    <button type="submit" class="btn" id="a-enviar">Enviar solicitud</button>
+  </form>
+
+  <div id="estado-alta" role="status" aria-live="polite"></div>
+
+  <p class="nota-alta"><b>Página en entorno aislado.</b> No está enlazada desde el sitio publicado
+     ni escribe en el proyecto de producción.</p>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, connectFirestoreEmulator } from
+  "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { registrarProspecto } from "./alta-prospecto.js";
+
+const EMU = (() => {
+  try {
+    const local = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+    return local && new URLSearchParams(location.search).get("emulador") === "1";
+  } catch { return false; }
+})();
+
+/* PÁGINA NO PUBLICADA. La captación pública está cerrada: las reglas de producción
+   no admiten ninguna escritura anónima, así que esta página no funcionaría contra
+   kzfio-crm. Se conserva para el día en que se autorice abrir la captación. */
+const CONFIG = EMU
+  ? { apiKey: "fake-key", authDomain: "demo-crm-016.firebaseapp.com", projectId: "demo-crm-016", appId: "demo-crm-016-web" }
+  : {
+      apiKey: "AIzaSyAeTUIAcqHz0pFuNLpxpg6MiboA-PgdLe4",
+      authDomain: "kzfio-crm.firebaseapp.com",
+      projectId: "kzfio-crm",
+      appId: "1:172060412799:web:a5f6f2221b948b02f8e84a",
+    };
+
+const app = initializeApp(CONFIG);
+const db = getFirestore(app, "default"); // el proyecto usa la base con nombre «default», no «(default)»
+if (EMU) connectFirestoreEmulator(db, "127.0.0.1", 8080);
+
+const MENSAJES = {
+  nombre: "Escribe tu nombre (entre 2 y 60 caracteres).",
+  telefono: "Escribe un WhatsApp válido, con indicativo si es de otro país.",
+  industria: "Elige tu tipo de negocio.",
+  consentimiento: "Necesitamos tu autorización para contactarte.",
+  duplicado: "Ya teníamos una solicitud con ese WhatsApp. Te escribiremos nosotros.",
+  permiso: "No fue posible registrar la solicitud.",
+  red: "No pudimos registrar la solicitud. Inténtalo de nuevo.",
+};
+
+const estado = document.querySelector("#estado-alta");
+
+document.querySelector("#form-alta").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const boton = document.querySelector("#a-enviar");
+  boton.disabled = true;
+  estado.className = "aviso";
+  estado.textContent = "Registrando…";
+  estado.dataset.resultado = "enviando";
+
+  const r = await registrarProspecto(db, {
+    nombre: document.querySelector("#a-nombre").value,
+    telefono: document.querySelector("#a-telefono").value,
+    industria: document.querySelector("#a-industria").value,
+    consentimiento: document.querySelector("#a-consent").checked,
+  });
+
+  if (r.ok) {
+    estado.className = "aviso ok";
+    estado.textContent = "Solicitud registrada. Te escribiremos al WhatsApp indicado.";
+    estado.dataset.resultado = "registrado";
+    document.querySelector("#form-alta").reset();
+  } else {
+    estado.className = "aviso err";
+    estado.textContent = MENSAJES[r.motivo] || MENSAJES.red;
+    estado.dataset.resultado = r.motivo;
+  }
+  boton.disabled = false;
+});
+</script>
+</body>
+</html>

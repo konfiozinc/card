@@ -68,7 +68,7 @@ Sin credencial, contra la base real: lectura de `crm_leads`, `crm_quotes`, `crm_
 
 ## 4. Coherencia y estado (11/11)
 
-La cuenta `damoa1510@gmail.com` existe, está habilitada, ha iniciado sesión y tiene rol `admin`
+La cuenta del administrador existe, está habilitada, ha iniciado sesión y tiene rol `admin`
 activo. Las colecciones comerciales están vacías (no se introdujeron datos reales ni ficticios,
 como exige la misión). Invariantes verificados sobre lo existente: contrato de prospectos,
 importes de cotización, venta↔cotización, coherencia de la estadística y acciones de auditoría.

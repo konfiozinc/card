@@ -74,11 +74,16 @@
           <option value="perdido">perdido</option>
         </select>
         <button id="btn-exportar" class="mini">Exportar CSV</button>
+        <label class="inline-check" id="lab-sin-asignar" hidden>
+          <input type="checkbox" id="f-sin-asignar">
+          <span>Sólo sin asignar</span>
+        </label>
       </div>
+      <p id="bandeja" class="bandeja" aria-live="polite"></p>
       <p id="contador" class="muted"></p>
       <div class="tabla-scroll">
         <table>
-          <thead><tr><th>Nombre</th><th>Teléfono</th><th>Industria</th><th>Estado</th><th>Consent.</th><th></th></tr></thead>
+          <thead id="tabla-cabecera"><tr><th>Nombre</th><th>Teléfono</th><th>Industria</th><th>Estado</th><th>Consent.</th><th></th></tr></thead>
           <tbody id="tabla-leads"></tbody>
         </table>
       </div>
@@ -104,6 +109,19 @@
         <label for="d-nota">Nota de seguimiento</label>
         <textarea id="d-nota" rows="2" placeholder="Qué se habló, próxima acción…"></textarea>
         <button id="btn-nota" class="btn">Añadir nota</button>
+      </div>
+
+      <div class="bloque" id="bloque-asignacion" hidden>
+        <h3>Asignación</h3>
+        <p id="d-asignado" class="muted">—</p>
+        <label for="a-asesor">Asesor responsable</label>
+        <select id="a-asesor">
+          <option value="">— sin asignar —</option>
+        </select>
+        <button id="btn-asignar" class="btn">Asignar prospecto</button>
+        <p class="nota">Sólo administración. Asignar o reasignar cambia quién puede ver
+          este prospecto: a partir de ese momento, los demás asesores reciben un 403 del
+          servidor, no sólo un botón oculto. Cada cambio queda en el historial y en la auditoría.</p>
       </div>
 
       <h3>Historial</h3>
@@ -148,6 +166,22 @@
       <h2>Auditoría (sólo administración)</h2>
       <div class="tabla-scroll">
         <table><thead><tr><th>Acción</th><th>Detalle</th><th>Rol</th></tr></thead><tbody id="tabla-audit"></tbody></table>
+      </div>
+    </section>
+    <section id="bloque-equipo" class="tarjeta" hidden>
+      <h2>Equipo comercial</h2>
+      <p class="nota">Darwin es el único administrador activo. <b>Incorporar asesores</b> se hace
+        con un procedimiento privilegiado desde un equipo de confianza
+        (<code>node crm-dev/gestionar-equipo.cjs --invitar correo@ejemplo.com comercial</code>),
+        porque crear cuentas y asignar roles exige Admin SDK y esa credencial no debe llegar
+        nunca al navegador. Aquí sólo se consulta el estado del equipo.</p>
+
+      <h3>Cartera por asesor</h3>
+      <div class="tabla-scroll">
+        <table>
+          <thead><tr><th>Asesor</th><th>Rol</th><th>Prospectos</th><th>Ganados</th><th>Perdidos</th><th>En curso</th><th>Vendido</th></tr></thead>
+          <tbody id="tabla-equipo"></tbody>
+        </table>
       </div>
     </section>
   </section>
