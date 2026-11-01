@@ -10,29 +10,64 @@
    una lista de trabajo, no un automatismo silencioso.
 
    Uso:
-     node crm/retencion-vencida.cjs               # informe contra kzfio-crm (lectura)
-     node crm/retencion-vencida.cjs --json        # además, salida legible por máquina
+     node crm-dev/retencion-vencida.cjs               # informe contra kzfio-crm (lectura)
+     node crm-dev/retencion-vencida.cjs --json        # además, salida legible por máquina
+     node crm-dev/retencion-vencida.cjs --emulador    # sólo pruebas: demo-crm-016
 
-   Requiere sesión de `firebase login` (reutiliza la credencial local, no guarda nada). */
+   Requiere sesión de `firebase login` (reutiliza la credencial local, no guarda nada).
+   En modo --emulador no pide credencial: usa el bypass del emulador. */
 
-const { tokenAcceso } = require(
-  "C:/Users/usuario29/Documents/KONFIO_ZINC/6-LANDING-PAGES/UneFibra-SAS/tools/lib/google-auth.js"
-);
+const EMULADOR = process.argv.includes("--emulador");
 
-const PROYECTO = "kzfio-crm";
-const URL = `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/default/documents/crm_leads`;
+/* Proyecto fijado en el código: NO se acepta por parámetro ni por variable de entorno.
+   En modo emulador sólo se admite el proyecto de pruebas. */
+const PROYECTO = EMULADOR ? "demo-crm-016" : "kzfio-crm";
+/* La BASE sólo se puede desviar EN EL EMULADOR, para las pruebas de inyección de fallos
+   (el proxy devuelve 503 en una página concreta). Contra producción no se acepta
+   ninguna variable de entorno. */
+const BASE = EMULADOR
+  ? (process.env.KZ_FIRESTORE_URL ||
+     `http://127.0.0.1:8080/v1/projects/demo-crm-016/databases/default/documents`)
+  : `https://firestore.googleapis.com/v1/projects/${PROYECTO}/databases/default/documents`;
+const URL = `${BASE}/crm_leads`;
+
+const cabecera = async () => {
+  if (EMULADOR) return { authorization: "Bearer owner" };
+  const { tokenAcceso } = require(
+    "C:/Users/usuario29/Documents/KONFIO_ZINC/6-LANDING-PAGES/UneFibra-SAS/tools/lib/google-auth.js"
+  );
+  return { authorization: "Bearer " + (await tokenAcceso()) };
+};
 
 const comoJson = process.argv.includes("--json");
 
 (async () => {
-  const t = await tokenAcceso();
-  const r = await fetch(`${URL}?pageSize=300`, { headers: { authorization: "Bearer " + t } });
-  if (r.status !== 200) {
-    console.error("No se pudo leer crm_leads (HTTP " + r.status + "). ¿Sesión de firebase login?");
-    process.exit(2);
-  }
-  const datos = await r.json();
-  const docs = datos.documents || [];
+  const H = await cabecera();
+
+  /* R08 · PAGINACIÓN REAL. Antes se pedía una sola página de 300 y se trabajaba con
+     ella como si fuera toda la colección: a partir del prospecto 301 el informe de
+     retención mentía por omisión —los más antiguos, precisamente los que más importan
+     para una retención vencida, quedaban fuera—. Ahora se recorre hasta agotar. */
+  const docs = [];
+  let token = null, paginas = 0;
+  do {
+    const url = `${URL}?pageSize=300` + (token ? "&pageToken=" + encodeURIComponent(token) : "");
+    const r = await fetch(url, { headers: H });
+    if (r.status !== 200) {
+      console.error("No se pudo leer crm_leads (HTTP " + r.status + ") en la página " + (paginas + 1) +
+        ". ¿Sesión de firebase login?");
+      console.error("Se leyeron " + docs.length + " prospectos: el informe quedaría INCOMPLETO.");
+      process.exit(2);
+    }
+    const datos = await r.json();
+    for (const d of (datos.documents || [])) docs.push(d);
+    token = datos.nextPageToken || null;
+    if (++paginas > 200) {
+      console.error("Demasiadas páginas: se aborta para no dar un informe incompleto por bueno.");
+      process.exit(2);
+    }
+  } while (token);
+
   const ahora = Date.now();
 
   const filas = docs.map((d) => {
@@ -71,7 +106,11 @@ const comoJson = process.argv.includes("--json");
     for (const f of vencidos.sort((a, b) => a.diasRestantes - b.diasRestantes)) {
       console.log("  · " + f.id + "  venció " + f.vence + "  (" + Math.abs(f.diasRestantes) + " días de retraso)");
     }
-    console.log("\nAcción: entra al panel como admin y anonimiza o borra cada uno.");
+    console.log("\nAcción: suprime cada uno con el procedimiento privilegiado:");
+    console.log("  node crm-dev/suprimir-datos.cjs --id <identificador>");
+    console.log("El panel ya NO borra ni anonimiza prospectos (R05): ese camino se retiró.");
+    console.log("Suprimir desasocia las cotizaciones y ventas, borra las notas y el marcador del");
+    console.log("número, y verifica el resultado. Siempre muestra primero la simulación.");
   } else {
     console.log("\nNo hay retenciones vencidas. Nada que retirar.");
   }

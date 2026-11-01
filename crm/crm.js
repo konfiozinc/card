@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, collection, doc, getDoc, setDoc, getDocs, query, orderBy, limit, updateDoc,
-  addDoc, serverTimestamp, where, arrayUnion, writeBatch }
+  addDoc, serverTimestamp, where, arrayUnion, writeBatch, startAfter }
   from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { registrarProspectoInterno } from "./alta-prospecto.js";
 
@@ -237,9 +237,22 @@ function aplicarPermisos() {
    privilegiado. Aquí sólo se listan para poder asignar. */
 async function cargarUsuarios() {
   if (sesion.rol !== "admin") { usuariosCargados = []; return; }
+  /* R08: antes se pedía `limit(100)` y el equipo se daba por completo. Con más de 100
+     cuentas, las siguientes no aparecerían en el selector de asignación y nadie lo
+     sabría. Ahora se pagina hasta agotar. */
   try {
-    const snap = await getDocs(query(collection(db, "crm_usuarios"), limit(100)));
-    usuariosCargados = snap.docs.map((d) => Object.assign({ uid: d.id }, d.data()));
+    const lista = [];
+    let despues = null;
+    for (;;) {
+      const partes = [collection(db, "crm_usuarios")];
+      if (despues) partes.push(startAfter(despues));
+      partes.push(limit(100));
+      const snap = await getDocs(query(...partes));
+      snap.docs.forEach((d) => lista.push(Object.assign({ uid: d.id }, d.data())));
+      if (snap.docs.length < 100) break;
+      despues = snap.docs[snap.docs.length - 1];
+    }
+    usuariosCargados = lista;
     usuariosCargados.sort((a, b) => String(a.rol).localeCompare(String(b.rol)));
   } catch (e) {
     usuariosCargados = [];
@@ -380,16 +393,70 @@ $("#btn-alta").addEventListener("click", async () => {
 
    Se evita además `orderBy('creado_en')` en ese caso, porque exigiría un índice
    compuesto (asignado_a + creado_en) que habría que desplegar aparte. Se ordena en
-   el cliente: mismo resultado, sin dependencia de índices nuevos. */
-async function cargarLeads() {
-  const esAdmin = sesion.rol === "admin";
-  const q = esAdmin
-    ? query(collection(db, "crm_leads"), orderBy("creado_en", "desc"), limit(200))
-    : query(collection(db, "crm_leads"), where("asignado_a", "==", sesion.uid), limit(200));
+   el cliente: mismo resultado, sin dependencia de índices nuevos.
 
-  const snap = await getDocs(q);
-  leads = snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
-  if (!esAdmin) {
+   R08 · PAGINACIÓN REAL (H08). Antes se pedía `limit(200)` y lo que llegaba se
+   presentaba como «la cartera»: a partir del prospecto 201 la lista se cortaba EN
+   SILENCIO, sin aviso y sin forma de ver el resto. Ahora se recorre página a página
+   hasta agotar la consulta. Además, si una página falla, NO se presenta lo leído como
+   si fuera la cartera completa: se dice explícitamente cuántos se leyeron y que la
+   lista está incompleta. */
+const PAGINA_LEADS = 200;
+const TOPE_PAGINAS_LEADS = 50;   // 10.000 prospectos: tope de seguridad, no de diseño
+let carteraAviso = null;         // null = cartera completa y sin incidencias
+let carteraPaginas = 0;
+
+async function leerCartera() {
+  const admin = sesion.rol === "admin";
+  const construir = (despues) => {
+    const partes = admin
+      ? [collection(db, "crm_leads"), orderBy("creado_en", "desc")]
+      : [collection(db, "crm_leads"), where("asignado_a", "==", sesion.uid)];
+    if (despues) partes.push(startAfter(despues));
+    partes.push(limit(PAGINA_LEADS));
+    return query(...partes);
+  };
+
+  const todos = [];
+  let despues = null, paginas = 0;
+  for (;;) {
+    let snap;
+    try {
+      snap = await getDocs(construir(despues));
+    } catch (e) {
+      const fallo = new Error(e && e.code ? e.code : String(e && e.message));
+      fallo.pagina = paginas + 1;
+      fallo.leidos = todos.length;
+      throw fallo;
+    }
+    snap.docs.forEach((d) => todos.push(Object.assign({ id: d.id }, d.data())));
+    paginas++;
+    if (snap.docs.length < PAGINA_LEADS) return { leads: todos, paginas, completo: true };
+    if (paginas >= TOPE_PAGINAS_LEADS) return { leads: todos, paginas, completo: false };
+    despues = snap.docs[snap.docs.length - 1];
+  }
+}
+
+async function cargarLeads() {
+  const admin = sesion.rol === "admin";
+  carteraAviso = null;
+  try {
+    const r = await leerCartera();
+    leads = r.leads;
+    carteraPaginas = r.paginas;
+    if (!r.completo) {
+      carteraAviso = "Se alcanzó el tope de " + TOPE_PAGINAS_LEADS +
+        " páginas: puede haber más prospectos sin cargar.";
+    }
+  } catch (e) {
+    leads = [];
+    carteraPaginas = e.pagina || 0;
+    carteraAviso = "No se pudo leer la página " + (e.pagina || 1) + " de la cartera (" +
+      e.message + "). Se leyeron " + (e.leidos || 0) +
+      " prospectos: la lista está INCOMPLETA, no vacía.";
+  }
+
+  if (!admin) {
     leads.sort((a, b) => {
       const fa = a.creado_en && a.creado_en.toMillis ? a.creado_en.toMillis() : 0;
       const fb = b.creado_en && b.creado_en.toMillis ? b.creado_en.toMillis() : 0;
@@ -398,19 +465,21 @@ async function cargarLeads() {
   }
   pintarTabla();
   pintarResumenBandeja();
-  if (sesion.rol === "admin") await pintarEquipo();
+  if (admin) await pintarEquipo();
 }
 
-/* Bandeja personal: deja claro de quién es la cartera que se está viendo. */
+/* Bandeja personal: deja claro de quién es la cartera que se está viendo.
+   R08: si la cartera no se pudo leer entera, se dice aquí mismo. Un inventario cortado
+   sin aviso es peor que un error visible: se toman decisiones sobre datos que faltan. */
 function pintarResumenBandeja() {
   const caja = $("#bandeja");
   if (!caja) return;
-  if (sesion.rol === "admin") {
-    caja.textContent = "Cartera completa · " + leads.length + " prospectos · " +
-      leads.filter((l) => !l.asignado_a).length + " sin asignar";
-  } else {
-    caja.textContent = "Tu bandeja · " + leads.length + " prospectos asignados";
-  }
+  const base = sesion.rol === "admin"
+    ? "Cartera completa · " + leads.length + " prospectos · " +
+      leads.filter((l) => !l.asignado_a).length + " sin asignar"
+    : "Tu bandeja · " + leads.length + " prospectos asignados";
+  caja.textContent = carteraAviso ? base + " · " + carteraAviso : base;
+  caja.classList.toggle("bandeja--aviso", !!carteraAviso);
 }
 
 function leadsFiltrados() {

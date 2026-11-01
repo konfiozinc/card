@@ -136,9 +136,10 @@ function confirmarDoble() {
   if (!lead.ok) { console.error("\nNo se pudo leer el prospecto: HTTP " + lead.status); process.exit(2); }
   const doc = await lead.json();
 
-  const notasResp = await fetch(`${DOCS}/crm_leads/${ID}/notas?pageSize=300`, { headers: H });
-  const notasJson = notasResp.ok ? await notasResp.json() : {};
-  const notas = (notasJson.documents || []).map((n) => n.name.split("/").pop());
+  /* R08 · Las notas también se paginan, y un fallo al listarlas NO se interpreta como
+     «no hay notas»: dar por vacía la subcolección dejaría notas personales en pie y la
+     supresión se declararía completa sin serlo. */
+  const notas = (await listarTodas(H, `crm_leads/${ID}/notas`, "notas de " + ID)).map((n) => n.id);
 
   /* R04: referencias comerciales que también hay que resolver. */
   const cotizaciones = (await listarTodas(H, "crm_quotes", "crm_quotes"))
@@ -238,8 +239,10 @@ function confirmarDoble() {
 
   /* 4. Verificación posterior */
   const quedaLead = await fetch(`${DOCS}/crm_leads/${ID}`, { headers: H });
-  const quedanNotas = await fetch(`${DOCS}/crm_leads/${ID}/notas?pageSize=300`, { headers: H });
-  const restantes = quedanNotas.ok ? ((await quedanNotas.json()).documents || []).length : 0;
+  /* R08: recuento paginado; si el listado falla, se marca incompleto en vez de suponer 0. */
+  let restantes = 0, falloVerificacion = false;
+  try { restantes = (await listarTodas(H, `crm_leads/${ID}/notas`, "notas restantes de " + ID)).length; }
+  catch (e) { falloVerificacion = true; console.error("  " + e.message); }
 
   /* R04: ninguna referencia puede seguir apuntando al prospecto suprimido. */
   const refsVivas = (await listarTodas(H, "crm_quotes", "crm_quotes"))
@@ -258,7 +261,7 @@ function confirmarDoble() {
   console.log("  verificación: referencias vivas " + refsVivas.length +
     (refsVivas.length === 0 ? " ✓" : " ✗  → " + refsVivas.join(", ")));
   const ok = quedaLead.status === 404 && restantes === 0 && fallosNotas === 0 &&
-    fallosRefs === 0 && refsVivas.length === 0 &&
+    fallosRefs === 0 && refsVivas.length === 0 && !falloVerificacion &&
     (!telefono || borradoMarcador.startsWith("sí"));
   registrar((ok ? "COMPLETADO" : "INCOMPLETO") + " · notas_borradas=" + borradas +
     "/" + notas.length + " · refs_desasociadas=" + desasociadas + "/" + (cotizaciones.length + ventas.length) +

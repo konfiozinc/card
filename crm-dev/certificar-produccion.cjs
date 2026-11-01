@@ -93,10 +93,22 @@ const anon = (metodo, ruta, cuerpo) => fetch(`${FS}${ruta}`, {
   } })).status === 403);
 
   console.log("\nD. Control: la credencial privilegiada sí alcanza la base");
-  const lectura = await fetch(`${FS}/crm_leads?pageSize=5`, { headers: H });
-  const cuerpo = await lectura.json().catch(() => ({}));
-  chk("lectura privilegiada funciona", lectura.status === 200, "HTTP " + lectura.status);
-  console.log("    documentos en crm_leads: " + ((cuerpo.documents || []).length));
+  /* R08 · Recuento REAL de la colección, recorriendo todas las páginas. Antes se pedía
+     una muestra de 5 y se imprimía ese número como si describiera la base. */
+  let totalLeads = 0, tokenPagina = null, paginasLeidas = 0, estadoLectura = 0;
+  do {
+    const url = `${FS}/crm_leads?pageSize=300` + (tokenPagina ? "&pageToken=" + encodeURIComponent(tokenPagina) : "");
+    const r = await fetch(url, { headers: H });
+    if (paginasLeidas === 0) estadoLectura = r.status;
+    if (r.status !== 200) break;
+    const j = await r.json();
+    totalLeads += (j.documents || []).length;
+    tokenPagina = j.nextPageToken || null;
+  } while (tokenPagina && ++paginasLeidas < 200);
+  chk("lectura privilegiada funciona", estadoLectura === 200, "HTTP " + estadoLectura);
+  chk("el inventario se recorre completo (sin corte silencioso)", !tokenPagina,
+    tokenPagina ? "quedaron páginas sin leer" : "");
+  console.log("    prospectos en crm_leads: " + totalLeads + " en " + (paginasLeidas + 1) + " página(s)");
 
   console.log("\nE. Las reglas publicadas son las privadas");
   const rel = await fetch(`https://firebaserules.googleapis.com/v1/projects/${P}/releases`, { headers: H }).then((r) => r.json());
