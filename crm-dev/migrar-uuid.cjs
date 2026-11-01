@@ -33,6 +33,7 @@ const BASE = "default";
 const EMULADOR = process.argv.includes("--emulador");
 const CONFIRMAR = process.argv.includes("--confirmar");
 const REVERTIR = process.argv.includes("--revertir");
+const LIMPIAR = process.argv.includes("--limpiar-testigos");
 
 const PROYECTO = EMULADOR ? "demo-crm-016" : PROYECTO_REAL;
 if (!EMULADOR && process.env.GCLOUD_PROJECT && process.env.GCLOUD_PROJECT !== PROYECTO) {
@@ -83,6 +84,7 @@ const listarNotas = (H, id) => listarTodas(H, `${DOCS}/crm_leads/${id}/notas`, "
 const listarCot = (H) => listarTodas(H, `${DOCS}/crm_quotes`, "crm_quotes");
 const listarVen = (H) => listarTodas(H, `${DOCS}/crm_sales`, "crm_sales");
 const listarDedup = (H) => listarTodas(H, `${DOCS}/crm_dedup`, "crm_dedup");
+const listarTestigos = (H) => listarTodas(H, `${DOCS}/crm_supresion`, "crm_supresion");
 
 const commit = async (H, writes) => {
   const r = await fetch(`${DOCS}:commit`, { method: "POST", headers: H, body: JSON.stringify({ writes }) });
@@ -102,9 +104,17 @@ const borrar = async (H, ruta) => {
    se leyó (updateTime). Si alguien lo modificó entre la lectura y el borrado, el almacén
    rechaza la operación en vez de destruir a ciegas. No hay atomicidad global: cada borrado
    es su propio commit, y ese límite se declara en vez de disimularse. */
+/* B1 · FALLO CERRADO. Sin un updateTime válido NO se borra. Antes, si el GET fallaba,
+   `updateTime` quedaba nulo y la escritura se enviaba SIN precondición: se destruía una
+   modificación concurrente sin detectarla. Un error HTTP NUNCA se interpreta como
+   «documento inexistente»: 404 lo decide el propio commit con su precondición, no una
+   lectura fallida. El proceso queda intacto para poder reanudar. */
 const borrarSiNoCambio = async (H, ruta, updateTime) => {
-  const writes = [{ delete: `${PREFIJO}/${ruta}` }];
-  if (updateTime) writes[0].currentDocument = { updateTime };
+  if (updateTime === "ausente") return true;   // ya no existe: nada que borrar
+  if (!updateTime) {
+    throw new Error(`no se pudo leer updateTime de ${ruta}: no se borra sin precondición`);
+  }
+  const writes = [{ delete: `${PREFIJO}/${ruta}`, currentDocument: { updateTime } }];
   let r;
   try {
     r = await fetch(`${DOCS}:commit`, { method: "POST", headers: H, body: JSON.stringify({ writes }) });
@@ -112,10 +122,36 @@ const borrarSiNoCambio = async (H, ruta, updateTime) => {
   if (r.ok || r.status === 404) return true;
   throw new Error(`el borrado de ${ruta} fue rechazado (HTTP ${r.status}): el documento cambió mientras se revertía`);
 };
+
+/* B3 · Modificación con precondición: si la referencia cambió desde que se leyó, el
+   almacén rechaza el repunte en vez de sobrescribir lo que otro acaba de escribir. */
+const patchSiNoCambio = async (H, ruta, fields, mask, updateTime) => {
+  if (updateTime === "ausente") return true;   // ya no existe: nada que repuntar
+  if (!updateTime) {
+    throw new Error(`no se pudo leer updateTime de ${ruta}: no se modifica sin precondición`);
+  }
+  const writes = [{
+    update: { name: `${PREFIJO}/${ruta}`, fields },
+    updateMask: { fieldPaths: [mask] },
+    currentDocument: { updateTime },
+  }];
+  let r;
+  try {
+    r = await fetch(`${DOCS}:commit`, { method: "POST", headers: H, body: JSON.stringify({ writes }) });
+  } catch (e) { throw new Error("commit de modificación sin respuesta: " + e.message); }
+  if (r.ok || r.status === 404) return true;
+  throw new Error(`la modificación de ${ruta} fue rechazada (HTTP ${r.status}): cambió mientras se revertía`);
+};
+
+/* Lectura del updateTime. Lanza si no se puede leer: NO devuelve null, para que nadie
+   pueda seguir adelante tratando un fallo de lectura como «no hay nada que proteger». */
 const updateTimeDe = async (H, ruta) => {
   const r = await fetch(`${DOCS}/${ruta}`, { headers: H });
-  if (!r.ok) return null;
-  return (await r.json()).updateTime || null;
+  if (r.status === 404) return "ausente";
+  if (!r.ok) throw new Error(`no se pudo leer ${ruta}: HTTP ${r.status}`);
+  const ut = (await r.json()).updateTime;
+  if (!ut) throw new Error(`la lectura de ${ruta} no devolvió updateTime`);
+  return ut;
 };
 const leerMapa = () => (fs.existsSync(MAPA) ? JSON.parse(fs.readFileSync(MAPA, "utf8")) : {});
 const guardarMapa = (m) => fs.writeFileSync(MAPA, JSON.stringify(m, null, 1), "utf8");
@@ -164,6 +200,7 @@ function camposCambiados(previo, ahora) {
   console.log("Proyecto : " + PROYECTO + (EMULADOR ? "  (EMULADOR)" : "  (PRODUCCIÓN)"));
   console.log("Modo     : " + (REVERTIR ? "REVERSIÓN" : CONFIRMAR ? "MIGRACIÓN" : "SIMULACIÓN"));
 
+  if (LIMPIAR) return await limpiarTestigos(H);
   if (REVERTIR) return await revertir(H);
 
   const leads = await listarLeads(H);
@@ -273,6 +310,48 @@ function camposCambiados(previo, ahora) {
 })().catch((e) => { console.error("ERROR: " + e.message); process.exit(2); });
 
 /* ══ REVERSIÓN SEGURA (R01) ═══════════════════════════════════════════════════ */
+/* B4 · RECUPERACIÓN DE TESTIGOS RESIDUALES de una reversión interrumpida.
+   Un testigo se retira SÓLO si su operación concluyó y se verificó: el prospecto migrado
+   ya no existe y ninguna cotización ni venta lo referencia. Si el prospecto sigue vivo hay
+   trabajo destructivo pendiente y el testigo se CONSERVA, para no reabrir la ventana que
+   el testigo existe para cerrar. Idempotente: se puede repetir sin efectos.
+   NUNCA se recomienda suprimir-datos.cjs aquí: ese procedimiento suprime el prospecto. */
+async function limpiarTestigos(H) {
+  const testigos = await listarTestigos(H);
+  if (!testigos.length) { console.log("No hay testigos de supresión ni de reversión pendientes."); return; }
+  const leads = await listarLeads(H);
+  const cot = await listarCot(H), ven = await listarVen(H);
+  const idsVivos = new Set(leads.map((l) => l.id));
+  let retirados = 0, conservados = 0, fallos = 0;
+  console.log("Testigos encontrados: " + testigos.length);
+  for (const w of testigos) {
+    const uuid = w.id;
+    const estado = val(w.fields, "estado");
+    if (estado !== "reversion") {
+      conservados++;
+      console.log("  · " + uuid.slice(0, 8) + "… CONSERVADO: es de «" + estado + "», no de una reversión.");
+      continue;
+    }
+    const existe = idsVivos.has(uuid);
+    const refs = cot.some((c) => val(c.fields, "lead_id") === uuid) || ven.some((v) => val(v.fields, "lead_id") === uuid);
+    if (existe || refs) {
+      conservados++;
+      console.log("  · " + uuid.slice(0, 8) + "… CONSERVADO: " +
+        (existe ? "el prospecto sigue existiendo (trabajo destructivo pendiente)" : "quedan referencias vivas") +
+        ". Reanuda con: --revertir --confirmar");
+      continue;
+    }
+    const r = await fetch(`${DOCS}/crm_supresion/${uuid}`, { method: "DELETE", headers: H });
+    if (r.ok || r.status === 404) { retirados++; console.log("  · " + uuid.slice(0, 8) + "… retirado (concluido y verificado)"); }
+    else { fallos++; console.error("  · " + uuid.slice(0, 8) + "… NO se pudo retirar: HTTP " + r.status); }
+  }
+  console.log("\nTestigos retirados: " + retirados + " · conservados: " + conservados + " · fallos: " + fallos);
+  if (conservados) {
+    console.log("Los conservados protegen trabajo destructivo pendiente: reanuda la reversión");
+    console.log("con --revertir --confirmar y vuelve a ejecutar --limpiar-testigos después.");
+  }
+  process.exit(fallos || conservados ? 3 : 0);
+}
 async function revertir(H) {
   const mapa = leerMapa();
   const entradas = Object.entries(mapa);
@@ -419,16 +498,29 @@ async function revertir(H) {
       estado: { stringValue: "reversion" }, desde: { timestampValue: new Date().toISOString() },
       id_sha256: { stringValue: sha(e.uuid).slice(0, 16) } } } }]);
 
-    for (const c of cotsAhora.filter((x) => val(x.fields, "lead_id") === e.uuid))
-      { await patch(H, `crm_quotes/${c.id}`, { lead_id: { stringValue: e.viejo } }, "lead_id"); repuntadas++; }
-    for (const v of vensAhora.filter((x) => val(x.fields, "lead_id") === e.uuid))
-      { await patch(H, `crm_sales/${v.id}`, { lead_id: { stringValue: e.viejo } }, "lead_id"); repuntadas++; }
+    /* B2 · El marcador se LEE aquí, antes de destruir nada: si su lectura falla, la
+       reversión aborta con el prospecto aún intacto en vez de dejarlo borrado y el
+       marcador huérfano. Su precondición se usa al final. */
+    const utMarcador = await updateTimeDe(H, `crm_dedup/${tel}`);
+
+    for (const c of cotsAhora.filter((x) => val(x.fields, "lead_id") === e.uuid)) {
+      await patchSiNoCambio(H, `crm_quotes/${c.id}`, { lead_id: { stringValue: e.viejo } }, "lead_id",
+        await updateTimeDe(H, `crm_quotes/${c.id}`));
+      repuntadas++;
+    }
+    for (const v of vensAhora.filter((x) => val(x.fields, "lead_id") === e.uuid)) {
+      await patchSiNoCambio(H, `crm_sales/${v.id}`, { lead_id: { stringValue: e.viejo } }, "lead_id",
+        await updateTimeDe(H, `crm_sales/${v.id}`));
+      repuntadas++;
+    }
     for (const n of await listarNotas(H, e.uuid)) {
       await borrarSiNoCambio(H, `crm_leads/${e.uuid}/notas/${n.id}`, await updateTimeDe(H, `crm_leads/${e.uuid}/notas/${n.id}`));
       borrados++;
     }
     await borrarSiNoCambio(H, `crm_leads/${e.uuid}`, await updateTimeDe(H, `crm_leads/${e.uuid}`)); borrados++;
-    await borrar(H, `crm_dedup/${tel}`);
+    /* B2 · El marcador también lleva precondición: si se repuntó a otro prospecto desde el
+       inventario, borrarlo destruiría el marcador de un tercero. */
+    await borrarSiNoCambio(H, `crm_dedup/${tel}`, utMarcador);
 
     await fetch(`${DOCS}/crm_supresion/${e.uuid}`, { method: "DELETE", headers: H }).catch(() => {});
     mapa[tel] = { ...mapa[tel], reversion: "hecha" };

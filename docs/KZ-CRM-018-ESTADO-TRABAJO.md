@@ -125,3 +125,22 @@ sin Blaze · sin captación pública · sin usuarios reales · sin tocar otros p
   adquisición del testigo). Concurrencia: **49 · 0**.
 - **Regresión:** 20 suites con aislamiento, **0 fallos**.
 - **Pendiente:** auditoría independiente focalizada sobre este commit.
+---
+
+## Remediación consolidada B1–B4 (auditoría independiente)
+
+- **B1 · fallo cerrado:** orrarSiNoCambio() ya no borra sin updateTime válido;
+  updateTimeDe() Lanza ante error HTTP y solo devuelve `"ausente"` ante 404 real.
+- **B2 · marcador:** su updateTime se **lee antes** de cualquier destrucción y se usa
+  como precondición del borrado.
+- **B3 · referencias:** los repuntes de cotización y venta usan patchSiNoCambio() con
+  precondición y updateMask.
+- **B4 · testigos residuales:** nuevo modo `--revertir --limpiar-testigos`; retira solo
+  los testigos cuya operación concluyó y se verificó, conserva los que protegen trabajo
+  pendiente e informa con código 3. El mensaje de recuperación ya **no** remite a
+  `suprimir-datos.cjs`.
+- **Pruebas:** `pruebas-concurrencia.cjs` **70 · 0** (sección 6: simulación sin
+  escrituras, GET de updateTime 500, GET del marcador 500, interrupción con dos testigos,
+  reanudación sin pérdida y limpieza idempotente).
+- **Regresión:** 20 suites con aislamiento, **0 fallos**.
+- **Siguiente:** verificación focalizada de Codex sobre B1–B4.
