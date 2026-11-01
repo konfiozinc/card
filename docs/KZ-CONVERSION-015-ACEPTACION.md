@@ -51,3 +51,23 @@ Todo vive en la rama. Para descartar el trabajo: `git checkout main && git branc
 ## 6. Commits
 
 Ver `git log --oneline main..feature/kz-conversion-015` en el repositorio local `Konfio-Zinc-Web`.
+
+## 7. Dictamen de preparación para publicación (ronda 2)
+
+**Preparado para revisión final del CTO. No publicado.**
+
+| Criterio | Estado |
+|---|---|
+| Navegación integrada sin regresiones | **Sí** — 10 páginas con el enlace y 5 páginas verificadas en 200 sin 404 |
+| Precios y alcance respaldados por `precios.html` | **Sí** — 6 comprobaciones, `precios.html` intacto |
+| Captación honesta y consentimiento explícito | **Sí** — «la agencia no ha recibido nada», borrador local, borrado disponible |
+| Revisión independiente de Codex | **Hecha** — 10 hallazgos, todos corregidos |
+| Pruebas | **69/69** (38 funcionales y visuales + 31 de navegación, alcance y captación) |
+| Sin tocar `main`, Firebase, Worker ni precios | **Cumplido** |
+
+**Condiciones antes de publicar:**
+1. Decidir si el ítem «Soluciones» se queda en la nav (hoy está en las 10 páginas).
+2. Confirmar el texto de alcance de los planes (ya alineado con `precios.html`).
+3. Revisión visual de Codex Sites si la herramienta está disponible; no lo estaba en esta ronda.
+
+**Riesgos que siguen abiertos:** sin antispam en el formulario, borrador local que se pierde al limpiar el navegador y CRM sin implementar (fase 3 pendiente de autorización y revisión de privacidad).

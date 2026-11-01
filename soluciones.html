@@ -19,8 +19,19 @@
 <link rel="stylesheet" href="assets/css/kz-neon.css">
 <link rel="stylesheet" href="assets/css/conversion-015.css">
 </head>
-<body>
+<body class="sol-page">
 
+<header class="site-header">
+  <nav id="nav-principal" class="nav" aria-label="Navegación principal">
+    <a href="index.html">Inicio</a>
+    <a href="servicios.html">Servicios</a>
+    <a href="soluciones.html" aria-current="page">Soluciones</a>
+    <a href="portafolio.html">Portafolio</a>
+    <a href="precios.html">Precios</a>
+    <a href="nosotros.html">Nosotros</a>
+    <a href="contacto.html">Contacto</a>
+  </nav>
+</header>
 <main class="sol-wrap">
 
   <header class="sol-hero">
@@ -44,13 +55,13 @@
        no se envía nada a ningún negocio real.</p>
 
     <div class="tabs" role="tablist" aria-label="Demostraciones">
-      <button class="tab" role="tab" data-demo="tarjeta" aria-selected="true">Tarjeta digital</button>
-      <button class="tab" role="tab" data-demo="menu" aria-selected="false">Menú / catálogo</button>
-      <button class="tab" role="tab" data-demo="miniweb" aria-selected="false">Mini Web</button>
+      <button class="tab" role="tab" id="tab-tarjeta" data-demo="tarjeta" aria-selected="true" aria-controls="demo-tarjeta" tabindex="0">Tarjeta digital</button>
+      <button class="tab" role="tab" id="tab-menu" data-demo="menu" aria-selected="false" aria-controls="demo-menu" tabindex="-1">Menú / catálogo</button>
+      <button class="tab" role="tab" id="tab-miniweb" data-demo="miniweb" aria-selected="false" aria-controls="demo-miniweb" tabindex="-1">Mini Web</button>
     </div>
 
     <!-- Demo 1 -->
-    <div class="demo" data-demo="tarjeta" role="tabpanel" aria-label="Demostración de tarjeta digital">
+    <div class="demo" id="demo-tarjeta" data-demo="tarjeta" role="tabpanel" aria-labelledby="tab-tarjeta">
       <span class="demo-sello">Demostración · datos ficticios</span>
       <div class="tdc">
         <div class="tdc__avatar" aria-hidden="true">🌿</div>
@@ -66,7 +77,7 @@
     </div>
 
     <!-- Demo 2 -->
-    <div class="demo" data-demo="menu" role="tabpanel" hidden aria-label="Demostración de menú digital">
+    <div class="demo" id="demo-menu" data-demo="menu" role="tabpanel" aria-labelledby="tab-menu" hidden>
       <span class="demo-sello">Demostración · ningún pedido se envía</span>
       <div class="menu-demo" id="menu-items"></div>
       <div class="menu-demo__pie">
@@ -78,7 +89,7 @@
     </div>
 
     <!-- Demo 3 -->
-    <div class="demo" data-demo="miniweb" role="tabpanel" hidden aria-label="Demostración de Mini Web">
+    <div class="demo" id="demo-miniweb" data-demo="miniweb" role="tabpanel" aria-labelledby="tab-miniweb" hidden>
       <span class="demo-sello">Demostración · vista previa</span>
       <div class="mw">
         <div class="mw__panel">
@@ -124,9 +135,12 @@
     <details class="nota" style="margin-top:10px">
       <summary>Qué incluye cada servicio (alcance real, sin promesas de más)</summary>
       <ul>
-        <li><b>Mini Web Básica · $49.900 COP</b>: una página, dominio incluido el primer año, diseño responsive y botón de WhatsApp.</li>
-        <li><b>Mini Web Pro · $99.900 COP</b>: además, secciones ampliadas y experiencia más completa; verificamos contigo el alcance exacto antes de cotizar.</li>
-        <li><b>Proyectos a medida</b>: no tienen precio de lista; se evalúan con una persona de KONFÍO ZINC.</li>
+        <li><b>Mini Web Básica · $49.900 COP</b> (pago único): contacto, WhatsApp y redes; ubicación con mapa; 
+            código QR con tu marca; dominio incluido el primer año; entrega en 24–48 horas.</li>
+        <li><b>Mini Web Pro · $99.900 COP</b> (pago único): todo lo de la Básica, más catálogo <i>o</i> menú digital, 
+            galería de productos o trabajos, botón de pedido por WhatsApp y soporte prioritario.</li>
+        <li><b>Proyectos a medida</b>: no tienen precio de lista; se evalúan contigo.</li>
+        <li>El dominio está incluido el primer año en ambos planes; su renovación se cotiza aparte.</li>
       </ul>
     </details>
   </section>
@@ -164,23 +178,23 @@
 
       <label class="consent">
         <input type="checkbox" id="f-consent" aria-describedby="err-f-consent">
-        <span>Autorizo a KONFÍO ZINC a contactarme por WhatsApp para responder esta solicitud. Mis datos no se comparten con terceros y puedo pedir su eliminación.</span>
+        <span>Autorizo a KONFÍO ZINC a contactarme por WhatsApp para responder esta solicitud. Mis datos no se comparten con terceros. El borrador se guarda <b>solo en este navegador</b> hasta que lo borres con el botón de abajo y también puedes pedir su eliminación al negocio.</span>
       </label>
       <p class="campo-error" id="err-f-consent" role="alert"></p>
 
       <button type="submit" class="btn" id="f-enviar">Preparar solicitud en WhatsApp</button>
       <div class="estado-sol" id="estado-sol" role="status" aria-live="polite"></div>
+      <button type="button" class="btn" id="f-borrar" style="margin-top:8px">Borrar los datos guardados en este navegador</button>
     </form>
     <p class="nota">No se cobra nada en este sitio. No hay pagos, ni contratos automáticos, ni ventas «confirmadas» por abrir WhatsApp.</p>
   </section>
 
   <!-- F. Métricas -->
   <section class="sol-seccion" aria-labelledby="t-metricas">
-    <h2 id="t-metricas">6. Actividad de esta visita</h2>
-    <p class="sub">Métricas de tu propia sesión en este navegador (no hay servidor ni analítica de terceros para estos datos).</p>
+    <h2 id="t-metricas">6. Actividad de esta visita — solo en tu navegador</h2>
+    <p class="sub">Estos contadores son de <b>tu propia sesión</b> y viven en este navegador. No son un CRM, no son estadísticas de la agencia y no llegan a ningún servidor.</p>
     <div class="metricas" id="metricas"></div>
-    <p class="nota">Las visitas y el seguimiento comercial real requieren un CRM con autenticación: ese módulo está diseñado
-       pero <b>no está publicado</b>, pendiente de revisión de seguridad y privacidad.</p>
+    <p class="nota"><b>Dónde queda tu solicitud:</b> se guarda un borrador <b>solo en este navegador</b> (puedes borrarlo y no se envía a ningún servidor). La agencia <b>no recibe nada</b> hasta que tú pulses «Enviar» dentro de WhatsApp y nosotros lo leamos. El seguimiento comercial real exige un CRM con autenticación: está diseñado pero <b>no está publicado</b>, pendiente de revisión de seguridad y privacidad.</p>
   </section>
 
 </main>

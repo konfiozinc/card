@@ -111,3 +111,14 @@
 .metrica b { display: block; font-size: 1.5rem; color: var(--kz-cyan, #35d0ff); }
 .metrica span { color: var(--kz-muted, #9fb3c8); font-size: .8rem; }
 .nota { font-size: .84rem; color: var(--kz-muted, #9fb3c8); margin-top: 10px; }
+
+
+/* Cabecera dentro de esta página: el sitio la fija al top, aquí se reserva su espacio
+   para que nunca se solape con el título. */
+.sol-page .site-header { position: static; padding: 12px 0; }
+.sol-page .site-header .nav { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+  max-width: 1200px; margin-inline: auto; padding-inline: 18px; }
+.sol-page .site-header .nav a { color: inherit; text-decoration: none; font-size: .9rem; min-height: 44px;
+  display: inline-flex; align-items: center; }
+.sol-page .site-header .nav a[aria-current="page"] { color: var(--kz-cyan, #35d0ff); font-weight: 700; }
+.sol-page main { padding-top: 8px; }

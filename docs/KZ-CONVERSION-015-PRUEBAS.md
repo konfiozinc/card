@@ -54,6 +54,38 @@ Sin errores de consola ni recursos 404 en ningún tamaño.
 | Ventas confirmadas y comisiones | Sin fuente de verdad autenticada |
 | Revisión de Codex y Codex Sites | Herramientas no disponibles en este entorno; se solicita cuando lo estén |
 
+
+## 6. Ronda 2 — tras integrar la navegación y aplicar la revisión de Codex
+
+Ejecutada el 2-nov-2026 sobre la rama `feature/kz-conversion-015`. Dos baterías:
+
+| Batería | Comprobaciones | Resultado |
+|---|---|---|
+| Funcional y visual original (4 tamaños + recorrido) | 38 | **38/38 PASS** |
+| Navegación, alcance de planes y captación | 31 | **31/31 PASS** |
+
+### Qué cubre la segunda batería
+
+- **Navegación:** «Soluciones» aparece como ítem propio (`<li><a class="nav-link">`) en index, servicios, precios, portafolio, contacto, nosotros, blog, aliados, gracias y en la propia página; las cinco páginas comprobadas siguen respondiendo 200, renderizan y no generan 404 nuevos.
+- **Alcance de planes:** la página reproduce el alcance oficial de `precios.html` (Básica: contacto/WhatsApp/redes, ubicación con mapa, código QR, dominio el primer año, entrega 24–48 h; Pro: catálogo **o** menú digital, galería, botón de pedido, soporte prioritario) y **ya no afirma** «diseño responsive» ni «secciones ampliadas». `precios.html` no se modificó.
+- **Captación:** el estado visible dice «la agencia todavía no ha recibido nada»; el registro se guarda como `ambito: borrador_local` con consentimiento; no aparece «CRM operativo» ni «prospecto recibido».
+
+### Hallazgos de la revisión de Codex y su estado
+
+| # | Hallazgo | Estado |
+|---|---|---|
+| 1 | Cabecera superpuesta al título en móvil | **Corregido**: `.sol-page .site-header` deja de ser fija y la nav envuelve en móvil |
+| 2 | Datos personales sin borrado | **Corregido**: consentimiento explica la retención y hay botón «Borrar los datos guardados» |
+| 3 | `innerHTML` con contadores del almacenamiento | **Corregido**: enteros validados y pintados con `textContent` |
+| 4 | El recorrido se auto-marcaba | **Corregido**: la página abre en «0 de 5»; solo marcan acciones reales |
+| 5 | Enlace dentro del `<li>` de Servicios | **Corregido**: ahora es un ítem propio con clase `nav-link` |
+| 6 | Pestañas con a11y incompleta | **Corregido**: `aria-controls`/`aria-labelledby`, `tabindex` y flechas ←/→ |
+| 7 | Contadores desconectados | **Corregido**: conectados a acciones reales y descritos como «en tu navegador» |
+| 8 | Sin plan elegido se declaraba «a medida» | **Corregido**: el servicio es obligatorio; si falta, no se prepara la solicitud |
+| 9 | Enlace compartido sin destino | **Corregido**: los paneles tienen id y la página abre la demo del `#hash` |
+| 10 | Contraste de la vista previa | **Corregido**: se detecta fondo claro y se cambia el texto |
+
+Errores propios detectados y corregidos durante esta ronda (no llegaron a la entrega): `appendChild(fila)` con variable mal nombrada y `const tabs = $(".tab")` que rompían la inicialización; ambos verificados ahora sin `pageerror`.
 ## 5. Cómo repetir las pruebas
 
 ```bash

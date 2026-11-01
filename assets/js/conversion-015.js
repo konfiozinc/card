@@ -70,7 +70,6 @@
     $$(".tab").forEach((t) => t.setAttribute("aria-selected", String(t.dataset.demo === clave)));
     $$(".demo").forEach((d) => { d.hidden = d.dataset.demo !== clave; });
     evento("kz_demo_vista", { demo: clave });
-    if (!estado.demoProbada) marcaProbada();
   }
 
   function marcaProbada() {
@@ -130,6 +129,7 @@
       const b = e.target.closest("[data-agregar]");
       if (!b) return;
       marcaProbada();
+      sumar("demo_iniciada");
       carrito[b.dataset.agregar] = (carrito[b.dataset.agregar] || 0) + 1;
       pintarMenu();
     });
@@ -146,7 +146,6 @@
 
   function initMiniweb() {
     const aplicar = () => {
-      marcaProbada();
       const nombre = ($("#mw-nombre").value || "Tu negocio").slice(0, 40);
       const acento = $("#mw-acento").value;
       const fondo = $("#mw-fondo").value;
@@ -154,13 +153,17 @@
       vista.style.setProperty("--mw-acento", acento);
       vista.style.setProperty("--mw-fondo", fondo);
       $("#mw-titulo").textContent = nombre;
+      const claro = (() => { const c = fondo.replace("#", ""); const r = parseInt(c.slice(0,2),16), g = parseInt(c.slice(2,4),16), b = parseInt(c.slice(4,6),16); return (0.2126*r + 0.7152*g + 0.0722*b) > 140; })();
+      vista.classList.toggle("mw--clara", claro);
       $("#mw-texto").textContent = "Plantilla «" + $("#mw-plantilla").value + "» · vista previa de demostración con datos ficticios.";
       evento("kz_demo_completada", { demo: "miniweb", accion: "personalizar" });
+      sumar("demo_completada");
+      pintarMenu();
     };
     ["#mw-nombre", "#mw-acento", "#mw-fondo", "#mw-plantilla"].forEach((sel) => {
       const el = $(sel);
-      el.addEventListener("input", aplicar);
-      el.addEventListener("change", aplicar);
+      el.addEventListener("input", () => { marcaProbada(); sumar("demo_iniciada"); aplicar(); });
+      el.addEventListener("change", () => { marcaProbada(); sumar("demo_iniciada"); aplicar(); });
     });
     aplicar();
   }
@@ -190,6 +193,7 @@
       pintarCotiza();
       actualizarPasos();
       evento("kz_cotizacion_solicitada", { plan: estado.plan });
+      sumar("cotizacion");
     });
     pintarCotiza();
   }
@@ -222,6 +226,7 @@
       if (nombre.length < 2) { error("f-nombre", "Escribe tu nombre (mínimo 2 letras)."); ok = false; }
       if (tel.length < 10 || tel.length > 15) { error("f-tel", "El WhatsApp debe tener entre 10 y 15 dígitos."); ok = false; }
       if (!estado.industria) { avisar("err", "Elige primero tu tipo de negocio."); ok = false; }
+      if (!estado.plan) { error("f-consent", "Elige un servicio en el cotizador para que sepamos qué cotizar."); ok = false; }
       if (!consent) { error("f-consent", "Necesitamos tu autorización para contactarte."); ok = false; }
       if (!ok) { avisar("err", "Revisa los campos marcados."); return; }
 
@@ -241,18 +246,43 @@
       try {
         const clave = "kz-leads-local-v1";
         const lista = JSON.parse(localStorage.getItem(clave) || "[]");
-        lista.push({ nombre: nombre, telefono: tel, industria: estado.industria, plan: estado.plan, consentimiento: true, fecha: new Date().toISOString(), enviado: false });
+        lista.push({ nombre: nombre, telefono: tel, industria: estado.industria, plan: estado.plan, consentimiento: true, enviado: false, ambito: "borrador_local", fecha: new Date().toISOString() });
         localStorage.setItem(clave, JSON.stringify(lista.slice(-50)));
       } catch (err) { /* modo privado: seguimos sin guardar */ }
 
       const url = "https://wa.me/" + WA + "?text=" + encodeURIComponent(texto);
-      avisar("info", 'Solicitud preparada. Se abrirá WhatsApp con el mensaje escrito: <b>el pedido no queda confirmado</b> hasta que tú lo envíes y nosotros respondamos. ' +
+      avisar("info", 'Solicitud preparada: guardamos un <b>borrador en este navegador</b> y abrimos WhatsApp con el mensaje escrito. ' +
+        '<b>La agencia todavía no ha recibido nada</b>: no queda confirmado hasta que tú lo envíes y nosotros respondamos. ' +
         'Si no abre, <a href="' + url + '" target="_blank" rel="noopener">toca aquí</a>.');
       window.open(url, "_blank", "noopener");
       evento("kz_lead_registrado", { industria: estado.industria, plan: estado.plan });
+      sumar("solicitud");
       pintarMetricas();
     });
     $("#f-consent").addEventListener("change", () => error("f-consent", ""));
+    $("#f-borrar").addEventListener("click", () => {
+      try { localStorage.removeItem("kz-leads-local-v1"); localStorage.removeItem("kz-metricas-local-v1"); } catch (e) {}
+      pintarMetricas();
+      avisar("ok", "Listo: se borraron el borrador de tu solicitud y los contadores de este navegador.");
+    });
+
+    // pestañas: flechas izquierda/derecha y activación con Enter/Espacio
+    const tabs = Array.from(document.querySelectorAll(".tab"));
+    tabs.forEach((t, i) => {
+      t.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+          e.preventDefault();
+          const j = (i + (e.key === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length;
+          tabs[j].focus();
+          verDemo(tabs[j].dataset.demo);
+        }
+      });
+    });
+    // enlace directo a una demostración (#demo-menu, #demo-miniweb…)
+    const hash = (location.hash || "").replace("#", "");
+    if (DEMOS[hash]) verDemo(hash);
+    else if (hash === "demo-menu") verDemo("menu");
+    else if (hash === "demo-miniweb") verDemo("miniweb");
   }
 
   function error(id, msg) {
@@ -288,7 +318,18 @@
       ["cotizacion", "Cotizaciones elegidas"],
       ["solicitud", "Solicitudes preparadas"],
     ];
-    caja.innerHTML = filas.map(([k, etiqueta]) => '<div class="metrica"><b>' + (m[k] || 0) + "</b><span>" + etiqueta + "</span></div>").join("");
+    caja.textContent = "";
+    filas.forEach(([k, etiqueta]) => {
+      const valor = Number.isInteger(m[k]) && m[k] >= 0 ? m[k] : 0;
+      const cajaFila = document.createElement("div");
+      cajaFila.className = "metrica";
+      const fuerte = document.createElement("b");
+      fuerte.textContent = String(valor);
+      const label = document.createElement("span");
+      label.textContent = etiqueta;
+      cajaFila.append(fuerte, label);
+      caja.appendChild(cajaFila);
+    });
   }
 
   /* ---------- arranque ---------- */
