@@ -3,12 +3,23 @@
 
    CORRECCIONES DE ESTA VERSIÓN
    R01 · La reversión YA NO borra a ciegas: inventaría el estado actual (con paginación
-         completa), lo compara contra el respaldo y, si detecta CUALQUIER dato posterior
-         (notas nuevas, cambios de campos, cotizaciones o ventas nuevas), SE NIEGA y
-         termina con código 3 sin modificar un solo documento.
+         completa), lo compara contra el respaldo y, si detecta CUALQUIER dato posterior,
+         SE NIEGA y termina con código 3 sin modificar un solo documento.
+         R01 (cierre definitivo, 2ª pasada): la comparación es ahora del DOCUMENTO
+         COMPLETO, no de una lista corta de campos. Antes se comparaban sólo 7 campos
+         (nombre, telefono, industria, estado, asignado_a, retencion_hasta,
+         servicio_interes); cualquier otro cambio posterior —una entrada añadida al
+         historial, un campo comercial nuevo, un campo eliminado— era invisible y la
+         reversión borraba el prospecto con ese cambio dentro. También se comprueba el
+         contenido de las notas (no sólo su existencia) y que el marcador de
+         deduplicación siga apuntando al prospecto migrado.
    R03 · Idempotencia y reanudación reales: distingue heredados de UUID nativos; el mapa
          guarda `estado` por entrada y sólo pasa a `hecho` tras verificar referencias;
          una entrada `pendiente` se reintenta. Cualquier error aborta con código ≠ 0.
+         R03 (cierre, 2ª pasada): el mapa se escribe ANTES del commit —la intención
+         primero—. Antes se guardaba después, así que una interrupción entre la escritura
+         y el guardado hacía que la reanudación generara otro UUID para el mismo teléfono
+         y dejara un prospecto DUPLICADO.
    R08 · Los listados recorren todas las páginas con nextPageToken y un listado fallido
          NUNCA se interpreta como «colección vacía».
 */
@@ -30,8 +41,12 @@ if (!EMULADOR && process.env.GCLOUD_PROJECT && process.env.GCLOUD_PROJECT !== PR
 }
 
 const PREFIJO = `projects/${PROYECTO}/databases/${BASE}/documents`;
+/* La URL base sólo se puede desviar EN EL EMULADOR: así crm-dev/pruebas-fallos.cjs puede
+   interponer un proxy que devuelva 503, rompa la paginación o corte la conexión. Contra
+   producción la ruta es fija y NO se acepta ninguna variable de entorno: un fallo de
+   inyección no puede redirigir la migración real a otro sitio. */
 const DOCS = EMULADOR
-  ? `http://127.0.0.1:8080/v1/${PREFIJO}`
+  ? (process.env.KZ_FIRESTORE_URL || `http://127.0.0.1:8080/v1/${PREFIJO}`)
   : `https://firestore.googleapis.com/v1/${PREFIJO}`;
 const MAPA = path.join(__dirname, "migracion-uuid.json");
 const RESP = path.join(__dirname, "migracion-respaldo.json");
@@ -67,6 +82,7 @@ const listarLeads = (H) => listarTodas(H, `${DOCS}/crm_leads`, "crm_leads");
 const listarNotas = (H, id) => listarTodas(H, `${DOCS}/crm_leads/${id}/notas`, "notas de " + id);
 const listarCot = (H) => listarTodas(H, `${DOCS}/crm_quotes`, "crm_quotes");
 const listarVen = (H) => listarTodas(H, `${DOCS}/crm_sales`, "crm_sales");
+const listarDedup = (H) => listarTodas(H, `${DOCS}/crm_dedup`, "crm_dedup");
 
 const commit = async (H, writes) => {
   const r = await fetch(`${DOCS}:commit`, { method: "POST", headers: H, body: JSON.stringify({ writes }) });
@@ -87,6 +103,42 @@ const guardarMapa = (m) => fs.writeFileSync(MAPA, JSON.stringify(m, null, 1), "u
 
 const CAMPOS_CLAVE = ["nombre", "telefono", "industria", "estado", "asignado_a", "retencion_hasta", "servicio_interes"];
 const foto = (fields) => Object.fromEntries(CAMPOS_CLAVE.map((k) => [k, val(fields, k) ?? null]));
+
+/* ── Comparación del DOCUMENTO COMPLETO (R01) ─────────────────────────────
+   `foto()` se conserva sólo para la huella informativa del respaldo. La guarda de la
+   reversión ya NO usa esa lista corta: compara TODOS los campos del documento.
+   `canon()` ordena las claves y normaliza los timestamps a milisegundos para que el
+   formato exacto con que la API devuelve las fechas no produzca falsos positivos. */
+function canon(v) {
+  if (Array.isArray(v)) return v.map(canon);
+  if (v && typeof v === "object") {
+    const o = {};
+    for (const k of Object.keys(v).sort()) {
+      const x = v[k];
+      if (k === "timestampValue" && typeof x === "string") {
+        const ms = Date.parse(x);
+        o[k] = Number.isNaN(ms) ? x : "ts:" + ms;
+      } else o[k] = canon(x);
+    }
+    return o;
+  }
+  return v;
+}
+const huellaCampos = (fields) => JSON.stringify(canon(fields || {}));
+
+/** Diferencias campo a campo entre el documento respaldado y el actual. */
+function camposCambiados(previo, ahora) {
+  const cambios = [];
+  const claves = new Set([...Object.keys(previo || {}), ...Object.keys(ahora || {})]);
+  for (const k of claves) {
+    const a = JSON.stringify(canon((previo || {})[k]));
+    const b = JSON.stringify(canon((ahora || {})[k]));
+    if (a !== b) cambios.push({ campo: k, tipo: previo && previo[k] !== undefined
+      ? (ahora && ahora[k] !== undefined ? "modificado" : "eliminado")
+      : "añadido" });
+  }
+  return cambios;
+}
 
 (async () => {
   const H = await cabecera();
@@ -131,7 +183,10 @@ const foto = (fields) => Object.fromEntries(CAMPOS_CLAVE.map((k) => [k, val(fiel
   for (const p of pendientes) {
     if (!respaldo.leads.some((x) => x.id === p.viejo)) respaldo.leads.push({ id: p.viejo, campos: p.campos, foto: foto(p.campos) });
     for (const n of await listarNotas(H, p.viejo))
-      if (!respaldo.notas.some((x) => x.lead === p.viejo && x.id === n.id)) respaldo.notas.push({ lead: p.viejo, id: n.id });
+      if (!respaldo.notas.some((x) => x.lead === p.viejo && x.id === n.id))
+        /* R01: se guarda también el CONTENIDO de la nota. Sin él no se puede detectar
+           que una nota se editó después de migrar, y la reversión borraría la edición. */
+        respaldo.notas.push({ lead: p.viejo, id: n.id, campos: n.fields });
   }
   const cots = await listarCot(H), vens = await listarVen(H);
   respaldo.cotizaciones = cots.map((c) => ({ id: c.id, lead_id: val(c.fields, "lead_id") }));
@@ -143,6 +198,15 @@ const foto = (fields) => Object.fromEntries(CAMPOS_CLAVE.map((k) => [k, val(fiel
 
   for (const p of pendientes) {
     const id = p.reintento || crypto.randomUUID();
+
+    /* R03 · ORDEN CRÍTICO: primero se PERSISTE LA INTENCIÓN, después se escribe.
+       Si el proceso muere entre el commit y el guardado del mapa, sin esta línea la
+       reanudación generaría otro UUID para el mismo teléfono y dejaría un prospecto
+       DUPLICADO. Con la entrada escrita antes, la reanudación reutiliza este mismo UUID
+       y el commit se repite sobre el mismo documento, que es idempotente. */
+    mapa[p.tel] = { uuid: id, viejo: p.viejo, estado: "pendiente", fecha: new Date().toISOString() };
+    guardarMapa(mapa);
+
     const notas = await listarNotas(H, p.viejo);
     const writes = [
       { update: { name: `${PREFIJO}/crm_leads/${id}`, fields: p.campos } },
@@ -152,9 +216,6 @@ const foto = (fields) => Object.fromEntries(CAMPOS_CLAVE.map((k) => [k, val(fiel
     ];
     for (const n of notas) writes.push({ update: { name: `${PREFIJO}/crm_leads/${id}/notas/${n.id}`, fields: n.fields } });
     await commit(H, writes);
-
-    mapa[p.tel] = { uuid: id, viejo: p.viejo, estado: "pendiente", fecha: new Date().toISOString() };
-    guardarMapa(mapa);
 
     const refsCot = cots.filter((c) => val(c.fields, "lead_id") === p.viejo);
     const refsVen = vens.filter((v) => val(v.fields, "lead_id") === p.viejo);
@@ -203,6 +264,7 @@ async function revertir(H) {
   const leadsAhora = await listarLeads(H);
   const cotsAhora = await listarCot(H);
   const vensAhora = await listarVen(H);
+  const dedupAhora = await listarDedup(H);
 
   const problemas = [], detalle = [];
 
@@ -210,21 +272,64 @@ async function revertir(H) {
     const actual = leadsAhora.find((l) => l.id === e.uuid);
     const previo = (respaldo.leads || []).find((l) => l.id === e.viejo);
 
-    if (actual && previo && previo.foto) {
-      const f = foto(actual.fields);
-      for (const k of Object.keys(previo.foto)) {
-        if (String(f[k] ?? "") !== String(previo.foto[k] ?? ""))
-          problemas.push(`${tel}: el campo «${k}» cambió después de la migración`);
+    /* ── 1. El documento completo, campo a campo (no una lista corta) ───── */
+    if (actual) {
+      if (!previo) {
+        /* No poder comparar NO autoriza a borrar: sin respaldo de este prospecto no
+           hay forma de saber qué se perdería. */
+        problemas.push(`${tel}: el prospecto migrado no está en el respaldo; no se puede verificar`);
+      } else if (!previo.campos) {
+        problemas.push(`${tel}: el respaldo no guardó el documento completo; no se puede verificar`);
+      } else {
+        for (const c of camposCambiados(previo.campos, actual.fields))
+          problemas.push(c.tipo === "añadido"
+            ? `${tel}: el campo «${c.campo}» se añadió después de la migración`
+            : c.tipo === "eliminado"
+              ? `${tel}: el campo «${c.campo}» se eliminó después de la migración`
+              : `${tel}: el campo «${c.campo}» cambió después de la migración`);
       }
     }
 
+    /* ── 2. Notas: creadas, editadas o desaparecidas después de migrar ─── */
     if (actual) {
       const notasAhora = await listarNotas(H, e.uuid);
-      const notasResp = (respaldo.notas || []).filter((n) => n.lead === e.viejo).map((n) => n.id);
-      const nuevas = notasAhora.filter((n) => !notasResp.includes(n.id));
+      const notasResp = (respaldo.notas || []).filter((n) => n.lead === e.viejo);
+      const idsResp = notasResp.map((n) => n.id);
+
+      /* Una nota que ya no está porque la borró ESTA MISMA reversión en una ejecución
+         anterior interrumpida no es una pérdida: es trabajo ya hecho. Por eso, si la
+         entrada lleva `reversion` registrada, no se exigen las notas del respaldo. Lo que
+         sí se sigue exigiendo es que no haya notas NUEVAS: una nota creada entre la
+         interrupción y la reanudación se perdería igual. */
+      const reversionIniciada = !!e.reversion;
+
+      const nuevas = notasAhora.filter((n) => !idsResp.includes(n.id));
       if (nuevas.length) problemas.push(`${tel}: ${nuevas.length} nota(s) creadas después de la migración`);
-      detalle.push(`${tel}: notas ahora ${notasAhora.length} · en respaldo ${notasResp.length}`);
+
+      if (!reversionIniciada) {
+        const faltan = idsResp.filter((id) => !notasAhora.some((n) => n.id === id));
+        if (faltan.length) problemas.push(`${tel}: ${faltan.length} nota(s) desaparecidas después de la migración`);
+
+        /* Sólo se puede comparar el contenido si el respaldo lo guardó. */
+        const editadas = [];
+        for (const r of notasResp) {
+          const ahora = notasAhora.find((n) => n.id === r.id);
+          if (ahora && r.campos && huellaCampos(r.campos) !== huellaCampos(ahora.fields)) editadas.push(r.id);
+        }
+        if (editadas.length) problemas.push(`${tel}: ${editadas.length} nota(s) editadas después de la migración`);
+      } else {
+        detalle.push(`${tel}: reversión ya iniciada en una ejecución anterior (notas borradas por nosotros)`);
+      }
+
+      detalle.push(`${tel}: notas ahora ${notasAhora.length} · en respaldo ${idsResp.length}`);
     }
+
+    /* ── 3. El marcador debe seguir apuntando a ESTE prospecto ────────────
+       Si alguien lo reutilizó para otro prospecto, borrarlo destruiría el marcador
+       de un tercero. */
+    const marca = dedupAhora.find((d) => d.id === tel);
+    if (marca && val(marca.fields, "lead_id") !== e.uuid)
+      problemas.push(`${tel}: el marcador de deduplicación ya no apunta al prospecto migrado`);
 
     const cotResp = (respaldo.cotizaciones || []).filter((c) => c.lead_id === e.viejo).map((c) => c.id);
     const cotNew = cotsAhora.filter((c) => val(c.fields, "lead_id") === e.uuid && !cotResp.includes(c.id));
@@ -253,6 +358,14 @@ async function revertir(H) {
 
   let repuntadas = 0, borrados = 0;
   for (const [tel, e] of entradas) {
+    /* R01/R03 · Se anota en el mapa que ESTA entrada ya se está revirtiendo, antes de
+       tocar nada. Si la reversión se interrumpe, la reanudación sabrá que las notas que
+       faltan las borró ella y no las tomará por una pérdida de información. */
+    if (e.reversion !== "hecha") {
+      mapa[tel] = { ...e, reversion: "iniciada" };
+      guardarMapa(mapa);
+    }
+
     for (const c of cotsAhora.filter((x) => val(x.fields, "lead_id") === e.uuid))
       { await patch(H, `crm_quotes/${c.id}`, { lead_id: { stringValue: e.viejo } }, "lead_id"); repuntadas++; }
     for (const v of vensAhora.filter((x) => val(x.fields, "lead_id") === e.uuid))
@@ -260,6 +373,9 @@ async function revertir(H) {
     for (const n of await listarNotas(H, e.uuid)) { await borrar(H, `crm_leads/${e.uuid}/notas/${n.id}`); borrados++; }
     await borrar(H, `crm_leads/${e.uuid}`); borrados++;
     await borrar(H, `crm_dedup/${tel}`);
+
+    mapa[tel] = { ...mapa[tel], reversion: "hecha" };
+    guardarMapa(mapa);
   }
 
   const cotsFin = await listarCot(H), vensFin = await listarVen(H);
