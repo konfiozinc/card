@@ -19,7 +19,7 @@
    · El consentimiento lleva versión explícita. Cambiar el texto legal exige subir la
      versión en las reglas, aquí y en el HTML: si no coinciden, la escritura falla. */
 
-import { doc, setDoc, getDoc, runTransaction, serverTimestamp, Timestamp } from
+import { doc, setDoc, getDoc, writeBatch, serverTimestamp, Timestamp } from
   "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 /** Versión vigente del consentimiento. Debe coincidir con la función
@@ -154,16 +154,21 @@ export async function registrarProspectoInterno(db, datos, usuario) {
   if (servicio) registro.servicio_interes = servicio;
 
   try {
-    await runTransaction(db, async (tx) => {
-      const yaEsta = await tx.get(refDedup);
-      if (yaEsta.exists()) throw new Error("KZ_DUPLICADO");
-      tx.set(ref, registro);
-      tx.set(refDedup, {
-        lead_id: id,
-        creado_en: serverTimestamp(),
-        creado_por: usuario.uid,
-      });
+    /* R02 (auditoría Codex): antes esto era una transacción que hacía tx.get(refDedup),
+       y sólo administración puede leer el marcador: comercial y ventas recibían
+       «permiso» y NO podían registrar prospectos.
+       Ahora es un writeBatch SIN lecturas: se escriben los dos documentos o ninguno
+       (la atomicidad se mantiene), y el duplicado lo detecta el almacén —el marcador
+       ya existe y la segunda escritura choca con ALREADY_EXISTS—. Así no se concede
+       ninguna lectura nueva sobre crm_dedup ni se revela si un teléfono es de otro. */
+    const lote = writeBatch(db);
+    lote.set(ref, registro);
+    lote.set(refDedup, {
+      lead_id: id,
+      creado_en: serverTimestamp(),
+      creado_por: usuario.uid,
     });
+    await lote.commit();
     return { ok: true, id, telefono: v.telefono };
   } catch (err) {
     if (err && err.message === "KZ_DUPLICADO") return { ok: false, motivo: "duplicado" };
