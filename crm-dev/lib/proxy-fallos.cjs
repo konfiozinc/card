@@ -105,6 +105,8 @@ function crearProxy({ puerto = 8099, hostDestino = "127.0.0.1", puertoDestino = 
       /* Fallos sin tocar el almacén. */
       if (regla && regla.accion === "503") return responder(res, 503, '{"error":{"status":"UNAVAILABLE"}}');
       if (regla && regla.accion === "500") return responder(res, 500, '{"error":{"status":"INTERNAL"}}');
+      /* 404 fabricado: sirve para demostrar que un 404 del endpoint NUNCA se toma como éxito. */
+      if (regla && regla.accion === "404") return responder(res, 404, '{"error":{"status":"NOT_FOUND"}}');
       if (regla && regla.accion === "colgar-antes") { emitir(regla.id); return; }  // nunca responde
 
       /* Paginación sintética: se sirve la lista real en dos páginas fabricadas. */

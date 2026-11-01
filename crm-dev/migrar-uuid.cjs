@@ -104,6 +104,42 @@ const borrar = async (H, ruta) => {
    se leyó (updateTime). Si alguien lo modificó entre la lectura y el borrado, el almacén
    rechaza la operación en vez de destruir a ciegas. No hay atomicidad global: cada borrado
    es su propio commit, y ese límite se declara en vez de disimularse. */
+/* §3 · POLÍTICA HTTP ESTRICTA PARA ESCRITURAS.
+   Sólo un 200 se considera aplicado. Un 404 del endpoint NUNCA se toma como éxito; 400/409
+   es precondición rechazada; 500/503 y la falta de respuesta abortan conservando el estado.
+   Nada de esto se interpreta como «el documento ya no estaba». */
+const escribirValidado = async (H, writes, etiqueta) => {
+  let r;
+  try {
+    r = await fetch(`${DOCS}:commit`, { method: "POST", headers: H, body: JSON.stringify({ writes }) });
+  } catch (e) {
+    throw new Error(`${etiqueta}: sin respuesta del almacén (${e.message}); estado conservado para reanudar`);
+  }
+  if (r.status === 200) return true;
+  if (r.status === 400 || r.status === 409) {
+    throw new Error(`${etiqueta}: precondición rechazada (HTTP ${r.status}); el estado cambió desde que se validó`);
+  }
+  if (r.status === 404) {
+    throw new Error(`${etiqueta}: el endpoint respondió 404; NO se asume que se haya aplicado`);
+  }
+  throw new Error(`${etiqueta}: error HTTP ${r.status}; se aborta sin declarar éxito`);
+};
+
+/* §3 · LECTURA ESTRICTA. 200 exige updateTime; 404 se declara como ausencia del servidor y
+   el llamante lo contrasta con otra fuente; cualquier otro código aborta. */
+const leerValidado = async (H, ruta, etiqueta) => {
+  let r;
+  try {
+    r = await fetch(`${DOCS}/${ruta}`, { headers: H });
+  } catch (e) {
+    throw new Error(`${etiqueta}: sin respuesta al leer (${e.message})`);
+  }
+  if (r.status === 404) return { existe: false };
+  if (r.status !== 200) throw new Error(`${etiqueta}: no se pudo leer (HTTP ${r.status}); un error no es una ausencia`);
+  const j = await r.json();
+  if (!j.updateTime) throw new Error(`${etiqueta}: la lectura no devolvió updateTime; no se puede validar`);
+  return { existe: true, updateTime: j.updateTime, fields: j.fields || {} };
+};
 /* B1 · FALLO CERRADO. Sin un updateTime válido NO se borra. Antes, si el GET fallaba,
    `updateTime` quedaba nulo y la escritura se enviaba SIN precondición: se destruía una
    modificación concurrente sin detectarla. Un error HTTP NUNCA se interpreta como
@@ -363,100 +399,115 @@ async function revertir(H) {
   const respaldo = JSON.parse(fs.readFileSync(RESP, "utf8"));
   console.log("Entradas en el mapa: " + entradas.length + " · respaldo: " + (respaldo.leads || []).length + " prospectos");
 
-
-  /* B · TESTIGO ANTES DE COMPROBAR: sin esto queda una ventana entre la comprobacion y el
-     borrado en la que puede entrar una nota nueva, que se destruiria con una precondicion
-     perfectamente valida. Se pone para todas las entradas; si la comprobacion rechaza la
-     reversion, se retira sin dejar bloqueos. */
-  const ponerTestigos = () => commit(H, entradas.map(([, e]) => ({ update: {
+  const ponerTestigos = () => escribirValidado(H, entradas.map(([, e]) => ({ update: {
     name: `${PREFIJO}/crm_supresion/${e.uuid}`,
     fields: { estado: { stringValue: "reversion" }, desde: { timestampValue: new Date().toISOString() },
-      id_sha256: { stringValue: sha(e.uuid).slice(0, 16) } } } })));
-  /* En SIMULACIÓN no se escribe nada: los testigos sólo se ponen si se va a ejecutar. */
+      id_sha256: { stringValue: sha(e.uuid).slice(0, 16) } } } })), "escribir los testigos");
+
+  const retirarTestigos = async () => {
+    let fallos = 0;
+    for (const [, e] of entradas) {
+      let r = null;
+      try { r = await fetch(`${DOCS}/crm_supresion/${e.uuid}`, { method: "DELETE", headers: H }); } catch { r = null; }
+      if (!r || (!r.ok && r.status !== 404)) fallos++;
+    }
+    return fallos;
+  };
+
+  /* §2 · El testigo se adquiere ANTES del inventario autorizativo. Protege las escrituras
+     que pasan por las reglas (notas, estado, cotizaciones, ventas, marcador); NO protege al
+     procedimiento privilegiado, que salta las reglas: por eso las precondiciones del
+     almacén no son opcionales. */
   if (CONFIRMAR) await ponerTestigos();
-  /* B · INVENTARIO BAJO EL TESTIGO. Antes se leía el estado y DESPUÉS se bloqueaba: una
-     nota que entrara en ese hueco no se veía y acababa destruida por un borrado con
-     precondición perfectamente válida. Ahora, cuando se va a ejecutar, primero se bloquea
-     y solo entonces se lee lo que va a autorizar el borrado. En simulación se lee sin
-     bloquear porque no se destruye nada. */
+
+  /* §1 · ESTADO VALIDADO. Se lee y se valida UNA sola vez, conservando el updateTime de
+     cada documento. Ninguna escritura posterior usará una versión distinta de la validada. */
   const leadsAhora = await listarLeads(H);
   const cotsAhora = await listarCot(H);
   const vensAhora = await listarVen(H);
   const dedupAhora = await listarDedup(H);
-
-
   const problemas = [], detalle = [];
+  const validado = new Map();
 
   for (const [tel, e] of entradas) {
-    const actual = leadsAhora.find((l) => l.id === e.uuid);
+    const fila = leadsAhora.find((l) => l.id === e.uuid);
     const previo = (respaldo.leads || []).find((l) => l.id === e.viejo);
+    const reg = { tel, uuid: e.uuid, viejo: e.viejo, lead: null, notas: [], marcador: null, cots: [], vens: [] };
 
-    /* ── 1. El documento completo, campo a campo (no una lista corta) ───── */
-    if (actual) {
-      if (!previo) {
-        /* No poder comparar NO autoriza a borrar: sin respaldo de este prospecto no
-           hay forma de saber qué se perdería. */
-        problemas.push(`${tel}: el prospecto migrado no está en el respaldo; no se puede verificar`);
-      } else if (!previo.campos) {
-        problemas.push(`${tel}: el respaldo no guardó el documento completo; no se puede verificar`);
+    if (fila) {
+      /* §3 · Un GET con 404 falso no puede pasar por «documento ausente»: se contrasta con
+         el listado, que es una fuente independiente. */
+      const lectura = await leerValidado(H, `crm_leads/${e.uuid}`, "prospecto " + tel);
+      if (!lectura.existe) {
+        problemas.push(`${tel}: el listado lo incluye pero la lectura dice que no existe (respuesta incoherente)`);
       } else {
-        for (const c of camposCambiados(previo.campos, actual.fields))
-          problemas.push(c.tipo === "añadido"
-            ? `${tel}: el campo «${c.campo}» se añadió después de la migración`
-            : c.tipo === "eliminado"
-              ? `${tel}: el campo «${c.campo}» se eliminó después de la migración`
-              : `${tel}: el campo «${c.campo}» cambió después de la migración`);
+        reg.lead = { updateTime: lectura.updateTime, fields: lectura.fields };
+        if (!previo) problemas.push(`${tel}: el prospecto migrado no está en el respaldo; no se puede verificar`);
+        else if (!previo.campos) problemas.push(`${tel}: el respaldo no guardó el documento completo; no se puede verificar`);
+        else {
+          for (const c of camposCambiados(previo.campos, lectura.fields)) {
+            problemas.push(c.tipo === "añadido"
+              ? `${tel}: el campo «${c.campo}» se añadió después de la migración`
+              : c.tipo === "eliminado"
+                ? `${tel}: el campo «${c.campo}» se eliminó después de la migración`
+                : `${tel}: el campo «${c.campo}» cambió después de la migración`);
+          }
+        }
       }
-    }
 
-    /* ── 2. Notas: creadas, editadas o desaparecidas después de migrar ─── */
-    if (actual) {
-      const notasAhora = await listarNotas(H, e.uuid);
       const notasResp = (respaldo.notas || []).filter((n) => n.lead === e.viejo);
       const idsResp = notasResp.map((n) => n.id);
-
-      /* Una nota que ya no está porque la borró ESTA MISMA reversión en una ejecución
-         anterior interrumpida no es una pérdida: es trabajo ya hecho. Por eso, si la
-         entrada lleva `reversion` registrada, no se exigen las notas del respaldo. Lo que
-         sí se sigue exigiendo es que no haya notas NUEVAS: una nota creada entre la
-         interrupción y la reanudación se perdería igual. */
+      for (const n of await listarNotas(H, e.uuid)) {
+        const ln = await leerValidado(H, `crm_leads/${e.uuid}/notas/${n.id}`, "nota " + n.id);
+        if (!ln.existe) { problemas.push(`${tel}: la nota ${n.id} aparece en el listado y no se puede leer`); continue; }
+        reg.notas.push({ id: n.id, updateTime: ln.updateTime, fields: ln.fields });
+      }
       const reversionIniciada = !!e.reversion;
-
-      const nuevas = notasAhora.filter((n) => !idsResp.includes(n.id));
+      const nuevas = reg.notas.filter((n) => !idsResp.includes(n.id));
       if (nuevas.length) problemas.push(`${tel}: ${nuevas.length} nota(s) creadas después de la migración`);
-
       if (!reversionIniciada) {
-        const faltan = idsResp.filter((id) => !notasAhora.some((n) => n.id === id));
+        const faltan = idsResp.filter((id) => !reg.notas.some((n) => n.id === id));
         if (faltan.length) problemas.push(`${tel}: ${faltan.length} nota(s) desaparecidas después de la migración`);
       } else {
         detalle.push(`${tel}: reversión ya iniciada en una ejecución anterior (notas borradas por nosotros)`);
       }
-      /* Las EDICIONES se comparan SIEMPRE, también al reanudar: una nota editada después
-         de migrar se perdería igual, se haya interrumpido la reversión o no. */
+      /* Las ediciones se comparan SIEMPRE, también al reanudar. */
       const editadas = [];
       for (const r of notasResp) {
-        const ahora = notasAhora.find((n) => n.id === r.id);
+        const ahora = reg.notas.find((n) => n.id === r.id);
         if (ahora && r.campos && huellaCampos(r.campos) !== huellaCampos(ahora.fields)) editadas.push(r.id);
       }
       if (editadas.length) problemas.push(`${tel}: ${editadas.length} nota(s) editadas después de la migración`);
-
-      detalle.push(`${tel}: notas ahora ${notasAhora.length} · en respaldo ${idsResp.length}`);
+      detalle.push(`${tel}: notas ahora ${reg.notas.length} · en respaldo ${idsResp.length}`);
     }
 
-    /* ── 3. El marcador debe seguir apuntando a ESTE prospecto ────────────
-       Si alguien lo reutilizó para otro prospecto, borrarlo destruiría el marcador
-       de un tercero. */
     const marca = dedupAhora.find((d) => d.id === tel);
-    if (marca && val(marca.fields, "lead_id") !== e.uuid)
-      problemas.push(`${tel}: el marcador de deduplicación ya no apunta al prospecto migrado`);
+    if (marca) {
+      const lm = await leerValidado(H, `crm_dedup/${tel}`, "marcador " + tel);
+      if (!lm.existe) problemas.push(`${tel}: el marcador aparece en el listado y no se puede leer`);
+      else if (val(lm.fields, "lead_id") !== e.uuid) problemas.push(`${tel}: el marcador ya no apunta al prospecto migrado`);
+      else reg.marcador = { updateTime: lm.updateTime };
+    }
 
     const cotResp = (respaldo.cotizaciones || []).filter((c) => c.lead_id === e.viejo).map((c) => c.id);
-    const cotNew = cotsAhora.filter((c) => val(c.fields, "lead_id") === e.uuid && !cotResp.includes(c.id));
+    for (const c of cotsAhora.filter((x) => val(x.fields, "lead_id") === e.uuid)) {
+      const lc = await leerValidado(H, `crm_quotes/${c.id}`, "cotización " + c.id);
+      if (!lc.existe) { problemas.push(`${tel}: la cotización ${c.id} aparece en el listado y no se puede leer`); continue; }
+      reg.cots.push({ id: c.id, updateTime: lc.updateTime });
+    }
+    const cotNew = reg.cots.filter((c) => !cotResp.includes(c.id));
     if (cotNew.length) problemas.push(`${tel}: ${cotNew.length} cotización(es) creadas después de la migración`);
 
     const venResp = (respaldo.ventas || []).filter((v) => v.lead_id === e.viejo).map((v) => v.id);
-    const venNew = vensAhora.filter((v) => val(v.fields, "lead_id") === e.uuid && !venResp.includes(v.id));
+    for (const v of vensAhora.filter((x) => val(x.fields, "lead_id") === e.uuid)) {
+      const lv = await leerValidado(H, `crm_sales/${v.id}`, "venta " + v.id);
+      if (!lv.existe) { problemas.push(`${tel}: la venta ${v.id} aparece en el listado y no se puede leer`); continue; }
+      reg.vens.push({ id: v.id, updateTime: lv.updateTime });
+    }
+    const venNew = reg.vens.filter((v) => !venResp.includes(v.id));
     if (venNew.length) problemas.push(`${tel}: ${venNew.length} venta(s) creadas después de la migración`);
+
+    validado.set(tel, reg);
   }
 
   console.log("\n--- COMPARACIÓN CONTRA EL RESPALDO ---");
@@ -465,13 +516,13 @@ async function revertir(H) {
   if (problemas.length) {
     console.error("\nREVERSIÓN RECHAZADA: se perdería información creada después de la migración.");
     problemas.forEach((p) => console.error("  · " + p));
-    let fallosRetirada = 0;
-    for (const [, e] of entradas) {
-      const rl = await fetch(`${DOCS}/crm_supresion/${e.uuid}`, { method: "DELETE", headers: H }).catch(() => null);
-      if (!rl || (!rl.ok && rl.status !== 404)) fallosRetirada++;
+    const fallosRetirada = await retirarTestigos();
+    if (fallosRetirada) {
+      console.error("  ATENCIÓN: " + fallosRetirada + " testigo(s) no se pudieron retirar.");
+      console.error("  Recuperación segura: node crm-dev/migrar-uuid.cjs --revertir --limpiar-testigos");
+      console.error("  NUNCA uses suprimir-datos.cjs: suprimiría el prospecto entero.");
     }
-    if (fallosRetirada) console.error("  ATENCIÓN: " + fallosRetirada + " testigo(s) no se pudieron retirar; ejecuta crm-dev/suprimir-datos.cjs --id <id> --confirmar para limpiarlos.");
-    console.error("\nNo se ha modificado ningún documento (se retiraron los testigos).");
+    console.error("\nNo se ha modificado ningún documento.");
     process.exit(3);
   }
   console.log("  sin datos posteriores: la reversión es segura");
@@ -483,50 +534,83 @@ async function revertir(H) {
 
   let repuntadas = 0, borrados = 0;
   for (const [tel, e] of entradas) {
-    /* R01/R03 · Se anota en el mapa que ESTA entrada ya se está revirtiendo, antes de
-       tocar nada. Si la reversión se interrumpe, la reanudación sabrá que las notas que
-       faltan las borró ella y no las tomará por una pérdida de información. */
-    if (e.reversion !== "hecha") {
-      mapa[tel] = { ...e, reversion: "iniciada" };
-      guardarMapa(mapa);
+    const reg = validado.get(tel);
+    if (!reg || (!reg.lead && reg.notas.length === 0)) {
+      console.error(`\nINCOMPLETO: ${tel} no tiene estado validado utilizable. Se conserva el mapa y el testigo.`);
+      process.exit(3);
     }
-    /* B · TESTIGO: mientras se revierte esta entrada, las reglas candidatas deniegan
-       notas, cambios de estado, cotizaciones y ventas sobre el prospecto. Sin esto queda
-       una ventana entre la comprobación y el borrado en la que puede entrar una nota
-       nueva, y se destruiría con una precondición perfectamente válida. */
-    await commit(H, [{ update: { name: `${PREFIJO}/crm_supresion/${e.uuid}`, fields: {
-      estado: { stringValue: "reversion" }, desde: { timestampValue: new Date().toISOString() },
-      id_sha256: { stringValue: sha(e.uuid).slice(0, 16) } } } }]);
+    mapa[tel] = { ...e, reversion: "iniciada" };
+    guardarMapa(mapa);
 
-    /* B2 · El marcador se LEE aquí, antes de destruir nada: si su lectura falla, la
-       reversión aborta con el prospecto aún intacto en vez de dejarlo borrado y el
-       marcador huérfano. Su precondición se usa al final. */
-    const utMarcador = await updateTimeDe(H, `crm_dedup/${tel}`);
-
-    for (const c of cotsAhora.filter((x) => val(x.fields, "lead_id") === e.uuid)) {
-      await patchSiNoCambio(H, `crm_quotes/${c.id}`, { lead_id: { stringValue: e.viejo } }, "lead_id",
-        await updateTimeDe(H, `crm_quotes/${c.id}`));
+    /* §1 · Las escrituras usan EXCLUSIVAMENTE el updateTime validado. */
+    for (const c of reg.cots) {
+      await escribirValidado(H, [{ update: { name: `${PREFIJO}/crm_quotes/${c.id}`, fields: { lead_id: { stringValue: e.viejo } } },
+        updateMask: { fieldPaths: ["lead_id"] }, currentDocument: { updateTime: c.updateTime } }], "repuntar cotización " + c.id);
       repuntadas++;
     }
-    for (const v of vensAhora.filter((x) => val(x.fields, "lead_id") === e.uuid)) {
-      await patchSiNoCambio(H, `crm_sales/${v.id}`, { lead_id: { stringValue: e.viejo } }, "lead_id",
-        await updateTimeDe(H, `crm_sales/${v.id}`));
+    for (const v of reg.vens) {
+      await escribirValidado(H, [{ update: { name: `${PREFIJO}/crm_sales/${v.id}`, fields: { lead_id: { stringValue: e.viejo } } },
+        updateMask: { fieldPaths: ["lead_id"] }, currentDocument: { updateTime: v.updateTime } }], "repuntar venta " + v.id);
       repuntadas++;
     }
-    for (const n of await listarNotas(H, e.uuid)) {
-      await borrarSiNoCambio(H, `crm_leads/${e.uuid}/notas/${n.id}`, await updateTimeDe(H, `crm_leads/${e.uuid}/notas/${n.id}`));
+    for (const n of reg.notas) {
+      await escribirValidado(H, [{ delete: `${PREFIJO}/crm_leads/${e.uuid}/notas/${n.id}`,
+        currentDocument: { updateTime: n.updateTime } }], "borrar nota " + n.id);
       borrados++;
     }
-    await borrarSiNoCambio(H, `crm_leads/${e.uuid}`, await updateTimeDe(H, `crm_leads/${e.uuid}`)); borrados++;
-    /* B2 · El marcador también lleva precondición: si se repuntó a otro prospecto desde el
-       inventario, borrarlo destruiría el marcador de un tercero. */
-    await borrarSiNoCambio(H, `crm_dedup/${tel}`, utMarcador);
+    if (reg.lead) {
+      await escribirValidado(H, [{ delete: `${PREFIJO}/crm_leads/${e.uuid}`,
+        currentDocument: { updateTime: reg.lead.updateTime } }], "borrar prospecto " + tel);
+      borrados++;
+    }
+    if (reg.marcador) {
+      await escribirValidado(H, [{ delete: `${PREFIJO}/crm_dedup/${tel}`,
+        currentDocument: { updateTime: reg.marcador.updateTime } }], "borrar marcador " + tel);
+    }
 
-    await fetch(`${DOCS}/crm_supresion/${e.uuid}`, { method: "DELETE", headers: H }).catch(() => {});
+    /* §5 · VERIFICACIÓN FINAL antes de dar la entrada por terminada. */
+    const vLead = await leerValidado(H, `crm_leads/${e.uuid}`, "verificar prospecto");
+    if (vLead.existe) throw new Error(`${tel}: el prospecto sigue existiendo tras el borrado`);
+    const vNotas = await listarNotas(H, e.uuid);
+    if (vNotas.length) throw new Error(`${tel}: quedan ${vNotas.length} nota(s) sin borrar`);
+    if (reg.marcador) {
+      const vm = await leerValidado(H, `crm_dedup/${tel}`, "verificar marcador");
+      if (vm.existe) throw new Error(`${tel}: el marcador sigue existiendo`);
+    }
+    const cotFin = (await listarCot(H)), venFin = (await listarVen(H));
+    if (cotFin.some((c) => val(c.fields, "lead_id") === e.uuid) || venFin.some((v) => val(v.fields, "lead_id") === e.uuid))
+      throw new Error(`${tel}: quedan referencias al UUID`);
+    for (const c of reg.cots) {
+      const ahora = cotFin.find((x) => x.id === c.id);
+      if (!ahora || val(ahora.fields, "lead_id") !== e.viejo) throw new Error(`${tel}: la cotización ${c.id} no quedó repuntada`);
+    }
+    for (const v of reg.vens) {
+      const ahora = venFin.find((x) => x.id === v.id);
+      if (!ahora || val(ahora.fields, "lead_id") !== e.viejo) throw new Error(`${tel}: la venta ${v.id} no quedó repuntada`);
+    }
+    if (reg.lead) {
+      const heredado = await leerValidado(H, `crm_leads/${e.viejo}`, "verificar heredado " + tel);
+      if (!heredado.existe) throw new Error(`${tel}: el documento heredado no está tras la reversión`);
+    }
+
+    /* §5.6 · El testigo se retira y se CONFIRMA su retirada antes de marcar «hecha». */
+    let rt = null;
+    try { rt = await fetch(`${DOCS}/crm_supresion/${e.uuid}`, { method: "DELETE", headers: H }); } catch { rt = null; }
+    if (!rt) throw new Error(`${tel}: sin respuesta al retirar el testigo (HTTP 500/503 o conexión)`);
+    if (rt.status === 500 || rt.status === 503) throw new Error(`${tel}: al retirar el testigo respondió HTTP ${rt.status}`);
+    const vt = await leerValidado(H, `crm_supresion/${e.uuid}`, "verificar testigo");
+    if (vt.existe) throw new Error(`${tel}: el testigo sigue presente; la entrada NO se marca terminada`);
+
     mapa[tel] = { ...mapa[tel], reversion: "hecha" };
     guardarMapa(mapa);
+    console.log(`  ${e.viejo} ← ${tel} · notas ${reg.notas.length} · refs ${reg.cots.length + reg.vens.length} · verificado ✓`);
   }
 
+  const pendientes = Object.entries(leerMapa()).filter(([, x]) => x.reversion !== "hecha");
+  if (pendientes.length) {
+    console.error("\nREVERSIÓN INCOMPLETA: " + pendientes.length + " entrada(s) sin terminar. Se conserva el mapa.");
+    process.exit(3);
+  }
   const cotsFin = await listarCot(H), vensFin = await listarVen(H);
   const malas = entradas.filter(([, e]) =>
     cotsFin.some((c) => val(c.fields, "lead_id") === e.uuid) || vensFin.some((v) => val(v.fields, "lead_id") === e.uuid));

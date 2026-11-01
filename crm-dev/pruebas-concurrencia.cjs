@@ -300,7 +300,7 @@ async function limpiar() {
 
   proxy.limpiarReglas();
   const rev2 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
-  chk("5 · la reanudación completa la reversión", rev2.codigo === 0, "código " + rev2.codigo);
+  chk("5 · la reanudación completa la reversión", rev2.codigo === 0, "código " + rev2.codigo + " · " + String(rev2.salida).replace(/\s+/g, " ").slice(-320));
   chk("5 · el migrado se retiró y el heredado sigue",
     (await estadoHTTP(`crm_leads/${uuidR}`, TOK)) === 404 && (await estadoHTTP(`crm_leads/${TEL_R}`, TOK)) === 200);
   chk("5 · no quedó ningún testigo", (await estadoHTTP(`crm_supresion/${uuidR}`, TOK)) === 404);
@@ -389,6 +389,91 @@ async function limpiar() {
 
   const limpia2 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--limpiar-testigos"], proxy.urlBase).terminado;
   chk("6.4 · la limpieza es idempotente y termina bien", limpia2.codigo === 0, "código " + limpia2.codigo);
+  /* ══ 7 · T01-T10: pruebas discriminantes del modelo de estado validado ══ */
+  console.log("\n=== 7 · Pruebas discriminantes (estado validado y política HTTP) ===");
+  const snapshot = async () => {
+    const leads = await listar("crm_leads"), cots = await listar("crm_quotes"), vens = await listar("crm_sales");
+    const notas = [];
+    for (const l of leads) notas.push([l.id, (await listar(`crm_leads/${l.id}/notas`)).length]);
+    return JSON.stringify({ l: leads.map((x) => x.id).sort(), c: cots.map((x) => x.id + ":" + val(x.fields, "lead_id")).sort(),
+      v: vens.map((x) => x.id + ":" + val(x.fields, "lead_id")).sort(), n: notas.sort(), w: (await listar("crm_supresion")).map((x) => x.id).sort() });
+  };
+
+  /* T01 · GET que devuelve 404 falso mientras el documento existe */
+  await resetMigracion();
+  const t1 = await prepararMigrado("3209500011");
+  chk("T01 · preparación", t1.fin.codigo === 0 && !!t1.uuid);
+  proxy.limpiarReglas();
+  proxy.regla({ id: "404-falso-lead", veces: 1,
+    prueba: (i) => i.method === "GET" && /\/crm_leads\/[0-9a-f]{8}-/.test(i.url) && !/notas/.test(i.url),
+    accion: "404" });
+  const antesT01 = await snapshot();
+  const rT01 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T01 · un 404 falso hace ABORTAR la reversión", rT01.codigo !== 0, "código " + rT01.codigo);
+  chk("T01 · el estado completo no cambió", (await snapshot()) === antesT01);
+  chk("T01 · el prospecto existe de verdad", (await estadoHTTP(`crm_leads/${t1.uuid}`, TOK)) === 200);
+
+  /* T02 · :commit que devuelve 404 → nunca se toma como éxito */
+  await resetMigracion();
+  const t2 = await prepararMigrado("3209500012");
+  chk("T02 · preparación", t2.fin.codigo === 0 && !!t2.uuid);
+  proxy.limpiarReglas();
+  proxy.regla({ id: "404-commit", veces: 1,
+    prueba: (i) => i.method === "POST" && /:commit$/.test(i.url.split("?")[0]) && /"delete"/.test(i.cuerpo || ""),
+    accion: "404" });
+  const rT02 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T02 · el 404 del commit NO se declara éxito", rT02.codigo !== 0, "código " + rT02.codigo);
+  chk("T02 · la salida lo reporta como fallo", /404/i.test(rT02.salida), "código " + rT02.codigo);
+  chk("T02 · el prospecto no se dio por revertido",
+    (await estadoHTTP(`crm_leads/${t2.uuid}`, TOK)) === 200 || (await listar("crm_supresion")).length > 0);
+
+  /* T03 · marcador repuntado: no puede eliminarse en silencio */
+  await resetMigracion();
+  const t3 = await prepararMigrado("3209500013");
+  const otroUuid = crypto.randomUUID();
+  await commit([
+    { update: { name: `${PREFIJO}/crm_leads/${otroUuid}`, fields: camposLead("3209500014", UID) } },
+    { update: { name: `${PREFIJO}/crm_dedup/3209500013`, fields: { lead_id: { stringValue: otroUuid },
+      creado_en: { timestampValue: TS(0) }, creado_por: { stringValue: UID } } } },
+  ]);
+  const antesT03 = await snapshot();
+  const rT03 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T03 · un marcador repuntado impide la reversión", rT03.codigo !== 0, "código " + rT03.codigo);
+  chk("T03 · el estado completo no cambió", (await snapshot()) === antesT03);
+  chk("T03 · el marcador NO se eliminó",
+    val((await leerDoc("crm_dedup/3209500013")).fields, "lead_id") === otroUuid);
+
+  /* T06 · HTTP 500 al retirar el testigo final */
+  await resetMigracion();
+  const t6 = await prepararMigrado("3209500015");
+  proxy.limpiarReglas();
+  proxy.regla({ id: "500-quitar-testigo", veces: 1,
+    prueba: (i) => i.method === "DELETE" && /\/crm_supresion\//.test(i.url), accion: "500" });
+  const rT06 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T06 · un 500 al retirar el testigo ABORTA", rT06.codigo !== 0, "código " + rT06.codigo);
+  chk("T06 · el testigo sigue puesto (protege el trabajo pendiente)",
+    (await listar("crm_supresion")).length >= 1);
+  const mapaT06 = JSON.parse(fs.readFileSync(MAPA, "utf8"));
+  chk("T06 · la entrada NO se marca como terminada",
+    Object.values(mapaT06).every((x) => x.reversion !== "hecha"), JSON.stringify(Object.values(mapaT06).map((x) => x.reversion)));
+
+  /* T09 · simulación sin ninguna escritura (estado byte a byte) */
+  await resetMigracion();
+  const t9 = await prepararMigrado("3209500016");
+  const antesT09 = await snapshot();
+  const rT09 = await lanzarScript("migrar-uuid.cjs", ["--revertir"], proxy.urlBase).terminado;
+  chk("T09 · la simulación termina bien", rT09.codigo === 0, "código " + rT09.codigo);
+  chk("T09 · no escribió absolutamente nada", (await snapshot()) === antesT09);
+
+  /* T10 · reversión completa sin conflictos */
+  await resetMigracion();
+  const t10 = await prepararMigrado("3209500017");
+  const rT10 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("T10 · la reversión completa termina bien", rT10.codigo === 0, "código " + rT10.codigo);
+  chk("T10 · el migrado se retiró", (await estadoHTTP(`crm_leads/${t10.uuid}`, TOK)) === 404);
+  chk("T10 · el heredado conserva su nota",
+    (await estadoHTTP("crm_leads/3209500017", TOK)) === 200 && (await listar("crm_leads/3209500017/notas")).length === 1);
+  chk("T10 · no quedan testigos ni mapa", (await listar("crm_supresion")).length === 0 && !fs.existsSync(MAPA));
   proxy.limpiarReglas();
   await proxy.cerrar();
   console.log("\nRESULTADO CONCURRENCIA: PASS " + ok + " · FALLA " + ko);
