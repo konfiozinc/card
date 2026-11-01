@@ -1,0 +1,229 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   KONFÍO ZINC · CRM · crm.css
+   Identidad Neo Tech: NO declara colores propios. Todos los valores salen de
+   assets/css/kz-tokens.css (fuente única de la paleta oficial). Si el archivo de
+   tokens no cargara, cada var() lleva su respaldo literal para no romper el panel.
+
+   Objetivos de este archivo:
+     · legible de 375 px a 1920 px sin desbordamiento horizontal;
+     · objetivos táctiles de 44 px (dedo, no ratón);
+     · contraste AA sobre fondo oscuro;
+     · tablas con desplazamiento propio, nunca la página entera.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--kz-bg, #050B14);
+  color: var(--kz-text, #FFFFFF);
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  overflow-x: hidden;
+}
+
+/* ── Barra superior ─────────────────────────────────────────────────── */
+.barra {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--kz-border-soft, #52678F);
+  background: var(--kz-surface, #101C35);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.barra strong {
+  background: var(--kz-gradient-text, linear-gradient(100deg, #39DFF5, #A78BFA));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-size: 1.02rem;
+  letter-spacing: .02em;
+}
+.barra #quien { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Estructura ─────────────────────────────────────────────────────── */
+.contenedor { width: 100%; max-width: 1240px; margin-inline: auto; padding: 16px; }
+
+.tarjeta {
+  background: var(--kz-surface, #101C35);
+  border: 1px solid var(--kz-border-soft, #52678F);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--kz-glow-cyan, 0 0 24px rgb(0 229 255 / .18));
+}
+
+h1 { font-size: 1.35rem; margin: 0 0 12px; }
+h2 { font-size: 1.1rem; margin: 0 0 10px; }
+h3 { font-size: .95rem; margin: 16px 0 8px; color: var(--kz-cyan, #00E5FF); }
+
+.muted { color: var(--kz-text-muted, #A7B8D1); font-size: .9rem; }
+.nota { font-size: .82rem; color: var(--kz-text-muted, #A7B8D1); margin: 8px 0 0; }
+
+/* ── Formularios ────────────────────────────────────────────────────── */
+label { display: block; font-size: .82rem; color: var(--kz-text-secondary, #D4DEED); margin: 12px 0 5px; font-weight: 600; }
+
+input, select, textarea {
+  width: 100%;
+  min-height: 44px;                 /* objetivo táctil */
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--kz-border-soft, #52678F);
+  background: var(--kz-deep, #0A1424);
+  color: var(--kz-text, #FFFFFF);
+  font: inherit;
+}
+input::placeholder, textarea::placeholder { color: var(--kz-text-muted, #A7B8D1); }
+input:focus-visible, select:focus-visible, textarea:focus-visible,
+button:focus-visible, tr[data-id]:focus-visible {
+  outline: 3px solid var(--kz-focus, #39DFF5);
+  outline-offset: 2px;
+}
+textarea { min-height: 76px; resize: vertical; }
+
+/* ── Botones ────────────────────────────────────────────────────────── */
+button {
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--kz-cyan, #00E5FF);
+  background: transparent;
+  color: var(--kz-cyan, #00E5FF);
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+button:hover:not(:disabled) { background: rgb(0 229 255 / .12); }
+button:disabled { opacity: .55; cursor: progress; }
+
+.btn {
+  background: var(--kz-gradient-brand, linear-gradient(110deg, #00E5FF, #8B5CF6 45%, #A78BFA));
+  color: var(--kz-bg, #050B14);     /* texto oscuro sobre degradado claro: AA */
+  border-color: transparent;
+  width: auto;
+}
+.btn--peligro { background: #B3261E; color: #fff; border-color: transparent; }
+.mini { min-height: 40px; padding: 8px 12px; font-size: .85rem; }
+
+/* ── Acceso ─────────────────────────────────────────────────────────── */
+.login { max-width: 420px; margin: 32px auto; }
+/* VIS-01 (auditoría KZ-CRM-017): el botón quedaba pegado al campo de contraseña y el
+   hueco reservado para el error dejaba un salto grande. Ahora hay separación real y
+   el mensaje sólo ocupa espacio cuando existe. */
+.login #form-login button[type="submit"] { margin-top: 18px; width: 100%; }
+.login .error { margin-top: 12px; }
+.login .error:empty { min-height: 0; margin-top: 0; }
+.login .nota { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgb(82 103 143 / .40); }
+.error { color: var(--kz-danger, #FF9AA6); min-height: 20px; font-size: .86rem; margin: 10px 0 0; }
+
+/* ── Avisos ─────────────────────────────────────────────────────────── */
+.aviso {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--kz-border-soft, #52678F);
+  color: var(--kz-text-secondary, #D4DEED);
+  margin: 0 0 16px;
+}
+.aviso:empty { display: none; }
+.aviso.ok { border-color: var(--kz-success, #34D399); color: #BDF5D6; background: rgb(52 211 153 / .10); }
+.aviso.err { border-color: var(--kz-danger, #FF9AA6); color: #FFD0D0; background: rgb(255 154 166 / .10); }
+
+/* ── Filtros ────────────────────────────────────────────────────────── */
+.filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.filtros input[type="search"] { flex: 1 1 220px; min-width: 0; }
+.filtros select { flex: 0 1 210px; }
+
+/* ── Estadísticas ───────────────────────────────────────────────────── */
+.stats {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  margin-bottom: 16px;
+}
+.stat {
+  background: var(--kz-surface-raised, #152746);
+  border: 1px solid var(--kz-border-soft, #52678F);
+  border-radius: 14px;
+  padding: 12px;
+  text-align: center;
+}
+.stat b { display: block; font-size: 1.45rem; color: var(--kz-cyan, #00E5FF); line-height: 1.2; }
+.stat span { font-size: .78rem; color: var(--kz-text-muted, #A7B8D1); text-transform: uppercase; letter-spacing: .04em; }
+.stat--venta b { color: var(--kz-success, #34D399); }
+
+/* ── Tabla ──────────────────────────────────────────────────────────── */
+.tabla-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: 12px;
+  border: 1px solid rgb(82 103 143 / .45);
+}
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgb(82 103 143 / .40); white-space: nowrap; }
+th {
+  color: var(--kz-text-muted, #A7B8D1);
+  font-weight: 650;
+  font-size: .76rem;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  background: var(--kz-deep, #0A1424);
+  position: sticky;
+  top: 0;
+}
+tbody tr:last-child td { border-bottom: 0; }
+tr[data-id] { cursor: pointer; }
+tr[data-id]:hover { background: rgb(0 229 255 / .07); }
+
+/* ── Etiquetas de estado ────────────────────────────────────────────── */
+.pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: .76rem;
+  font-weight: 650;
+  border: 1px solid currentColor;
+}
+.pill--nuevo { color: #9FD6FF; }
+.pill--contactado { color: #FFD479; }
+.pill--cotizado { color: var(--kz-violet-light, #A78BFA); }
+.pill--ganado { color: var(--kz-success, #34D399); }
+.pill--perdido { color: var(--kz-danger, #FF9AA6); }
+
+/* ── Bloques del detalle ────────────────────────────────────────────── */
+.bloque { border-top: 1px dashed rgb(82 103 143 / .55); margin-top: 14px; padding-top: 8px; }
+.historial { margin: 0; padding-left: 18px; color: var(--kz-text-secondary, #D4DEED); font-size: .88rem; }
+.historial li { margin-bottom: 5px; }
+
+/* ── Móvil (≤ 560 px) ───────────────────────────────────────────────── */
+@media (max-width: 560px) {
+  .contenedor { padding: 12px; }
+  .tarjeta { padding: 13px; border-radius: 14px; }
+  h1 { font-size: 1.2rem; }
+  .barra { padding: 10px 12px; gap: 8px; }
+  .barra strong { font-size: .95rem; }
+  .filtros select { flex: 1 1 100%; }
+  .btn, .filtros button { width: 100%; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .login { margin: 18px auto; }
+}
+
+/* ── Escritorio grande ──────────────────────────────────────────────── */
+@media (min-width: 1440px) {
+  .contenedor { padding: 28px; max-width: 1400px; }
+  .stats { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+}
+
+/* ── Preferencias del sistema ───────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* Fuerza modo oscuro propio también en controles nativos */
+@media (prefers-color-scheme: light) {
+  body { color-scheme: dark; }
+}

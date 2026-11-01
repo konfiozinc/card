@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="es-CO">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM comercial | KONFÍO ZINC</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="crm.css">
+</head>
+<body>
+<header class="barra">
+  <strong>KONFÍO ZINC · CRM</strong>
+  <span id="quien" class="muted"></span>
+  <button id="btn-salir" class="mini" hidden>Salir</button>
+</header>
+
+<main class="contenedor">
+
+  <section id="vista-login" class="tarjeta login">
+    <h1>Entrar al CRM</h1>
+    <form id="form-login">
+      <label for="l-email">Correo</label>
+      <input id="l-email" type="email" autocomplete="username" required>
+      <label for="l-pass">Contraseña</label>
+      <input id="l-pass" type="password" autocomplete="current-password" required>
+      <button type="submit" class="btn">Entrar</button>
+      <p id="login-error" class="error" role="alert"></p>
+    </form>
+    <p class="nota">Acceso restringido al equipo de KONFÍO ZINC. Tu cuenta la crea la
+      administración; el rol se asigna fuera del navegador y no puede autoasignarse.</p>
+  </section>
+
+  <section id="vista" hidden>
+    <p id="estado-panel" class="aviso" role="status" aria-live="polite"></p>
+
+    <div class="stats" id="stats"></div>
+
+    <div class="tarjeta">
+      <h2>Registrar prospecto</h2>
+      <p class="nota">Modo privado: el alta la hace un operador con rol. La captación pública está cerrada.</p>
+      <div class="bloque" id="bloque-alta">
+        <input id="n-nombre" type="text" placeholder="Nombre y apellido" maxlength="60" aria-label="Nombre">
+        <input id="n-telefono" type="tel" inputmode="numeric" placeholder="WhatsApp (10 a 15 dígitos)" maxlength="18" aria-label="WhatsApp">
+        <select id="n-industria" aria-label="Industria">
+          <option value="restaurantes">restaurantes</option>
+          <option value="tiendas">tiendas</option>
+          <option value="servicios">servicios</option>
+          <option value="belleza">belleza</option>
+          <option value="otro">otro</option>
+        </select>
+        <select id="n-origen" aria-label="Origen del prospecto">
+          <option value="manual">alta manual</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="presencial">presencial</option>
+          <option value="formulario-web">formulario web</option>
+        </select>
+        <label class="consent">
+          <input type="checkbox" id="n-consent">
+          <span>El prospecto autorizó el contacto comercial (consentimiento v1-2026-11).</span>
+        </label>
+        <button id="btn-alta" class="btn">Registrar prospecto</button>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="filtros">
+        <input id="f-texto" type="search" placeholder="Buscar por nombre, teléfono o industria" aria-label="Buscar prospectos">
+        <select id="f-estado" aria-label="Filtrar por estado">
+          <option value="">Todos los estados</option>
+          <option value="nuevo">nuevo</option>
+          <option value="contactado">contactado</option>
+          <option value="cotizado">cotizado</option>
+          <option value="ganado">ganado</option>
+          <option value="perdido">perdido</option>
+        </select>
+        <button id="btn-exportar" class="mini">Exportar CSV</button>
+      </div>
+      <p id="contador" class="muted"></p>
+      <div class="tabla-scroll">
+        <table>
+          <thead><tr><th>Nombre</th><th>Teléfono</th><th>Industria</th><th>Estado</th><th>Consent.</th><th></th></tr></thead>
+          <tbody id="tabla-leads"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <section id="detalle" class="tarjeta" hidden aria-live="polite">
+      <h2 id="d-nombre"></h2>
+      <p id="d-meta" class="muted"></p>
+
+      <div class="bloque">
+        <label for="d-estado">Estado comercial</label>
+        <select id="d-estado">
+          <option value="nuevo">nuevo</option>
+          <option value="contactado">contactado</option>
+          <option value="cotizado">cotizado</option>
+          <option value="ganado">ganado</option>
+          <option value="perdido">perdido</option>
+        </select>
+        <button id="btn-estado" class="btn">Guardar estado</button>
+      </div>
+
+      <div class="bloque">
+        <label for="d-nota">Nota de seguimiento</label>
+        <textarea id="d-nota" rows="2" placeholder="Qué se habló, próxima acción…"></textarea>
+        <button id="btn-nota" class="btn">Añadir nota</button>
+      </div>
+
+      <h3>Historial</h3>
+      <ul id="d-historial" class="historial"></ul>
+      <h3>Cotizaciones de este prospecto</h3>
+      <div id="d-cotizaciones" class="muted">—</div>
+
+      <div class="bloque" id="bloque-cotizar">
+        <h3>Crear cotización</h3>
+        <select id="q-plan">
+          <option value="basica">Mini Web Básica · $49.900</option>
+          <option value="pro">Mini Web Pro · $99.900</option>
+          <option value="medida">Proyecto a medida · sin precio</option>
+        </select>
+        <button id="btn-cotizar" class="btn">Registrar cotización</button>
+        <p class="nota">Una cotización NO es una venta: no suma a ventas confirmadas.</p>
+      </div>
+
+      <div class="bloque" id="bloque-venta">
+        <h3>Registrar venta confirmada</h3>
+        <input id="s-quote" type="text" placeholder="ID de la cotización">
+        <input id="s-monto" type="number" min="1" step="1" placeholder="Monto confirmado (COP)">
+        <button id="btn-venta" class="btn btn--peligro">Confirmar venta</button>
+        <p class="nota">Sólo admin y ventas. Exige una cotización existente de este prospecto.</p>
+      </div>
+
+      <div class="bloque" id="bloque-privacidad" hidden>
+        <h3>Privacidad del dato</h3>
+        <button id="btn-anonimizar" class="btn">Suprimir datos personales</button>
+        <button id="btn-borrar-lead" class="btn btn--peligro">Borrar prospecto</button>
+        <p class="nota">Sólo administración. <b>Suprimir</b> borra el nombre y <b>todo el historial
+          de notas</b>, y conserva el número de teléfono porque es el identificador que impide
+          volver a duplicar el prospecto: por eso es <b>supresión parcial</b>, no anonimización
+          completa. <b>Borrar</b> elimina el documento entero: libera el número y no se puede deshacer.</p>
+      </div>
+    </section>
+
+    <section id="bloque-auditoria" class="tarjeta" hidden>
+      <h2>Auditoría (sólo administración)</h2>
+      <div class="tabla-scroll">
+        <table><thead><tr><th>Acción</th><th>Detalle</th><th>Rol</th></tr></thead><tbody id="tabla-audit"></tbody></table>
+      </div>
+    </section>
+  </section>
+</main>
+
+<script type="module" src="crm.js"></script>
+</body>
+</html>
