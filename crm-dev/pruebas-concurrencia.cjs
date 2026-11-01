@@ -258,6 +258,52 @@ async function limpiar() {
     val((await leerDoc(`crm_quotes/${cotId4}`)).fields, "lead_id") === "suprimido");
   chk("4 · el testigo se liberó al completar", (await estadoHTTP(`crm_supresion/${L4}`, TOK)) === 404);
 
+  /* ══ 5 · La ventana lectura→testigo: modificación concurrente al adquirirlo ══ */
+  console.log("\n=== 5 · Modificación concurrente durante la adquisición del testigo ===");
+  const lanzarScript = (script, args, url) => {
+    const hijo = spawn(process.execPath, [path.join(__dirname, script), "--emulador", ...args],
+      { env: { ...process.env, ...(url ? { KZ_FIRESTORE_URL: url } : {}) }, stdio: ["ignore", "pipe", "pipe"] });
+    let salida = "";
+    hijo.stdout.on("data", (d) => { salida += d; });
+    hijo.stderr.on("data", (d) => { salida += d; });
+    return { hijo, terminado: new Promise((res) => hijo.on("exit", (c, s) => res({ codigo: c, senal: s, salida }))) };
+  };
+
+  const TEL_R = "3209500005";
+  await fetch(`${FS}/crm_leads?documentId=${TEL_R}`, { method: "POST", headers: OWNER,
+    body: JSON.stringify({ fields: camposLead(TEL_R, UID) }) });
+  await nota(TEL_R, "nota heredada antes de migrar", TOK);
+  const finMig = await lanzarScript("migrar-uuid.cjs", ["--confirmar"], null).terminado;
+  chk("5 · preparación: la migración termina bien", finMig.codigo === 0, "código " + finMig.codigo);
+  const migradosR = (await listar("crm_leads"))
+    .filter((l) => /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(l.id) && val(l.fields, "telefono") === TEL_R);
+  chk("5 · el prospecto migrado existe con UUID", migradosR.length === 1, migradosR.length + "");
+  const uuidR = migradosR.length ? migradosR[0].id : null;
+
+  proxy.limpiarReglas();
+  proxy.regla({ id: "testigo-en-vuelo", veces: 1,
+    prueba: (i) => i.method === "POST" && /:commit$/.test(i.url.split("?")[0]) && /crm_supresion/.test(i.cuerpo || ""),
+    accion: "colgar-despues" });
+  const rev = lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase);
+  await proxy.esperar("testigo-en-vuelo");
+  chk("5 · el testigo ya está escrito con la reversión en vuelo",
+    (await estadoHTTP(`crm_supresion/${uuidR}`, TOK)) === 200);
+  const intrusaR = await nota(uuidR, "nota que llega durante la adquisición", TOK);
+  chk("5 · una modificación concurrente durante la adquisición se rechaza", intrusaR === 403, "HTTP " + intrusaR);
+  rev.hijo.kill();
+  const finRev = await rev.terminado;
+  chk("5 · la reversión interrumpida no termina en verde", finRev.codigo !== 0 || finRev.senal != null);
+  chk("5 · el prospecto migrado NO se perdió", (await estadoHTTP(`crm_leads/${uuidR}`, TOK)) === 200);
+  chk("5 · la nota concurrente nunca existió (sin pérdida silenciosa)",
+    !(await listar(`crm_leads/${uuidR}/notas`)).some((n) => /durante la adquisición/.test(String(val(n.fields, "texto")))));
+  chk("5 · las notas previas siguen intactas", (await listar(`crm_leads/${uuidR}/notas`)).length === 1);
+
+  proxy.limpiarReglas();
+  const rev2 = await lanzarScript("migrar-uuid.cjs", ["--revertir", "--confirmar"], proxy.urlBase).terminado;
+  chk("5 · la reanudación completa la reversión", rev2.codigo === 0, "código " + rev2.codigo);
+  chk("5 · el migrado se retiró y el heredado sigue",
+    (await estadoHTTP(`crm_leads/${uuidR}`, TOK)) === 404 && (await estadoHTTP(`crm_leads/${TEL_R}`, TOK)) === 200);
+  chk("5 · no quedó ningún testigo", (await estadoHTTP(`crm_supresion/${uuidR}`, TOK)) === 404);
   proxy.limpiarReglas();
   await proxy.cerrar();
   console.log("\nRESULTADO CONCURRENCIA: PASS " + ok + " · FALLA " + ko);

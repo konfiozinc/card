@@ -259,8 +259,12 @@ function camposCambiados(previo, ahora) {
   const cotFin = await listarCot(H), venFin = await listarVen(H);
   let notasTotales = 0;
   for (const l of leadsFin) notasTotales += (await listarNotas(H, l.id)).length;
-  const cotHuerfanas = cotFin.filter((c) => !idsFin.has(val(c.fields, "lead_id"))).length;
-  const venHuerfanas = venFin.filter((v) => !idsFin.has(val(v.fields, "lead_id"))).length;
+  /* Una referencia DESASOCIADA por una supresión ("suprimido") no es huérfana: es el
+     valor terminal que deja el procedimiento de supresión al cortar el enlace personal.
+     Contarla como huérfana haría fallar la migración por un estado correcto. */
+  const esViva = (leadId) => !!leadId && leadId !== "suprimido";
+  const cotHuerfanas = cotFin.filter((c) => esViva(val(c.fields, "lead_id")) && !idsFin.has(val(c.fields, "lead_id"))).length;
+  const venHuerfanas = venFin.filter((v) => esViva(val(v.fields, "lead_id")) && !idsFin.has(val(v.fields, "lead_id"))).length;
   console.log("\n--- VERIFICACIÓN REFERENCIAL ---");
   console.log("  prospectos: " + leadsFin.length + " · notas: " + notasTotales +
     " · cotizaciones huérfanas: " + cotHuerfanas + " · ventas huérfanas: " + venHuerfanas);
@@ -280,10 +284,6 @@ async function revertir(H) {
   const respaldo = JSON.parse(fs.readFileSync(RESP, "utf8"));
   console.log("Entradas en el mapa: " + entradas.length + " · respaldo: " + (respaldo.leads || []).length + " prospectos");
 
-  const leadsAhora = await listarLeads(H);
-  const cotsAhora = await listarCot(H);
-  const vensAhora = await listarVen(H);
-  const dedupAhora = await listarDedup(H);
 
   /* B · TESTIGO ANTES DE COMPROBAR: sin esto queda una ventana entre la comprobacion y el
      borrado en la que puede entrar una nota nueva, que se destruiria con una precondicion
@@ -295,6 +295,16 @@ async function revertir(H) {
       id_sha256: { stringValue: sha(e.uuid).slice(0, 16) } } } })));
   /* En SIMULACIÓN no se escribe nada: los testigos sólo se ponen si se va a ejecutar. */
   if (CONFIRMAR) await ponerTestigos();
+  /* B · INVENTARIO BAJO EL TESTIGO. Antes se leía el estado y DESPUÉS se bloqueaba: una
+     nota que entrara en ese hueco no se veía y acababa destruida por un borrado con
+     precondición perfectamente válida. Ahora, cuando se va a ejecutar, primero se bloquea
+     y solo entonces se lee lo que va a autorizar el borrado. En simulación se lee sin
+     bloquear porque no se destruye nada. */
+  const leadsAhora = await listarLeads(H);
+  const cotsAhora = await listarCot(H);
+  const vensAhora = await listarVen(H);
+  const dedupAhora = await listarDedup(H);
+
 
   const problemas = [], detalle = [];
 
