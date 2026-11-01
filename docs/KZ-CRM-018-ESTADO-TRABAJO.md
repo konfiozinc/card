@@ -111,3 +111,17 @@ Sin publicar · sin desplegar reglas · sin tocar `main` · sin migrar ni borrar
 sin Blaze · sin captación pública · sin usuarios reales · sin tocar otros proyectos Firebase.
 
 **Dictamen: NO-GO** hasta que la auditoría independiente sobre el commit exacto sea favorable.
+
+---
+
+## Actualización — cierre de la ventana lectura→testigo
+
+- **Commit:** `a9be69cbc63e608c46e20b8e78f126d1560fb2e5` (rama `audit/kz-crm-018`; `main` en `8fb058b`).
+- **Corregido:** en `revertir()` el testigo se coloca **antes** del inventario; las
+  lecturas que autorizan el borrado se hacen bajo bloqueo. Simulación sigue sin escribir.
+- **Defecto destapado:** la verificación de la migración contaba `lead_id = "suprimido"`
+  como huérfano; ya no.
+- **Prueba nueva:** C05 en `pruebas-concurrencia.cjs` (modificación concurrente durante la
+  adquisición del testigo). Concurrencia: **49 · 0**.
+- **Regresión:** 20 suites con aislamiento, **0 fallos**.
+- **Pendiente:** auditoría independiente focalizada sobre este commit.
