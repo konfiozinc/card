@@ -1,0 +1,41 @@
+=== 0 · Siembra de 350 prospectos (más de una página) ===
+  PASS  0 · se sembraron 350 prospectos  (350)
+  PASS  0 · todos tienen marcador de deduplicación
+
+=== A · Inventario con más de 300 documentos: informe de retención ===
+  PASS  A · el informe termina bien  (código 0)
+  PASS  A · informa de los 350 documentos, no de 300  (informó 350)
+  PASS  A · informa de los 10 vencidos  (informó 10)
+  PASS  A · devuelve la lista completa en JSON  (350 filas)
+  PASS  A · recorre más de una página
+
+=== E · Error HTTP al inventariar ===
+  PASS  E · termina con código distinto de cero  (código 2)
+  PASS  E · dice qué página falló y cuántos llevaba leídos  (No se pudo leer crm_leads (HTTP 503) en la página 1. ¿Sesión de firebase login?)
+  PASS  E · NO presenta el informe como si la base estuviera vacía
+
+=== C · Fallo de lectura de una página intermedia ===
+  PASS  C · termina con código distinto de cero  (código 2)
+  PASS  C · NO da por bueno un inventario parcial  (No se pudo leer crm_leads (HTTP 503) en la página 2. ¿Sesión de firebase login?)
+  PASS  C · avisa de que el informe quedaría incompleto
+
+=== D · Colección vacía: 0 es un resultado, no un error ===
+  PASS  D · termina bien con la colección vacía  (código 0)
+  PASS  D · informa de 0 documentos
+  PASS  D · dice que no hay nada que retirar
+
+=== B · La verificación de operación revisa los 350 ===
+  PASS  B · la verificación termina bien  (código 0)
+  PASS  B · informa de 350 prospectos revisados  (prospectos: 350)
+  PASS  B · reconoce los 350 con UUID v4 y 0 heredados  (con UUID v4: 350 · heredados pendientes de migrar: 0)
+  PASS  B · sin fallos en la coherencia de los datos  (RESULTADO OPERACIÓN: OK 12 · FALLA 0)
+
+=== F · El panel lista la cartera entera (350 prospectos) ===
+  PASS  F · la ficha del administrador existe, es admin y está activa  ({"rol":{"stringValue":"admin"},"activo":{"booleanValue":true}})
+  PASS  F · la inyección del emulador se aplica al servir el panel  (38737 vs 38340)
+  PASS  F · la bandeja dice 350 prospectos  (Cartera completa · 350 prospectos · 350 sin asignar)
+  PASS  F · la tabla muestra la cartera completa  (350 filas)
+  PASS  F · la bandeja NO avisa de cartera incompleta
+  PASS  F · el panel no lanzó errores de JavaScript
+
+RESULTADO R08: PASS 26 · FALLA 0

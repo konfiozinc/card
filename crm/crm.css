@@ -128,12 +128,71 @@ h4 { font-size: .88rem; }
 .nav__btn[hidden] { display: none; }
 
 .cuenta {
-  display: flex; align-items: center; gap: 10px;
+  position: relative;
+  display: flex; align-items: center; gap: 8px;
   margin-left: auto; min-width: 0;
 }
 .cuenta__quien {
   font-size: .82rem; color: var(--kz-text-muted, #A7B8D1);
-  max-width: 34ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 40ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Indicador compacto de cuenta (KZ-CRM-019B).
+   Sustituye al correo cortado con puntos suspensivos: muestra iniciales y rol, y
+   el correo completo se consulta pulsándolo. */
+.chip-cuenta {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-height: 44px;
+  padding: 5px 10px 5px 5px;
+  border-radius: 999px;
+  border: 1px solid rgb(82 103 143 / .55);
+  background: rgb(16 28 53 / .85);
+  color: var(--kz-text-secondary, #D4DEED);
+  font: inherit; font-size: .8rem; font-weight: 600;
+  cursor: pointer;
+  max-width: 100%;
+}
+.chip-cuenta[hidden] { display: none; }
+.chip-cuenta:hover { background: rgb(0 229 255 / .12); border-color: rgb(0 229 255 / .45); }
+.chip-cuenta__sigla {
+  display: inline-grid; place-items: center;
+  width: 30px; height: 30px; border-radius: 50%;
+  background: var(--kz-gradient-brand, linear-gradient(110deg, #00E5FF, #8B5CF6 45%, #A78BFA));
+  color: #041018; font-size: .74rem; font-weight: 800; letter-spacing: .02em;
+  flex: 0 0 30px;
+}
+.chip-cuenta__rol {
+  text-transform: uppercase; letter-spacing: .06em;
+  font-size: .7rem; color: var(--kz-cyan, #00E5FF);
+  white-space: nowrap;
+}
+.chip-cuenta__flecha { font-size: .7rem; color: var(--kz-text-muted, #A7B8D1); transition: transform .15s ease; }
+.chip-cuenta[aria-expanded="true"] .chip-cuenta__flecha { transform: rotate(180deg); }
+
+/* Ficha desplegable con el correo completo. */
+.cuenta__datos {
+  position: absolute; right: 0; top: calc(100% + 8px);
+  z-index: 40;
+  display: grid; gap: 2px;
+  min-width: 240px; max-width: min(88vw, 340px);
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgb(82 103 143 / .70);
+  background: rgb(16 28 53 / .98);
+  box-shadow: 0 22px 46px -22px rgb(0 0 0 / .95);
+}
+.cuenta__datos[hidden] { display: none; }
+.cuenta__datos-et {
+  font-size: .68rem; text-transform: uppercase; letter-spacing: .10em;
+  color: var(--kz-text-muted, #A7B8D1);
+}
+.cuenta__datos-correo {
+  font-size: .88rem; font-weight: 650; color: var(--kz-text, #fff);
+  overflow-wrap: anywhere;      /* el correo completo, sin cortar ni desbordar */
+}
+.cuenta__datos-rol {
+  font-size: .74rem; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--kz-cyan, #00E5FF);
 }
 
 /* ── Estructura ────────────────────────────────────────────────────────── */
@@ -487,6 +546,57 @@ tr[data-id].fila--activa {
 .pill--ganado { color: var(--kz-success, #34D399); background: rgb(52 211 153 / .10); }
 .pill--perdido { color: var(--kz-danger, #FF9AA6); background: rgb(255 154 166 / .10); }
 
+/* ── Cartera en tarjetas (KZ-CRM-019B) ──────────────────────────────────────
+   En celular la tabla de 6–7 columnas no se lee: la cartera se muestra como
+   tarjetas. En escritorio manda la tabla. Las dos vistas contienen los MISMOS
+   datos; crm-ui.js construye las tarjetas leyendo la tabla que pinta crm.js. */
+.lista-tarjetas { display: none; }
+
+.tarjeta-prospecto {
+  display: grid; gap: 8px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid rgb(82 103 143 / .50);
+  background: linear-gradient(180deg, rgb(21 39 70 / .70), rgb(16 28 53 / .90));
+}
+.tarjeta-prospecto--activa {
+  border-color: var(--kz-cyan, #00E5FF);
+  box-shadow: inset 3px 0 0 0 var(--kz-cyan, #00E5FF), 0 0 0 1px rgb(0 229 255 / .18);
+}
+.tp__cab {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 10px;
+}
+.tp__nombre {
+  margin: 0; font-size: .98rem; font-weight: 700; line-height: 1.25;
+  color: var(--kz-text, #fff);
+  overflow-wrap: anywhere;
+}
+.tp__datos { display: grid; gap: 4px; margin: 0; }
+.tp__dato { display: flex; gap: 8px; align-items: baseline; min-width: 0; }
+.tp__dato dt {
+  flex: 0 0 auto; min-width: 78px;
+  margin: 0; font-size: .72rem; text-transform: uppercase; letter-spacing: .06em;
+  color: var(--kz-text-muted, #A7B8D1);
+}
+.tp__dato dd {
+  margin: 0; flex: 1 1 auto; min-width: 0;
+  font-size: .86rem; color: var(--kz-text-secondary, #D4DEED);
+  overflow-wrap: anywhere;
+}
+.tp__abrir {
+  width: 100%; min-height: 44px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid rgb(0 229 255 / .55);
+  background: rgb(0 229 255 / .12);
+  color: var(--kz-cyan, #00E5FF);
+  font: inherit; font-size: .88rem; font-weight: 650;
+  cursor: pointer;
+}
+.tp__abrir:hover { background: rgb(0 229 255 / .20); }
+.lista-tarjetas:empty { display: none; }
+
 /* ── Ficha del prospecto ───────────────────────────────────────────────── */
 .ficha-vacia {
   display: grid; place-items: center; gap: 2px;
@@ -586,22 +696,74 @@ tr[data-id].fila--activa {
   .columna-cartera { gap: 14px; }
 }
 
+/* Celulares y tabletas en vertical: cabecera de dos filas (KZ-CRM-019B).
+   Identidad y cuenta arriba, navegación debajo. Medido: 155 px → 107 px en
+   320–430, y 131 px → ~110 px en 768. */
+@media (max-width: 1024px) {
+  .barra {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "marca cuenta"
+      "nav   nav";
+    align-items: center;
+    gap: 4px 8px;
+    padding: 5px 10px;
+  }
+  .marca { grid-area: marca; }
+  .cuenta { grid-area: cuenta; margin-left: 0; justify-self: end; gap: 6px; position: static; }
+  .nav { grid-area: nav; width: 100%; padding: 3px; gap: 2px; }
+  .marca__sigla { width: 28px; height: 28px; border-radius: 8px; font-size: .76rem; }
+  .marca__texto strong { font-size: .74rem; letter-spacing: .07em; }
+  .marca__texto small { display: none; }
+  .nav__btn { padding: 6px 9px; font-size: .8rem; }
+  /* El correo completo no cabe aquí: lo sustituye el chip de cuenta. */
+  .cuenta__quien { display: none; }
+  .cuenta__datos { right: 10px; top: calc(100% + 6px); }
+  html { scroll-padding-top: 116px; }
+  #detalle { scroll-margin-top: 116px; }
+}
+
 @media (max-width: 760px) {
   .contenedor { padding: 14px; }
   .panel { padding: 15px; border-radius: 16px; }
-  /* Cabecera compacta: en móvil robaba una quinta parte de la pantalla. */
-  .barra { padding: 6px 12px; gap: 8px; }
-  .marca__sigla { width: 30px; height: 30px; border-radius: 9px; }
-  .marca__texto strong { font-size: .76rem; }
-  .marca__texto small { display: none; }
-  .nav { padding: 3px; gap: 2px; }
-  .nav__btn { padding: 6px 10px; font-size: .8rem; }
-  .cuenta { margin-left: 0; width: 100%; justify-content: flex-end; gap: 8px; }
-  .nav { width: 100%; }
-  .filtros__buscar { flex: 1 1 100%; }
-  .campo--filtro { flex: 1 1 100%; }
-  html { scroll-padding-top: 124px; }
-  #detalle { scroll-margin-top: 124px; }
+
+  /* Cartera: tarjetas en celular, tabla en escritorio y tableta. */
+  .lista-tarjetas { display: grid; gap: 10px; }
+  .tabla-scroll { display: none; }
+
+  /* Filtros compactos: en el celular se agrupan en tres filas (buscador /
+     estado + sólo sin asignar / exportar) para que la cartera no quede a media
+     pantalla de distancia. */
+  .filtros { gap: 8px; }
+  .filtros__buscar { order: 1; flex: 1 1 100%; }
+  .campo--filtro { order: 2; flex: 1 1 44%; }
+  .filtros .inline-check { order: 3; flex: 1 1 50%; min-height: 44px; }
+  .filtros #btn-exportar { order: 4; flex: 1 1 100%; }
+  /* El contador y la bandeja repiten la misma cifra: en el celular basta uno. */
+  .contador { display: none; }
+  .bandeja { font-size: .78rem; padding: 7px 10px; margin: 0 0 10px; }
+  /* Sin incidencias, la bandeja cabe en una línea. Si la cartera está
+     INCOMPLETA (clase .bandeja--aviso) no se recorta nunca: ese aviso se lee
+     entero, que es justo cuando importa. */
+  .bandeja:not(.bandeja--aviso) { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* Pantallas muy estrechas (320–400 px): la navegación debe caber sin
+   desplazamiento horizontal y la cartera tiene que empezar cuanto antes. */
+@media (max-width: 400px) {
+  .barra { padding: 4px 8px; }
+  .nav { padding: 2px; gap: 1px; }
+  .nav__btn { padding: 6px 7px; font-size: .75rem; letter-spacing: -.01em; }
+  .chip-cuenta { padding: 4px 8px 4px 4px; font-size: .76rem; }
+  .chip-cuenta__sigla { width: 26px; height: 26px; flex-basis: 26px; font-size: .68rem; }
+  .chip-cuenta__rol { font-size: .64rem; }
+  /* Menos aire arriba, para que la primera tarjeta asome sin desplazarse. */
+  .panel { padding: 12px; }
+  .panel__cab { margin-bottom: 8px; }
+  #t-cartera { font-size: 1rem; }
+  .filtros { gap: 6px; }
+  .bandeja { padding: 5px 9px; font-size: .74rem; }
 }
 
 @media (max-width: 560px) {

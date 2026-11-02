@@ -1,0 +1,50 @@
+R01 · Reversión segura · proyecto demo-crm-016 (EMULADOR)
+
+=== A · Nota nueva y cambio comercial tras migrar: la reversión debe negarse ===
+  PASS  A · la migración termina bien  (código 0)
+  PASS  A · el prospecto migrado tiene UUID  (f8e9f7b6-cc3f-4a27-838c-5b2b57dc6d74)
+  PASS  A · la reversión se NIEGA con código 3  (código 3)
+  PASS  A · la salida anuncia el rechazo
+  PASS  A · la salida declara que no se modificó nada
+  PASS  A · menciona la nota creada después
+  PASS  A · menciona el campo comercial cambiado
+  PASS  A · NO se borró ni modificó ningún documento
+  PASS  A · la nota nueva sigue presente
+  PASS  A · el prospecto migrado sigue existiendo
+  PASS  A · el cambio comercial posterior sigue intacto  (negociacion)
+  PASS  A · la cotización sigue apuntando al UUID
+  PASS  A · la venta sigue apuntando al UUID
+  PASS  A · el marcador de deduplicación sigue intacto
+  PASS  A · los documentos heredados siguen intactos
+  PASS  A · el mapa de migración se conserva
+  PASS  A · una segunda tentativa también se niega  (código 3)
+  PASS  A · la segunda tentativa tampoco modifica nada
+
+=== B · Historial ampliado tras migrar: la reversión debe negarse ===
+  PASS  B · la migración termina bien  (código 0)
+  PASS  B · la reversión se NIEGA con código 3  (código 3)
+  PASS  B · no se borra ni se modifica ningún documento
+  PASS  B · el prospecto migrado sigue existiendo
+  PASS  B · el historial ampliado sigue presente  (2 entradas)
+
+=== C · Campo comercial nuevo tras migrar: la reversión debe negarse ===
+  PASS  C · la migración termina bien  (código 0)
+  PASS  C · la reversión se NIEGA con código 3  (código 3)
+  PASS  C · no se borra ni se modifica ningún documento
+  PASS  C · el campo comercial nuevo sigue presente  (450000)
+
+=== D · Sin cambios posteriores: la reversión se permite y se completa ===
+  PASS  D · la migración termina bien  (código 0)
+  PASS  D · hay 2 UUID nuevos además de los 2 heredados
+  PASS  D · la reversión se permite y termina bien  (código 0)
+  PASS  D · informa de reversión completa
+  PASS  D · los prospectos importados se borraron
+  PASS  D · el prospecto migrado ya no existe
+  PASS  D · los marcadores de deduplicación se borraron
+  PASS  D · la cotización volvió al identificador antiguo
+  PASS  D · la venta volvió al identificador antiguo
+  PASS  D · se eliminó el mapa
+  PASS  D · los documentos heredados no cambiaron ni un byte
+  PASS  D · las notas heredadas siguen ahí
+
+RESULTADO R01: PASS 39 · FALLA 0

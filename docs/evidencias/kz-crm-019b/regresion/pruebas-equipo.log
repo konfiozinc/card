@@ -1,0 +1,78 @@
+  PASS  el admin crea un prospecto asignado a A
+  PASS  el admin crea un prospecto asignado a B
+  PASS  el admin crea un prospecto sin asignar
+
+=== A. Acceso cruzado entre asesores ===
+  PASS  A lee su prospecto
+  PASS  A NO lee el prospecto de B
+  PASS  A NO lee el prospecto sin asignar
+  PASS  B NO lee el prospecto de A
+  PASS  A NO actualiza el prospecto de B
+  PASS  A SÍ actualiza el estado de su propio prospecto
+
+=== B. Consultas: la bandeja no puede ser global ===
+  PASS  la consulta filtrada por asignado_a funciona para A
+  PASS  una consulta SIN filtro es rechazada para A (no puede listar todo)
+  PASS  el admin sí puede listar todo
+
+=== C. Asignación: sólo administración ===
+  PASS  A no puede asignarse el prospecto sin asignar
+  PASS  A no puede quitarse la asignación a sí mismo
+  PASS  A no puede reasignar su prospecto a B
+  PASS  el admin sí puede reasignar de A a B
+
+=== D. Persistencia de la reasignación ===
+  PASS  tras reasignar, A ya NO ve el prospecto
+  PASS  tras reasignar, B SÍ lo ve
+  PASS  el admin lo sigue viendo
+
+=== E. Rol «ventas» ===
+  PASS  ventas lee su prospecto asignado
+  PASS  ventas NO lee el de otro
+  PASS  ventas NO crea cotizaciones
+  PASS  el admin prepara la cotización para poder vender  (HTTP 200)
+  PASS  ventas NO confirma venta de un prospecto ajeno
+  PASS  ventas SÍ confirma la venta de su prospecto
+  PASS  la misma cotización no se puede vender dos veces
+  PASS  no se vende sin cotización
+
+=== F. Rol «lectura» ===
+  PASS  lectura lee su registro asignado
+  PASS  lectura NO modifica el estado
+  PASS  lectura NO añade notas
+  PASS  lectura NO crea prospectos
+  PASS  lectura NO lee prospectos ajenos
+
+=== G. Escalamiento de privilegios ===
+  PASS  comercial no puede cambiarse el rol
+  PASS  lectura no puede cambiarse el rol a comercial
+  PASS  ni el admin puede escribir roles desde el cliente
+  PASS  el admin SÍ lee la ficha de otros (para asignar)
+  PASS  comercial NO lee la ficha de otro asesor
+  PASS  comercial SÍ lee su propia ficha
+
+=== H. Revocación sin borrar historial ===
+  PASS  desactivar a B (activo=false)
+  PASS  B desactivado ya NO lee su prospecto
+  PASS  el prospecto de B sigue existiendo para el admin
+  PASS  reactivar a B
+  PASS  B recupera el acceso a su prospecto
+
+=== I. Separación cotización / venta ===
+  PASS  una venta confirmada vive en crm_sales
+  PASS  la venta NO se guarda dentro de la cotización
+
+=== J. Anónimo (sigue cerrado) ===
+  PASS  anónimo NO lee prospectos
+  PASS  anónimo NO lista prospectos
+  PASS  anónimo NO crea prospectos
+
+=== K. Correcciones de la auditoría independiente (H01/H02) ===
+  PASS  H01 · comercial NO puede crear un prospecto asignándose a sí mismo  (HTTP 403)
+  PASS  H01 · comercial SÍ crea un prospecto SIN asignación  (HTTP 200)
+  PASS  H01 · pero NO lo ve mientras no se lo asigne el admin  (HTTP 403)
+  PASS  H01 · el admin lo asigna  (HTTP 200)
+  PASS  H01 · y entonces el comercial sí lo ve  (HTTP 200)
+  PASS  H02 · lectura NO puede escribir en la auditoría  (HTTP 403)
+
+RESULTADO EQUIPO: PASS 54 · FALLA 0

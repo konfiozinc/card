@@ -1,0 +1,41 @@
+=== A. Sembrar el esquema ANTIGUO ===
+  PASS  2 prospectos con id = teléfono
+  PASS  2 notas colgando del id antiguo
+  PASS  sin marcadores de deduplicación
+
+=== B. Simulación: no debe escribir nada ===
+  PASS  la simulación termina sin error  (código 0)
+  PASS  anuncia simulación
+  PASS  no creó marcadores
+  PASS  no escribió el respaldo
+  PASS  muestra el sha256 del respaldo
+
+=== C. Migración real ===
+  PASS  la migración termina correctamente  (código 0)
+  PASS  se creó el respaldo con huella
+  PASS  ahora hay 4 prospectos (2 antiguos + 2 nuevos)
+  PASS  se crearon 2 marcadores de deduplicación
+  PASS  el mapa tiene los 2 teléfonos
+  PASS  el UUID del mapa no es el teléfono
+  PASS  las notas se copiaron al UUID
+  PASS  la cotización se repuntó al UUID
+  PASS  los documentos ANTIGUOS siguen existiendo (no se borra nada)
+  PASS  las notas antiguas también siguen
+  PASS  verificación referencial sin huérfanas
+
+=== D. Idempotencia: repetir no debe cambiar nada ===
+  PASS  la repetición termina sin error  (código 0)
+  PASS  no crea UUID nuevos
+  PASS  no duplica prospectos  (4 vs 4)
+  PASS  no duplica notas
+  PASS  informa de que no hay nada que migrar
+
+=== E. Reversión ===
+  PASS  la reversión termina sin error  (código 0)
+  PASS  se eliminó el mapa
+  PASS  se borraron los prospectos nuevos
+  PASS  se borraron los marcadores
+  PASS  la cotización volvió al id antiguo
+  PASS  los prospectos antiguos conservan su información
+
+RESULTADO MIGRACIÓN: PASS 30 · FALLA 0

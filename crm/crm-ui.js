@@ -65,7 +65,12 @@ function sincronizarNavegacion() {
 
   const conSesion = vista.hidden === false;
   nav.hidden = !conSesion;
-  if (!conSesion) { mostrarSeccion("cartera"); return; }
+  if (!conSesion) {
+    const chip = $("#cuenta-chip");
+    if (chip) chip.hidden = true;
+    mostrarSeccion("cartera");
+    return;
+  }
 
   const rol = window.CRM && window.CRM.sesion ? window.CRM.sesion.rol : null;
   const esAdmin = rol === "admin";
@@ -79,6 +84,7 @@ function sincronizarNavegacion() {
     mostrarSeccion("cartera");
   }
   if (seccionActiva === "cartera") pintarEmbudo();
+  sincronizarCuenta();
 }
 
 botonesNav().forEach((b) => {
@@ -101,6 +107,10 @@ function marcarFilaActiva(id) {
     if (id && tr.dataset.id === id) tr.setAttribute("aria-current", "true");
     else tr.removeAttribute("aria-current");
   }
+  /* La misma marca en la vista de tarjetas (celular). */
+  for (const t of document.querySelectorAll("#lista-tarjetas .tarjeta-prospecto")) {
+    t.classList.toggle("tarjeta-prospecto--activa", !!id && t.dataset.id === id);
+  }
 }
 
 /* La cartera la repinta crm.js; aquí sólo se recupera la fila que sigue abierta. */
@@ -113,6 +123,155 @@ function restaurarFilaActiva() {
   if (candidato) marcarFilaActiva(candidato.dataset.id);
 }
 
+/* ── Cartera en tarjetas (celular) ─────────────────────────────────────────
+   Las tarjetas se construyen LEYENDO la tabla que ya pintó crm.js: no se
+   duplican datos ni se hace ninguna consulta nueva. Así, cuando el panel
+   repinta la cartera (alta, cambio de estado, asignación, recarga), las
+   tarjetas se rehacen solas y nunca muestran información vieja.
+
+   Qué columnas salen de la tabla se decide por el ENCABEZADO, no por
+   posición fija: el panel muestra «Asignado a» sólo a administración, y esta
+   vista se adapta a ello. */
+function pintarTarjetas() {
+  const caja = $("#lista-tarjetas");
+  const tabla = $("#tabla-leads");
+  const cab = $("#tabla-cabecera");
+  if (!caja || !tabla) return;
+
+  const filas = [...tabla.querySelectorAll("tr[data-id]")];
+  if (!filas.length) { caja.innerHTML = ""; return; }
+
+  const etiquetas = cab ? [...cab.querySelectorAll("th")].map((th) => th.textContent.trim()) : [];
+  const col = (nombre) => etiquetas.findIndex((t) => t.toLowerCase().includes(nombre));
+  const escu = (v) => String(v == null ? "" : v).replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  caja.innerHTML = filas.map((tr) => {
+    const celdas = [...tr.children];
+    const leer = (nombre, respaldo) => {
+      const i = col(nombre);
+      const celda = i >= 0 ? celdas[i] : celdas[respaldo];
+      return celda ? celda.textContent.trim() : "";
+    };
+    const id = tr.dataset.id;
+    const nombre = leer("nombre", 0);
+    const telefono = leer("tel", 1);
+    const industria = leer("industria", 2);
+    const asesor = leer("asignado", -1);
+    const consent = leer("consent", -1);
+
+    /* La etiqueta de estado se copia con la clase que le puso crm.js, para que
+       los colores de «ganado» y «perdido» se mantengan. */
+    const iEstado = col("estado");
+    const celdaEstado = iEstado >= 0 ? celdas[iEstado] : celdas[3];
+    const pill = celdaEstado ? celdaEstado.querySelector(".pill") : null;
+    const estadoHtml = pill
+      ? `<span class="${escu(pill.className)}">${escu(pill.textContent.trim())}</span>`
+      : `<span class="pill">${escu(celdaEstado ? celdaEstado.textContent.trim() : "")}</span>`;
+
+    return `<article class="tarjeta-prospecto" data-id="${escu(id)}">
+      <div class="tp__cab">
+        <h3 class="tp__nombre">${escu(nombre)}</h3>
+        ${estadoHtml}
+      </div>
+      <dl class="tp__datos">
+        <div class="tp__dato"><dt>WhatsApp</dt><dd>${escu(telefono)}</dd></div>
+        <div class="tp__dato"><dt>Industria</dt><dd>${escu(industria)}</dd></div>
+        ${asesor ? `<div class="tp__dato"><dt>Asesor</dt><dd>${escu(asesor)}</dd></div>` : ""}
+        ${consent ? `<div class="tp__dato"><dt>Consent.</dt><dd>${escu(consent)}</dd></div>` : ""}
+      </dl>
+      <button type="button" class="tp__abrir" data-abrir-ficha="${escu(id)}">Abrir ficha</button>
+    </article>`;
+  }).join("");
+}
+
+/* Abrir la ficha desde una tarjeta: se pulsa la fila equivalente de la tabla,
+   de modo que el recorrido es EXACTAMENTE el mismo que en escritorio (mismo
+   manejador de crm.js, mismos permisos, misma auditoría). */
+$("#lista-tarjetas")?.addEventListener("click", (e) => {
+  const boton = e.target.closest("[data-abrir-ficha]");
+  const tarjeta = e.target.closest(".tarjeta-prospecto");
+  const id = (boton && boton.dataset.abrirFicha) || (tarjeta && tarjeta.dataset.id);
+  if (!id) return;
+  const selector = typeof CSS !== "undefined" && CSS.escape ? CSS.escape(id) : id.replace(/["\\]/g, "\\$&");
+  const fila = document.querySelector(`#tabla-leads tr[data-id="${selector}"]`);
+  if (fila) fila.click();
+});
+
+/* ── Indicador compacto de cuenta ──────────────────────────────────────────
+   El correo del administrador no cabe en la barra del celular y cortarlo con
+   puntos suspensivos quedaba mal. El chip muestra las iniciales y el rol; el
+   correo completo se consulta al pulsarlo. La sesión NO cambia: esto sólo
+   reformatea el texto que ya escribió crm.js en #quien. */
+function sincronizarCuenta() {
+  const chip = $("#cuenta-chip");
+  const quien = $("#quien");
+  const datos = $("#cuenta-datos");
+  if (!chip || !quien) return;
+
+  if (datos) datos.hidden = true;
+  chip.setAttribute("aria-expanded", "false");
+
+  const texto = (quien.textContent || "").trim();
+  if (!texto) { chip.hidden = true; return; }
+
+  const [correoCrudo, rolCrudo] = texto.split("·").map((x) => x.trim());
+  const correo = correoCrudo || texto;
+  const rol = rolCrudo || ((window.CRM && window.CRM.sesion && window.CRM.sesion.rol) || "");
+  const sigla = (correo.split("@")[0] || "?").slice(0, 2).toUpperCase();
+
+  const s = $("#cuenta-sigla"); if (s) s.textContent = sigla;
+  const r = $("#cuenta-rol"); if (r) r.textContent = rol;
+  const c = $("#cuenta-correo"); if (c) c.textContent = correo;
+  const rd = $("#cuenta-rol-detalle"); if (rd) rd.textContent = rol ? "Rol: " + rol : "";
+  chip.title = correo + (rol ? " · " + rol : "");
+  chip.setAttribute("aria-label", "Cuenta: " + correo + (rol ? " · " + rol : ""));
+  chip.hidden = false;
+}
+
+$("#cuenta-chip")?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  const chip = $("#cuenta-chip");
+  const datos = $("#cuenta-datos");
+  if (!chip || !datos) return;
+  const abrir = datos.hidden;
+  datos.hidden = !abrir;
+  chip.setAttribute("aria-expanded", abrir ? "true" : "false");
+});
+
+/* Cerrar al tocar fuera o con Escape. */
+document.addEventListener("click", (e) => {
+  const datos = $("#cuenta-datos");
+  const chip = $("#cuenta-chip");
+  if (!datos || !chip || datos.hidden) return;
+  if (e.target.closest("#cuenta-chip") || e.target.closest("#cuenta-datos")) return;
+  datos.hidden = true;
+  chip.setAttribute("aria-expanded", "false");
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key !== "Escape") return;
+  const datos = $("#cuenta-datos");
+  const chip = $("#cuenta-chip");
+  if (!datos || !chip || datos.hidden) return;
+  datos.hidden = true;
+  chip.setAttribute("aria-expanded", "false");
+  chip.focus();
+});
+
+/* Lleva un bloque justo debajo de la barra fija.
+   `scrollIntoView` se quedaba corto (medido: la ficha aterrizaba 125 px por
+   debajo de la barra) porque crm.js seguía pintando notas y cotizaciones
+   después de abrirse. Aquí el destino se calcula con la altura REAL de la
+   barra y se reajusta una vez que el panel ha terminado de crecer. */
+function llevarBajoLaBarra(el, intentos) {
+  if (!el) return;
+  const barra = document.querySelector(".barra");
+  const aire = (barra ? barra.getBoundingClientRect().height : 0) + 10;
+  const destino = Math.max(0, el.getBoundingClientRect().top + window.scrollY - aire);
+  const comportamiento = (intentos && intentos > 1) ? "auto" : "smooth";
+  window.scrollTo({ top: destino, behavior: comportamiento });
+}
+
 /* Delegación en captura: crm.js escucha el mismo click y abre la ficha. */
 $("#tabla-leads")?.addEventListener("click", (e) => {
   const tr = e.target.closest("tr[data-id]");
@@ -120,23 +279,27 @@ $("#tabla-leads")?.addEventListener("click", (e) => {
   marcarFilaActiva(tr.dataset.id);
   const movil = window.matchMedia("(max-width: 1100px)").matches;
   if (movil) {
-    /* Se lleva la vista a la ficha una vez que crm.js la ha mostrado. */
+    /* Se lleva la vista a la ficha una vez que crm.js la ha mostrado, y se
+       reajusta cuando terminan de pintarse notas y cotizaciones. */
     setTimeout(() => {
       const detalle = $("#detalle");
       if (detalle && detalle.hidden === false) {
-        detalle.scrollIntoView({ behavior: "smooth", block: "start" });
+        llevarBajoLaBarra(detalle, 1);
+        setTimeout(() => {
+          const d = $("#detalle");
+          if (d && d.hidden === false) llevarBajoLaBarra(d, 2);
+        }, 520);
       }
-    }, 160);
+    }, 200);
   }
 });
 
 $("#btn-volver-lista")?.addEventListener("click", () => {
   const destino = $("#t-cartera") || $("#tabla-leads");
-  if (destino) {
-    destino.setAttribute("tabindex", "-1");
-    destino.scrollIntoView({ behavior: "smooth", block: "start" });
-    destino.focus({ preventScroll: true });
-  }
+  if (!destino) return;
+  destino.setAttribute("tabindex", "-1");
+  llevarBajoLaBarra(destino, 2);
+  destino.focus({ preventScroll: true });
 });
 
 /* ── Embudo del resumen ─────────────────────────────────────────────────── */
@@ -192,7 +355,11 @@ const detalle = $("#detalle");
 if (detalle) observar(detalle, { attributes: true, attributeFilter: ["hidden"] }, sincronizarFicha);
 
 const tabla = $("#tabla-leads");
-if (tabla) observar(tabla, { childList: true }, () => { pintarEmbudo(); restaurarFilaActiva(); });
+if (tabla) observar(tabla, { childList: true }, () => { pintarTarjetas(); pintarEmbudo(); restaurarFilaActiva(); });
+
+/* El correo de la sesión lo escribe crm.js en #quien: al cambiar, se rehace el chip. */
+const quien = $("#quien");
+if (quien) observar(quien, { childList: true, characterData: true, subtree: true }, sincronizarCuenta);
 
 const stats = $("#stats");
 if (stats) observar(stats, { childList: true }, pintarEmbudo);
@@ -202,7 +369,26 @@ $("#btn-salir")?.addEventListener("click", () => {
   mostrarSeccion("cartera");
 });
 
+/* ── Aviso de bienvenida ───────────────────────────────────────────────────
+   «Sesión iniciada como …» es útil una vez, no toda la jornada: en el celular
+   ocupaba una franja entera encima de la cartera. Se oculta SÓLO ese aviso a
+   los pocos segundos; las confirmaciones y los errores se quedan hasta que
+   crm.js los reemplace. El texto y las clases siguen siendo de crm.js. */
+const avisoPanel = $("#estado-panel");
+if (avisoPanel) {
+  let temporizadorAviso = null;
+  observar(avisoPanel, { childList: true, characterData: true, subtree: true }, () => {
+    if (temporizadorAviso) { clearTimeout(temporizadorAviso); temporizadorAviso = null; }
+    avisoPanel.hidden = false;
+    const texto = (avisoPanel.textContent || "").trim();
+    if (avisoPanel.classList.contains("ok") && /^Sesión iniciada/i.test(texto)) {
+      temporizadorAviso = setTimeout(() => { avisoPanel.hidden = true; }, 2500);
+    }
+  });
+}
+
 /* Estado inicial coherente también sin sesión (login limpio). */
 sincronizarNavegacion();
 sincronizarFicha();
+pintarTarjetas();
 pintarEmbudo();

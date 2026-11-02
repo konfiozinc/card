@@ -1,0 +1,76 @@
+=== A. El anónimo no puede hacer NADA
+  PASS  no lee prospectos
+  PASS  no crea prospectos
+  PASS  no modifica prospectos
+  PASS  no borra prospectos
+  PASS  no lee ni crea cotizaciones
+  PASS  no lee ni crea ventas
+  PASS  no lee ni escribe auditoría
+  PASS  no escribe su propia ficha de rol
+  PASS  un token falsificado tampoco sirve  (HTTP 400)
+
+=== B. Usuario autenticado SIN rol: sigue siendo un extraño
+  PASS  no lee prospectos
+  PASS  no crea prospectos
+  PASS  no puede fabricarse el rol admin
+  PASS  sí puede leer su propia ficha (no existe)
+
+=== C. Recorrido privado completo creado por el operador
+  PASS  admin registra prospecto
+  PASS  comercial cotiza el prospecto  (HTTP 200)
+  PASS  se obtiene el id de la cotización creada  (WBjm9Mku2fAC3SSpuewa)
+
+=== D. Protección contra modificaciones indebidas del prospecto
+  PASS  no se puede cambiar el consentimiento
+  PASS  no se puede cambiar la versión del consentimiento
+  PASS  no se puede reescribir la fecha de alta
+  PASS  no se puede alterar el teléfono (es la identidad)
+  PASS  no se puede poner un estado inventado
+  PASS  no se puede dejar la retención en el pasado
+  PASS  no se puede poner una retención de 10 años
+  PASS  sí se puede avanzar el estado del seguimiento
+
+=== E. Protección de cotizaciones y ventas
+  PASS  no se crea cotización con importe inventado
+  PASS  no se crea cotización de un prospecto inexistente
+  PASS  no se crea cotización haciéndose pasar por otro operador
+  PASS  ventas NO puede crear cotizaciones
+  PASS  no se altera el importe de una cotización
+  PASS  no se puede citar una cotización inexistente para vender
+  PASS  no se puede vender con una cotización de otro prospecto
+  PASS  se crea el prospecto asignado a ventas  (HTTP 200)
+  PASS  admin prepara la cotización del prospecto que va a venderse  (HTTP 200)
+  PASS  ventas SÍ confirma una venta legítima  (HTTP 200)
+  PASS  la venta no se puede modificar
+
+=== F. Aislamiento de roles
+  PASS  comercial NO puede listar toda la cartera (sin filtro)
+  PASS  comercial SÍ lista su propia cartera (filtrada por asignación)
+  PASS  comercial NO lee ventas
+  PASS  comercial NO lee auditoría
+  PASS  comercial NO anonimiza
+  PASS  comercial NO borra prospectos
+  PASS  ventas NO puede listar todas las ventas (sin filtro)
+  PASS  ventas SÍ lista sus ventas (filtradas por prospecto)
+  PASS  ventas NO lee auditoría
+  PASS  admin lee auditoría y ventas
+
+=== G. El rol no se autoasigna desde el cliente, ni siendo admin
+  PASS  admin NO puede cambiar su propio rol desde el cliente
+  PASS  admin NO puede crear una ficha de rol desde el cliente
+  PASS  desactivar la propia ficha tampoco se permite
+  PASS  el procedimiento privilegiado sí puede (control positivo)
+  PASS  y ese usuario recién sembrado ya SÍ lista su cartera (filtrada)
+  PASS  y NO puede listar toda la cartera todavía
+
+=== H. Persistencia real después de recargar el panel
+  PASS  el panel carga los prospectos creados por REST  (filas=3)
+  PASS  la nota se guarda antes de recargar  (historial=2/11/2026, 1:20:47 a. m. · ti: Nota que debe sobrevivir a la recarga)
+  PASS  tras recargar, la sesión sigue activa (no vuelve al login)
+  PASS  tras recargar, los prospectos siguen ahí
+  PASS  tras recargar, la venta confirmada sigue en las estadísticas  (2nuevo0contactado1cotizado0ganado0perdido$99.900ventas confi)
+  PASS  tras recargar, la nota del historial se conserva
+  PASS  tras recargar, la cotización sigue asociada al prospecto  (pro · $99.900 · enviada (WBjm9Mku2fAC3SSpuewa))
+  PASS  sin errores de página en todo el recorrido  (limpio)
+
+RESULTADO CRM PRIVADO (persistencia/roles/modificaciones): PASS 59 · FALLA 0

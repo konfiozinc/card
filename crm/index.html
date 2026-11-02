@@ -35,6 +35,19 @@
   </nav>
 
   <div class="cuenta">
+    <!-- Indicador compacto de cuenta: en celular el correo completo no cabe y
+         cortarlo con puntos suspensivos quedaba mal. El chip muestra iniciales
+         y rol, y al pulsarlo deja consultar el correo completo. -->
+    <button type="button" class="chip-cuenta" id="cuenta-chip" aria-expanded="false" aria-controls="cuenta-datos" hidden>
+      <span class="chip-cuenta__sigla" id="cuenta-sigla" aria-hidden="true">·</span>
+      <span class="chip-cuenta__rol" id="cuenta-rol"></span>
+      <span class="chip-cuenta__flecha" aria-hidden="true">▾</span>
+    </button>
+    <div class="cuenta__datos" id="cuenta-datos" hidden>
+      <span class="cuenta__datos-et">Sesión iniciada como</span>
+      <span class="cuenta__datos-correo" id="cuenta-correo"></span>
+      <span class="cuenta__datos-rol" id="cuenta-rol-detalle"></span>
+    </div>
     <span id="quien" class="cuenta__quien"></span>
     <button id="btn-salir" class="mini" hidden>Salir</button>
   </div>
@@ -136,12 +149,12 @@
           <div class="filtros">
             <div class="filtros__buscar">
               <label for="f-texto" class="oculto-visual">Buscar prospectos</label>
-              <input id="f-texto" type="search" placeholder="Buscar por nombre, teléfono o industria" aria-label="Buscar prospectos">
+              <input id="f-texto" type="search" placeholder="Buscar nombre o teléfono" aria-label="Buscar prospectos por nombre, teléfono o industria">
             </div>
             <div class="campo campo--filtro">
               <label for="f-estado" class="oculto-visual">Estado</label>
               <select id="f-estado" aria-label="Filtrar por estado">
-                <option value="">Todos los estados</option>
+                <option value="">Todos</option>
                 <option value="nuevo">nuevo</option>
                 <option value="contactado">contactado</option>
                 <option value="cotizado">cotizado</option>
@@ -157,6 +170,11 @@
           </div>
 
           <p id="bandeja" class="bandeja" aria-live="polite"></p>
+
+          <!-- En celular la tabla no se lee: la cartera se presenta como tarjetas.
+               Las dos vistas salen de los MISMOS datos (se construyen leyendo la
+               tabla que pinta crm.js); la alternancia es sólo CSS. -->
+          <div class="lista-tarjetas" id="lista-tarjetas"></div>
 
           <div class="tabla-scroll">
             <table>

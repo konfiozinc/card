@@ -1,0 +1,71 @@
+  PASS  base: alta con UUID v4 prospera
+  PASS  base: se crea una nota inmutable
+  PASS  base: se crea una cotización
+  PASS  base: se confirma una venta  (HTTP 200)
+
+=== A · Borrado directo del prospecto: cerrado para todos ===
+  PASS  A · admin NO puede borrar el prospecto con UUID
+  PASS  A · admin NO puede borrar el prospecto heredado
+  PASS  A · comercial NO puede borrar
+  PASS  A · ventas NO puede borrar
+  PASS  A · lectura NO puede borrar
+  PASS  A · anónimo NO puede borrar  (HTTP 403)
+  PASS  A · nadie borra una nota
+  PASS  A · nadie borra el marcador del número
+  PASS  A · nadie borra una cotización
+  PASS  A · nadie borra una venta
+
+--- A · Tras los intentos, nada desapareció ni quedó huérfano ---
+  PASS  A · el prospecto sigue existiendo
+  PASS  A · el heredado sigue existiendo
+  PASS  A · la nota sigue existiendo
+  PASS  A · el marcador sigue existiendo
+  PASS  A · la cotización sigue existiendo
+  PASS  A · la venta sigue existiendo
+  PASS  A · ningún marcador apunta a un prospecto inexistente
+  PASS  A · ninguna cotización apunta a un prospecto inexistente
+  PASS  A · ninguna venta apunta a un prospecto inexistente
+  PASS  A · ninguna nota queda huérfana
+
+=== B · Identificador válido: UUID v4 ===
+  PASS  B · un UUID v4 generado por el sistema se acepta
+  PASS  B · otro UUID v4 con variante 9 en el cuarto grupo se acepta
+  PASS  B · otro con variante b en el cuarto grupo se acepta
+
+=== C · Identificador basado en el teléfono: rechazado ===
+  PASS  C · id = teléfono de 10 dígitos rechazado
+  PASS  C · id = teléfono con prefijo de país rechazado
+  PASS  C · id numérico de 9 dígitos rechazado
+  PASS  C · ninguno de esos intentos dejó prospecto
+
+=== D · Identificadores inválidos: rechazados ===
+  PASS  D · UUID v1 (versión incorrecta) → rechazado  (6ba7b810-9dad-11d1-80b4-00c04fd430c8)
+  PASS  D · UUID v4 con variante incorrecta (c) → rechazado  (12345678-1234-4234-c234-123456789abc)
+  PASS  D · UUID en mayúsculas → rechazado  (ABCDEF01-2345-4678-9ABC-DEF012345678)
+  PASS  D · con guiones pero incompleto → rechazado  (12345678-1234-4234-9234-1234567)
+  PASS  D · cadena arbitraria → rechazado  (demo-crm-016)
+  PASS  D · UUID válido con espacios → rechazado  ( 12345678-1234-4234-9234-123456789abc)
+  PASS  D · UUID v4 con carácter no hexadecimal → rechazado  (12345678-1234-4234-9234-123456789zzz)
+  PASS  D · un UUID válido SIN marcador tampoco se cuela
+
+=== E · Compatibilidad: la ventana está abierta por defecto ===
+  PASS  E · el admin actualiza un prospecto heredado
+  PASS  E · el comercial asignado actualiza su heredado
+  PASS  E · y el cambio se guardó
+
+=== F · Al cerrar la transición, el heredado deja de admitir escrituras ===
+  PASS  F · el procedimiento privilegiado cierra la ventana
+  PASS  F · el admin ya NO puede escribir un heredado
+  PASS  F · el admin sigue pudiendo escribir un UUID
+  PASS  F · el heredado se sigue LEYENDO (no se oculta información)
+  PASS  F · el heredado se sigue LISTANDO
+  PASS  F · la nota de un prospecto UUID sigue escribiéndose
+
+=== G · La ventana no se reabre desde el navegador ===
+  PASS  G · el admin LEE el estado de la transición
+  PASS  G · el comercial NO lee la configuración de control
+  PASS  G · el admin NO puede reabrir la ventana
+  PASS  G · nadie puede crear la configuración desde el navegador
+  PASS  G · la ventana sigue cerrada
+
+RESULTADO P1/R06: PASS 53 · FALLA 0

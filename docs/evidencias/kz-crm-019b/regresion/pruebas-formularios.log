@@ -1,0 +1,60 @@
+Objetivo: servidor local (mismo código que se publica)
+
+
+=== 375×812 (movil-375x812) ===
+  PASS  sin desbordamiento horizontal  (0px)
+  PASS  la casilla NO se estira al ancho del formulario  (20px de ancho)
+  PASS  la casilla tiene tamaño razonable  (20×20px)
+  PASS  la fila de consentimiento es área táctil suficiente  (57px)
+  PASS  el texto de consentimiento ocupa el resto del ancho  (293px)
+  PASS  la casilla está alineada con su texto  (2px de desfase)
+  PASS  contraste AA del texto de consentimiento  (14.53:1)
+  PASS  todos los controles miden al menos 44 px de alto  (ninguno)
+  PASS  todos los controles tienen etiqueta o aria-label  (ninguno)
+  PASS  la casilla en línea (sólo sin asignar) NO se estira  (20×20px)
+  PASS  la tabla tiene contenedor con desplazamiento propio
+  PASS  sin errores de JavaScript  (limpio)
+
+=== 768×1024 (tablet-768x1024) ===
+  PASS  sin desbordamiento horizontal  (0px)
+  PASS  la casilla NO se estira al ancho del formulario  (20px de ancho)
+  PASS  la casilla tiene tamaño razonable  (20×20px)
+  PASS  la fila de consentimiento es área táctil suficiente  (44px)
+  PASS  el texto de consentimiento ocupa el resto del ancho  (654px)
+  PASS  la casilla está alineada con su texto  (2px de desfase)
+  PASS  contraste AA del texto de consentimiento  (14.53:1)
+  PASS  todos los controles miden al menos 40 px de alto  (ninguno)
+  PASS  todos los controles tienen etiqueta o aria-label  (ninguno)
+  PASS  la casilla en línea (sólo sin asignar) NO se estira  (20×20px)
+  PASS  la tabla tiene contenedor con desplazamiento propio
+  PASS  sin errores de JavaScript  (limpio)
+
+=== 1440×900 (escritorio-1440x900) ===
+  PASS  sin desbordamiento horizontal  (0px)
+  PASS  la casilla NO se estira al ancho del formulario  (20px de ancho)
+  PASS  la casilla tiene tamaño razonable  (20×20px)
+  PASS  la fila de consentimiento es área táctil suficiente  (44px)
+  PASS  el texto de consentimiento ocupa el resto del ancho  (878px)
+  PASS  la casilla está alineada con su texto  (2px de desfase)
+  PASS  contraste AA del texto de consentimiento  (14.53:1)
+  PASS  todos los controles miden al menos 40 px de alto  (ninguno)
+  PASS  todos los controles tienen etiqueta o aria-label  (ninguno)
+  PASS  la casilla en línea (sólo sin asignar) NO se estira  (20×20px)
+  PASS  la tabla tiene contenedor con desplazamiento propio
+  PASS  sin errores de JavaScript  (limpio)
+
+=== 1920×1080 (escritorio-1920x1080) ===
+  PASS  sin desbordamiento horizontal  (0px)
+  PASS  la casilla NO se estira al ancho del formulario  (20px de ancho)
+  PASS  la casilla tiene tamaño razonable  (20×20px)
+  PASS  la fila de consentimiento es área táctil suficiente  (44px)
+  PASS  el texto de consentimiento ocupa el resto del ancho  (998px)
+  PASS  la casilla está alineada con su texto  (2px de desfase)
+  PASS  contraste AA del texto de consentimiento  (14.53:1)
+  PASS  todos los controles miden al menos 40 px de alto  (ninguno)
+  PASS  todos los controles tienen etiqueta o aria-label  (ninguno)
+  PASS  la casilla en línea (sólo sin asignar) NO se estira  (20×20px)
+  PASS  la tabla tiene contenedor con desplazamiento propio
+  PASS  sin errores de JavaScript  (limpio)
+
+RESULTADO FORMULARIOS: PASS 48 · FALLA 0

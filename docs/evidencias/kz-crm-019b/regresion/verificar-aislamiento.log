@@ -1,0 +1,28 @@
+1. Proyectos de Firebase referenciados por el código del CRM
+   · crm.js → kzfio-crm
+   · crm.js → kzfio-crm
+   · crm.js → kzfio-crm
+  OK    sólo aparecen kzfio-crm y el proyecto de emulador demo-crm-016  (ajenos: ninguno)
+  OK    no aparece ningún proyecto de otro negocio  (konfio-zinc/el-titi-menu/une-fibra ausentes)
+
+2. Ausencia de credenciales administrativas en el frontend
+  OK    ningún archivo del CRM contiene credenciales administrativas
+  OK    el panel usa la configuración pública del SDK (apiKey de app web)
+  OK    el CRM no importa el Admin SDK en el navegador
+
+3. Protección frente al proyecto predeterminado de .firebaserc
+   .firebaserc del repositorio: {"default":"konfio-zinc"}
+  OK    el repositorio mantiene un proyecto predeterminado DISTINTO de kzfio-crm  (por eso TODO despliegue del CRM debe pasar --project explícito)
+  OK    existe una configuración de despliegue propia y aislada
+  OK    declara la base con nombre «default» explícitamente  ([{"database":"default","rules":"firestore.rules"}])
+  OK    apunta al fichero de reglas del modo privado, no al de la raíz del sitio  (firestore.rules)
+  OK    NO contiene bloque de hosting ni functions (no publica nada)
+  OK    no fija el proyecto por defecto dentro de la configuración
+
+4. Script de despliegue
+  OK    existe el script de despliegue de reglas
+  OK    el proyecto está fijado en el script (no se deduce del entorno)
+  OK    se niega a ejecutar sin confirmación explícita
+  OK    comprueba el release de destino cloud.firestore/default
+
+RESULTADO AISLAMIENTO: OK 15 · FALLA 0
