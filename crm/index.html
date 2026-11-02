@@ -30,8 +30,16 @@
   <nav class="nav" id="nav-secciones" aria-label="Áreas del CRM" hidden>
     <button type="button" class="nav__btn" data-seccion="resumen">Resumen</button>
     <button type="button" class="nav__btn" data-seccion="cartera" aria-current="page">Prospectos</button>
-    <button type="button" class="nav__btn" data-seccion="equipo" id="nav-equipo" hidden>Equipo</button>
-    <button type="button" class="nav__btn" data-seccion="auditoria" id="nav-auditoria" hidden>Auditoría</button>
+    <button type="button" class="nav__btn" data-seccion="cotizaciones" id="nav-cotizaciones" hidden>Cotizaciones</button>
+    <button type="button" class="nav__btn" data-seccion="ventas" id="nav-ventas" hidden>Ventas</button>
+    <!-- En celular, Equipo y Auditoría se agrupan en «Más» para que la
+         navegación quepa sin desplazamiento horizontal. En escritorio
+         `display: contents` los devuelve a la fila. -->
+    <button type="button" class="nav__btn nav__btn--mas" id="nav-mas" aria-expanded="false" aria-controls="nav-mas-menu" hidden>Más ▾</button>
+    <div class="nav-menu" id="nav-mas-menu" data-abierto="false">
+      <button type="button" class="nav__btn" data-seccion="equipo" id="nav-equipo" hidden>Equipo</button>
+      <button type="button" class="nav__btn" data-seccion="auditoria" id="nav-auditoria" hidden>Auditoría</button>
+    </div>
   </nav>
 
   <div class="cuenta">
@@ -303,7 +311,76 @@
       </div>
     </div>
 
-    <!-- ── Área 3 · Equipo comercial (sólo administración) ────────────── -->
+    <!-- ── Área 3 · Cotizaciones (KZ-CRM-020) ──────────────────────────
+         Lo cotizado NO es una venta. Administración ve todas; comercial y
+         ventas, sólo las de los prospectos que tienen asignados (así lo exigen
+         las reglas, comprobado en crm-dev/sondear-permisos-020.cjs). -->
+    <section id="bloque-cotizaciones" class="panel seccion-oculta" data-seccion="cotizaciones" aria-labelledby="t-cotizaciones">
+      <div class="panel__cab">
+        <div>
+          <h2 id="t-cotizaciones">Cotizaciones</h2>
+          <p class="panel__sub">Una cotización no es una venta: sólo cuenta cuando se confirma.</p>
+        </div>
+        <span id="cot-contador" class="contador"></span>
+      </div>
+      <div class="stats stats--modulo" id="cot-kpis"></div>
+      <p class="nota">El «cotizado vigente» suma sólo las cotizaciones enviadas y aceptadas que
+        tienen importe: las rechazadas y las que están «a medida» no cuentan.</p>
+      <div class="filtros">
+        <div class="filtros__buscar">
+          <label for="cot-buscar" class="oculto-visual">Buscar cotizaciones</label>
+          <input id="cot-buscar" type="search" placeholder="Buscar por cliente o servicio" aria-label="Buscar cotizaciones por cliente o servicio">
+        </div>
+        <div class="campo campo--filtro">
+          <label for="cot-estado" class="oculto-visual">Estado de la cotización</label>
+          <select id="cot-estado" aria-label="Filtrar cotizaciones por estado">
+            <option value="">Todos</option>
+            <option value="enviada">enviada</option>
+            <option value="aceptada">aceptada</option>
+            <option value="rechazada">rechazada</option>
+            <option value="vencida">vencida</option>
+          </select>
+        </div>
+      </div>
+      <p id="cot-aviso" class="bandeja" aria-live="polite"></p>
+      <div class="tabla-scroll">
+        <table>
+          <thead><tr><th>Fecha</th><th>Cliente</th><th>Servicio</th><th>Importe</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="tabla-cotizaciones"></tbody>
+        </table>
+      </div>
+      <div class="lista-tarjetas" id="lista-cotizaciones"></div>
+    </section>
+
+    <!-- ── Área 4 · Ventas (KZ-CRM-020) ────────────────────────────────
+         Una venta es un hecho confirmado e inmutable: su id es el de la
+         cotización que la originó, así que no puede contarse dos veces. -->
+    <section id="bloque-ventas" class="panel seccion-oculta" data-seccion="ventas" aria-labelledby="t-ventas">
+      <div class="panel__cab">
+        <div>
+          <h2 id="t-ventas">Ventas confirmadas</h2>
+          <p class="panel__sub">Cada venta nace de una cotización aceptada o enviada del mismo prospecto. No se edita ni se borra.</p>
+        </div>
+        <span id="ven-contador" class="contador"></span>
+      </div>
+      <div class="stats stats--modulo" id="ven-kpis"></div>
+      <div class="filtros">
+        <div class="filtros__buscar">
+          <label for="ven-buscar" class="oculto-visual">Buscar ventas</label>
+          <input id="ven-buscar" type="search" placeholder="Buscar por cliente o servicio" aria-label="Buscar ventas por cliente o servicio">
+        </div>
+      </div>
+      <p id="ven-aviso" class="bandeja" aria-live="polite"></p>
+      <div class="tabla-scroll">
+        <table>
+          <thead><tr><th>Fecha</th><th>Cliente</th><th>Servicio</th><th>Importe</th><th>Estado</th><th></th></tr></thead>
+          <tbody id="tabla-ventas"></tbody>
+        </table>
+      </div>
+      <div class="lista-tarjetas" id="lista-ventas"></div>
+    </section>
+
+    <!-- ── Área 5 · Equipo comercial (sólo administración) ────────────── -->
     <section id="bloque-equipo" class="panel" data-seccion="equipo" aria-labelledby="t-equipo" hidden>
       <div class="panel__cab">
         <div>
@@ -325,16 +402,22 @@
       </div>
     </section>
 
-    <!-- ── Área 4 · Auditoría (sólo administración) ───────────────────── -->
+    <!-- ── Área 6 · Auditoría (sólo administración) ───────────────────── -->
     <section id="bloque-auditoria" class="panel" data-seccion="auditoria" aria-labelledby="t-auditoria" hidden>
       <div class="panel__cab">
         <div>
           <h2 id="t-auditoria">Auditoría</h2>
-          <p class="panel__sub">Últimas 30 acciones registradas. La auditoría la escribe el
-            servidor con la identidad de quien actuó: no se edita ni se borra desde aquí.</p>
+          <p class="panel__sub">Últimas 50 acciones, de la más reciente a la más antigua, en
+            horario de Colombia. La auditoría la escribe el servidor con la identidad de quien
+            actuó: no se edita ni se borra desde aquí.</p>
         </div>
+        <span id="aud-contador" class="contador"></span>
       </div>
-      <div class="tabla-scroll">
+      <!-- Lista mejorada (KZ-CRM-020): fecha y hora, acción, responsable y detalle.
+           La tabla de abajo la sigue pintando crm.js y se conserva como respaldo. -->
+      <div id="auditoria-lista" class="auditoria-lista"></div>
+      <p id="aud-aviso" class="bandeja" aria-live="polite"></p>
+      <div class="tabla-scroll auditoria-legado" id="auditoria-tabla-envoltura">
         <table><thead><tr><th>Acción</th><th>Detalle</th><th>Rol</th></tr></thead><tbody id="tabla-audit"></tbody></table>
       </div>
     </section>
@@ -342,6 +425,7 @@
 </main>
 
 <script type="module" src="crm.js"></script>
+<script type="module" src="crm-modulos.js"></script>
 <script type="module" src="crm-ui.js"></script>
 </body>
 </html>

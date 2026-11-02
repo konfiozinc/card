@@ -497,6 +497,13 @@ button:disabled { opacity: .55; cursor: progress; }
   background: rgb(255 154 166 / .10);
   color: #FFD0D0;
 }
+/* Aviso informativo (por ejemplo, «sólo ves tus registros»): no es un error, así
+   que no usa el rosado de las alertas. */
+.bandeja--info {
+  border-color: rgb(0 229 255 / .35);
+  background: rgb(0 229 255 / .07);
+  color: var(--kz-cyan, #00E5FF);
+}
 
 /* ── Tablas ────────────────────────────────────────────────────────────── */
 .tabla-scroll {
@@ -685,6 +692,79 @@ tr[data-id].fila--activa {
 }
 .cotizaciones .muted { font-size: .78rem; }
 
+/* ══ KZ-CRM-020 · Cotizaciones, Ventas y Auditoría ══════════════════════ */
+
+/* Indicadores de módulo: franja más compacta que la del resumen. */
+.stats--modulo { gap: 10px; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); }
+.stats--modulo:empty { display: none; }
+.stats--modulo .stat { padding: 11px 12px 10px; }
+.stats--modulo .stat b { font-size: 1.26rem; }
+.stats--modulo .stat span { font-size: .68rem; }
+
+/* Tarjetas de cotización y de venta: misma anatomía que la de prospecto. */
+.tarjeta-registro {
+  display: grid; gap: 8px;
+  padding: 13px 14px;
+  border-radius: 14px;
+  border: 1px solid rgb(82 103 143 / .50);
+  background: linear-gradient(180deg, rgb(21 39 70 / .70), rgb(16 28 53 / .90));
+}
+
+/* Estados que sólo existen en estos módulos. */
+.pill--enviada { color: #FFD479; background: rgb(255 212 121 / .10); }
+.pill--aceptada { color: var(--kz-success, #34D399); background: rgb(52 211 153 / .10); }
+.pill--rechazada { color: var(--kz-danger, #FF9AA6); background: rgb(255 154 166 / .10); }
+.pill--vencida { color: var(--kz-text-muted, #A7B8D1); background: rgb(167 184 209 / .10); }
+.pill--confirmada { color: var(--kz-success, #34D399); background: rgb(52 211 153 / .14); }
+.pill--accion {
+  color: var(--kz-cyan, #00E5FF);
+  background: rgb(0 229 255 / .10);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 650;
+}
+
+/* En escritorio el grupo «Más» no crea caja: sus botones vuelven a la fila. */
+.nav-menu { display: contents; }
+/* Y el botón «Más» no existe: las seis áreas caben en la barra. */
+@media (min-width: 561px) { .nav__btn--mas { display: none; } }
+
+/* Auditoría: línea de tiempo legible en celular y en escritorio. */
+.auditoria-lista { display: grid; gap: 8px; margin-bottom: 12px; }
+.auditoria-lista:empty { display: none; }
+.auditoria-item {
+  padding: 11px 13px;
+  border-radius: 12px;
+  border: 1px solid rgb(82 103 143 / .42);
+  background: rgb(10 20 36 / .55);
+  border-left: 3px solid rgb(0 229 255 / .45);
+}
+.auditoria-item__cab {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; flex-wrap: wrap;
+}
+.auditoria-item__fecha {
+  font-size: .76rem;
+  color: var(--kz-text-muted, #A7B8D1);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.auditoria-item__detalle {
+  margin: 6px 0 0;
+  font-size: .86rem;
+  color: var(--kz-text-secondary, #D4DEED);
+  overflow-wrap: anywhere;
+}
+.auditoria-item__autor {
+  margin: 4px 0 0;
+  font-size: .72rem;
+  text-transform: uppercase;
+  letter-spacing: .07em;
+  color: var(--kz-text-muted, #A7B8D1);
+}
+/* La tabla heredada de crm.js sólo aparece si la lista no pudo construirse. */
+.auditoria-legado[hidden] { display: none; }
+
 /* ── Móvil y tableta ───────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .trabajo { grid-template-columns: minmax(0, 1fr); }
@@ -728,9 +808,13 @@ tr[data-id].fila--activa {
   .contenedor { padding: 14px; }
   .panel { padding: 15px; border-radius: 16px; }
 
-  /* Cartera: tarjetas en celular, tabla en escritorio y tableta. */
+  /* Cartera, cotizaciones y ventas: tarjetas en celular. La regla se acota a
+     esas áreas a propósito — antes ocultaba TODAS las tablas del panel y dejaba
+     sin ver, en el celular, la cartera por asesor y la auditoría. */
   .lista-tarjetas { display: grid; gap: 10px; }
-  .tabla-scroll { display: none; }
+  #panel-cartera .tabla-scroll,
+  #bloque-cotizaciones .tabla-scroll,
+  #bloque-ventas .tabla-scroll { display: none; }
 
   /* Filtros compactos: en el celular se agrupan en tres filas (buscador /
      estado + sólo sin asignar / exportar) para que la cartera no quede a media
@@ -754,7 +838,10 @@ tr[data-id].fila--activa {
 @media (max-width: 400px) {
   .barra { padding: 4px 8px; }
   .nav { padding: 2px; gap: 1px; }
-  .nav__btn { padding: 6px 7px; font-size: .75rem; letter-spacing: -.01em; }
+  /* Con seis áreas (y el menú «Más») en 320 px no cabe una tipografía mayor sin
+     que la navegación se desplace: se ajusta el ancho de los botones, no su alto
+     (que sigue en 44 px para el dedo). */
+  .nav__btn { padding: 6px 5px; font-size: .7rem; letter-spacing: -.015em; }
   .chip-cuenta { padding: 4px 8px 4px 4px; font-size: .76rem; }
   .chip-cuenta__sigla { width: 26px; height: 26px; flex-basis: 26px; font-size: .68rem; }
   .chip-cuenta__rol { font-size: .64rem; }
@@ -772,6 +859,28 @@ tr[data-id].fila--activa {
   .acceso { margin: 20px auto; padding: 20px; }
   /* En móvil TODO control mide al menos 44 px, también los botones pequeños. */
   button, .mini, .nav__btn { min-height: 44px; }
+
+  /* KZ-CRM-020 · con seis áreas la fila no cabe en un celular: Equipo y
+     Auditoría pasan a un menú «Más» para no desplazar la navegación. */
+  .nav { position: relative; overflow-x: visible; }
+  .nav-menu {
+    position: absolute;
+    top: calc(100% + 6px); right: 0;
+    z-index: 60;
+    display: none;
+    flex-direction: column; gap: 2px;
+    min-width: 170px;
+    padding: 6px;
+    border-radius: 12px;
+    border: 1px solid rgb(82 103 143 / .70);
+    background: rgb(16 28 53 / .98);
+    box-shadow: 0 22px 46px -22px rgb(0 0 0 / .95);
+  }
+  .nav-menu[data-abierto="true"] { display: flex; }
+  .nav-menu .nav__btn { width: 100%; text-align: left; }
+  .nav__btn--mas { display: inline-flex; align-items: center; gap: 4px; }
+  .nav__btn--mas[aria-current="page"] { background: rgb(0 229 255 / .16); color: var(--kz-cyan, #00E5FF); }
+
   .btn, .filtros button { width: 100%; }
   .btn--ancho { width: 100%; }
   .fila-accion select, .fila-accion .btn { flex: 1 1 100%; }

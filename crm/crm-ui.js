@@ -22,14 +22,18 @@ const $ = (sel) => document.querySelector(sel);
    propia navegación se ocultaría a sí misma al cambiar de sección. */
 const secciones = () => [...document.querySelectorAll("[data-seccion]")]
   .filter((el) => !el.classList.contains("nav__btn"));
-const botonesNav = () => [...document.querySelectorAll("#nav-secciones .nav__btn")];
+/* Sólo los botones que abren un área. El botón «Más» también es `.nav__btn`
+   pero NO lleva `data-seccion`: si entrara aquí, pulsarlo cambiaría de área y
+   cerraría su propio menú. */
+const botonesNav = () => [...document.querySelectorAll("#nav-secciones .nav__btn[data-seccion]")];
 
 let seccionActiva = "cartera";
 
 /* ── Áreas ──────────────────────────────────────────────────────────────── */
+const VALIDAS = ["resumen", "cartera", "cotizaciones", "ventas", "equipo", "auditoria"];
+
 function mostrarSeccion(nombre) {
-  const validas = ["resumen", "cartera", "equipo", "auditoria"];
-  if (!validas.includes(nombre)) nombre = "cartera";
+  if (!VALIDAS.includes(nombre)) nombre = "cartera";
 
   /* Doble candado: la navegación oculta con clase, el rol oculta con [hidden].
      Nunca se escribe el atributo `hidden` de un bloque porque es del panel
@@ -47,6 +51,15 @@ function mostrarSeccion(nombre) {
     if (b.dataset.seccion === nombre) b.setAttribute("aria-current", "page");
     else b.removeAttribute("aria-current");
   }
+  /* En celular, Equipo y Auditoría viven dentro del menú «Más»: si el área
+     elegida está ahí, el botón que debe verse marcado es «Más». */
+  const mas = $("#nav-mas");
+  const activo = botonesNav().find((b) => b.dataset.seccion === nombre);
+  if (mas) {
+    if (activo && activo.closest("#nav-mas-menu")) mas.setAttribute("aria-current", "page");
+    else mas.removeAttribute("aria-current");
+  }
+  cerrarMenuMas();
   seccionActiva = nombre;
   if (nombre === "resumen") pintarEmbudo();
   if (nombre === "cartera") {
@@ -55,7 +68,36 @@ function mostrarSeccion(nombre) {
     const destino = $("#t-cartera");
     if (destino) { destino.setAttribute("tabindex", "-1"); destino.focus({ preventScroll: true }); }
   }
+  /* Cotizaciones, Ventas y Auditoría los pinta su propio módulo: aquí sólo se
+     le avisa de qué área acaba de abrirse (y él decide qué consultar). */
+  const M = window.KZ_MODULOS;
+  if (M && typeof M.alEntrar === "function") {
+    try { M.alEntrar(nombre); } catch (e) { console.warn("ui:", e.message); }
+  }
 }
+
+/* ── Menú «Más» de la navegación (celular) ─────────────────────────────── */
+const menuMas = $("#nav-mas-menu");
+const btnMas = $("#nav-mas");
+
+function cerrarMenuMas() {
+  if (menuMas) menuMas.dataset.abierto = "false";
+  if (btnMas) btnMas.setAttribute("aria-expanded", "false");
+}
+
+btnMas?.addEventListener("click", (e) => {
+  e.stopPropagation();
+  if (!menuMas) return;
+  const abrir = menuMas.dataset.abierto !== "true";
+  menuMas.dataset.abierto = abrir ? "true" : "false";
+  btnMas.setAttribute("aria-expanded", abrir ? "true" : "false");
+});
+
+document.addEventListener("click", (e) => {
+  if (!menuMas || menuMas.dataset.abierto !== "true") return;
+  if (e.target.closest("#nav-mas") || e.target.closest("#nav-mas-menu")) return;
+  cerrarMenuMas();
+});
 
 /* El nav sólo aparece con sesión: así la pantalla de acceso queda limpia. */
 function sincronizarNavegacion() {
@@ -78,11 +120,27 @@ function sincronizarNavegacion() {
   const bAuditoria = $("#nav-auditoria");
   if (bEquipo) bEquipo.hidden = !esAdmin;
   if (bAuditoria) bAuditoria.hidden = !esAdmin;
-  /* Un rol que no puede ver Equipo/Auditoría no debe quedarse «atrapado» en un
-     área que ya no tiene botón. */
-  if (!esAdmin && (seccionActiva === "equipo" || seccionActiva === "auditoria")) {
-    mostrarSeccion("cartera");
-  }
+
+  /* KZ-CRM-020 · qué áreas tiene cada rol, según lo que las reglas le dejan
+     consultar de verdad (medido en crm-dev/sondear-permisos-020.cjs):
+       · cotizaciones: admin, comercial y ventas (cada uno con su alcance);
+       · ventas:       admin y rol ventas (comercial no puede leer ventas);
+       · equipo y auditoría: sólo admin. */
+  const puedeCotizar = ["admin", "comercial", "ventas"].includes(rol);
+  const puedeVender = ["admin", "ventas"].includes(rol);
+  const bCot = $("#nav-cotizaciones");
+  const bVen = $("#nav-ventas");
+  if (bCot) bCot.hidden = !puedeCotizar;
+  if (bVen) bVen.hidden = !puedeVender;
+  /* El menú «Más» sólo tiene sentido si Equipo o Auditoría existen para el rol. */
+  const bMas = $("#nav-mas");
+  if (bMas) bMas.hidden = !esAdmin;
+
+  /* Un rol que pierde un área no debe quedarse «atrapado» en un área que ya no
+     tiene botón. */
+  const permitidas = { resumen: true, cartera: true, equipo: esAdmin, auditoria: esAdmin, cotizaciones: puedeCotizar, ventas: puedeVender };
+  if (!permitidas[seccionActiva]) mostrarSeccion("cartera");
+
   if (seccionActiva === "cartera") pintarEmbudo();
   sincronizarCuenta();
 }
@@ -366,6 +424,11 @@ if (stats) observar(stats, { childList: true }, pintarEmbudo);
 
 $("#btn-salir")?.addEventListener("click", () => {
   marcarFilaActiva(null);
+  /* Al cerrar sesión no deben quedar cotizaciones, ventas ni auditoría en
+     memoria ni en pantalla (KZ-CRM-020). */
+  if (window.KZ_MODULOS && typeof window.KZ_MODULOS.limpiar === "function") {
+    try { window.KZ_MODULOS.limpiar(); } catch (e) { console.warn("ui:", e.message); }
+  }
   mostrarSeccion("cartera");
 });
 
@@ -392,3 +455,7 @@ sincronizarNavegacion();
 sincronizarFicha();
 pintarTarjetas();
 pintarEmbudo();
+
+/* API mínima para que el módulo de Cotizaciones/Ventas pueda cambiar de área
+   (por ejemplo, al pulsar «Abrir prospecto»). */
+window.KZ_UI = { mostrarSeccion };
