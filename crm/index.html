@@ -74,11 +74,16 @@
           <option value="perdido">perdido</option>
         </select>
         <button id="btn-exportar" class="mini">Exportar CSV</button>
+        <label class="inline-check" id="lab-sin-asignar" hidden>
+          <input type="checkbox" id="f-sin-asignar">
+          <span>Sólo sin asignar</span>
+        </label>
       </div>
+      <p id="bandeja" class="bandeja" aria-live="polite"></p>
       <p id="contador" class="muted"></p>
       <div class="tabla-scroll">
         <table>
-          <thead><tr><th>Nombre</th><th>Teléfono</th><th>Industria</th><th>Estado</th><th>Consent.</th><th></th></tr></thead>
+          <thead id="tabla-cabecera"><tr><th>Nombre</th><th>Teléfono</th><th>Industria</th><th>Estado</th><th>Consent.</th><th></th></tr></thead>
           <tbody id="tabla-leads"></tbody>
         </table>
       </div>
@@ -104,6 +109,19 @@
         <label for="d-nota">Nota de seguimiento</label>
         <textarea id="d-nota" rows="2" placeholder="Qué se habló, próxima acción…"></textarea>
         <button id="btn-nota" class="btn">Añadir nota</button>
+      </div>
+
+      <div class="bloque" id="bloque-asignacion" hidden>
+        <h3>Asignación</h3>
+        <p id="d-asignado" class="muted">—</p>
+        <label for="a-asesor">Asesor responsable</label>
+        <select id="a-asesor">
+          <option value="">— sin asignar —</option>
+        </select>
+        <button id="btn-asignar" class="btn">Asignar prospecto</button>
+        <p class="nota">Sólo administración. Asignar o reasignar cambia quién puede ver
+          este prospecto: a partir de ese momento, los demás asesores reciben un 403 del
+          servidor, no sólo un botón oculto. Cada cambio queda en el historial y en la auditoría.</p>
       </div>
 
       <h3>Historial</h3>
@@ -135,12 +153,21 @@
 
       <div class="bloque" id="bloque-privacidad" hidden>
         <h3>Privacidad del dato</h3>
-        <button id="btn-anonimizar" class="btn">Suprimir datos personales</button>
-        <button id="btn-borrar-lead" class="btn btn--peligro">Borrar prospecto</button>
-        <p class="nota">Sólo administración. <b>Suprimir</b> borra el nombre y <b>todo el historial
-          de notas</b>, y conserva el número de teléfono porque es el identificador que impide
-          volver a duplicar el prospecto: por eso es <b>supresión parcial</b>, no anonimización
-          completa. <b>Borrar</b> elimina el documento entero: libera el número y no se puede deshacer.</p>
+        <p class="nota">
+          <b>Esta pantalla ya no borra ni suprime prospectos.</b> Los dos botones que había
+          antes (<i>Suprimir datos personales</i> y <i>Borrar prospecto</i>) eran recorridos
+          incompletos y se han retirado: dejaban notas, el marcador del número y las
+          cotizaciones apuntando a un prospecto que ya no existía. En el caso de
+          <i>Borrar</i>, además, el aviso decía que el número quedaba libre cuando el
+          marcador seguía reservándolo.
+        </p>
+        <p class="nota">
+          La supresión y el borrado son ahora un <b>procedimiento privilegiado</b>, fuera del
+          navegador: <code>node crm-dev/suprimir-datos.cjs --id &lt;id del prospecto&gt;</code>.
+          Exige confirmación escrita, desasocia las cotizaciones y las ventas, y verifica al
+          terminar que no queda ninguna referencia viva. Ninguna credencial privilegiada
+          llega a esta página.
+        </p>
       </div>
     </section>
 
@@ -148,6 +175,22 @@
       <h2>Auditoría (sólo administración)</h2>
       <div class="tabla-scroll">
         <table><thead><tr><th>Acción</th><th>Detalle</th><th>Rol</th></tr></thead><tbody id="tabla-audit"></tbody></table>
+      </div>
+    </section>
+    <section id="bloque-equipo" class="tarjeta" hidden>
+      <h2>Equipo comercial</h2>
+      <p class="nota">Darwin es el único administrador activo. <b>Incorporar asesores</b> se hace
+        con un procedimiento privilegiado desde un equipo de confianza
+        (<code>node crm-dev/gestionar-equipo.cjs --invitar correo@ejemplo.com comercial</code>),
+        porque crear cuentas y asignar roles exige Admin SDK y esa credencial no debe llegar
+        nunca al navegador. Aquí sólo se consulta el estado del equipo.</p>
+
+      <h3>Cartera por asesor</h3>
+      <div class="tabla-scroll">
+        <table>
+          <thead><tr><th>Asesor</th><th>Rol</th><th>Prospectos</th><th>Ganados</th><th>Perdidos</th><th>En curso</th><th>Vendido</th></tr></thead>
+          <tbody id="tabla-equipo"></tbody>
+        </table>
       </div>
     </section>
   </section>

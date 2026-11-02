@@ -234,6 +234,39 @@ tr[data-id]:hover { background: rgb(0 229 255 / .07); }
 .historial { margin: 0; padding-left: 18px; color: var(--kz-text-secondary, #D4DEED); font-size: .88rem; }
 .historial li { margin-bottom: 5px; }
 
+/* ── Bandeja personal y casillas en línea (KZ-CRM-018) ─────────────── */
+.bandeja {
+  margin: 10px 0 4px;
+  font-size: .88rem;
+  font-weight: 650;
+  color: var(--kz-cyan, #00E5FF);
+}
+/* La misma trampa que en `.consent`: una casilla es un <input> y heredaría
+   width:100%;min-height:44px. Aquí se acota explícitamente. */
+.inline-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  margin: 0;
+  font-weight: 400;
+  font-size: .85rem;
+  color: var(--kz-text-secondary, #D4DEED);
+  cursor: pointer;
+}
+.inline-check input[type="checkbox"] {
+  width: 20px;
+  min-width: 20px;
+  max-width: 20px;
+  height: 20px;
+  min-height: 0;
+  flex: 0 0 20px;
+  margin: 0;
+  padding: 0;
+  accent-color: var(--kz-cyan, #00E5FF);
+  cursor: pointer;
+}
+
 /* ── Móvil (≤ 560 px) ───────────────────────────────────────────────── */
 @media (max-width: 560px) {
   .contenedor { padding: 12px; }
