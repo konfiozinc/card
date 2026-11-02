@@ -1,4 +1,4 @@
-/* ── KZ-CRM-020 · Cotizaciones, Ventas y Auditoría ────────────────────────────
+﻿/* ── KZ-CRM-020 · Cotizaciones, Ventas y Auditoría ────────────────────────────
    Módulo de LECTURA y presentación. No escribe nada nuevo en Firestore: las
    cotizaciones y las ventas se siguen creando desde la ficha del prospecto
    (crm.js), y la auditoría la escribe el servidor con la identidad de quien
@@ -78,19 +78,59 @@ const avisar = (sel, texto, tipo) => {
 };
 
 /* El detalle de la auditoría lo escribió el panel con datos crudos
-   («<uuid> · 99900», «basica», «cotizado»). Aquí sólo se vuelve legible: los
-   identificadores se cambian por el nombre del cliente, los importes se
-   formatean y los planes se escriben como se llaman comercialmente. No se
-   altera ningún registro. */
+   («<uuid> · 99900», «basica», «cotizado», y en el alta el teléfono). Aquí sólo
+   se vuelve legible y seguro: NO se altera ningún registro.
+
+   DEFECTOS CORREGIDOS EN KZ-CRM-020B:
+     · un UUID como 26ff62d1-e1ba-42c7-a9410-4f7d446aad77 se mostraba como
+       «…-a$9.410-…»: el formateador de importes buscaba «4 a 7 cifras no
+       rodeadas de dígitos» y el segmento «9410» de dentro del identificador
+       cumplía esa condición. Ahora el identificador se sustituye ANTES de
+       formatear nada, así que no puede interpretarse como dinero;
+     · el teléfono del alta se mostraba completo. Ahora se enmascara: el
+       registro se reconoce sin exponer el número. El dato sigue guardado en
+       Firestore y su tratamiento es una decisión de datos, no de la vista. */
+const RE_UUID = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/i;
+/* Identificadores «con guiones» en general: el del reporte real
+   (26ff62d1-e1ba-42c7-a9410-4f7d446aad77) NO es un UUID canónico porque su
+   cuarto segmento tiene cinco caracteres. Se reconocen ambos: al menos cuatro
+   grupos de hexadecimales separados por guiones (una fecha tipo 2026-11-02
+   tiene tres y no se tocaría). */
+const RE_ID = /[0-9a-f]{4,}(?:-[0-9a-f]{2,}){3,}/gi;
+/* Teléfonos con prefijo opcional: entre 10 y 15 dígitos seguidos. */
+const RE_TELEFONO = /(\+?57[\s.-]?)?\b(\d{10,15})\b/g;
+
 function detalleLegible(a, leads) {
   let texto = String(a.detalle == null ? "" : a.detalle).trim();
   if (!texto) return "";
+
+  /* 1 · Prospecto conocido → su nombre (sin distinguir mayúsculas). */
+  const bajo = texto.toLowerCase();
   for (const l of leads) {
-    if (l && l.id && texto.includes(l.id)) texto = texto.split(l.id).join(l.nombre || "prospecto");
+    if (l && l.id && bajo.includes(String(l.id).toLowerCase())) {
+      const re = new RegExp(String(l.id).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+      texto = texto.replace(re, l.nombre || "prospecto");
+    }
   }
-  /* Importes: entre 4 y 7 cifras (49.900 … 1.399.000). Los teléfonos tienen 10
-     y los identificadores llevan letras, así que no se confunden. */
-  texto = texto.replace(/(^|[^\d])(\d{4,7})(?![\d])/g, (m, pre, num) => pre + "$" + Number(num).toLocaleString("es-CO"));
+
+  /* 2 · Identificadores restantes (prospecto dado de baja, de otra cartera o
+        antiguo) → referencia corta y veraz. No se inventa ningún nombre ni se
+        consulta nada: sólo se dice lo que consta. */
+  texto = texto.replace(RE_ID, (m) => RE_UUID.test(m)
+    ? "prospecto no disponible (" + m.slice(0, 8) + ")"
+    : "referencia no disponible (" + m.slice(0, 8) + ")");
+
+  /* 3 · Teléfonos → enmascarados. Se conservan el prefijo y los dos últimos
+        dígitos: basta para reconocer el registro, no para identificar a nadie. */
+  texto = texto.replace(RE_TELEFONO, (m, prefijo, numero) => (prefijo || "") + numero.slice(0, 3) +
+    "•".repeat(Math.max(3, numero.length - 5)) + numero.slice(-2));
+
+  /* 4 · Importes reales: sólo cifras AISLADAS de 4 a 7 dígitos, con separador a
+        cada lado. Nunca dentro de una palabra ni de un identificador. */
+  texto = texto.replace(/(^|[\s·,;:(])(\d{4,7})(?=$|[\s·,;:)])/g,
+    (m, pre, num) => pre + "$" + Number(num).toLocaleString("es-CO"));
+
+  /* 5 · Planes con su nombre comercial. */
   texto = texto.replace(/\b(basica|pro|medida)\b/g, (m) => PLANES[m] || m);
   return texto;
 }
