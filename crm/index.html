@@ -163,7 +163,7 @@
         </p>
         <p class="nota">
           La supresión y el borrado son ahora un <b>procedimiento privilegiado</b>, fuera del
-          navegador: <code>node crm-dev/suprimir-datos.cjs --id &lt;id del prospecto&gt;</code>.
+          navegador, que se ejecuta desde un equipo de confianza con la herramienta interna.
           Exige confirmación escrita, desasocia las cotizaciones y las ventas, y verifica al
           terminar que no queda ninguna referencia viva. Ninguna credencial privilegiada
           llega a esta página.
@@ -180,8 +180,8 @@
     <section id="bloque-equipo" class="tarjeta" hidden>
       <h2>Equipo comercial</h2>
       <p class="nota">Darwin es el único administrador activo. <b>Incorporar asesores</b> se hace
-        con un procedimiento privilegiado desde un equipo de confianza
-        (<code>node crm-dev/gestionar-equipo.cjs --invitar correo@ejemplo.com comercial</code>),
+        con un procedimiento privilegiado desde un equipo de confianza con la herramienta
+        interna del proyecto,
         porque crear cuentas y asignar roles exige Admin SDK y esa credencial no debe llegar
         nunca al navegador. Aquí sólo se consulta el estado del equipo.</p>
 
