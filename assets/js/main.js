@@ -218,6 +218,9 @@
     navToggle.addEventListener('click', function () {
       var open = navLinks.classList.toggle('open');
       navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      /* KZ-AI-004N · marca el menú abierto en el body para que el widget del
+         chat se oculte (misma convención que la portada premium). */
+      document.body.classList.toggle('menu-open', open);
       var icon = navToggle.querySelector('i');
       if (icon) icon.className = open ? 'fas fa-times' : 'fas fa-bars';
     });
@@ -226,9 +229,20 @@
       a.addEventListener('click', function () {
         navLinks.classList.remove('open');
         navToggle.setAttribute('aria-expanded', 'false');
+        document.body.classList.remove('menu-open');
         var icon = navToggle.querySelector('i');
         if (icon) icon.className = 'fas fa-bars';
       });
+    });
+    /* KZ-AI-004N · Escape cierra el menú y devuelve el foco al botón. */
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape' || !navLinks.classList.contains('open')) return;
+      navLinks.classList.remove('open');
+      navToggle.setAttribute('aria-expanded', 'false');
+      document.body.classList.remove('menu-open');
+      var icon = navToggle.querySelector('i');
+      if (icon) icon.className = 'fas fa-bars';
+      navToggle.focus();
     });
   }
 
@@ -640,6 +654,9 @@
   var chatInput = $('#kzFabInput');
   var chatSend = $('#kzFabSend');
   var chatChips = $('#kzFabChips');
+  /* KZ-AI-004N · puntero fino = ratón de escritorio. En táctil no se enfoca el
+     campo al abrir (el teclado virtual taparía parte del panel). */
+  var esPunteroFino = !!(window.matchMedia && window.matchMedia('(pointer: fine)').matches);
 
   if (chat && toggleBtn && chatBody) {
     var isOpen = false;
@@ -668,17 +685,51 @@
       { label: '🤖 Agente IA',         msg: 'Quiero un agente IA',        key: 'agente_ia' },
       { label: '👤 Asesor humano',     msg: 'Hablar con un asesor humano', key: 'asesor_humano' }
     ];
+    /* KZ-AI-004N · un único control «Explorar servicios» abre las ocho opciones
+       en un panel flotante sobre el historial. Ninguna opción se elimina y la
+       conversación conserva todo el alto que antes ocupaban los botones fijos. */
+    var SERVICIOS_PANEL_ID = 'kzServiciosPanel';
     function renderChips() {
       if (!chatChips) return;
-      chatChips.classList.remove('is-collapsed');
-      chatChips.innerHTML = CHIPS.map(function (c) {
-        return '<button type="button" data-msg="' + c.msg + '" data-key="' + c.key + '">' + c.label + '</button>';
-      }).join('') + '<button type="button" class="kz-chips-more" data-more>Ver más opciones</button>';
+      chatChips.innerHTML =
+        '<div class="kz-chips-barra">' +
+          '<button type="button" class="kz-explorar" data-explorar aria-expanded="false" aria-controls="' + SERVICIOS_PANEL_ID + '">' +
+            '<span>Explorar servicios</span><span class="kz-explorar-flecha" aria-hidden="true">▾</span>' +
+          '</button>' +
+        '</div>' +
+        '<div class="kz-servicios" id="' + SERVICIOS_PANEL_ID + '">' +
+          '<div class="kz-servicios-cab"><span>Servicios y opciones</span><button type="button" data-cerrar-servicios aria-label="Cerrar opciones">✕</button></div>' +
+          '<div class="kz-servicios-lista">' +
+            CHIPS.map(function (c) {
+              return '<button type="button" data-msg="' + c.msg + '" data-key="' + c.key + '">' + c.label + '</button>';
+            }).join('') +
+          '</div>' +
+        '</div>';
+      /* Etiqueta accesible con el número de opciones disponibles. */
+      updateChips();
+    }
+    function abrirServicios(si) {
+      if (!chatChips) return;
+      var panel = chatChips.querySelector('.kz-servicios');
+      var boton = chatChips.querySelector('[data-explorar]');
+      var abierto = (typeof si === 'boolean') ? si : !(panel && panel.classList.contains('is-open'));
+      if (panel) panel.classList.toggle('is-open', abierto);
+      if (boton) boton.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+      if (abierto) {
+        var primero = chatChips.querySelector('.kz-servicios-lista button');
+        if (primero) primero.focus();
+      } else if (boton && document.activeElement && chatChips.contains(document.activeElement)) {
+        boton.focus();
+      }
     }
     function updateChips() {
       if (!chatChips) return;
-      var left = chatChips.querySelectorAll('button[data-msg]').length;
-      chatChips.classList.toggle('is-collapsed', left < 4);
+      var left = chatChips.querySelectorAll('.kz-servicios-lista button[data-msg]').length;
+      var boton = chatChips.querySelector('[data-explorar]');
+      if (boton) {
+        boton.disabled = left === 0;
+        boton.setAttribute('aria-label', left ? ('Explorar servicios, ' + left + ' opciones') : 'Sin opciones disponibles');
+      }
     }
     renderChips();
 
@@ -709,6 +760,7 @@
     function resetConversacion() {
       history = [];
       chatBody.innerHTML = '';
+      if (chat) chat.classList.remove('is-teclado');
       renderChips();
       lastActivity = Date.now();
     }
@@ -721,7 +773,18 @@
       s = s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>');
       return s;
     }
+    /* KZ-AI-004N · desplazamiento inteligente: una respuesta nueva baja el
+       historial SOLO si el visitante está al final. Si está releyendo mensajes
+       anteriores, su posición no se le mueve de golpe. */
+    function cercaDelFinal() {
+      if (!chatBody) return true;
+      return (chatBody.scrollHeight - chatBody.scrollTop - chatBody.clientHeight) < 48;
+    }
+    function alFinal(forzar) {
+      if (chatBody && (forzar || cercaDelFinal())) chatBody.scrollTop = chatBody.scrollHeight;
+    }
     function addMessage(text, sender) {
+      var pegado = cercaDelFinal();
       var div = document.createElement('div');
       div.className = 'kz-msg ' + (sender === 'user' ? 'kz-msg-user' : 'kz-msg-bot');
       if (sender === 'bot') { div.innerHTML = formatBotText(text); }
@@ -731,15 +794,16 @@
       t.textContent = new Date().toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
       div.appendChild(t);
       chatBody.appendChild(div);
-      chatBody.scrollTop = chatBody.scrollHeight;
+      alFinal(sender === 'user' ? true : pegado);
     }
     function showTyping() {
+      var pegado = cercaDelFinal();
       var div = document.createElement('div');
       div.className = 'kz-msg-typing';
       div.id = 'kzTyping';
       div.innerHTML = '<span></span><span></span><span></span>';
       chatBody.appendChild(div);
-      chatBody.scrollTop = chatBody.scrollHeight;
+      alFinal(pegado);
     }
     function hideTyping() { var el = document.getElementById('kzTyping'); if (el) el.remove(); }
     function showWhatsAppButton() {
@@ -751,7 +815,9 @@
       wrap.classList.add('kz-fila-acciones');
       wrap.appendChild(a);
       chatBody.appendChild(wrap);
-      chatBody.scrollTop = chatBody.scrollHeight;
+      /* KZ-AI-004N · respeta la posición: si el visitante está releyendo
+         mensajes anteriores, este CTA no le mueve la vista. */
+      alFinal(false);
       track('ia_whatsapp_cta');
     }
 
@@ -947,10 +1013,17 @@
       chat.classList.toggle('open', isOpen);
       chat.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
       toggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      /* KZ-AI-004N · recalcula la protección anti-CTA al abrir o cerrar: con el
+         panel abierto se retira la clase que ocultaba el botón flotante (y con
+         ella el `visibility:hidden` que heredaba el panel). */
+      programarProteccionCta();
       if (isOpen) {
         /* Si pasó más de 5 minutos sin actividad, empieza de cero. */
         if (Date.now() - lastActivity > INACTIVIDAD_MS) resetConversacion();
-        chatInput.focus();
+        /* KZ-AI-004N · en el móvil NO se abre el teclado al abrir el panel: el
+           teclado reduce el área visible y dejaba el campo bajo él. Sólo se
+           enfoca con puntero fino (escritorio), donde no hay teclado virtual. */
+        if (chatInput && esPunteroFino) chatInput.focus();
         if (chatBody.children.length === 0) showWelcome();
         track('open_agent_ia', { event_category: 'engagement', event_label: 'widget_agente', value: 1 });
       } else {
@@ -965,13 +1038,22 @@
       chatInput.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(chatInput.value); }
       });
+      /* KZ-AI-004N · con el teclado abierto el panel se ajusta al área visible
+         mediante la clase `is-teclado` (nunca estilos en línea: la portada
+         premium tiene una CSP que los prohíbe). */
+      chatInput.addEventListener('focus', function () {
+        if (!esPunteroFino) chat.classList.add('is-teclado');
+        setTimeout(function () { if (chatBody) chatBody.scrollTop = chatBody.scrollHeight; }, 150);
+      });
+      chatInput.addEventListener('blur', function () { chat.classList.remove('is-teclado'); });
     }
     if (chatSend) chatSend.addEventListener('click', function () { sendMessage(chatInput.value); });
     if (chatChips) {
       chatChips.addEventListener('click', function (e) {
         var btn = e.target.closest('button');
         if (!btn) return;
-        if (btn.hasAttribute('data-more')) { renderChips(); return; }
+        if (btn.hasAttribute('data-explorar')) { abrirServicios(); return; }
+        if (btn.hasAttribute('data-cerrar-servicios')) { abrirServicios(false); return; }
         var msg = btn.getAttribute('data-msg');
         if (!msg) return;
         track('agent_chip_click', {
@@ -982,11 +1064,15 @@
         if (!isOpen) toggleChat(true);
         btn.remove();
         updateChips();
+        abrirServicios(false);
         setTimeout(function () { sendMessage(msg); }, 300);
       });
     }
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && isOpen) toggleChat(false);
+      if (e.key !== 'Escape') return;
+      /* Escape cierra primero el panel de servicios; si ya está cerrado, el chat. */
+      if (chatChips && chatChips.querySelector('.kz-servicios.is-open')) { abrirServicios(false); return; }
+      if (isOpen) toggleChat(false);
     });
   }
 })();

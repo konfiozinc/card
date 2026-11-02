@@ -158,6 +158,21 @@ textarea {
   pointer-events: none !important;
 }
 
+/* KZ-AI-004N · con el chat ABIERTO el panel no puede heredar el ocultamiento
+   del botón flotante: antes, si el botón estaba evitando un CTA, el panel
+   abierto nacía con visibility:hidden y el visitante veía el chat a medias.
+   Ahora se oculta únicamente el botón. */
+.kz-fab-wrapper.kz-fab-evitar-cta .kz-fab-chat.open {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+.kz-fab-wrapper.kz-fab-evitar-cta .kz-fab-btn {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .kz-fab-wrapper {
   right: max(16px, env(safe-area-inset-right));
   bottom: max(16px, env(safe-area-inset-bottom));

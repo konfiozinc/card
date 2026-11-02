@@ -46,10 +46,10 @@
 }
 .kz-bubble.show { opacity: 1; visibility: visible; }
 
-/* Ventana de chat */
-/* KZ-AI-004 · altura con la unidad dinámica (dvh): cuando aparece el teclado,
-   la ventana se mide contra el área realmente visible, no contra la pantalla
-   completa. El `vh` anterior dejaba el campo de escritura fuera de la vista. */
+/* KZ-AI-004N · la ventana deja margen arriba y abajo para que se vea la página
+   detrás y para que el encabezado nunca quede cortado. Con el teclado abierto
+   (clase `is-teclado`, la pone main.js al enfocar el campo) ocupa el área
+   visible completa, porque ahí no hay página que mostrar. */
 .kz-fab-chat {
   width: 380px; max-width: calc(100vw - 32px);
   height: 560px; max-height: calc(100vh - 130px);
@@ -60,6 +60,14 @@
   box-shadow: 0 20px 60px rgba(0,0,0,.7), 0 0 40px rgb(var(--kz-rgb-cyan) / .15); display: none; flex-direction: column; overflow: hidden;
   transform-origin: bottom right;
 }
+.kz-fab-chat.is-teclado {
+  height: calc(100dvh - 44px);
+  max-height: calc(100dvh - 44px);
+  border-radius: 12px;
+}
+.kz-fab-chat.is-teclado .kz-chat-header { min-height: 44px; padding: 6px 12px; }
+.kz-fab-chat.is-teclado .kz-chat-header .kz-status { display: none; }
+.kz-fab-chat.is-teclado .kz-chips { display: none; }
 .kz-fab-chat.open { display: flex; animation: kzOpen .3s ease; }
 /* KZ-AI-004: al abrir, el botón flotante debe DEJAR DE OCUPAR SITIO. Ocultarlo
    sólo con opacity mantenía sus 56 px en el contenedor y empujaba la ventana
@@ -99,14 +107,25 @@
 .kz-msg-typing span:nth-child(3) { animation-delay: .4s; }
 @keyframes typing { 0%,60%,100% { transform: translateY(0); opacity: .4; } 30% { transform: translateY(-6px); opacity: 1; } }
 
-/* Chips de respuesta rápida (2 columnas, compactos) */
-/* KZ-AI-004: los chips no deben comerse el área de mensajes en pantallas bajas. */
-.kz-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px 12px; border-top: 1px solid var(--kz-border-soft); flex-shrink: 0; max-height: 150px; max-height: min(150px, 22dvh); overflow-y: auto; overscroll-behavior: contain; }
-.kz-chips button { background: var(--kz-surface-raised); border: 1px solid var(--kz-cyan); border-radius: 16px; padding: 8px 10px; font-size: 12px; color: var(--kz-cyan); transition: all .2s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; cursor: pointer; }
-.kz-chips button:hover { background: var(--kz-cyan); border-color: var(--kz-cyan); color: var(--kz-bg); }
-.kz-chips .kz-chips-more { grid-column: 1 / -1; display: none; }
-.kz-chips.is-collapsed button[data-msg] { display: none; }
-.kz-chips.is-collapsed .kz-chips-more { display: block; }
+/* Accesos a servicios
+   KZ-AI-004N · los ocho botones fijos (hasta 170 px en cuatro filas) se
+   sustituyen por UN control compacto «Explorar servicios» de 44 px. Las
+   opciones se abren en un panel flotante sobre el historial: no empujan el
+   área de conversación y se cierran al elegir. Ninguna opción se elimina. */
+.kz-chips { position: relative; padding: 6px 12px 8px; border-top: 1px solid var(--kz-border-soft); flex-shrink: 0; }
+.kz-chips-barra { display: flex; }
+.kz-explorar { width: 100%; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: var(--kz-surface-raised); border: 1px dashed var(--kz-cyan); border-radius: 14px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--kz-cyan); cursor: pointer; transition: background .2s, color .2s; }
+.kz-explorar:hover, .kz-explorar[aria-expanded="true"] { background: var(--kz-cyan); color: var(--kz-bg); }
+.kz-explorar .kz-explorar-flecha { transition: transform .2s; }
+.kz-explorar[aria-expanded="true"] .kz-explorar-flecha { transform: rotate(180deg); }
+.kz-servicios { position: absolute; left: 8px; right: 8px; bottom: calc(100% + 4px); display: none; background: var(--kz-surface); border: 1px solid var(--kz-cyan); border-radius: 14px; box-shadow: 0 14px 40px rgba(0,0,0,.7); overflow: hidden; z-index: 5; }
+.kz-servicios.is-open { display: block; animation: kzOpen .18s ease; }
+.kz-servicios-cab { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 6px 14px; border-bottom: 1px solid var(--kz-border-soft); font-size: 12px; font-weight: 700; color: #fff; }
+.kz-servicios-cab button { min-width: 44px; min-height: 44px; display: grid; place-items: center; background: none; border: none; color: #fff; font-size: 18px; cursor: pointer; }
+.kz-servicios-lista { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; padding: 8px; max-height: 42dvh; overflow-y: auto; overscroll-behavior: contain; }
+.kz-servicios-lista button { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 4px; background: var(--kz-surface-raised); border: 1px solid var(--kz-cyan); border-radius: 12px; padding: 6px 8px; font-size: 12px; color: var(--kz-cyan); cursor: pointer; transition: background .2s, color .2s; }
+.kz-servicios-lista button:hover { background: var(--kz-cyan); color: var(--kz-bg); }
+.kz-servicios-lista button:disabled { opacity: .45; cursor: default; }
 
 /* Input inferior */
 /* KZ-AI-004: el campo respeta la zona segura inferior del móvil. */
@@ -119,25 +138,30 @@
 .kz-wa-btn { display: inline-flex; align-items: center; gap: 8px; background: #25D366; color: #fff; padding: 8px 18px; border-radius: 30px; font-weight: 600; font-size: 13px; margin-top: 6px; }
 @media (max-width: 480px) {
   .kz-fab-btn { width: 56px; height: 56px; font-size: 22px; }
-  /* Ventana adaptada al ancho disponible y a la altura REAL con teclado. */
+  /* KZ-AI-004N · el panel se queda en el 78 % del alto visible con un tope de
+     560 px: deja ver la página detrás, mantiene el encabezado accesible y
+     sigue cabiendo cuando el navegador reduce el área visible. */
   .kz-fab-chat {
     width: calc(100vw - 16px); max-width: 400px;
-    height: 85vh; max-height: calc(100vh - 24px);
-    height: min(85dvh, 620px); max-height: calc(100dvh - 24px);
+    height: 78dvh; max-height: calc(100dvh - 96px);
+    height: min(78dvh, 560px); max-height: calc(100dvh - 96px);
   }
-  .kz-chips { max-height: 170px; max-height: min(170px, 24dvh); }
+  .kz-fab-chat.is-teclado { height: calc(100dvh - 44px); max-height: calc(100dvh - 44px); }
+  .kz-chips { padding: 6px 10px 8px; }
 }
-/* Pantallas bajas (teclado abierto): menos chips, más conversación. */
+/* Pantallas bajas (teclado abierto): menos accesorios, más conversación. */
 @media (max-height: 620px) {
   .kz-fab-chat { max-height: calc(100dvh - 16px); }
-  .kz-chips { max-height: 84px; }
+  .kz-servicios-lista { max-height: 34dvh; }
   .kz-chat-header { min-height: 52px; padding: 8px 12px; }
   .kz-avatar { width: 34px; height: 34px; font-size: 12px; }
   .kz-name { font-size: 14px; }
+  .kz-chat-input { padding: 8px 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (max-height: 480px) {
-  .kz-chips { max-height: 68px; }
+  .kz-chips { display: none; }
   .kz-chat-body { min-height: 0; }
+  .kz-chat-header { min-height: 44px; }
 }
 
 /* ═══ KZ-CSP: clases en lugar de estilos en línea ═════════════════════
