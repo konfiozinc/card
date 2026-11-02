@@ -1,127 +1,291 @@
-/* ═══════════════════════════════════════════════════════════════════════
-   KONFÍO ZINC · CRM · crm.css
-   Identidad Neo Tech: NO declara colores propios. Todos los valores salen de
-   assets/css/kz-tokens.css (fuente única de la paleta oficial). Si el archivo de
-   tokens no cargara, cada var() lleva su respaldo literal para no romper el panel.
+/* ═══════════════════════════════════════════════════════════════════════════
+   KONFÍO ZINC · CRM · crm.css  —  KZ-CRM-019 (rediseño del panel)
+   ───────────────────────────────────────────────────────────────────────────
+   Identidad Neo Tech. La paleta NO se declara aquí: todos los valores salen de
+   assets/css/kz-tokens.css (fuente única). Cada var() lleva su respaldo literal
+   para que el panel no se rompa si el archivo de tokens no cargara.
 
-   Objetivos de este archivo:
-     · legible de 375 px a 1920 px sin desbordamiento horizontal;
-     · objetivos táctiles de 44 px (dedo, no ratón);
+   Objetivos que este archivo garantiza (los mide crm-dev/pruebas-formularios.cjs):
+     · legible de 320 px a 1920 px sin desbordamiento horizontal;
+     · objetivos táctiles de 44 px en móvil y 40 px en escritorio;
      · contraste AA sobre fondo oscuro;
-     · tablas con desplazamiento propio, nunca la página entera.
-   ═══════════════════════════════════════════════════════════════════════ */
+     · tablas con desplazamiento propio, nunca la página entera;
+     · las casillas (<input type="checkbox">) conservan su tamaño natural.
+   ═══════════════════════════════════════════════════════════════════════════ */
 
-* { box-sizing: border-box; }
+/* ── Base ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
 
-html { -webkit-text-size-adjust: 100%; }
+html {
+  -webkit-text-size-adjust: 100%;
+  /* La barra superior es fija: sin esto, al llevar la vista a un bloque con
+     scrollIntoView el título queda debajo de ella. */
+  scroll-padding-top: 92px;
+}
 
 body {
   margin: 0;
   background: var(--kz-bg, #050B14);
   color: var(--kz-text, #FFFFFF);
-  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font: 15px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   overflow-x: hidden;
+  /* Halo superior: da profundidad sin cargar una imagen. */
+  background-image:
+    radial-gradient(900px 380px at 12% -12%, rgb(0 229 255 / .10), transparent 65%),
+    radial-gradient(760px 420px at 92% -18%, rgb(139 92 246 / .12), transparent 68%);
+  background-repeat: no-repeat;
 }
 
-/* ── Barra superior ─────────────────────────────────────────────────── */
+h1, h2, h3, h4 { margin: 0; line-height: 1.25; }
+h1 { font-size: 1.45rem; letter-spacing: -.01em; }
+h2 { font-size: 1.06rem; letter-spacing: -.005em; }
+h3 { font-size: .95rem; }
+h4 { font-size: .88rem; }
+
+/* Enlace de salto: fuera de la vista hasta que recibe el foco del teclado.
+   Mide 44 px de alto a propósito (la prueba de controles visibles lo mide). */
+.salto-contenido {
+  position: fixed;
+  top: 8px; left: 8px;
+  z-index: 100;
+  display: inline-flex; align-items: center;
+  min-height: 44px; padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--kz-cyan, #00E5FF);
+  color: #041018; font-weight: 700; text-decoration: none;
+  transform: translateY(-260%);
+  transition: transform .18s ease;
+}
+.salto-contenido:focus { transform: translateY(0); }
+
+/* Navegación entre áreas. Es independiente del atributo `hidden`, que sigue
+   siendo propiedad exclusiva de crm.js para decidir qué ve cada rol. */
+.seccion-oculta { display: none !important; }
+
+.oculto-visual {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+/* ── Barra superior ────────────────────────────────────────────────────── */
 .barra {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--kz-border-soft, #52678F);
-  background: var(--kz-surface, #101C35);
-  position: sticky;
-  top: 0;
-  z-index: 20;
+  position: sticky; top: 0; z-index: 30;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 10px 20px;
+  border-bottom: 1px solid rgb(82 103 143 / .45);
+  background: rgb(8 17 32 / .86);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
-.barra strong {
+
+.marca { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.marca__sigla {
+  display: inline-grid; place-items: center;
+  width: 36px; height: 36px;
+  border-radius: 11px;
+  background: var(--kz-gradient-brand, linear-gradient(110deg, #00E5FF, #8B5CF6 45%, #A78BFA));
+  color: #041018; font-weight: 800; font-size: .82rem; letter-spacing: -.02em;
+  box-shadow: 0 0 18px rgb(0 229 255 / .25);
+}
+.marca__texto { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.marca__texto strong {
+  font-size: .82rem; letter-spacing: .09em; text-transform: uppercase;
   background: var(--kz-gradient-text, linear-gradient(100deg, #39DFF5, #A78BFA));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-size: 1.02rem;
-  letter-spacing: .02em;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-.barra #quien { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.marca__texto small { font-size: .72rem; color: var(--kz-text-muted, #A7B8D1); }
 
-/* ── Estructura ─────────────────────────────────────────────────────── */
-.contenedor { width: 100%; max-width: 1240px; margin-inline: auto; padding: 16px; }
+/* Navegación por áreas: control segmentado. */
+.nav {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  border: 1px solid rgb(82 103 143 / .40);
+  background: rgb(16 28 53 / .72);
+  overflow-x: auto;
+  scrollbar-width: none;
+  max-width: 100%;
+}
+.nav::-webkit-scrollbar { display: none; }
+.nav[hidden] { display: none; }
+.nav__btn {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 0; border-radius: 9px;
+  background: transparent;
+  color: var(--kz-text-secondary, #D4DEED);
+  font: inherit; font-size: .86rem; font-weight: 600;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease;
+}
+.nav__btn:hover { background: rgb(0 229 255 / .10); color: var(--kz-text, #fff); }
+.nav__btn[aria-current="page"] {
+  background: rgb(0 229 255 / .16);
+  color: var(--kz-cyan, #00E5FF);
+  box-shadow: inset 0 0 0 1px rgb(0 229 255 / .38);
+}
+.nav__btn[hidden] { display: none; }
 
-.tarjeta {
-  background: var(--kz-surface, #101C35);
-  border: 1px solid var(--kz-border-soft, #52678F);
-  border-radius: 16px;
-  padding: 16px;
-  margin-bottom: 16px;
-  box-shadow: var(--kz-glow-cyan, 0 0 24px rgb(0 229 255 / .18));
+.cuenta {
+  display: flex; align-items: center; gap: 10px;
+  margin-left: auto; min-width: 0;
+}
+.cuenta__quien {
+  font-size: .82rem; color: var(--kz-text-muted, #A7B8D1);
+  max-width: 34ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 
-h1 { font-size: 1.35rem; margin: 0 0 12px; }
-h2 { font-size: 1.1rem; margin: 0 0 10px; }
-h3 { font-size: .95rem; margin: 16px 0 8px; color: var(--kz-cyan, #00E5FF); }
+/* ── Estructura ────────────────────────────────────────────────────────── */
+.contenedor {
+  width: 100%; max-width: 1560px;
+  margin-inline: auto;
+  padding: 20px;
+}
+
+.panel {
+  background: linear-gradient(180deg, rgb(21 39 70 / .55), rgb(16 28 53 / .92));
+  border: 1px solid rgb(82 103 143 / .42);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom: 18px;
+  box-shadow: 0 18px 40px -28px rgb(0 0 0 / .9);
+}
+.panel--resumen { margin-bottom: 20px; }
+.panel--ficha { padding: 18px; }
+
+.panel__cab {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.panel__sub {
+  margin: 4px 0 0;
+  font-size: .82rem; color: var(--kz-text-muted, #A7B8D1); max-width: 68ch;
+}
+
+/* Zona de trabajo: cartera a la izquierda, ficha a la derecha. */
+.trabajo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 430px);
+  gap: 18px;
+  align-items: start;
+}
+/* Dos tarjetas en columna con separación pareja (sin duplicar el margen del
+   panel). El orden visual se invierte en móvil para que la cartera quede
+   arriba: ver la media query de 1100 px. */
+.columna-cartera { min-width: 0; display: flex; flex-direction: column; gap: 18px; }
+.columna-cartera > .panel { margin-bottom: 0; }
+.columna-ficha { min-width: 0; position: sticky; top: 84px; }
+#detalle { scroll-margin-top: 92px; }
+
+/* Los párrafos explicativos largos no deben cruzar toda la pantalla. */
+.panel:not(.panel--ficha) > .nota { max-width: 78ch; }
 
 .muted { color: var(--kz-text-muted, #A7B8D1); font-size: .9rem; }
 .nota { font-size: .82rem; color: var(--kz-text-muted, #A7B8D1); margin: 8px 0 0; }
 
-/* ── Formularios ────────────────────────────────────────────────────── */
-label { display: block; font-size: .82rem; color: var(--kz-text-secondary, #D4DEED); margin: 12px 0 5px; font-weight: 600; }
+/* ── Acceso ────────────────────────────────────────────────────────────── */
+.acceso {
+  max-width: 430px;
+  margin: 48px auto;
+  padding: 28px;
+  border-radius: 20px;
+  border: 1px solid rgb(82 103 143 / .5);
+  background: linear-gradient(180deg, rgb(21 39 70 / .75), rgb(10 20 36 / .95));
+  box-shadow: 0 30px 70px -40px rgb(0 229 255 / .45);
+}
+.acceso__marca {
+  font-size: .7rem; font-weight: 800; letter-spacing: .18em;
+  color: var(--kz-cyan, #00E5FF);
+  margin-bottom: 10px;
+}
+.acceso__sub { margin: 6px 0 18px; font-size: .86rem; color: var(--kz-text-muted, #A7B8D1); }
+.acceso .nota { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgb(82 103 143 / .40); }
+.acceso #form-login button[type="submit"] { margin-top: 18px; width: 100%; }
+
+/* ── Formularios ───────────────────────────────────────────────────────── */
+label {
+  display: block; font-size: .82rem; font-weight: 600;
+  color: var(--kz-text-secondary, #D4DEED);
+  margin: 12px 0 5px;
+}
 
 input, select, textarea {
   width: 100%;
-  min-height: 44px;                 /* objetivo táctil */
+  min-height: 44px;                /* objetivo táctil */
   padding: 10px 12px;
   border-radius: 10px;
-  border: 1px solid var(--kz-border-soft, #52678F);
+  border: 1px solid rgb(82 103 143 / .55);
   background: var(--kz-deep, #0A1424);
   color: var(--kz-text, #FFFFFF);
   font: inherit;
+  transition: border-color .15s ease, box-shadow .15s ease;
 }
 input::placeholder, textarea::placeholder { color: var(--kz-text-muted, #A7B8D1); }
+input:hover, select:hover, textarea:hover { border-color: rgb(82 103 143 / .85); }
 input:focus-visible, select:focus-visible, textarea:focus-visible,
-button:focus-visible, tr[data-id]:focus-visible {
+button:focus-visible, a:focus-visible, tr[data-id]:focus-visible {
   outline: 3px solid var(--kz-focus, #39DFF5);
   outline-offset: 2px;
 }
 textarea { min-height: 76px; resize: vertical; }
+select { appearance: auto; }
 
-/* ── Casilla de consentimiento ──────────────────────────────────────────
-   DEFECTO CORREGIDO (KZ-CRM-017): la casilla es un <input>, así que heredaba
-   `width:100%; min-height:44px` del selector genérico y se dibujaba como un
-   rectángulo blanco desproporcionado, desalineado de su texto. Aquí recupera su
-   tamaño natural y se alinea con la primera línea del texto. */
+/* Rejilla del alta: 4 campos que se reparten y caen a 2 y a 1 columna. */
+.bloque-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 2px 14px;
+  align-items: end;
+}
+.bloque-form .campo { min-width: 0; }
+.campo__eti { margin-top: 0; }
+.bloque-form .consent { grid-column: 1 / -1; }
+.bloque-form .btn--ancho { grid-column: 1 / -1; margin-top: 12px; }
+
+/* Casilla de consentimiento ────────────────────────────────────────────────
+   Es un <input>, así que heredaría `width:100%` y `min-height:44px` del
+   selector genérico: por eso se acota explícitamente (defecto corregido en
+   KZ-CRM-017 y verificado por crm-dev/pruebas-formularios.cjs). */
 .consent {
-  display: flex;
-  align-items: flex-start;       /* casilla arriba, a la altura de la primera línea */
-  gap: 12px;
-  margin: 14px 0 0;
-  padding: 8px 0;
-  min-height: 44px;              /* toda la fila es área táctil */
-  font-weight: 400;
-  cursor: pointer;
+  display: flex; align-items: flex-start; gap: 12px;
+  margin: 14px 0 0; padding: 8px 0;
+  min-height: 44px;
+  font-weight: 400; cursor: pointer;
 }
 .consent input[type="checkbox"] {
-  /* Se anula explícitamente lo heredado del selector genérico. */
-  width: 20px;
-  min-width: 20px;
-  max-width: 20px;
-  height: 20px;
-  min-height: 0;
+  width: 20px; min-width: 20px; max-width: 20px;
+  height: 20px; min-height: 0;
   flex: 0 0 20px;
-  margin: 2px 0 0;
-  padding: 0;
-  accent-color: var(--kz-cyan, #00E5FF);   /* casilla cian, no un bloque blanco */
+  margin: 2px 0 0; padding: 0;
+  accent-color: var(--kz-cyan, #00E5FF);
   cursor: pointer;
 }
 .consent span {
   flex: 1 1 auto;
-  font-size: .88rem;
-  line-height: 1.45;
+  font-size: .88rem; line-height: 1.45;
   color: var(--kz-text-secondary, #D4DEED);
 }
 
-/* ── Botones ────────────────────────────────────────────────────────── */
+/* Casilla en línea (filtro «sólo sin asignar»): misma trampa, misma solución. */
+.inline-check {
+  display: inline-flex; align-items: center; gap: 8px;
+  min-height: 44px; margin: 0;
+  font-weight: 400; font-size: .85rem;
+  color: var(--kz-text-secondary, #D4DEED);
+  cursor: pointer;
+}
+.inline-check input[type="checkbox"] {
+  width: 20px; min-width: 20px; max-width: 20px;
+  height: 20px; min-height: 0;
+  flex: 0 0 20px; margin: 0; padding: 0;
+  accent-color: var(--kz-cyan, #00E5FF);
+  cursor: pointer;
+}
+.inline-check[hidden] { display: none; }
+
+/* ── Botones ───────────────────────────────────────────────────────────── */
 button {
   min-height: 44px;
   padding: 10px 16px;
@@ -129,171 +293,339 @@ button {
   border: 1px solid var(--kz-cyan, #00E5FF);
   background: transparent;
   color: var(--kz-cyan, #00E5FF);
-  font: inherit;
-  font-weight: 650;
+  font: inherit; font-weight: 650;
   cursor: pointer;
+  transition: background .15s ease, transform .1s ease, box-shadow .15s ease;
 }
 button:hover:not(:disabled) { background: rgb(0 229 255 / .12); }
+button:active:not(:disabled) { transform: translateY(1px); }
 button:disabled { opacity: .55; cursor: progress; }
 
+/* Acción de bloque: sólida y sobria. El degradado se reserva a la acción
+   principal de cada zona (`.btn--primario`), para que el ojo tenga una sola
+   llamada por pantalla en lugar de seis compitiendo. */
 .btn {
-  background: var(--kz-gradient-brand, linear-gradient(110deg, #00E5FF, #8B5CF6 45%, #A78BFA));
-  color: var(--kz-bg, #050B14);     /* texto oscuro sobre degradado claro: AA */
-  border-color: transparent;
+  background: rgb(0 229 255 / .12);
+  color: var(--kz-cyan, #00E5FF);
+  border-color: rgb(0 229 255 / .55);
   width: auto;
 }
+.btn:hover:not(:disabled) { background: rgb(0 229 255 / .20); }
+.btn--primario {
+  background: var(--kz-gradient-brand, linear-gradient(110deg, #00E5FF, #8B5CF6 45%, #A78BFA));
+  color: var(--kz-bg, #050B14);      /* texto oscuro sobre degradado claro: AA */
+  border-color: transparent;
+  box-shadow: 0 10px 24px -16px rgb(0 229 255 / .9);
+}
+.btn--primario:hover:not(:disabled) { background: var(--kz-gradient-brand, linear-gradient(110deg, #00E5FF, #8B5CF6 45%, #A78BFA)); filter: brightness(1.06); }
+.btn--ancho { width: 100%; }
+/* Confirmar una venta no destruye nada: cierra una operación. Va en verde;
+   el rojo queda reservado a acciones destructivas. */
+.btn--confirmar {
+  background: rgb(52 211 153 / .14);
+  color: var(--kz-success, #34D399);
+  border-color: rgb(52 211 153 / .55);
+}
+.btn--confirmar:hover:not(:disabled) { background: rgb(52 211 153 / .24); }
 .btn--peligro { background: #B3261E; color: #fff; border-color: transparent; }
 .mini { min-height: 40px; padding: 8px 12px; font-size: .85rem; }
 
-/* ── Acceso ─────────────────────────────────────────────────────────── */
-.login { max-width: 420px; margin: 32px auto; }
-/* VIS-01 (auditoría KZ-CRM-017): el botón quedaba pegado al campo de contraseña y el
-   hueco reservado para el error dejaba un salto grande. Ahora hay separación real y
-   el mensaje sólo ocupa espacio cuando existe. */
-.login #form-login button[type="submit"] { margin-top: 18px; width: 100%; }
-.login .error { margin-top: 12px; }
-.login .error:empty { min-height: 0; margin-top: 0; }
-.login .nota { margin-top: 16px; padding-top: 14px; border-top: 1px solid rgb(82 103 143 / .40); }
-.error { color: var(--kz-danger, #FF9AA6); min-height: 20px; font-size: .86rem; margin: 10px 0 0; }
-
-/* ── Avisos ─────────────────────────────────────────────────────────── */
+/* ── Avisos ────────────────────────────────────────────────────────────── */
 .aviso {
-  padding: 10px 14px;
-  border-radius: 10px;
-  border: 1px solid var(--kz-border-soft, #52678F);
-  color: var(--kz-text-secondary, #D4DEED);
   margin: 0 0 16px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgb(82 103 143 / .55);
+  color: var(--kz-text-secondary, #D4DEED);
+  font-size: .88rem;
 }
 .aviso:empty { display: none; }
 .aviso.ok { border-color: var(--kz-success, #34D399); color: #BDF5D6; background: rgb(52 211 153 / .10); }
 .aviso.err { border-color: var(--kz-danger, #FF9AA6); color: #FFD0D0; background: rgb(255 154 166 / .10); }
 
-/* ── Filtros ────────────────────────────────────────────────────────── */
-.filtros { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.filtros input[type="search"] { flex: 1 1 220px; min-width: 0; }
-.filtros select { flex: 0 1 210px; }
+.error { color: var(--kz-danger, #FF9AA6); min-height: 20px; font-size: .86rem; margin: 10px 0 0; }
+.error:empty { min-height: 0; margin-top: 0; }
 
-/* ── Estadísticas ───────────────────────────────────────────────────── */
+/* ── Indicadores (dashboard) ───────────────────────────────────────────── */
 .stats {
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
-  margin-bottom: 16px;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
 }
 .stat {
-  background: var(--kz-surface-raised, #152746);
-  border: 1px solid var(--kz-border-soft, #52678F);
+  position: relative;
+  padding: 14px 14px 12px;
   border-radius: 14px;
-  padding: 12px;
-  text-align: center;
+  border: 1px solid rgb(82 103 143 / .42);
+  background: var(--kz-surface-raised, #152746);
+  overflow: hidden;
 }
-.stat b { display: block; font-size: 1.45rem; color: var(--kz-cyan, #00E5FF); line-height: 1.2; }
-.stat span { font-size: .78rem; color: var(--kz-text-muted, #A7B8D1); text-transform: uppercase; letter-spacing: .04em; }
+.stat::before {
+  content: "";
+  position: absolute; inset: 0 0 auto 0; height: 2px;
+  background: var(--kz-gradient-text, linear-gradient(100deg, #39DFF5, #A78BFA));
+  opacity: .85;
+}
+.stat b {
+  display: block;
+  font-size: 1.6rem; line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+  color: var(--kz-cyan, #00E5FF);
+  letter-spacing: -.02em;
+}
+.stat span {
+  display: block; margin-top: 2px;
+  font-size: .72rem; letter-spacing: .06em; text-transform: uppercase;
+  color: var(--kz-text-muted, #A7B8D1);
+}
+.stat--venta::before { background: var(--kz-success, #34D399); }
 .stat--venta b { color: var(--kz-success, #34D399); }
 
-/* ── Tabla ──────────────────────────────────────────────────────────── */
+/* Embudo: barras proporcionales construidas por crm-ui.js a partir de los
+   mismos conteos que ya muestra #stats. Es sólo lectura.
+   Los carriles y las barras son <span>: sin `display:block` el ancho del
+   relleno se ignoraría y todas las barras se verían iguales. */
+.embudo { margin-top: 16px; display: grid; gap: 8px; }
+.embudo:empty { display: none; }
+.embudo__fila {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 44px;
+  align-items: center; gap: 10px;
+  font-size: .8rem;
+}
+.embudo__nombre { color: inherit; text-transform: capitalize; }
+.embudo__carril {
+  display: block;
+  height: 9px; border-radius: 999px;
+  background: rgb(82 103 143 / .30);
+  overflow: hidden;
+}
+.embudo__barra {
+  display: block;
+  height: 100%; border-radius: 999px;
+  background: currentColor;
+}
+.embudo__fila--nuevo { color: #9FD6FF; }
+.embudo__fila--contactado { color: #FFD479; }
+.embudo__fila--cotizado { color: var(--kz-violet-light, #A78BFA); }
+.embudo__fila--ganado { color: var(--kz-success, #34D399); }
+.embudo__fila--perdido { color: var(--kz-danger, #FF9AA6); }
+.embudo__valor { text-align: right; font-variant-numeric: tabular-nums; color: var(--kz-text, #fff); }
+
+/* ── Filtros ───────────────────────────────────────────────────────────── */
+.filtros {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.filtros__buscar { flex: 1 1 240px; min-width: 0; }
+.filtros__buscar input { margin: 0; }
+.campo--filtro { flex: 0 1 200px; min-width: 140px; }
+.campo--filtro select { margin: 0; }
+.contador { font-size: .8rem; color: var(--kz-text-muted, #A7B8D1); }
+
+.bandeja {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgb(0 229 255 / .28);
+  background: rgb(0 229 255 / .07);
+  font-size: .82rem; font-weight: 600;
+  color: var(--kz-cyan, #00E5FF);
+}
+.bandeja:empty { display: none; }
+.bandeja--aviso {
+  border-color: var(--kz-danger, #FF9AA6);
+  background: rgb(255 154 166 / .10);
+  color: #FFD0D0;
+}
+
+/* ── Tablas ────────────────────────────────────────────────────────────── */
 .tabla-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   border-radius: 12px;
   border: 1px solid rgb(82 103 143 / .45);
+  background: rgb(10 20 36 / .55);
 }
-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
-th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid rgb(82 103 143 / .40); white-space: nowrap; }
+table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+th, td {
+  text-align: left; padding: 11px 12px;
+  border-bottom: 1px solid rgb(82 103 143 / .32);
+  white-space: nowrap;
+}
 th {
   color: var(--kz-text-muted, #A7B8D1);
-  font-weight: 650;
-  font-size: .76rem;
-  text-transform: uppercase;
-  letter-spacing: .05em;
-  background: var(--kz-deep, #0A1424);
-  position: sticky;
-  top: 0;
+  font-weight: 700; font-size: .75rem;
+  text-transform: uppercase; letter-spacing: .06em;
+  background: rgb(10 20 36 / .92);
+  position: sticky; top: 0;
+  backdrop-filter: blur(6px);
 }
 tbody tr:last-child td { border-bottom: 0; }
-tr[data-id] { cursor: pointer; }
-tr[data-id]:hover { background: rgb(0 229 255 / .07); }
+tbody tr:nth-child(even) { background: rgb(21 39 70 / .22); }
+tr[data-id] { cursor: pointer; transition: background .12s ease; }
+tr[data-id]:hover { background: rgb(0 229 255 / .08); }
+tr[data-id]:focus-visible { outline-offset: -3px; }
+/* Fila abierta en la ficha: la marca crm-ui.js. */
+tr[data-id].fila--activa {
+  background: rgb(0 229 255 / .13);
+  box-shadow: inset 3px 0 0 0 var(--kz-cyan, #00E5FF);
+}
 
-/* ── Etiquetas de estado ────────────────────────────────────────────── */
+/* ── Etiquetas de estado ───────────────────────────────────────────────── */
 .pill {
   display: inline-block;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: .76rem;
-  font-weight: 650;
+  font-size: .74rem; font-weight: 700;
   border: 1px solid currentColor;
+  text-transform: capitalize;
 }
-.pill--nuevo { color: #9FD6FF; }
-.pill--contactado { color: #FFD479; }
-.pill--cotizado { color: var(--kz-violet-light, #A78BFA); }
-.pill--ganado { color: var(--kz-success, #34D399); }
-.pill--perdido { color: var(--kz-danger, #FF9AA6); }
+.pill--nuevo { color: #9FD6FF; background: rgb(159 214 255 / .10); }
+.pill--contactado { color: #FFD479; background: rgb(255 212 121 / .10); }
+.pill--cotizado { color: var(--kz-violet-light, #A78BFA); background: rgb(167 139 250 / .10); }
+.pill--ganado { color: var(--kz-success, #34D399); background: rgb(52 211 153 / .10); }
+.pill--perdido { color: var(--kz-danger, #FF9AA6); background: rgb(255 154 166 / .10); }
 
-/* ── Bloques del detalle ────────────────────────────────────────────── */
-.bloque { border-top: 1px dashed rgb(82 103 143 / .55); margin-top: 14px; padding-top: 8px; }
-.historial { margin: 0; padding-left: 18px; color: var(--kz-text-secondary, #D4DEED); font-size: .88rem; }
-.historial li { margin-bottom: 5px; }
+/* ── Ficha del prospecto ───────────────────────────────────────────────── */
+.ficha-vacia {
+  display: grid; place-items: center; gap: 2px;
+  padding: 34px 22px;
+  border: 1px dashed rgb(82 103 143 / .55);
+  border-radius: 18px;
+  background: rgb(16 28 53 / .45);
+  text-align: center;
+}
+.ficha-vacia[hidden] { display: none; }
+.ficha-vacia__icono {
+  font-size: 1.6rem; color: var(--kz-cyan, #00E5FF);
+  opacity: .8; line-height: 1;
+}
+.ficha-vacia p { margin: 0; font-size: .86rem; }
 
-/* ── Bandeja personal y casillas en línea (KZ-CRM-018) ─────────────── */
-.bandeja {
-  margin: 10px 0 4px;
-  font-size: .88rem;
-  font-weight: 650;
+.ficha__cab {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgb(82 103 143 / .40);
+  margin-bottom: 4px;
+}
+.ficha__cab h2 { font-size: 1.16rem; }
+.ficha__meta {
+  margin: 6px 0 0;
+  font-size: .84rem; color: var(--kz-text-muted, #A7B8D1);
+  overflow-wrap: anywhere;
+}
+.ficha__volver { display: none; margin-bottom: 10px; }
+
+.ficha__seccion { padding-top: 6px; }
+.ficha__seccion + .ficha__seccion { margin-top: 8px; }
+.ficha__titulo {
+  display: flex; align-items: center; gap: 8px;
+  margin: 18px 0 8px;
+  font-size: .74rem; font-weight: 800;
+  letter-spacing: .12em; text-transform: uppercase;
   color: var(--kz-cyan, #00E5FF);
 }
-/* La misma trampa que en `.consent`: una casilla es un <input> y heredaría
-   width:100%;min-height:44px. Aquí se acota explícitamente. */
-.inline-check {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-height: 44px;
-  margin: 0;
-  font-weight: 400;
-  font-size: .85rem;
-  color: var(--kz-text-secondary, #D4DEED);
-  cursor: pointer;
+.ficha__titulo::after {
+  content: ""; flex: 1 1 auto; height: 1px;
+  background: linear-gradient(90deg, rgb(0 229 255 / .40), transparent);
 }
-.inline-check input[type="checkbox"] {
-  width: 20px;
-  min-width: 20px;
-  max-width: 20px;
-  height: 20px;
-  min-height: 0;
-  flex: 0 0 20px;
-  margin: 0;
-  padding: 0;
-  accent-color: var(--kz-cyan, #00E5FF);
-  cursor: pointer;
+.ficha__seccion .bloque { border-top: 1px dashed rgb(82 103 143 / .45); padding-top: 8px; }
+.ficha__seccion .bloque:first-of-type { border-top: 0; padding-top: 0; }
+/* El historial necesita respirar después del botón de nota. */
+.ficha__seccion > h3:not(.ficha__titulo) { margin-top: 18px; }
+
+.bloque { margin-top: 12px; }
+.bloque h4 { margin: 0 0 6px; color: var(--kz-text-secondary, #D4DEED); }
+.fila-accion { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.fila-accion select { flex: 1 1 170px; min-width: 0; }
+.fila-accion .btn { flex: 0 0 auto; }
+
+/* Historial como línea de tiempo. */
+.historial { list-style: none; margin: 8px 0 0; padding: 0 0 0 16px; position: relative; }
+.historial::before {
+  content: ""; position: absolute; left: 4px; top: 4px; bottom: 4px;
+  width: 2px; border-radius: 2px;
+  background: linear-gradient(180deg, rgb(0 229 255 / .55), rgb(139 92 246 / .12));
+}
+.historial li {
+  position: relative;
+  margin-bottom: 10px;
+  padding-left: 12px;
+  font-size: .86rem;
+  color: var(--kz-text-secondary, #D4DEED);
+  overflow-wrap: anywhere;
+}
+.historial li::before {
+  content: ""; position: absolute; left: -16px; top: .45em;
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--kz-cyan, #00E5FF);
+  box-shadow: 0 0 0 3px rgb(0 229 255 / .16);
+}
+.historial li.muted::before { background: var(--kz-text-muted, #A7B8D1); box-shadow: none; }
+
+/* Cotizaciones: crm.js pinta <div>plan · monto · estado (id)</div>. */
+.cotizaciones { display: grid; gap: 8px; margin-top: 8px; font-size: .86rem; }
+.cotizaciones:empty { display: none; }
+.cotizaciones > div {
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid rgb(82 103 143 / .45);
+  background: rgb(10 20 36 / .60);
+  font-variant-numeric: tabular-nums;
+}
+.cotizaciones .muted { font-size: .78rem; }
+
+/* ── Móvil y tableta ───────────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .trabajo { grid-template-columns: minmax(0, 1fr); }
+  .columna-ficha { position: static; }
+  .ficha__volver { display: inline-flex; }
+  /* Con una sola columna, primero se trabaja la cartera y luego el alta: el
+     formulario completo dejaba la tabla a más de una pantalla de distancia. */
+  #panel-cartera { order: -1; }
+  .columna-cartera { gap: 14px; }
 }
 
-/* ── Móvil (≤ 560 px) ───────────────────────────────────────────────── */
+@media (max-width: 760px) {
+  .contenedor { padding: 14px; }
+  .panel { padding: 15px; border-radius: 16px; }
+  /* Cabecera compacta: en móvil robaba una quinta parte de la pantalla. */
+  .barra { padding: 6px 12px; gap: 8px; }
+  .marca__sigla { width: 30px; height: 30px; border-radius: 9px; }
+  .marca__texto strong { font-size: .76rem; }
+  .marca__texto small { display: none; }
+  .nav { padding: 3px; gap: 2px; }
+  .nav__btn { padding: 6px 10px; font-size: .8rem; }
+  .cuenta { margin-left: 0; width: 100%; justify-content: flex-end; gap: 8px; }
+  .nav { width: 100%; }
+  .filtros__buscar { flex: 1 1 100%; }
+  .campo--filtro { flex: 1 1 100%; }
+  html { scroll-padding-top: 124px; }
+  #detalle { scroll-margin-top: 124px; }
+}
+
 @media (max-width: 560px) {
   .contenedor { padding: 12px; }
-  .tarjeta { padding: 13px; border-radius: 14px; }
-  h1 { font-size: 1.2rem; }
-  .barra { padding: 10px 12px; gap: 8px; }
-  .barra strong { font-size: .95rem; }
-  .filtros select { flex: 1 1 100%; }
-  .btn, .filtros button { width: 100%; }
+  h1 { font-size: 1.25rem; }
+  .acceso { margin: 20px auto; padding: 20px; }
   /* En móvil TODO control mide al menos 44 px, también los botones pequeños. */
-  button, .mini { min-height: 44px; }
+  button, .mini, .nav__btn { min-height: 44px; }
+  .btn, .filtros button { width: 100%; }
+  .btn--ancho { width: 100%; }
+  .fila-accion select, .fila-accion .btn { flex: 1 1 100%; }
   .stats { grid-template-columns: repeat(2, 1fr); }
-  .login { margin: 18px auto; }
+  .stat b { font-size: 1.4rem; }
+  .embudo__fila { grid-template-columns: 78px minmax(0, 1fr) 34px; gap: 8px; }
+  .cuenta__quien { max-width: 22ch; }
+  .historial li { font-size: .84rem; }
 }
 
-/* ── Escritorio grande ──────────────────────────────────────────────── */
-@media (min-width: 1440px) {
-  .contenedor { padding: 28px; max-width: 1400px; }
-  .stats { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
-}
-
-/* ── Preferencias del sistema ───────────────────────────────────────── */
+/* ── Preferencias del sistema ──────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
 }
 
-/* Fuerza modo oscuro propio también en controles nativos */
+/* Fuerza esquema oscuro también en los controles nativos. */
 @media (prefers-color-scheme: light) {
   body { color-scheme: dark; }
 }

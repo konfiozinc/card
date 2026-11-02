@@ -1,0 +1,56 @@
+=== A · Simulación: enseña también cotizaciones y ventas ===
+  PASS  A · la simulación termina bien  (código 0)
+  PASS  A · anuncia la cotización que desasociaría
+  PASS  A · anuncia la venta que desasociaría
+  PASS  A · avisa de que no ha borrado nada
+  PASS  A · el prospecto sigue existiendo
+  PASS  A · las 2 notas siguen existiendo
+  PASS  A · el marcador sigue existiendo
+  PASS  A · la cotización sigue apuntando al prospecto
+
+=== B · Aborto: no se escribe SUPRIMIR ===
+  PASS  B · aborta con código 1  (código 1)
+  PASS  B · dice que no ha borrado nada
+  PASS  B · el prospecto sigue ahí
+  PASS  B · las notas siguen ahí
+
+=== C · Supresión completa ===
+  PASS  C · termina bien  (código 0)
+  PASS  C · informa de que el prospecto quedó ausente
+  PASS  C · informa de 0 notas restantes
+  PASS  C · informa de 0 referencias vivas
+  PASS  C · el prospecto ya no existe
+  PASS  C · las notas ya no existen
+  PASS  C · el marcador ya no existe
+  PASS  C · la cotización sigue existiendo pero DESASOCIADA
+  PASS  C · la venta sigue existiendo pero DESASOCIADA
+  PASS  C · el importe de la venta se conserva (registro comercial)
+  PASS  C · ninguna referencia apunta ya al prospecto suprimido
+  PASS  C · el número vuelve a estar disponible  (HTTP 200)
+  PASS  C · el registro de supresión no guarda datos personales
+
+=== D · Fallo parcial al desasociar referencias ===
+  PASS  D · termina con código distinto de cero  (código 3)
+  PASS  D · se declara INCOMPLETO
+  PASS  D · el prospecto NO se ha borrado (queda reparable)
+  PASS  D · las notas NO se han tocado todavía
+  PASS  D · el marcador sigue en su sitio
+  PASS  D · al repetirlo sin el fallo, se completa  (código 0)
+  PASS  D · y no queda ninguna referencia viva
+  PASS  D · el prospecto queda eliminado
+
+=== E · Fallo parcial al borrar una nota ===
+  PASS  E · termina con código distinto de cero  (código 3)
+  PASS  E · el prospecto NO se ha borrado
+  PASS  E · el marcador sigue reservando el número
+  PASS  E · la repetición completa la supresión  (código 0)
+  PASS  E · no quedan notas
+  PASS  E · el marcador ya no existe
+
+=== F · Fallo parcial al borrar el marcador del número ===
+  PASS  F · termina con código distinto de cero  (código 3)
+  PASS  F · el prospecto NO se ha borrado (el número seguiría reservado)
+  PASS  F · la repetición completa la supresión  (código 0)
+  PASS  F · el número queda libre
+
+RESULTADO R04/R05: PASS 43 · FALLA 0

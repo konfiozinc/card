@@ -1,0 +1,23 @@
+=== Ficha del administrador tal como está en producción ===
+  PASS  lee su propia ficha
+  PASS  su rol es admin
+  PASS  está activo
+  PASS  la ficha no tiene campo nombre (como la real)
+
+=== Prospecto HEREDADO: creado antes de esta fase, SIN asignado_a ===
+  PASS  el admin puede crear un prospecto sin asignación  (HTTP 200)
+  PASS  el admin LEE el prospecto heredado sin asignado_a
+  PASS  el admin LO LISTA sin filtro (no se rompe por el campo ausente)
+  PASS  el admin LO ACTUALIZA (seguimiento)
+  PASS  el admin LO ASIGNA después
+  PASS  el admin YA NO puede borrarlo desde el navegador
+  PASS  tras el intento, el prospecto sigue existiendo
+  PASS  la vía privilegiada (Admin SDK) conserva la capacidad de borrar
+  PASS  y el prospecto ya no está
+
+=== El admin conserva además lo que ya tenía ===
+  PASS  lee la ficha de cualquier usuario (necesario para asignar)
+  PASS  lee la auditoría
+  PASS  lee las ventas
+
+RESULTADO ADMIN ACTUAL: PASS 16 · FALLA 0

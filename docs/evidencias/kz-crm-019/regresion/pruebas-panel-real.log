@@ -1,0 +1,16 @@
+  PASS  el panel se sirve en local  (HTTP 200)
+  PASS  muestra el formulario de acceso
+  PASS  el panel NO está en modo emulador
+  PASS  el cliente usa la base «default»  (default)
+    sonda Firestore → permission-denied
+  PASS  la base existe: el error es de permisos, no de base inexistente  (permission-denied · Missing or insufficient permissions.)
+  PASS  NO aparece el error de base inexistente
+  PASS  las peticiones declaran la base «default»
+  PASS  NINGUNA petición usa la base por omisión «(default)»
+    mensaje del panel: «Correo o contraseña incorrectos.»
+  PASS  el panel informa del fallo de credenciales  (Correo o contraseña incorrectos.)
+  PASS  NO es un fallo de configuración del proyecto
+  PASS  sigue en la pantalla de acceso (no ha entrado)
+  PASS  sin errores de JavaScript en el panel  (limpio)
+
+RESULTADO PANEL REAL: PASS 12 · FALLA 0

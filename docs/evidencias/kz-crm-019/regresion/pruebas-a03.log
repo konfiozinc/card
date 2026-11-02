@@ -1,0 +1,38 @@
+=== A. Alta atómica con UUID ===
+  PASS  el alta atómica (prospecto + marcador) prospera  (HTTP 200)
+  PASS  el id del prospecto es un UUID, no el teléfono  (f9f5f35b-17ac-44e6-b18f-7ef1516058b6)
+  PASS  existe el marcador del teléfono
+  PASS  el marcador apunta al UUID del prospecto
+  PASS  el marcador registra el operador
+
+=== B. No hay marcadores huérfanos ni prospectos sin marcador ===
+  PASS  un prospecto SIN marcador es rechazado  (HTTP 403)
+  PASS  un marcador que apunta a un prospecto inexistente es rechazado  (HTTP 400)
+  PASS  un marcador con teléfono distinto al del prospecto es rechazado
+
+=== C. Concurrencia ===
+  PASS  de 8 altas simultáneas del mismo número sólo 1 prospera  (200=1 · 200,403,403,409,403,409,409,409)
+  PASS  cada teléfono tiene exactamente un marcador
+
+=== D. Integridad referencial de cotizaciones y ventas ===
+  PASS  la cotización se crea referida al UUID  (HTTP 200)
+  PASS  la venta se confirma referida al mismo UUID  (HTTP 200)
+  PASS  cotización con lead_id inexistente rechazada  (HTTP 403)
+
+=== E. Supresión: libera el número y no deja residuos ===
+  PASS  se añade una nota al prospecto  (HTTP 200)
+  PASS  la supresión administrativa se ejecuta  (código 0)
+  PASS  borra el marcador de deduplicación
+  PASS  el prospecto ya no existe
+  PASS  el marcador ya no existe
+
+=== F. Reutilización legítima del número, sin herencia ===
+  PASS  el número se puede volver a registrar tras la supresión  (HTTP 200)
+  PASS  el nuevo prospecto tiene OTRO identificador
+  PASS  el registro nuevo NO hereda las notas del anterior  (0 notas)
+
+=== G. Aislamiento de asesores intacto ===
+  PASS  un asesor no asignado no lee el prospecto
+  PASS  un asesor no puede leer el marcador de deduplicación
+
+RESULTADO A03: PASS 23 · FALLA 0

@@ -1,0 +1,37 @@
+=== A · Ocho altas simultáneas del mismo teléfono ===
+  PASS  control positivo: un alta libre prospera (rol comercial, sin ser admin)  (HTTP 200)
+  PASS  de 8 altas simultáneas del mismo número sólo UNA prospera  (200=1 · 200,403,403,409,409,409,409,409)
+  PASS  las otras 7 son rechazadas de forma determinista (403 reglas o 409 conflicto)  (200,403,403,409,409,409,409,409)
+  PASS  ningún perdedor falla con error de servidor (5xx)  (200,403,403,409,409,409,409,409)
+  PASS  existe exactamente UN prospecto con ese número  (1 prospectos)
+  PASS  el prospecto que existe es el del lote ganador
+  PASS  los prospectos de los 7 lotes perdedores NO llegaron a crearse
+
+=== B · Sin marcadores huérfanos ===
+  PASS  ningún marcador apunta a un prospecto inexistente
+  PASS  cada marcador apunta a un prospecto con ESE mismo teléfono
+  PASS  hay exactamente un marcador para el número disputado  (1)
+
+=== C · El marcador correcto permanece intacto y no se sobrescribe ===
+  PASS  el marcador apunta al prospecto ganador  (c96f33d8-ed73-4e66-9356-4463bbf7e784)
+  PASS  las reglas NO permiten sobrescribir el marcador existente  (HTTP 403)
+  PASS  el marcador sigue intacto byte a byte tras el intento
+  PASS  el marcador sigue apuntando al ganador
+  PASS  el prospecto del intento de sobrescritura tampoco nació (lote ATÓMICO)
+
+=== E · Atomicidad del lote: prospecto y marcador van juntos ===
+  PASS  primer alta del segundo número prospera  (HTTP 200)
+  PASS  un segundo operador con el mismo número es rechazado  (HTTP 403)
+  PASS  su prospecto NO se crea: no queda prospecto sin marcador
+  PASS  el marcador sigue apuntando al primer prospecto
+  PASS  un lote con prospecto y SIN marcador es rechazado  (HTTP 403)
+  PASS  ese prospecto tampoco existe
+
+=== D · Ningún usuario obtiene acceso indebido ===
+  PASS  otro comercial no puede leer el marcador del número disputado
+  PASS  otro comercial no puede leer el prospecto no asignado
+  PASS  el comercial que dio de alta tampoco lee el prospecto (nace sin asignar)
+  PASS  un anónimo no puede dar de alta por este camino  (HTTP 403)
+  PASS  el marcador del número disputado sigue siendo único e intacto
+
+RESULTADO R02: PASS 26 · FALLA 0

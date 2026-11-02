@@ -1,0 +1,43 @@
+  PASS  roles sembrados por procedimiento privilegiado  (200/200/200)
+=== Modo privado: la captación pública está cerrada
+  PASS  anónimo NO puede crear prospecto (403)
+  PASS  operador con rol registra el primer prospecto
+  PASS  operador con rol registra el segundo prospecto
+  PASS  prospecto sin consentimiento rechazado
+  PASS  lectura anónima de prospectos denegada
+  PASS  lectura anónima de ventas denegada
+
+=== Administrador
+  PASS  login y listado de prospectos
+  PASS  cambio de estado
+  PASS  nota en el historial
+  PASS  cotización registrada (no es venta)  (cotización XDWUNtdKzQ1JSgIoHIQr)
+  PASS  venta confirmada en colección separada
+  PASS  estadística de vendido
+  PASS  auditoría registrada
+  PASS  sin errores de página (admin)  (limpio)
+
+=== Comercial (sin permiso de ventas)
+  PASS  bloque de venta oculto para comercial
+  PASS  comercial puede cotizar
+  PASS  comercial NO puede crear ventas (reglas)  (HTTP 403)
+
+=== Responsive
+  PASS  375x812 · sin desbordamiento  (0px)
+  PASS  375x812 · ve el bloque de venta
+  PASS  1440x900 · sin desbordamiento  (0px)
+  PASS  1440x900 · ve el bloque de venta
+
+=== Alta interna desde el panel (modo privado) y privacidad
+  PASS  el panel registra el prospecto (teléfono normalizado a dígitos)
+  PASS  el alta del operador queda auditada
+  PASS  el prospecto del panel se localiza por teléfono y tiene id UUID  (eb5f29e8-4f5d-4a36-ad53-985727ed7b41)
+  PASS  el mismo WhatsApp no se registra dos veces
+  PASS  el duplicado no creó una fila nueva
+  PASS  comercial NO puede anonimizar (reglas)  (HTTP 403)
+  PASS  R05: el panel ya NO ofrece «Borrar prospecto»
+  PASS  R05: el panel ya NO ofrece la supresión parcial antigua
+  PASS  R05: el bloque de privacidad remite al procedimiento privilegiado
+  PASS  R05: el prospecto sigue existiendo (el panel ya no puede borrarlo)
+
+RESULTADO CRM PRIVADO: PASS 32 · FALLA 0

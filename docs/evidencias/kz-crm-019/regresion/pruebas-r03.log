@@ -1,0 +1,47 @@
+=== A · Repetir la migración no duplica prospectos ===
+  PASS  A · la primera migración termina bien  (código 0)
+  PASS  A · crea 3 prospectos con UUID  (3)
+  PASS  A · no duplica las notas al migrar  (1)
+  PASS  A · la segunda pasada termina sin error  (código 0)
+  PASS  A · la segunda pasada no migra nada
+  PASS  A · los UUID no cambian
+  PASS  A · el número de prospectos no cambia
+  PASS  A · sigue habiendo 3 marcadores
+  PASS  A · una tercera pasada tampoco duplica
+
+=== B · Un registro UUID nativo no se vuelve a migrar ===
+  PASS  B · la migración termina bien  (código 0)
+  PASS  B · informa de que omite el registro que ya tenía UUID  (Ya con UUID (se omiten): 1)
+  PASS  B · el registro nativo no se toca
+  PASS  B · no se crea un segundo marcador para su teléfono
+  PASS  B · su marcador sigue apuntando al mismo documento
+  PASS  B · el heredado sí se migró  (2 UUID)
+
+=== C · Una entrada pendiente conserva su UUID ===
+  PASS  C · la migración termina bien  (código 0)
+  PASS  C · la reanudación termina bien  (código 0)
+  PASS  C · reconoce la entrada pendiente  (pendientes: 1)
+  PASS  C · reutiliza el MISMO UUID  (280c2f80-5e0d-4496-8064-4ff07ffdeed9)
+  PASS  C · no crea un prospecto adicional
+  PASS  C · vuelve a quedar como terminada
+
+=== D · Un repunte incompleto no queda marcado como terminado ===
+  PASS  D · termina con código distinto de cero  (código 2)
+  PASS  D · la entrada queda pendiente, no «hecho»  (["pendiente"])
+  PASS  D · la cotización todavía NO apunta al UUID
+
+=== F · La reanudación completa las operaciones pendientes ===
+  PASS  F · la reanudación termina bien  (código 0)
+  PASS  F · la cotización acaba apuntando al UUID
+  PASS  F · todas las entradas quedan «hecho»  (["hecho","hecho"])
+  PASS  F · no hay duplicados del mismo número dentro de lo migrado  (2 UUID)
+  PASS  F · la integridad referencial queda limpia
+
+=== E · Un error de listado no se interpreta como colección vacía ===
+  PASS  E · termina con código distinto de cero  (código 2)
+  PASS  E · NO dice «nada que migrar»
+  PASS  E · NO informa de 0 prospectos
+  PASS  E · no escribe ni el mapa ni el respaldo
+  PASS  E · no crea nada en el almacén
+
+RESULTADO R03: PASS 34 · FALLA 0
