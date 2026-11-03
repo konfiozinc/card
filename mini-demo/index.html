@@ -142,8 +142,8 @@
       </div>
       <div class="acciones">
         <button class="btn btn--secundario" type="button" data-ir="personalizar">Seguir editando</button>
-        <button class="btn btn--secundario" type="button" id="btn-ver-imagen">Ver imagen para guardar</button>
-        <button class="btn" type="button" id="btn-descargar">Descargar imagen de mi Mini Web</button>
+        <button class="btn btn--secundario" type="button" id="btn-ver-imagen" aria-label="Ver la imagen de mi Mini Web para guardarla">Ver imagen</button>
+        <button class="btn btn--secundario" type="button" id="btn-descargar" aria-label="Descargar la imagen de mi Mini Web">Descargar imagen</button>
         <button class="btn" type="button" id="btn-ir-solicitud">Solicitar mi Mini Web</button>
       </div>
       <p class="nota nota--pequena" role="note" id="nota-descarga">
@@ -168,14 +168,16 @@
       </p>
       <p class="nota nota--pequena" role="note">
         <strong>El mensaje no incluye tus fotos ni tu logo.</strong> Si quieres que los veamos,
-        pulsa «Descargar imagen de mi Mini Web», guarda la imagen y <strong>adjúntala tú mismo</strong>
+        pulsa «Descargar imagen», guarda la imagen y <strong>adjúntala tú mismo</strong>
         en el chat de WhatsApp con el botón de adjuntar. Nada se envía solo.
       </p>
-      <div class="acciones">
-        <button class="btn btn--secundario" type="button" data-ir="preview">Volver a la vista previa</button>
-        <button class="btn btn--secundario" type="button" id="btn-ver-imagen-2">Ver imagen para guardar</button>
-        <button class="btn btn--secundario" type="button" id="btn-descargar-2">Descargar imagen</button>
-        <a class="btn btn--whatsapp" id="btn-whatsapp" href="#" target="_blank" rel="noopener">Solicitar mi Mini Web</a>
+      <div class="acciones acciones--principal">
+        <a class="btn btn--whatsapp" id="btn-whatsapp" href="#" target="_blank" rel="noopener">Enviar mi solicitud por WhatsApp</a>
+        <div class="acciones__secundarias">
+          <button class="btn btn--secundario" type="button" id="btn-ver-imagen-2" aria-label="Ver la imagen de mi Mini Web para guardarla">Ver imagen</button>
+          <button class="btn btn--secundario" type="button" id="btn-descargar-2" aria-label="Descargar la imagen de mi Mini Web">Descargar imagen</button>
+          <button class="btn btn--secundario" type="button" data-ir="personalizar">Seguir editando</button>
+        </div>
       </div>
       <p class="pie-legal">Demostración local de KONFÍO ZINC · no publica, no guarda datos.</p>
     </section>

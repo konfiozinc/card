@@ -99,6 +99,13 @@ h2 { font-size: clamp(1.25rem, 5vw, 1.6rem); }
 .acciones { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
 .acciones .btn { flex: 1 1 160px; }
 
+/* Acción principal de la solicitud: el envío por WhatsApp manda; el resto
+   queda como acciones secundarias en una fila aparte. */
+.acciones--principal { display: grid; gap: 10px; }
+.acciones--principal > .btn { width: 100%; flex: none; min-height: 54px; font-size: 1.03rem; }
+.acciones__secundarias { display: flex; gap: 8px; flex-wrap: wrap; }
+.acciones__secundarias .btn { flex: 1 1 120px; min-height: 44px; font-size: .9rem; padding: 10px 14px; }
+
 /* ── Plantillas ────────────────────────────────────────────────────── */
 .rejilla-plantillas { display: grid; gap: 14px; }
 @media (min-width: 680px) { .rejilla-plantillas { grid-template-columns: repeat(3, 1fr); } }

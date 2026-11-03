@@ -493,27 +493,46 @@ function cargarImagen(src) {
   });
 }
 
-/** Parte un texto en líneas que caben en `maxAncho`, como máximo `maxLineas`. */
-function partirTexto(ctx, texto, maxAncho, maxLineas) {
-  const palabras = String(texto).split(/\s+/).filter(Boolean);
+/**
+ * Reparte un texto en líneas que caben en `maxAncho`, sin inventar contenido.
+ * Solo recorta (con «…» y avisando en `cortado`) si supera `maxLineas`; las
+ * medidas de la lámina se calculan con este resultado, así que el texto nunca
+ * se sale de su caja.
+ */
+function envolverLineas(ctx, texto, maxAncho, maxLineas) {
+  const palabras = String(texto || "").split(/\s+/).filter(Boolean);
   const lineas = [];
   let actual = "";
-  for (const p of palabras) {
-    const prueba = actual ? actual + " " + p : p;
-    if (ctx.measureText(prueba).width > maxAncho && actual) {
-      lineas.push(actual);
-      actual = p;
-      if (lineas.length === maxLineas) {
-        actual = "";
-        lineas[maxLineas - 1] = lineas[maxLineas - 1].replace(/\s+\S*$/, "") + "…";
-        break;
+  let cortado = false;
+  const ancho = (t) => ctx.measureText(t).width;
+
+  for (const palabra of palabras) {
+    /* Palabra sola más ancha que la caja: se parte por caracteres. */
+    if (!actual && ancho(palabra) > maxAncho) {
+      let trozo = "";
+      for (const ch of palabra) {
+        if (ancho(trozo + ch) > maxAncho && trozo) { lineas.push(trozo); trozo = ch; }
+        else trozo += ch;
+        if (lineas.length === maxLineas - 1 && trozo && ancho(trozo + ch) > maxAncho) break;
       }
+      actual = trozo;
+      if (lineas.length >= maxLineas) { cortado = true; break; }
+      continue;
+    }
+    const prueba = actual ? actual + " " + palabra : palabra;
+    if (ancho(prueba) > maxAncho && actual) {
+      lineas.push(actual);
+      actual = palabra;
+      if (lineas.length === maxLineas) { cortado = true; actual = ""; break; }
     } else {
       actual = prueba;
     }
   }
-  if (actual) lineas.push(actual);
-  return lineas.slice(0, maxLineas);
+  if (actual && lineas.length < maxLineas) lineas.push(actual);
+  else if (actual) cortado = true;
+  if (!lineas.length) lineas.push("");
+  if (cortado) lineas[lineas.length - 1] = lineas[lineas.length - 1].replace(/[\s,;:.]+$/, "") + "…";
+  return { lineas, cortado };
 }
 
 function redondear(ctx, x, y, w, h, r) {
@@ -542,195 +561,382 @@ function dibujarAjustada(ctx, img, x, y, w, h, modo) {
   ctx.drawImage(img, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh);
 }
 
-/** Lista de avisos: lo que la imagen no puede representar tal cual. */
-function avisosImagen() {
+/** Avisos generales de la lámina (los ajustes de espacio se añaden aparte). */
+function avisosBase(d) {
   const avisos = [];
-  const servicios = estado.servicios.filter((s) => s.nombre.trim());
-  if (!estado.descripcion.trim()) avisos.push("Sin descripción escrita: la lámina no inventa una, deja el espacio con la nota «Sin descripción».");
-  if (!estado.logo) avisos.push("Sin logo: la lámina usa las iniciales del negocio.");
-  if (!servicios.length) avisos.push("Sin servicios escritos: la lámina los muestra vacíos.");
-  else if (servicios.length > 4) avisos.push("La lámina muestra " + 4 + " de tus " + servicios.length + " servicios; el resto queda en tu Mini Web.");
-  if (estado.fotos.filter(Boolean).length < 3) avisos.push("Algunas fotos son de ejemplo: van marcadas como «ejemplo» en la lámina.");
+  if (!d.descripcion) avisos.push("Sin descripción escrita: la lámina no inventa una y deja la nota «Sin descripción escrita».");
+  if (!d.logo) avisos.push("Sin logo: la lámina usa las iniciales del negocio.");
+  if (!d.servicios.length) avisos.push("Sin servicios escritos: la lámina los muestra vacíos.");
+  if (d.fotos.filter((f) => f.propia).length < 3) avisos.push("Algunas fotos son de ejemplo: van marcadas como «EJEMPLO» en la lámina.");
   avisos.push("La lámina no reproduce la Mini Web completa: es una vista resumida (portada, servicios, galería y contacto) pensada para verse bien en cualquier teléfono.");
   return avisos;
 }
 
-/** Compone la lámina en un canvas y devuelve el canvas y sus avisos. */
-async function componerLamina() {
+function avisosImagen() {
+  return avisosBase(instantanea());
+}
+
+/**
+ * Fotografía inmutable de la selección. La lámina se dibuja con esta copia:
+ * si el visitante cambia de plantilla o de colores mientras se genera, la
+ * imagen que sale es coherente de principio a fin, nunca mezclada.
+ */
+function instantanea() {
   const pl = PLANTILLAS[estado.plantilla] || PLANTILLAS.elegancia;
-  const avisos = avisosImagen();
-  const nombre = estado.nombre.trim() || "Tu negocio";
-  const descPropia = estado.descripcion.trim();
-  const servicios = estado.servicios.filter((s) => s.nombre.trim()).slice(0, 4);
-  const fotos = estado.fotos.map((f, i) => ({
-    src: f || imagenDeMuestra(pl.muestra[i].titulo, pl.muestra[i].subtitulo, estado.primario, estado.secundario, i),
-    propia: !!f
-  }));
+  const primario = estado.primario || pl.colores.primario;
+  const secundario = estado.secundario || pl.colores.secundario;
+  return {
+    estiloId: pl.id,
+    estilo: pl.nombre,
+    paraQuien: pl.paraQuien,
+    nombre: estado.nombre.trim() || "Tu negocio",
+    descripcion: estado.descripcion.trim(),
+    servicios: estado.servicios
+      .map((s) => ({ nombre: String(s.nombre || "").trim(), precio: formatearPrecio(s.precio) }))
+      .filter((s) => s.nombre),
+    primario,
+    secundario,
+    logo: estado.logo,
+    logoAspecto: estado.logoAspecto,
+    formaLogo: estado.formaLogo || "circular",
+    fotos: estado.fotos.map((f, i) => ({
+      propia: !!f,
+      src: f || imagenDeMuestra(pl.muestra[i].titulo, pl.muestra[i].subtitulo, primario, secundario, i)
+    }))
+  };
+}
 
-  const ALTO = 1480;
-  const lienzo = document.createElement("canvas");
-  lienzo.width = LADO;
-  lienzo.height = ALTO;
-  const ctx = lienzo.getContext("2d");
-  if (!ctx) return { lienzo: null, avisos: ["Tu navegador no permitió dibujar la imagen."] };
+/**
+ * Dibuja el logo de la cabecera con `contain` (sin deformar) y dentro de la
+ * forma elegida (sin recortar). Devuelve la geometría usada, que las pruebas
+ * comparan con la proporción real de la imagen.
+ */
+function dibujarLogo(ctx, img, d, caja, centro) {
+  const forma = d.formaLogo;
+  const meta = { forma, caja: { x: caja.x, y: caja.y, w: caja.w, h: caja.h }, dibujado: null, relacionFuente: null, relacionDibujada: null, dentroCaja: false };
 
-  /* Fondo con el color principal del cliente */
-  const fondo = ctx.createLinearGradient(0, 0, LADO, ALTO);
-  fondo.addColorStop(0, estado.primario);
-  fondo.addColorStop(1, estado.primario);
-  ctx.fillStyle = fondo;
-  ctx.fillRect(0, 0, LADO, ALTO);
+  if (!img) {
+    const radio = Math.min(caja.w, caja.h) / 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(centro, caja.y + caja.h / 2, radio, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 255, 255, .22)";
+    ctx.fill();
+    ctx.fillStyle = "#ffffff";
+    ctx.font = '800 52px system-ui, "Segoe UI", sans-serif';
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText(String(d.nombre || "?").slice(0, 2).toUpperCase(), centro, caja.y + caja.h / 2 + 2);
+    ctx.textBaseline = "alphabetic";
+    ctx.restore();
+    return meta;
+  }
 
-  /* Tarjeta blanca */
+  const PAD = 14;
+  let dentro;
+  if (forma === "circular") {
+    /* Cuadrado inscrito en el círculo: así nada queda fuera del borde. */
+    const lado = Math.round(Math.min(caja.w, caja.h) / Math.SQRT2) - 8;
+    dentro = { x: centro - lado / 2, y: caja.y + caja.h / 2 - lado / 2, w: lado, h: lado };
+  } else {
+    dentro = { x: caja.x + PAD, y: caja.y + PAD, w: caja.w - PAD * 2, h: caja.h - PAD * 2 };
+  }
+
+  const rel = img.width / Math.max(1, img.height);
+  const relCaja = dentro.w / dentro.h;
+  let dw, dh;
+  if (rel > relCaja) { dw = dentro.w; dh = dw / rel; } else { dh = dentro.h; dw = dh * rel; }
+  const dx = dentro.x + (dentro.w - dw) / 2;
+  const dy = dentro.y + (dentro.h - dh) / 2;
+
+  ctx.save();
+  if (forma === "circular") {
+    ctx.beginPath();
+    ctx.arc(centro, caja.y + caja.h / 2, Math.min(caja.w, caja.h) / 2, 0, Math.PI * 2);
+    ctx.closePath();
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.clip();
+  } else if (forma === "redondeado") {
+    redondear(ctx, caja.x, caja.y, caja.w, caja.h, 26);
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.clip();
+  }
+  ctx.drawImage(img, dx, dy, dw, dh);
+  ctx.restore();
+
+  meta.dibujado = { x: dx, y: dy, w: dw, h: dh };
+  meta.relacionFuente = rel;
+  meta.relacionDibujada = dw / dh;
+  meta.dentroCaja = dx >= caja.x - 0.5 && dy >= caja.y - 0.5 && dx + dw <= caja.x + caja.w + 0.5 && dy + dh <= caja.y + caja.h + 0.5;
+  return meta;
+}
+
+/**
+ * Compone la lámina promocional (1080×1480) con un motor de medida: primero se
+ * miden todos los bloques y después se colocan, así que no hay superposiciones
+ * ni texto fuera de su caja. Si el contenido no cabe, se ajusta el tamaño de la
+ * galería y, solo como último recurso, se muestran menos servicios; todo queda
+ * anotado en `avisos` y en `meta`.
+ *
+ * Devuelve { lienzo, avisos, meta }. `meta` expone la geometría para que las
+ * pruebas comprueben de forma objetiva que nada se solapa.
+ */
+async function componerLamina() {
+  const d = instantanea();
+  const W = LADO;
+  const H = 1480;
   const M = 48;
-  const tarjetaW = LADO - M * 2;
+  const PAD = 56;
+  const tarjeta = { x: M, y: M, w: W - M * 2, h: H - M * 2 };
+  const innerX = tarjeta.x + PAD;
+  const innerW = tarjeta.w - PAD * 2;
+  const centro = W / 2;
+
+  const lienzo = document.createElement("canvas");
+  lienzo.width = W;
+  lienzo.height = H;
+  const ctx = lienzo.getContext("2d");
+  if (!ctx) return { lienzo: null, avisos: ["Tu navegador no permitió dibujar la imagen."], meta: null };
+
+  const FUENTE = {
+    nombre: '800 52px system-ui, "Segoe UI", sans-serif',
+    desc: '400 28px system-ui, "Segoe UI", sans-serif',
+    titulo: '800 34px system-ui, "Segoe UI", sans-serif',
+    item: '600 27px system-ui, "Segoe UI", sans-serif',
+    precio: '700 27px system-ui, "Segoe UI", sans-serif',
+    marca: '800 17px system-ui, "Segoe UI", sans-serif',
+    pie: '400 22px system-ui, "Segoe UI", sans-serif',
+    pieFuerte: '700 22px system-ui, "Segoe UI", sans-serif',
+    vacio: 'italic 26px system-ui, "Segoe UI", sans-serif'
+  };
+  const LH = { nombre: 60, desc: 36, item: 34 };
+
+  /* ── 1 · Medición ────────────────────────────────────────────────── */
+  ctx.font = FUENTE.nombre;
+  const nombreM = envolverLineas(ctx, d.nombre, innerW - 40, 2);
+  ctx.font = FUENTE.desc;
+  const descM = d.descripcion ? envolverLineas(ctx, d.descripcion, innerW - 80, 3) : null;
+
+  /* Con forma circular el marco es cuadrado; si no, se adapta a la imagen. */
+  const cajaLogo = d.formaLogo === "circular"
+    ? { w: 148, h: 148 }
+    : d.logoAspecto === "panoramica" ? { w: 300, h: 132 }
+      : d.logoAspecto === "vertical" ? { w: 116, h: 158 }
+        : { w: 152, h: 152 };
+
+  const HERO = { padTop: 46, gap: 40, padBottom: 44 };
+  const altoNombre = nombreM.lineas.length * LH.nombre;
+  const altoDesc = descM ? 8 + descM.lineas.length * LH.desc : 38;
+  const heroH = HERO.padTop + cajaLogo.h + HERO.gap + altoNombre + altoDesc + HERO.padBottom;
+
+  const ALTO_FILA_MIN = 74;
+  const filaServicio = (s) => {
+    ctx.font = FUENTE.item;
+    const m = envolverLineas(ctx, s.nombre, innerW - 320, 2);
+    return { nombre: s.nombre, precio: s.precio, lineas: m.lineas, cortado: m.cortado, alto: Math.max(ALTO_FILA_MIN, 40 + m.lineas.length * LH.item) };
+  };
+  const medirServicios = (n) => {
+    const filas = d.servicios.slice(0, n).map(filaServicio);
+    const alto = filas.length ? 60 + filas.reduce((a, f) => a + f.alto, 0) + 12 * (filas.length - 1) : 60 + 46;
+    return { filas, alto };
+  };
+
+  const SEP_TILE = 22;
+  const anchoTile = Math.floor((innerW - SEP_TILE * 2) / 3);
+  const ALTO_CAPTION = 48;
+  const altoGaleria = (altoImg) => 60 + altoImg + ALTO_CAPTION;
+  const SEP_SECCION = 46;
+
+  /* ── 2 · Reparto vertical con ajuste automático ──────────────────── */
+  const pieTop = tarjeta.y + tarjeta.h - 96;
+  const contenidoTop = tarjeta.y + heroH + 46;
+  const disponible = pieTop - 28 - contenidoTop;
+
+  let nServicios = Math.min(4, d.servicios.length);
+  let altoImg = Math.round(anchoTile * 0.7);
+  let serv = medirServicios(nServicios);
+  const total = () => serv.alto + SEP_SECCION + altoGaleria(altoImg);
+
+  while (total() > disponible && altoImg > Math.round(anchoTile * 0.52)) {
+    altoImg -= 6;
+  }
+  while (total() > disponible && nServicios > 0) {
+    nServicios -= 1;
+    serv = medirServicios(nServicios);
+  }
+  if (total() > disponible) {
+    /* Último recurso: se recorta la descripción con «…» para no salirse. */
+    ctx.font = FUENTE.desc;
+    const ajustada = envolverLineas(ctx, d.descripcion, innerW - 80, 2);
+    d.descripcion = ajustada.lineas.join(" ").replace(/…$/, "");
+    d._descCortada = ajustada.cortado;
+  }
+
+  /* ── 3 · Avisos ──────────────────────────────────────────────────── */
+  const avisos = avisosBase(d);
+  if (serv.filas.length < d.servicios.length) {
+    avisos.push("La lámina muestra " + serv.filas.length + " de " + d.servicios.length + " servicios; el resto queda en tu Mini Web.");
+  }
+  if (altoImg < Math.round(anchoTile * 0.7)) {
+    avisos.push("La galería va algo más baja para que todo el contenido quepa sin solaparse.");
+  }
+  const cortes = [nombreM, descM, ...serv.filas].filter((x) => x && x.cortado);
+  if (cortes.length || d._descCortada) avisos.push("Algún texto se acortó con «…» para no salirse de la lámina.");
+
+  /* ── 4 · Dibujo ──────────────────────────────────────────────────── */
+  ctx.fillStyle = d.primario;
+  ctx.fillRect(0, 0, W, H);
+
   ctx.save();
   ctx.shadowColor = "rgba(2, 8, 20, .35)";
   ctx.shadowBlur = 60;
   ctx.shadowOffsetY = 18;
-  redondear(ctx, M, M, tarjetaW, ALTO - M * 2, 44);
+  redondear(ctx, tarjeta.x, tarjeta.y, tarjeta.w, tarjeta.h, 44);
   ctx.fillStyle = "#ffffff";
   ctx.fill();
   ctx.restore();
 
-  /* Franja superior con el color principal */
   ctx.save();
-  redondear(ctx, M, M, tarjetaW, 486, [44, 44, 0, 0]);
+  redondear(ctx, tarjeta.x, tarjeta.y, tarjeta.w, heroH, [44, 44, 0, 0]);
   ctx.clip();
-  ctx.fillStyle = estado.primario;
-  ctx.fillRect(M, M, tarjetaW, 486);
+  ctx.fillStyle = d.primario;
+  ctx.fillRect(tarjeta.x, tarjeta.y, tarjeta.w, heroH);
   ctx.restore();
 
-  const centro = LADO / 2;
+  const hero = { top: tarjeta.y, bottom: tarjeta.y + heroH, h: heroH };
 
-  /* Logo: círculo si la forma es circular; si no, la forma se respeta */
-  const imgLogo = await cargarImagen(estado.logo);
-  const cajaLogo = estado.logoAspecto === "panoramica" ? { w: 300, h: 150 } : { w: 170, h: 170 };
-  const logoX = centro - cajaLogo.w / 2;
-  const logoY = M + 54;
-  if (imgLogo) {
-    ctx.save();
-    if (estado.formaLogo === "circular") {
-      ctx.beginPath();
-      ctx.arc(centro, logoY + cajaLogo.h / 2, Math.min(cajaLogo.w, cajaLogo.h) / 2, 0, Math.PI * 2);
-      ctx.closePath();
-      ctx.clip();
-      ctx.fillStyle = "#ffffff";
-      ctx.fillRect(logoX, logoY, cajaLogo.w, cajaLogo.h);
-      const lado = Math.min(cajaLogo.w, cajaLogo.h) - 28;
-      dibujarAjustada(ctx, imgLogo, centro - lado / 2, logoY + cajaLogo.h / 2 - lado / 2, lado, lado, "contain");
-    } else {
-      const r = estado.formaLogo === "redondeado" ? 26 : 8;
-      ctx.fillStyle = estado.formaLogo === "original" ? "transparent" : "#ffffff";
-      if (estado.formaLogo !== "original") { redondear(ctx, logoX, logoY, cajaLogo.w, cajaLogo.h, r); ctx.fill(); }
-      if (estado.formaLogo !== "original") { redondear(ctx, logoX, logoY, cajaLogo.w, cajaLogo.h, r); ctx.clip(); }
-      dibujarAjustada(ctx, imgLogo, logoX + 12, logoY + 12, cajaLogo.w - 24, cajaLogo.h - 24, "contain");
-    }
-    ctx.restore();
-  } else {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(centro, logoY + cajaLogo.h / 2, Math.min(cajaLogo.w, cajaLogo.h) / 2, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255, 255, 255, .22)";
-    ctx.fill();
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "800 52px system-ui, sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
-    ctx.fillText(nombre.slice(0, 2).toUpperCase(), centro, logoY + cajaLogo.h / 2 + 2);
-    ctx.restore();
-  }
+  /* Logo */
+  const imgLogo = await cargarImagen(d.logo);
+  const caja = { x: centro - cajaLogo.w / 2, y: hero.top + HERO.padTop, w: cajaLogo.w, h: cajaLogo.h };
+  const logo = dibujarLogo(ctx, imgLogo, d, caja, centro);
 
-  /* Nombre y descripción */
-  let y = logoY + cajaLogo.h + 54;
+  /* Nombre y descripción dentro de la franja */
+  let y = hero.top + HERO.padTop + cajaLogo.h + HERO.gap;
   ctx.textAlign = "center";
   ctx.fillStyle = "#ffffff";
-  ctx.font = "800 52px system-ui, sans-serif";
-  for (const linea of partirTexto(ctx, nombre, tarjetaW - 140, 2)) {
-    ctx.fillText(linea, centro, y);
-    y += 60;
-  }
-  ctx.font = "400 28px system-ui, sans-serif";
-  ctx.fillStyle = "rgba(255, 255, 255, .88)";
-  if (descPropia) {
-    for (const linea of partirTexto(ctx, descPropia, tarjetaW - 180, 3)) {
-      ctx.fillText(linea, centro, y + 6);
-      y += 36;
-    }
+  ctx.font = FUENTE.nombre;
+  for (const linea of nombreM.lineas) { ctx.fillText(linea, centro, y + 44); y += LH.nombre; }
+  if (descM) {
+    ctx.font = FUENTE.desc;
+    ctx.fillStyle = "rgba(255, 255, 255, .9)";
+    descM.lineas.forEach((linea, i) => ctx.fillText(linea, centro, y + 36 + i * LH.desc));
   } else {
-    ctx.fillText("Sin descripción escrita", centro, y + 6);
-    y += 36;
+    ctx.font = FUENTE.vacio;
+    ctx.fillStyle = "rgba(255, 255, 255, .75)";
+    ctx.fillText("Sin descripción escrita", centro, y + 34);
   }
 
   /* Servicios */
-  y = M + 486 + 62;
+  let top = contenidoTop;
   ctx.textAlign = "left";
-  ctx.fillStyle = estado.primario;
-  ctx.font = "800 34px system-ui, sans-serif";
-  ctx.fillText("Servicios", M + 56, y);
-  y += 28;
-  if (!servicios.length) {
-    ctx.font = "400 27px system-ui, sans-serif";
+  ctx.fillStyle = d.primario;
+  ctx.font = FUENTE.titulo;
+  ctx.fillText("Servicios", innerX, top + 34);
+
+  const filasMeta = [];
+  let yf = top + 60;
+  if (!serv.filas.length) {
+    ctx.font = FUENTE.vacio;
     ctx.fillStyle = "#94a3b8";
-    ctx.fillText("Todavía sin servicios escritos", M + 56, y + 12);
-    y += 30;
+    ctx.fillText("Todavía sin servicios escritos", innerX, top + 60 + 30);
   } else {
-    for (const s of servicios) {
-      y += 34;
-      redondear(ctx, M + 56, y, tarjetaW - 112, 62, 16);
+    for (const f of serv.filas) {
+      redondear(ctx, innerX, yf, innerW, f.alto, 16);
       ctx.fillStyle = "#f1f5f9";
       ctx.fill();
-      ctx.font = "600 27px system-ui, sans-serif";
+      ctx.font = FUENTE.item;
       ctx.fillStyle = "#0f172a";
       ctx.textAlign = "left";
-      ctx.fillText(partirTexto(ctx, s.nombre, tarjetaW - 420, 1)[0] || s.nombre, M + 78, y + 40);
+      f.lineas.forEach((linea, i) => ctx.fillText(linea, innerX + 26, yf + 48 + i * LH.item));
+      ctx.font = FUENTE.precio;
+      ctx.fillStyle = d.primario;
       ctx.textAlign = "right";
-      ctx.fillStyle = estado.primario;
-      ctx.fillText(formatearPrecio(s.precio) || "Consultar", M + tarjetaW - 78, y + 40);
+      ctx.fillText(f.precio || "Consultar", innerX + innerW - 26, yf + 48);
       ctx.textAlign = "left";
-      y += 24;
+      filasMeta.push({ nombre: f.nombre, precio: f.precio || "Consultar", top: yf, bottom: yf + f.alto, lineas: f.lineas.length });
+      yf += f.alto + 12;
     }
+    yf -= 12;
   }
+  const servicios = { top, bottom: top + serv.alto, ultimaFila: yf };
 
   /* Galería */
-  y += 40;
-  ctx.fillStyle = estado.primario;
-  ctx.font = "800 34px system-ui, sans-serif";
-  ctx.fillText("Galería", M + 56, y);
-  y += 28;
+  const gy = servicios.bottom + SEP_SECCION;
+  ctx.fillStyle = d.primario;
+  ctx.font = FUENTE.titulo;
+  ctx.textAlign = "left";
+  ctx.fillText("Galería", innerX, gy + 34);
 
-  const anchoFoto = Math.floor((tarjetaW - 112 - 2 * 28) / 3);
-  const altoFoto = Math.round(anchoFoto * 0.75);
+  const tilesTop = gy + 60;
+  const tiles = [];
   for (let i = 0; i < 3; i += 1) {
-    const x = M + 56 + i * (anchoFoto + 28);
-    const img = await cargarImagen(fotos[i].src);
+    const x = innerX + i * (anchoTile + SEP_TILE);
+    const img = await cargarImagen(d.fotos[i].src);
     ctx.save();
-    redondear(ctx, x, y, anchoFoto, altoFoto, 16);
+    redondear(ctx, x, tilesTop, anchoTile, altoImg, 16);
     ctx.clip();
     ctx.fillStyle = "#e2e8f0";
-    ctx.fillRect(x, y, anchoFoto, altoFoto);
-    if (img) dibujarAjustada(ctx, img, x, y, anchoFoto, altoFoto, "cover");
+    ctx.fillRect(x, tilesTop, anchoTile, altoImg);
+    if (img) dibujarAjustada(ctx, img, x, tilesTop, anchoTile, altoImg, "cover");
     ctx.restore();
-    redondear(ctx, x + 8, y + altoFoto - 40, fotos[i].propia ? 96 : 92, 30, 15);
-    ctx.fillStyle = fotos[i].propia ? "rgba(255,255,255,.95)" : "rgba(2,8,20,.72)";
+
+    /* La marca va en su propia franja BAJO la imagen: nunca encima de un texto. */
+    const marca = { y: tilesTop + altoImg + 10, h: 32 };
+    const texto = d.fotos[i].propia ? "TU FOTO" : "EJEMPLO";
+    ctx.font = FUENTE.marca;
+    marca.w = Math.ceil(ctx.measureText(texto).width) + 30;
+    marca.x = x + 4;
+    redondear(ctx, marca.x, marca.y, marca.w, marca.h, 16);
+    ctx.fillStyle = d.fotos[i].propia ? "#0f172a" : "#e2e8f0";
     ctx.fill();
-    ctx.font = "800 17px system-ui, sans-serif";
+    ctx.fillStyle = d.fotos[i].propia ? "#ffffff" : "#0f172a";
     ctx.textAlign = "center";
-    ctx.fillStyle = fotos[i].propia ? "#0f172a" : "#ffffff";
-    ctx.fillText(fotos[i].propia ? "TU FOTO" : "EJEMPLO", x + 8 + (fotos[i].propia ? 48 : 46), y + altoFoto - 20);
+    ctx.textBaseline = "middle";
+    ctx.fillText(texto, marca.x + marca.w / 2, marca.y + marca.h / 2 + 1);
+    ctx.textBaseline = "alphabetic";
     ctx.textAlign = "left";
+
+    tiles.push({ imagen: { x, y: tilesTop, w: anchoTile, h: altoImg }, marca, texto, propia: d.fotos[i].propia });
   }
+  const galeria = { top: gy, bottom: gy + altoGaleria(altoImg) };
 
   /* Pie */
   ctx.textAlign = "center";
   ctx.fillStyle = "#64748b";
-  ctx.font = "400 22px system-ui, sans-serif";
-  ctx.fillText("Demostración creada con el demostrador de KONFÍO ZINC · no publicada", centro, ALTO - M - 54);
-  ctx.font = "700 22px system-ui, sans-serif";
-  ctx.fillStyle = estado.primario;
-  ctx.fillText(pl.nombre + " · " + (estado.primario) + " / " + (estado.secundario), centro, ALTO - M - 26);
+  ctx.font = FUENTE.pie;
+  ctx.fillText("Demostración creada con el demostrador de KONFÍO ZINC · no publicada", centro, pieTop + 44);
+  ctx.font = FUENTE.pieFuerte;
+  ctx.fillStyle = d.primario;
+  ctx.fillText(d.estilo + " · " + d.primario + " / " + d.secundario, centro, pieTop + 76);
 
-  return { lienzo, avisos };
+  const meta = {
+    ancho: W,
+    alto: H,
+    estiloId: d.estiloId,
+    estilo: d.estilo,
+    colores: { primario: d.primario, secundario: d.secundario },
+    nombre: d.nombre,
+    descripcion: d.descripcion,
+    descripcionVacia: !d.descripcion,
+    formaLogo: d.formaLogo,
+    logo,
+    hero,
+    secciones: { servicios, galeria },
+    servicios: filasMeta,
+    serviciosTotales: d.servicios.length,
+    tiles,
+    pie: { top: pieTop, bottom: tarjeta.y + tarjeta.h },
+    tarjeta,
+    ajustes: {
+      serviciosMostrados: serv.filas.length,
+      altoTile: altoImg,
+      recortes: cortes.length + (d._descCortada ? 1 : 0)
+    },
+    avisos
+  };
+  return { lienzo, avisos, meta };
 }
 
 function nombreArchivo() {
