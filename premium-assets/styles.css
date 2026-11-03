@@ -226,7 +226,7 @@ button, a { -webkit-tap-highlight-color: transparent; }
 @media (max-width: 900px) {
   .site-header { height: 68px; }
   body.menu-open .site-header { background: #050b14; border-bottom-color: var(--line); }
-  /* KZ-MOB-001: el botón flotante del Asesor Konfi vive en z-index 9995, muy por
+  /* KZ-MOB-001: el botón flotante del chat de ZINC vive en z-index 9995, muy por
      encima de la cabecera (40). Con el menú abierto se dibujaba sobre el panel y
      tapaba navegación. Se oculta mientras el menú está abierto; al cerrarlo
      vuelve solo porque la regla deja de aplicar. */

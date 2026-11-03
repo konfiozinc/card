@@ -24,7 +24,7 @@ console.log('  bloque del chat recortado: ' + bloque.length + ' caracteres');
 bloque = bloque
   .replace(
     'aria-label="Abrir chat con asesor IA"',
-    'aria-label="Abrir el chat del Asesor Konfi"'
+    'aria-label="Abrir el chat con ZINC"'
   )
   .replace(
     '<i class="fas fa-robot" aria-hidden="true"></i>',
@@ -39,7 +39,7 @@ portada = portada.replace(
 );
 portada = portada.replace(
   '</body>',
-  `${bloque}\n\n  <!-- Asesor Konfi: configuración de marca y motor de respuestas -->\n  <script src="assets/js/config.js"></script>\n  <script src="assets/js/main.js" defer></script>\n</body>`
+  `${bloque}\n\n  <!-- ZINC · Asesor virtual: configuración de marca y motor de respuestas -->\n  <script src="assets/js/config.js"></script>\n  <script src="assets/js/main.js" defer></script>\n</body>`
 );
 writeFileSync(RAIZ + '/index.html', portada, 'utf8');
 

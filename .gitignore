@@ -91,3 +91,7 @@ test-results/
 *~
 *.bak
 *.orig
+
+# KZ: caché local de wrangler (nunca se versiona)
+.wrangler/
+

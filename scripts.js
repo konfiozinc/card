@@ -439,7 +439,7 @@ if (has(['contacto', 'whatsapp', 'telefono', 'numero', 'correo', 'email', 'habla
         return { text: '📞 Contáctanos por:\n• WhatsApp: +57 320 641 1340\n• Email: konfiozinc@gmail.com\n\nO usa el botón verde de WhatsApp. ¡Te respondemos al instante!', cta: true };
       }
       if (has(['hola', 'buenas', 'buenos dias', 'saludo', 'hey'])) {
-        return { text: '¡Hola! 👋 Soy el asesor de KONFÍO ZINC.\n\nCreamos tarjetas digitales, landing pages, catálogos, menús digitales y asistentes con IA.\n\nCuéntame, ¿qué te gustaría crear para tu negocio?', cta: false };
+        return { text: '¡Hola! 👋 Soy ZINC, el asesor virtual de KONFÍO ZINC.\n\nCreamos tarjetas digitales, landing pages, catálogos, menús digitales y asistentes con IA.\n\nCuéntame, ¿qué te gustaría crear para tu negocio?', cta: false };
       }
       return { text: 'Buena pregunta 😊. Para darte una respuesta exacta, escríbeme por WhatsApp y te atiendo al instante.\n\nAquí puedo ayudarte con: productos, precios, portafolio o cotizar tu proyecto. Toca un botón de abajo 👇', cta: true };
     }
@@ -493,7 +493,7 @@ if (has(['contacto', 'whatsapp', 'telefono', 'numero', 'correo', 'email', 'habla
     }
 
     function showWelcome() {
-      var welcome = '¡Hola! 👋 Bienvenido a KONFÍO ZINC.\n\nCreamos tarjetas digitales, landing pages, catálogos y menús digitales, y asistentes con IA para tu negocio.\n\nCuéntame, ¿qué te gustaría crear?';
+      var welcome = '¡Hola! 👋 Bienvenido a KONFÍO ZINC. Soy ZINC, el asesor virtual.\n\nCreamos tarjetas digitales, landing pages, catálogos y menús digitales, y asistentes con IA para tu negocio.\n\nCuéntame, ¿qué te gustaría crear?';
       addMessage(welcome, 'bot');
       history.push({ role: 'assistant', content: welcome });
     }

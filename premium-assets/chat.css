@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════
-   Asesor Konfi · estilos del chat flotante
+   ZINC · Asesor virtual · estilos del chat flotante
    Extraídos de assets/css/styles.css para la portada premium.
    ═══════════════════════════════════════════════════════════════════ */
 
@@ -186,4 +186,61 @@
   background: transparent;
   border: 0;
   cursor: pointer;
+}
+
+/* ═══ KZ-AI-004O · CHAT A PANTALLA COMPLETA EN MÓVIL ═══════════════════
+   En móvil el asesor ocupa toda el área visible, como una app de mensajería:
+   encabezado arriba con la zona segura, historial con la máxima altura,
+   «Explorar servicios» y el campo abajo. La altura efectiva la escribe
+   main.js desde `visualViewport` (--kz-vv-height / --kz-vv-top), de modo que
+   funciona con el teclado abierto en Android y en iOS; `dvh` queda sólo como
+   respaldo si esa API no existe. En escritorio no cambia nada (sigue la
+   ventana flotante). */
+@media (max-width: 640px) {
+  .kz-fab-chat {
+    position: fixed;
+    top: var(--kz-vv-top, 0px);
+    left: 0;
+    right: 0;
+    width: 100vw;
+    max-width: 100vw;
+    height: var(--kz-vv-height, 100dvh);
+    max-height: var(--kz-vv-height, 100dvh);
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+    transform-origin: center bottom;
+  }
+  /* Con el teclado abierto manda igualmente el área visible, no una regla fija. */
+  .kz-fab-chat.is-teclado {
+    height: var(--kz-vv-height, 100dvh);
+    max-height: var(--kz-vv-height, 100dvh);
+    border-radius: 0;
+  }
+  .kz-fab-chat.open + .kz-fab-btn { display: none; }
+  .kz-chat-header {
+    min-height: calc(54px + env(safe-area-inset-top, 0px));
+    padding: calc(8px + env(safe-area-inset-top, 0px)) 14px 8px;
+  }
+  /* Los accesos siguen disponibles aunque el teclado esté abierto. */
+  .kz-fab-chat.is-teclado .kz-chips,
+  .kz-chips {
+    display: block;
+    padding: 4px 12px 6px;
+    max-height: none;
+  }
+  .kz-servicios { left: 8px; right: 8px; bottom: calc(100% + 4px); }
+  .kz-servicios-lista { max-height: 46dvh; }
+  .kz-chat-input {
+    padding: 8px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--kz-surface);
+  }
+  /* Fondo bloqueado: se conserva la posición exacta de la página al cerrar. */
+  body.kz-scroll-fijo {
+    position: fixed;
+    top: var(--kz-scroll-y, 0px);
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
 }

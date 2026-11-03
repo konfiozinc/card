@@ -141,7 +141,7 @@ textarea {
 
 
 /* ─── 12. FLOTANTES SEGUROS (KZ-FIX-004) ──────────────────────────────────
-   La web ya ofrece WhatsApp en sus CTA y dentro del Asesor Konfi. Mantener
+   La web ya ofrece WhatsApp en sus CTA y dentro del chat de ZINC. Mantener
    además el acceso circular fijo duplicaba la misma acción y formaba una
    columna de tres controles en escritorio. El Asesor queda como único acceso
    flotante; su aria-label conserva un nombre accesible sin la burbuja visual. */

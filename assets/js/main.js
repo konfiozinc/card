@@ -658,6 +658,52 @@
      campo al abrir (el teclado virtual taparía parte del panel). */
   var esPunteroFino = !!(window.matchMedia && window.matchMedia('(pointer: fine)').matches);
 
+  /* KZ-AI-004O · pantalla completa en móvil. La altura y el desplazamiento
+     reales los aporta `visualViewport`, que en Android e iOS sí cambia cuando
+     aparece el teclado; `dvh` queda sólo como respaldo. Se escriben dos
+     variables CSS en el documento (no estilos en línea), así que no se choca
+     con la CSP de la portada. */
+  var vvChat = window.visualViewport || null;
+  function esPantallaCompleta() {
+    return !!(window.matchMedia && window.matchMedia('(max-width: 640px)').matches);
+  }
+  function ajustarViewport() {
+    if (!esPantallaCompleta()) {
+      document.documentElement.style.removeProperty('--kz-vv-height');
+      document.documentElement.style.removeProperty('--kz-vv-top');
+      return;
+    }
+    var alto = (vvChat && vvChat.height) ? vvChat.height : window.innerHeight;
+    var arriba = (vvChat && typeof vvChat.offsetTop === 'number') ? vvChat.offsetTop : 0;
+    document.documentElement.style.setProperty('--kz-vv-height', Math.round(alto) + 'px');
+    document.documentElement.style.setProperty('--kz-vv-top', Math.round(arriba) + 'px');
+  }
+  if (vvChat) {
+    vvChat.addEventListener('resize', ajustarViewport);
+    vvChat.addEventListener('scroll', ajustarViewport);
+  }
+  window.addEventListener('resize', ajustarViewport);
+  window.addEventListener('orientationchange', ajustarViewport);
+
+  /* KZ-AI-004O · el fondo no se desplaza con el chat abierto y la página vuelve
+     exactamente a su posición al cerrarlo. */
+  var posicionGuardada = 0;
+  var bloqueoAplicado = false;
+  function bloquearFondo() {
+    posicionGuardada = window.scrollY || window.pageYOffset || 0;
+    if (!esPantallaCompleta() || bloqueoAplicado) return;
+    bloqueoAplicado = true;
+    document.body.classList.add('kz-scroll-lock', 'kz-scroll-fijo');
+    document.body.style.setProperty('--kz-scroll-y', (-posicionGuardada) + 'px');
+  }
+  function liberarFondo() {
+    if (!bloqueoAplicado) return;
+    bloqueoAplicado = false;
+    document.body.classList.remove('kz-scroll-lock', 'kz-scroll-fijo');
+    document.body.style.removeProperty('--kz-scroll-y');
+    window.scrollTo(0, posicionGuardada);
+  }
+
   if (chat && toggleBtn && chatBody) {
     var isOpen = false;
     var history = [];
@@ -665,13 +711,18 @@
     var BACKEND_URL = 'https://calm-heart-6828.konfiozinc.workers.dev';
     var INACTIVIDAD_MS = 5 * 60 * 1000; // borrar historial por inactividad
 
-    /* ── Identidad del widget ── */
+    /* ── Identidad del widget · KZ-AI-004O: nombre oficial ZINC ── */
+    var NOMBRE_AGENTE = 'ZINC · Asesor virtual';
     var nameEl = document.querySelector('#kzFabChat .kz-name');
-    if (nameEl) nameEl.innerHTML = 'Asesor Konfi';
+    if (nameEl) nameEl.innerHTML = NOMBRE_AGENTE;
     var statusEl = document.querySelector('#kzFabChat .kz-status');
     if (statusEl) statusEl.innerHTML = '<span class="kz-dot" aria-hidden="true"></span> En línea';
     var avatarEl = document.querySelector('#kzFabChat .kz-avatar');
-    if (avatarEl) avatarEl.textContent = 'KO';
+    if (avatarEl) avatarEl.textContent = 'KZ';
+    /* Etiquetas accesibles del cierre y del disparador: también dicen ZINC. */
+    if (closeBtn) closeBtn.setAttribute('aria-label', 'Cerrar el chat de ZINC');
+    if (toggleBtn) toggleBtn.setAttribute('aria-label', 'Abrir el chat de ZINC');
+    chat.setAttribute('aria-label', NOMBRE_AGENTE);
 
     /* Chips de respuesta rápida: etiqueta corta visible, mensaje completo en
        data-msg y una clave corta en data-key para el evento agent_chip_click. */
@@ -761,6 +812,11 @@
       history = [];
       chatBody.innerHTML = '';
       if (chat) chat.classList.remove('is-teclado');
+      /* KZ-AI-004P · una respuesta que llegue después ya no pertenece a esta
+         conversación: se invalida la petición en curso y se libera el estado. */
+      peticionActual++;
+      enviando = false;
+      if (chatSend) chatSend.disabled = false;
       renderChips();
       lastActivity = Date.now();
     }
@@ -946,37 +1002,91 @@
         return { text: '📞 Contáctanos por:\n• WhatsApp: +57 320 641 1340\n• Email: konfiozinc@gmail.com\n\nO usa el botón verde de WhatsApp. ¡Te respondemos al instante!', cta: true };
       }
       if (has(['hola', 'buenas', 'buenos dias', 'saludo', 'hey'])) {
-        return { text: '¡Hola! 👋 Soy KONFI, tu asesor de KONFÍO ZINC.\n\nTe ayudo con nuestras seis soluciones:\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nY si quieres ganar dinero recomendándonos, tengo el programa de aliados.\n\nCuéntame, ¿qué necesitas?', cta: false };
+        return { text: '¡Hola! 👋 Soy ZINC, el asesor virtual de KONFÍO ZINC.\n\nTe ayudo con nuestras seis soluciones:\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nY si quieres ganar dinero recomendándonos, tengo el programa de aliados.\n\nCuéntame, ¿qué necesitas?', cta: false };
       }
       return { text: 'Buena pregunta 😊. Para darte una respuesta exacta, escríbeme por WhatsApp y te atiendo al instante.\n\nAquí puedo ayudarte con: servicios, precios, programa de aliados, portafolio o cotizar tu proyecto. Toca un botón de abajo 👇', cta: true };
     }
 
+    /* KZ-AI-004P · CONFIABILIDAD DEL ENVÍO.
+       Antes, si el navegador no tenía `AbortController`, el constructor lanzaba
+       una excepción no capturada: el indicador «Escribiendo…» quedaba para
+       siempre y no llegaba ninguna respuesta. Ahora:
+        · se usa AbortController SÓLO si existe (si no, carrera con temporizador);
+        · la petición y el refresco de la interfaz van con try/finally, de modo
+          que el indicador se libera siempre;
+        · no se admiten envíos duplicados mientras hay uno pendiente;
+        · un token identifica cada petición: una respuesta tardía no puede
+          alterar una conversación posterior;
+        · si no hay respuesta, se avisa con claridad y se mantiene el respaldo. */
+    var ESPERA_MAX_MS = 20000;   /* el Worker mide 4–7 s: 20 s cubre respuestas lentas sin bloquear al visitante */
+    var enviando = false;
+    var peticionActual = 0;
+
+    function errorConMotivo(motivo, detalle) {
+      var e = new Error(detalle || motivo);
+      e.kzMotivo = motivo;
+      return e;
+    }
+
     function callBackend(message) {
-      var ctrl = new AbortController();
-      var timer = setTimeout(function () { ctrl.abort(); }, 30000);
       var chatHistory = history.slice(-8);
       while (chatHistory.length && chatHistory[0].role === 'assistant') { chatHistory = chatHistory.slice(1); }
-      return fetch(BACKEND_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: message, history: chatHistory }),
-        signal: ctrl.signal
-      }).then(function (res) {
-        clearTimeout(timer);
-        if (!res.ok) throw new Error('HTTP ' + res.status);
+      var cuerpo = JSON.stringify({ message: message, history: chatHistory });
+      var peticion = function (signal) {
+        return fetch(BACKEND_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: cuerpo,
+          signal: signal
+        });
+      };
+      var respuesta;
+      if (typeof AbortController === 'function') {
+        var ctrl = new AbortController();
+        var timer = setTimeout(function () { ctrl.abort(); }, ESPERA_MAX_MS);
+        respuesta = peticion(ctrl.signal).then(function (res) {
+          clearTimeout(timer);
+          return res;
+        }, function (e) {
+          clearTimeout(timer);
+          var motivo = (e && e.name === 'AbortError') ? 'tiempo' : 'red';
+          throw errorConMotivo(motivo, e && e.message);
+        });
+      } else {
+        /* Sin AbortController: la carrera garantiza que nunca se quede colgado. */
+        respuesta = Promise.race([
+          peticion(undefined).then(null, function () { throw errorConMotivo('red'); }),
+          new Promise(function (_, rechazar) {
+            setTimeout(function () { rechazar(errorConMotivo('tiempo')); }, ESPERA_MAX_MS);
+          })
+        ]);
+      }
+      return respuesta.then(function (res) {
+        if (!res || !res.ok) throw errorConMotivo('http', 'HTTP ' + (res ? res.status : '?'));
         return res.json();
       }).then(function (data) {
         var reply = (data && data.reply ? String(data.reply) : '').trim();
-        if (!reply) throw new Error('respuesta vacia');
+        if (!reply) throw errorConMotivo('vacia');
         return reply;
-      }).catch(function (e) {
-        clearTimeout(timer);
-        throw e;
+      }, function (e) {
+        if (e && e.kzMotivo) throw e;
+        throw errorConMotivo('http', e && e.message);
       });
+    }
+
+    function liberarEnvio() {
+      enviando = false;
+      if (chatSend) chatSend.disabled = false;
     }
 
     function sendMessage(text) {
       if (!text || !text.trim()) return;
+      /* Un segundo envío mientras el primero está pendiente se ignora: el texto
+         escrito se conserva en el campo para no perderlo. */
+      if (enviando) return;
+      enviando = true;
+      if (chatSend) chatSend.disabled = true;
+      var miPeticion = ++peticionActual;
       var userMsg = text.trim();
       addMessage(userMsg, 'user');
       chatInput.value = '';
@@ -986,24 +1096,49 @@
       track('ia_message', { length: userMsg.length });
       showTyping();
 
-      callBackend(userMsg)
-        .then(function (reply) {
+      var exito = function (reply) {
+        try {
+          if (miPeticion !== peticionActual) return; /* respuesta de una conversación anterior */
           hideTyping();
           addMessage(reply, 'bot');
           history.push({ role: 'assistant', content: reply });
           showWhatsAppButton();
-        })
-        .catch(function () {
+        } catch (e) {
+          /* nunca se deja el indicador colgado por un fallo de pintado */
+        } finally {
+          liberarEnvio();
+        }
+      };
+      var fallo = function (err) {
+        try {
+          if (miPeticion !== peticionActual) return;
           hideTyping();
+          var motivo = err && err.kzMotivo;
+          if (motivo === 'tiempo' || motivo === 'red') {
+            addMessage('No pude conectar con el asesor en este momento. Te respondo con lo esencial y, si quieres, seguimos por WhatsApp.', 'bot');
+          }
           var res = getLocalResponse(userMsg);
           addMessage(res.text, 'bot');
           history.push({ role: 'assistant', content: res.text });
           if (res.cta) showWhatsAppButton();
-        });
+        } catch (e) {
+          /* garantía: el respaldo nunca deja el indicador vivo */
+        } finally {
+          liberarEnvio();
+        }
+      };
+
+      var pendiente;
+      try {
+        pendiente = callBackend(userMsg);
+      } catch (e) {
+        pendiente = Promise.reject(e);
+      }
+      pendiente.then(exito, fallo);
     }
 
     function showWelcome() {
-      var welcome = '¡Hola! 👋 Soy KONFI, tu asesor virtual de KONFÍO ZINC. Creamos tarjetas digitales, menús, catálogos, landing pages, códigos QR y agentes IA. ¿En qué te ayudo?';
+      var welcome = '¡Hola! 👋 Soy ZINC, el asesor virtual de KONFÍO ZINC. Creamos tarjetas digitales, menús, catálogos, landing pages, códigos QR y agentes IA. ¿En qué te ayudo?';
       addMessage(welcome, 'bot');
       history.push({ role: 'assistant', content: welcome });
     }
@@ -1020,6 +1155,10 @@
       if (isOpen) {
         /* Si pasó más de 5 minutos sin actividad, empieza de cero. */
         if (Date.now() - lastActivity > INACTIVIDAD_MS) resetConversacion();
+        /* KZ-AI-004O · pantalla completa: mide el área visible y congela el
+           fondo de la página hasta que se cierre el chat. */
+        ajustarViewport();
+        bloquearFondo();
         /* KZ-AI-004N · en el móvil NO se abre el teclado al abrir el panel: el
            teclado reduce el área visible y dejaba el campo bajo él. Sólo se
            enfoca con puntero fino (escritorio), donde no hay teclado virtual. */
@@ -1027,8 +1166,17 @@
         if (chatBody.children.length === 0) showWelcome();
         track('open_agent_ia', { event_category: 'engagement', event_label: 'widget_agente', value: 1 });
       } else {
-        /* Al cerrar (X o el propio botón), el historial se borra al instante. */
-        resetConversacion();
+        /* KZ-AI-004O · al cerrar se CONSERVA la conversación (requisito de la
+           misión): el historial sigue en memoria y reaparece al reabrir. Se
+           libera el fondo y se restaura la posición exacta de la página. */
+        liberarFondo();
+        if (chat) chat.classList.remove('is-teclado');
+        /* KZ-AI-004P · si había una petición en curso, al cerrar se descarta:
+           su respuesta no debe aparecer en una conversación posterior. */
+        peticionActual++;
+        liberarEnvio();
+        hideTyping();
+        lastActivity = Date.now();
       }
     }
 
