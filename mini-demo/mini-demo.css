@@ -17,6 +17,9 @@
 
 * { box-sizing: border-box; }
 
+/* `hidden` debe ganar a los `display` de los componentes (.btn, .formas-logo…) */
+[hidden] { display: none !important; }
+
 html, body { margin: 0; }
 
 body {
@@ -75,6 +78,8 @@ h2 { font-size: clamp(1.25rem, 5vw, 1.6rem); }
   padding: 12px 14px; border-radius: 10px; color: var(--ui-tenue); font-size: .92rem;
 }
 .nota strong { color: var(--ui-texto); }
+.nota--pequena { font-size: .84rem; margin-top: 12px; }
+.nota--pequena strong { color: var(--ui-texto); }
 
 /* ── Botones ───────────────────────────────────────────────────────── */
 .btn {
@@ -130,6 +135,7 @@ legend { padding: 0 8px; font-weight: 700; font-size: .92rem; color: var(--ui-ac
   outline: 2px solid var(--ui-acento); outline-offset: 1px;
 }
 .ayuda { display: block; margin-top: 4px; color: var(--ui-tenue); font-size: .8rem; }
+.ayuda strong { color: var(--ui-texto); }
 .campo--color { display: flex; align-items: center; justify-content: space-between; }
 .campo--color input[type="color"] { width: 64px; height: 44px; border: 1px solid var(--ui-borde); border-radius: 10px; background: none; padding: 2px; }
 .colores { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -151,6 +157,17 @@ legend { padding: 0 8px; font-weight: 700; font-size: .92rem; color: var(--ui-ac
 .subida__estado { color: var(--ui-tenue); font-size: .85rem; }
 .oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
+/* Forma del logo (se muestra solo cuando hay logo cargado) */
+.formas-logo { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.forma-logo {
+  min-height: 40px; padding: 6px 14px; border-radius: 999px; cursor: pointer;
+  background: var(--ui-superficie-2); border: 1px solid var(--ui-borde);
+  color: var(--ui-texto); font-size: .85rem; font-weight: 600;
+}
+.forma-logo[aria-pressed="true"] {
+  border-color: var(--ui-acento); box-shadow: 0 0 0 2px rgba(34,211,238,.25);
+}
+
 .fotos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .foto {
   position: relative; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden;
@@ -165,19 +182,64 @@ legend { padding: 0 8px; font-weight: 700; font-size: .92rem; color: var(--ui-ac
   border-radius: 50%; border: 0; background: rgba(0,0,0,.6); color: #fff; cursor: pointer;
   font-size: 14px; line-height: 1;
 }
+.foto__marca {
+  position: absolute; left: 4px; bottom: 4px;
+  font-size: 9px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  padding: 1px 5px; border-radius: 999px;
+  background: rgba(11, 18, 32, .82); color: #cbd5e1;
+}
+.foto__marca--propia { background: rgba(34, 211, 238, .92); color: #04121a; }
 
 /* ── Vista previa ──────────────────────────────────────────────────── */
 .preview { display: grid; gap: 18px; }
 @media (min-width: 760px) { .preview { grid-template-columns: 1fr 220px; align-items: start; } }
 .movil { display: grid; place-items: center; }
+
+/* Marco del teléfono: bisel con degradado, isla superior e indicador inferior. */
 .movil__marco {
-  width: 100%; max-width: 340px; padding: 10px; border-radius: 34px;
-  background: #050b14; border: 1px solid var(--ui-borde); box-shadow: var(--ui-sombra);
+  position: relative;
+  width: 100%; max-width: 350px;
+  padding: 12px 10px 16px;
+  border-radius: 40px;
+  background: linear-gradient(160deg, #1a2433 0%, #050b14 55%, #0b1420 100%);
+  border: 1px solid #2b3a52;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, .05) inset,
+    0 24px 60px rgba(2, 8, 20, .55);
+}
+.movil__marco::before {
+  content: ""; position: absolute; top: 7px; left: 50%; transform: translateX(-50%);
+  width: 88px; height: 20px; border-radius: 12px;
+  background: #050b14; box-shadow: 0 0 0 1px rgba(255,255,255,.06) inset;
+  z-index: 3; pointer-events: none;
+}
+.movil__marco::after {
+  content: ""; position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+  width: 112px; height: 4px; border-radius: 999px;
+  background: rgba(255, 255, 255, .38);
+  z-index: 3; pointer-events: none;
 }
 .movil__pantalla {
-  height: min(560px, 62dvh); overflow-y: auto; overscroll-behavior: contain;
-  border-radius: 26px; background: #fff; color: #111;
+  height: min(600px, 66dvh); overflow-y: auto; overscroll-behavior: contain;
+  border-radius: 30px; background: #fff; color: #111;
+  /* Barra de desplazamiento discreta: fina, translúcida y sin ocupar espacio
+     visible cuando no se usa. El desplazamiento táctil y con rueda sigue igual. */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, .26) transparent;
+  scrollbar-gutter: stable;
+  scroll-behavior: smooth;
 }
+.movil__pantalla::-webkit-scrollbar { width: 8px; }
+.movil__pantalla::-webkit-scrollbar-track { background: transparent; }
+.movil__pantalla::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, .20);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.movil__pantalla:hover::-webkit-scrollbar-thumb,
+.movil__pantalla:focus-within::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, .40); background-clip: content-box; }
+
 .preview__panel { background: var(--ui-superficie); border: 1px solid var(--ui-borde); border-radius: var(--ui-radio); padding: 14px; }
 .preview__titulo { margin: 0 0 8px; font-size: .82rem; color: var(--ui-tenue); text-transform: uppercase; letter-spacing: .06em; }
 .preview__plantillas { display: grid; gap: 8px; margin-bottom: 14px; }
@@ -195,6 +257,7 @@ legend { padding: 0 8px; font-weight: 700; font-size: .92rem; color: var(--ui-ac
 .resumen dl { margin: 0; display: grid; grid-template-columns: 120px 1fr; gap: 8px 12px; }
 .resumen dt { color: var(--ui-tenue); font-size: .85rem; }
 .resumen dd { margin: 0; font-weight: 600; }
+.resumen dd.resumen__tenue { font-weight: 400; color: var(--ui-tenue); font-size: .82rem; }
 .estampa { display: inline-flex; gap: 6px; align-items: center; }
 .estampa i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,.4); }
 .pie-legal { color: var(--ui-tenue); font-size: .75rem; text-align: center; margin-top: 18px; }
@@ -212,20 +275,63 @@ legend { padding: 0 8px; font-weight: 700; font-size: .92rem; color: var(--ui-ac
    Comparten estructura y heredan los colores del cliente por --p / --s. */
 .demo { min-height: 100%; font-family: system-ui, -apple-system, "Segoe UI", sans-serif; background: #f8fafc; color: #0f172a; }
 .demo, .demo * { min-width: 0; }
-.demo__hero { padding: 26px 20px 22px; background: var(--p); color: #fff; overflow-wrap: anywhere; }
-.demo__logo { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; background: rgba(255,255,255,.16); display: grid; place-items: center; font-weight: 800; font-size: 20px; margin-bottom: 12px; }
+.demo__hero { padding: 34px 20px 22px; background: var(--p); color: #fff; overflow-wrap: anywhere; }
+
+/* Logo: marco con placa clara y "contain" para no deformar ni recortar.
+   El ancho del marco se adapta al aspecto real de la imagen (horizontal,
+   cuadrada o vertical) para que un logo panorámico no quede diminuto. */
+.demo__logo {
+  display: grid; place-items: center;
+  width: 64px; height: 64px;
+  object-fit: contain;
+  padding: 6px;
+  background: rgba(255, 255, 255, .94);
+  border-radius: 999px;
+  box-shadow: 0 6px 18px rgba(2, 8, 20, .22);
+  margin-bottom: 12px;
+  font-weight: 800; font-size: 20px; color: #0f172a;
+}
+.demo__logo--panoramica { width: 140px; height: 58px; padding: 7px 10px; }
+.demo__logo--vertical { width: 56px; height: 78px; padding: 6px 8px; }
+.demo__logo--redondeado { border-radius: 16px; }
+.demo__logo--original {
+  width: auto; height: 64px; max-width: 100%;
+  padding: 0; background: transparent; border-radius: 6px; box-shadow: none;
+}
+.demo__logo--original.demo__logo--panoramica { height: 48px; width: auto; max-width: 190px; }
+.demo__logo--original.demo__logo--vertical { height: 78px; width: auto; max-width: 80px; }
+
 .demo__nombre { margin: 0 0 6px; font-size: 1.5rem; line-height: 1.15; }
 .demo__desc { margin: 0 0 14px; opacity: .92; font-size: .92rem; }
-.demo__cta { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 18px; border-radius: 999px; background: var(--s); color: var(--p); font-weight: 800; text-decoration: none; border: 0; cursor: pointer; font: inherit; font-weight: 800; }
-.demo__nav { display: flex; gap: 8px; overflow-x: auto; padding: 10px 14px; background: #fff; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 2; }
+.demo__marca-ejemplo {
+  display: inline-block; margin-left: 6px; padding: 1px 7px; border-radius: 999px;
+  font-size: .58rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase;
+  background: rgba(255, 255, 255, .22); color: #fff; vertical-align: middle;
+}
+.demo__cta { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 10px 18px; border-radius: 999px; background: var(--s); color: var(--p); text-decoration: none; border: 0; cursor: pointer; font: inherit; font-weight: 800; }
+.demo__nav { display: flex; gap: 8px; overflow-x: auto; padding: 10px 14px; background: #fff; border-bottom: 1px solid #e5e7eb; position: sticky; top: 0; z-index: 2; scrollbar-width: none; }
+.demo__nav::-webkit-scrollbar { display: none; }
 .demo__nav a { flex: 0 0 auto; min-height: 36px; display: inline-flex; align-items: center; padding: 6px 12px; border-radius: 999px; background: #f1f5f9; color: var(--p); text-decoration: none; font-size: .8rem; font-weight: 700; }
+.demo__nav a.activo { background: var(--p); color: #fff; }
 .demo__seccion { padding: 18px 18px 22px; }
 .demo__h3 { margin: 0 0 10px; font-size: 1rem; color: var(--p); }
 .demo__servicios { display: grid; gap: 8px; }
 .demo__servicio { display: flex; justify-content: space-between; gap: 10px; padding: 10px 12px; background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; font-size: .9rem; }
 .demo__servicio b { color: var(--p); }
-.demo__galeria { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.demo__galeria img { width: 100%; height: 92px; object-fit: cover; border-radius: 10px; display: block; }
+
+/* Galería: tres recuadros iguales (4:3) con recorte centrado, iguales en las
+   tres plantillas, y una marca que distingue la imagen de ejemplo de la subida. */
+.demo__galeria { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.demo__foto { position: relative; margin: 0; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; background: #e2e8f0; }
+.demo__foto img { width: 100%; height: 100%; object-fit: cover; object-position: center; display: block; }
+.demo__foto-marca {
+  position: absolute; left: 5px; bottom: 5px;
+  font-size: .52rem; font-weight: 800; letter-spacing: .05em; text-transform: uppercase;
+  padding: 2px 6px; border-radius: 999px;
+  background: rgba(2, 8, 20, .78); color: #fff;
+}
+.demo__foto--propia .demo__foto-marca { background: rgba(255, 255, 255, .95); color: #0f172a; }
+
 .demo__contacto { display: grid; gap: 8px; }
 .demo__contacto a { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 999px; background: var(--p); color: #fff; text-decoration: none; font-weight: 700; font-size: .9rem; border: 0; cursor: pointer; font: inherit; }
 .demo__pie { padding: 12px 18px 18px; font-size: .72rem; color: #64748b; border-top: 1px solid #e5e7eb; }
@@ -233,25 +339,30 @@ legend { padding: 0 8px; font-weight: 700; font-size: .92rem; color: var(--ui-ac
 /* Elegancia: serif, dorado, líneas finas */
 .demo--elegancia { background: #fbf8f1; }
 .demo--elegancia .demo__hero { text-align: center; }
-.demo--elegancia .demo__logo { margin-inline: auto; border-radius: 2px; }
+.demo--elegancia .demo__logo { margin-inline: auto; }
 .demo--elegancia .demo__nombre { font-family: Georgia, "Times New Roman", serif; letter-spacing: .1em; text-transform: uppercase; font-size: 1.25rem; }
 .demo--elegancia .demo__h3 { font-family: Georgia, "Times New Roman", serif; letter-spacing: .14em; text-transform: uppercase; font-size: .85rem; }
 .demo--elegancia .demo__servicio { border-radius: 2px; border-color: var(--s); }
 .demo--elegancia .demo__nav { background: #fbf8f1; }
+.demo--elegancia .demo__foto { border-radius: 2px; }
 
 /* Sabores: cálida, muy redondeada */
 .demo--sabores { background: #fff7ed; }
 .demo--sabores .demo__hero { border-bottom-left-radius: 28px; border-bottom-right-radius: 28px; }
 .demo--sabores .demo__servicio { border-radius: 18px; border-color: #fed7aa; }
 .demo--sabores .demo__nav a { background: var(--s); color: var(--p); }
+.demo--sabores .demo__nav a.activo { background: var(--p); color: #fff; }
+.demo--sabores .demo__foto { border-radius: 18px; }
 
 /* Profesional: limpia, tarjetas con sombra suave */
 .demo--profesional { background: #f8fafc; }
 .demo--profesional .demo__hero { border-bottom: 4px solid var(--s); }
 .demo--profesional .demo__servicio { border-radius: 10px; box-shadow: 0 6px 18px rgba(15, 23, 42, .06); }
 .demo--profesional .demo__h3 { font-size: .95rem; }
+.demo--profesional .demo__foto { border-radius: 10px; }
 
 @media (prefers-reduced-motion: reduce) {
   .pantalla.activa { animation: none; }
   .btn, .tarjeta-plantilla { transition: none; }
+  .movil__pantalla { scroll-behavior: auto; }
 }

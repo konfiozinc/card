@@ -97,13 +97,18 @@
             <span class="subida__estado" id="logo-estado">Sin logo</span>
             <button class="btn btn--texto" type="button" id="btn-quitar-logo" hidden>Quitar</button>
           </div>
-          <small class="ayuda">Se procesa en tu teléfono; no se sube a ningún sitio.</small>
+          <div class="formas-logo" id="formas-logo" role="group" aria-label="Forma del logo">
+            <button type="button" class="forma-logo" data-forma="circular" aria-pressed="true">Círculo</button>
+            <button type="button" class="forma-logo" data-forma="redondeado" aria-pressed="false">Redondeado</button>
+            <button type="button" class="forma-logo" data-forma="original" aria-pressed="false">Original</button>
+          </div>
+          <small class="ayuda">Se ajusta solo, sin deformar la imagen, sea horizontal, cuadrada o vertical. Se procesa en tu teléfono; no se sube a ningún sitio.</small>
         </fieldset>
 
         <fieldset>
           <legend>Fotografías</legend>
           <div class="fotos" id="fotos"><!-- 3 slots por JS --></div>
-          <small class="ayuda">Elige una muestra del banco local o sube una foto tuya.</small>
+          <small class="ayuda">Los recuadros vacíos usan una imagen de <strong>ejemplo</strong> del banco local (marcada en la galería). Si subes una foto tuya, lleva la marca <strong>tu foto</strong>.</small>
         </fieldset>
       </form>
 
@@ -137,8 +142,13 @@
       </div>
       <div class="acciones">
         <button class="btn btn--secundario" type="button" data-ir="personalizar">Seguir editando</button>
+        <button class="btn btn--secundario" type="button" id="btn-descargar">Descargar imagen de mi Mini Web</button>
         <button class="btn" type="button" id="btn-ir-solicitud">Solicitar mi Mini Web</button>
       </div>
+      <p class="nota nota--pequena" role="note" id="nota-descarga">
+        La imagen se genera en tu teléfono y reúne las partes principales de tu Mini Web.
+        Si alguna sección no cabe en la imagen, te lo avisaremos antes de descargarla.
+      </p>
     </section>
 
     <!-- 5 · Solicitud -->
@@ -150,8 +160,14 @@
         Al pulsar el botón se abrirá WhatsApp con un mensaje preparado. <strong>Tú decides si lo envías</strong>:
         esta demostración no envía nada por su cuenta.
       </p>
+      <p class="nota nota--pequena" role="note">
+        <strong>El mensaje no incluye tus fotos ni tu logo.</strong> Si quieres que los veamos,
+        pulsa «Descargar imagen de mi Mini Web», guarda la imagen y <strong>adjúntala tú mismo</strong>
+        en el chat de WhatsApp con el botón de adjuntar. Nada se envía solo.
+      </p>
       <div class="acciones">
         <button class="btn btn--secundario" type="button" data-ir="preview">Volver a la vista previa</button>
+        <button class="btn btn--secundario" type="button" id="btn-descargar-2">Descargar imagen</button>
         <a class="btn btn--whatsapp" id="btn-whatsapp" href="#" target="_blank" rel="noopener">Solicitar mi Mini Web</a>
       </div>
       <p class="pie-legal">Demostración local de KONFÍO ZINC · no publica, no guarda datos.</p>
