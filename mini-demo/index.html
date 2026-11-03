@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Demostrador de Mini Webs · KONFÍO ZINC</title>
+  <meta name="description" content="Demostrador local de Mini Webs de KONFÍO ZINC. No publica nada: es una demostración." />
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="mini-demo.css" />
+</head>
+<body>
+  <a class="saltar" href="#app">Saltar al contenido</a>
+
+  <header class="barra">
+    <div class="barra__marca"><span class="barra__punto" aria-hidden="true"></span> KONFÍO ZINC</div>
+    <p class="barra__paso" id="indicador-paso">Paso 1 de 5</p>
+  </header>
+
+  <main id="app" class="app">
+
+    <!-- 1 · Bienvenida -->
+    <section class="pantalla activa" id="pantalla-bienvenida" aria-labelledby="t-bienvenida">
+      <h1 id="t-bienvenida">Crea tu Mini Web en unos minutos</h1>
+      <p class="entrada">
+        Elige un estilo, personaliza tu negocio y mira cómo quedaría tu enlace propio.
+        Al final podrás enviarnos tu diseño por WhatsApp para que lo preparemos.
+      </p>
+      <ul class="lista-ventajas">
+        <li>Tres estilos listos para distintos tipos de negocio.</li>
+        <li>Colores, logo y fotografías: todo desde tu teléfono.</li>
+        <li>Sin registro y sin publicar nada mientras pruebas.</li>
+      </ul>
+      <p class="nota" role="note">
+        <strong>Es una demostración:</strong> no se publica ninguna página, no se envía nada
+        automáticamente y no se guardan datos en ningún servidor.
+      </p>
+      <button class="btn btn--grande" type="button" id="btn-empezar">Crear mi Mini Web</button>
+    </section>
+
+    <!-- 2 · Plantillas -->
+    <section class="pantalla" id="pantalla-plantillas" aria-labelledby="t-plantillas" hidden>
+      <h2 id="t-plantillas">¿Qué estilo va con tu negocio?</h2>
+      <p class="entrada">Puedes cambiarla después sin perder lo que hayas escrito.</p>
+      <div class="rejilla-plantillas" id="rejilla-plantillas"><!-- tarjetas por JS --></div>
+      <div class="acciones">
+        <button class="btn btn--secundario" type="button" data-ir="bienvenida">Atrás</button>
+        <button class="btn" type="button" id="btn-ir-personalizar" disabled>Continuar</button>
+      </div>
+    </section>
+
+    <!-- 3 · Personalización -->
+    <section class="pantalla" id="pantalla-personalizar" aria-labelledby="t-personalizar" hidden>
+      <h2 id="t-personalizar">Personaliza tu negocio</h2>
+      <form class="formulario" id="form-negocio" novalidate>
+        <fieldset>
+          <legend>Lo esencial</legend>
+          <label class="campo">
+            <span>Nombre del negocio</span>
+            <input id="f-nombre" name="nombre" type="text" maxlength="40" autocomplete="organization" placeholder="Ej.: Panadería La Espiga" required />
+            <small class="ayuda">Hasta 40 caracteres.</small>
+          </label>
+          <label class="campo">
+            <span>Descripción corta</span>
+            <textarea id="f-descripcion" name="descripcion" rows="2" maxlength="140" placeholder="Ej.: Pan artesanal horneado cada mañana."></textarea>
+            <small class="ayuda"><span id="contador-desc">0</span>/140</small>
+          </label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Servicios o productos</legend>
+          <div id="lista-servicios" class="servicios"><!-- filas por JS --></div>
+          <button class="btn btn--secundario btn--pequeno" type="button" id="btn-add-servicio">+ Añadir otro</button>
+          <small class="ayuda">Deja el precio vacío o escribe «Cotizar» si prefieres no mostrarlo.</small>
+        </fieldset>
+
+        <fieldset>
+          <legend>Colores</legend>
+          <div class="colores">
+            <label class="campo campo--color">
+              <span>Principal</span>
+              <input id="f-primario" name="primario" type="color" value="#1f3a5f" />
+            </label>
+            <label class="campo campo--color">
+              <span>Secundario</span>
+              <input id="f-secundario" name="secundario" type="color" value="#c9a227" />
+            </label>
+          </div>
+          <div class="paletas" id="paletas"><!-- paletas por JS --></div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Logo</legend>
+          <div class="subida">
+            <label class="btn btn--secundario btn--pequeno" for="f-logo">Elegir imagen</label>
+            <input class="oculto" id="f-logo" type="file" accept="image/*" />
+            <span class="subida__estado" id="logo-estado">Sin logo</span>
+            <button class="btn btn--texto" type="button" id="btn-quitar-logo" hidden>Quitar</button>
+          </div>
+          <small class="ayuda">Se procesa en tu teléfono; no se sube a ningún sitio.</small>
+        </fieldset>
+
+        <fieldset>
+          <legend>Fotografías</legend>
+          <div class="fotos" id="fotos"><!-- 3 slots por JS --></div>
+          <small class="ayuda">Elige una muestra del banco local o sube una foto tuya.</small>
+        </fieldset>
+      </form>
+
+      <div class="acciones">
+        <button class="btn btn--secundario" type="button" data-ir="plantillas">Atrás</button>
+        <button class="btn" type="button" id="btn-ir-preview">Ver mi Mini Web</button>
+      </div>
+    </section>
+
+    <!-- 4 · Vista previa -->
+    <section class="pantalla pantalla--preview" id="pantalla-preview" aria-labelledby="t-preview" hidden>
+      <h2 id="t-preview">Así se vería tu Mini Web</h2>
+      <div class="preview">
+        <div class="movil">
+          <div class="movil__marco">
+            <div id="demo-movil" class="movil__pantalla"><!-- demo por JS --></div>
+          </div>
+        </div>
+        <aside class="preview__panel">
+          <p class="preview__titulo">Cambiar estilo</p>
+          <div class="preview__plantillas" id="preview-plantillas"></div>
+          <p class="preview__titulo">Tus colores</p>
+          <div class="preview__colores">
+            <label class="oculto" for="p-primario">Principal</label>
+            <input id="p-primario" type="color" />
+            <label class="oculto" for="p-secundario">Secundario</label>
+            <input id="p-secundario" type="color" />
+          </div>
+          <p class="preview__nota">Los botones de la demo son simulados: no piden datos ni envían mensajes.</p>
+        </aside>
+      </div>
+      <div class="acciones">
+        <button class="btn btn--secundario" type="button" data-ir="personalizar">Seguir editando</button>
+        <button class="btn" type="button" id="btn-ir-solicitud">Solicitar mi Mini Web</button>
+      </div>
+    </section>
+
+    <!-- 5 · Solicitud -->
+    <section class="pantalla" id="pantalla-solicitud" aria-labelledby="t-solicitud" hidden>
+      <h2 id="t-solicitud">Tu Mini Web está lista para cotizar</h2>
+      <p class="entrada">Revisa el resumen y envíanoslo por WhatsApp cuando quieras.</p>
+      <div class="resumen" id="resumen"><!-- resumen por JS --></div>
+      <p class="nota" role="note">
+        Al pulsar el botón se abrirá WhatsApp con un mensaje preparado. <strong>Tú decides si lo envías</strong>:
+        esta demostración no envía nada por su cuenta.
+      </p>
+      <div class="acciones">
+        <button class="btn btn--secundario" type="button" data-ir="preview">Volver a la vista previa</button>
+        <a class="btn btn--whatsapp" id="btn-whatsapp" href="#" target="_blank" rel="noopener">Solicitar mi Mini Web</a>
+      </div>
+      <p class="pie-legal">Demostración local de KONFÍO ZINC · no publica, no guarda datos.</p>
+    </section>
+
+  </main>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <script type="module" src="mini-demo.js"></script>
+</body>
+</html>
