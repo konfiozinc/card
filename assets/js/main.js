@@ -893,7 +893,7 @@
           return { text: 'Los agentes IA se entregan según el plan: Esencial 3–5 días hábiles, Negocio 5–7 días hábiles, Premium hasta 10 días hábiles, tras recibir toda la información y el pago.', cta: true };
         }
         if (has(['tarjeta', 'tarjetas', 'menu', 'menus', 'catalogo', 'catalogos', 'qr', 'codigo qr'])) {
-          return { text: 'Las tarjetas digitales, menús, catálogos y códigos QR tardan de 24 a 48 horas hábiles, tras recibir toda la información y el pago.', cta: true };
+          return { text: 'Las Mini Webs, menús, catálogos y códigos QR tardan de 24 a 48 horas hábiles, tras recibir toda la información y el pago.', cta: true };
         }
         return { text: 'Tarjetas, menús, catálogos y códigos QR: 24–48 horas hábiles. Agentes IA: 3–10 días hábiles según el plan. Landing pages: 5–10 días hábiles. En todos los casos, tras recibir la información completa y el pago.', cta: true };
       }
@@ -926,12 +926,12 @@
                'marca blanca', 'afiliado', 'afiliados',
                'comprar al por mayor', 'al por mayor', 'por mayor'])
           || (has(['ganar', 'ganancia', 'gano', 'margen']) && has(['tarjeta', 'tarjetas', 'vender', 'venda', 'vendo', 'vendiendo']))) {
-        return { text: '¡Sí! Tenemos un programa de aliados para que ganes vendiendo nuestras tarjetas digitales 🤝\n\n*Opción 1 · Distribuidor* (la más rentable)\nCompras a precio de aliado y vendes al precio que quieras:\n• Bronce (1 a 4 ventas/mes) · 30% → Básica $34.930 · Pro $69.930\n• Plata (5 a 9) · 40% → Básica $29.940 · Pro $59.940\n• Oro (10 o más) · 50% → Básica $24.950 · Pro $49.950\n\n*Opción 2 · Referido* (sin invertir nada)\nSolo presentas el cliente y ganas el 20%: $9.980 (Básica) o $19.980 (Pro).\n\n🎁 Al activarte te llevas una Mini Web Pro de muestra con 50% de descuento ($49.950), y gratis al completar tus primeras 5 ventas cerradas.\n\nNosotros hacemos el diseño, el hosting y el soporte: tú te concentras en vender.\n\nVer tablas completas: https://konfiozinc.github.io/card/aliados.html\n\n¿Quieres que te active como aliado?', cta: true };
+        return { text: '¡Sí! Tenemos un programa de aliados para que ganes vendiendo nuestras Mini Webs 🤝\n\n*Opción 1 · Distribuidor* (la más rentable)\nCompras a precio de aliado y vendes al precio que quieras:\n• Bronce (1 a 4 ventas/mes) · 30% → Básica $34.930 · Pro $69.930\n• Plata (5 a 9) · 40% → Básica $29.940 · Pro $59.940\n• Oro (10 o más) · 50% → Básica $24.950 · Pro $49.950\n\n*Opción 2 · Referido* (sin invertir nada)\nSolo presentas el cliente y ganas el 20%: $9.980 (Básica) o $19.980 (Pro).\n\n🎁 Al activarte te llevas una Mini Web Pro de muestra con 50% de descuento ($49.950), y gratis al completar tus primeras 5 ventas cerradas.\n\nNosotros hacemos el diseño, el hosting y el soporte: tú te concentras en vender.\n\nVer tablas completas: https://konfiozinc.github.io/card/aliados.html\n\n¿Quieres que te active como aliado?', cta: true };
       }
 
-      /* ── Tarjetas digitales (producto) ─────────────────────────────── */
+      /* ── Mini Webs (producto) ─────────────────────────────── */
       if (has(['tarjeta', 'tarjetas'])) {
-        return { text: 'La tarjeta digital es tu presentación en un solo enlace 💳: contacto, WhatsApp, redes, ubicación, servicios y galería. Se actualiza al instante y reemplaza el papel.\n\nHay dos planes: Mini Web Básica $49.900 y Mini Web Pro $99.900, las dos de pago único.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
+        return { text: 'La Mini Web es tu presentación en un solo enlace (antes se llamaba tarjeta digital) 💳: contacto, WhatsApp, redes, ubicación, servicios y galería. Se actualiza al instante y reemplaza el papel.\n\nHay dos planes: Mini Web Básica $49.900 y Mini Web Pro $99.900, las dos de pago único.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
       }
       if (has(['landing', 'pagina', 'landing page', 'landing pages'])) {
         return { text: 'Creamos landing pages profesionales en 3 planes 🚀:\n\n• *ECO $699.000* — diseño estándar, banner estático, hasta 5 bloques y 1 correo corporativo.\n• *SMART $1.099.000* ⭐ la más pedida — diseño profesional, hasta 10 bloques, formulario personalizado, 5 correos y optimización SEO técnica.\n• *POWER $1.399.000* — diseño exclusivo, animaciones, reCAPTCHA, panel de administración, Google Analytics 4 y optimización SEO técnica.\n\nLos tres incluyen hosting y dominio por 1 año ✅\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
@@ -958,10 +958,10 @@
       }
       if (has(['google ads', 'pauta', 'publicidad', 'redes sociales',
                'community manager', 'branding', 'email marketing', 'diseno de marca'])) {
-        return { text: 'Esos servicios no los ofrecemos directamente 🙌. Lo que sí hacemos son seis soluciones digitales:\n\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
+        return { text: 'Esos servicios no los ofrecemos directamente 🙌. Lo que sí hacemos son seis soluciones digitales:\n\n• Mini Webs (Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
       }
       if (has(['servicio', 'servicios', 'producto', 'productos', 'que ofrecen', 'que hacen', 'que venden'])) {
-        return { text: 'Estas son nuestras seis soluciones 📱:\n\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
+        return { text: 'Estas son nuestras seis soluciones 📱:\n\n• Mini Webs (Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\n¿Cuál te interesa?', cta: true };
       }
       if (has(['precio', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto', 'cotiza', 'cotizacion', 'cotizar'])) {
         return { text: 'Nuestros precios arrancan así 📊:\n\n• Códigos QR: desde $50.000\n• Mini Web Básica: $49.900 · Mini Web Pro: $99.900\n• Catálogos Digitales: desde $120.000\n• Menús Digitales: desde $150.000\n• Agentes IA: desde $250.000\n• Landing Pages: desde $699.000\n\nEscríbeme por WhatsApp y te preparo la cotización exacta, sin compromiso.', cta: true };
@@ -1002,7 +1002,7 @@
         return { text: '📞 Contáctanos por:\n• WhatsApp: +57 320 641 1340\n• Email: konfiozinc@gmail.com\n\nO usa el botón verde de WhatsApp. ¡Te respondemos al instante!', cta: true };
       }
       if (has(['hola', 'buenas', 'buenos dias', 'saludo', 'hey'])) {
-        return { text: '¡Hola! 👋 Soy ZINC, el asesor virtual de KONFÍO ZINC.\n\nTe ayudo con nuestras seis soluciones:\n• Tarjetas Digitales (Mini Web Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nY si quieres ganar dinero recomendándonos, tengo el programa de aliados.\n\nCuéntame, ¿qué necesitas?', cta: false };
+        return { text: '¡Hola! 👋 Soy ZINC, el asesor virtual de KONFÍO ZINC.\n\nTe ayudo con nuestras seis soluciones:\n• Mini Webs (Básica y Pro)\n• Catálogos Digitales\n• Menús Digitales con QR\n• Landing Pages\n• Códigos QR personalizados\n• Agentes IA de atención 24/7\n\nY si quieres ganar dinero recomendándonos, tengo el programa de aliados.\n\nCuéntame, ¿qué necesitas?', cta: false };
       }
       return { text: 'Buena pregunta 😊. Para darte una respuesta exacta, escríbeme por WhatsApp y te atiendo al instante.\n\nAquí puedo ayudarte con: servicios, precios, programa de aliados, portafolio o cotizar tu proyecto. Toca un botón de abajo 👇', cta: true };
     }
@@ -1138,7 +1138,7 @@
     }
 
     function showWelcome() {
-      var welcome = '¡Hola! 👋 Soy ZINC, el asesor virtual de KONFÍO ZINC. Creamos tarjetas digitales, menús, catálogos, landing pages, códigos QR y agentes IA. ¿En qué te ayudo?';
+      var welcome = '¡Hola! 👋 Soy ZINC, el asesor virtual de KONFÍO ZINC. Creamos Mini Webs, menús, catálogos, landing pages, códigos QR y agentes IA. ¿En qué te ayudo?';
       addMessage(welcome, 'bot');
       history.push({ role: 'assistant', content: welcome });
     }

@@ -369,7 +369,7 @@
           return { text: 'Los agentes IA se entregan según el plan: Esencial 3–5 días hábiles, Negocio 5–7 días hábiles, Premium hasta 10 días hábiles, tras recibir toda la información y el pago.', cta: true };
         }
         if (has(['tarjeta', 'tarjetas', 'menu', 'menus', 'catalogo', 'catalogos', 'qr', 'codigo qr'])) {
-          return { text: 'Las tarjetas digitales, menús, catálogos y códigos QR tardan de 24 a 48 horas hábiles, tras recibir toda la información y el pago.', cta: true };
+          return { text: 'Las Mini Webs, menús, catálogos y códigos QR tardan de 24 a 48 horas hábiles, tras recibir toda la información y el pago.', cta: true };
         }
         return { text: 'Tarjetas, menús, catálogos y códigos QR: 24–48 horas hábiles. Agentes IA: 3–10 días hábiles según el plan. Landing pages: 5–10 días hábiles. En todos los casos, tras recibir la información completa y el pago.', cta: true };
       }
@@ -378,7 +378,7 @@
         return { text: '¡Perfecto! 👋 Para tu sector tenemos este ejemplo real:\nhttps://konfiozinc.github.io/nandy-nails/\n\n📌 ¿Ya manejas redes sociales para tu negocio?', cta: false };
       }
       if (has(['tarjeta', 'tarjetas', 'tarjeta digital', 'tarjetas digitales'])) {
-        return { text: 'La tarjeta digital es tu presentación en un solo enlace 💳: contacto, redes, WhatsApp, ubicación y galería. Se actualiza al instante y reemplaza el papel.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
+        return { text: 'La Mini Web es tu presentación en un solo enlace (antes se llamaba tarjeta digital) 💳: contacto, redes, WhatsApp, ubicación y galería. Se actualiza al instante y reemplaza el papel.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
       }
       if (has(['landing', 'pagina', 'landing page', 'landing pages'])) {
         return { text: 'Creamos landing pages rápidas y enfocadas en conversión 🚀, ideales para promocionar tu negocio o un producto.\n\nCuéntame qué quieres promocionar y te cotizo.', cta: true };
@@ -396,7 +396,7 @@
         return { text: 'Creamos códigos QR personalizados con tu marca 📱, ideales para imprimir en mesas, stickers, empaques o facturas.\n\nLlevan a tus clientes directo a tu menú, catálogo, WhatsApp o ubicación.\n\n¿Para qué lo necesitas?', cta: true };
       }
       if (has(['servicio', 'servicios', 'producto', 'productos', 'que ofrecen', 'que hacen', 'que venden'])) {
-        return { text: 'Creamos productos digitales para tu negocio 📱:\n\n• Tarjetas digitales interactivas\n• Landing pages\n• Catálogos digitales\n• Menús digitales\n• Asistentes con IA\n\n¿Cuál te interesa?', cta: true };
+        return { text: 'Creamos productos digitales para tu negocio 📱:\n\n• Mini Webs\n• Landing pages\n• Catálogos digitales\n• Menús digitales\n• Asistentes con IA\n\n¿Cuál te interesa?', cta: true };
       }
       if (has(['precio', 'cuanto', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto', 'cotiza', 'cotizacion', 'cotizar'])) {
         return { text: 'Cada proyecto se cotiza según lo que necesites 📊. Escríbeme por WhatsApp y te envío una cotización gratis, sin compromiso.\n\n¿Quieres que te cotice ahora?', cta: true };
@@ -439,7 +439,7 @@ if (has(['contacto', 'whatsapp', 'telefono', 'numero', 'correo', 'email', 'habla
         return { text: '📞 Contáctanos por:\n• WhatsApp: +57 320 641 1340\n• Email: konfiozinc@gmail.com\n\nO usa el botón verde de WhatsApp. ¡Te respondemos al instante!', cta: true };
       }
       if (has(['hola', 'buenas', 'buenos dias', 'saludo', 'hey'])) {
-        return { text: '¡Hola! 👋 Soy ZINC, el asesor virtual de KONFÍO ZINC.\n\nCreamos tarjetas digitales, landing pages, catálogos, menús digitales y asistentes con IA.\n\nCuéntame, ¿qué te gustaría crear para tu negocio?', cta: false };
+        return { text: '¡Hola! 👋 Soy ZINC, el asesor virtual de KONFÍO ZINC.\n\nCreamos Mini Webs, landing pages, catálogos, menús digitales y asistentes con IA.\n\nCuéntame, ¿qué te gustaría crear para tu negocio?', cta: false };
       }
       return { text: 'Buena pregunta 😊. Para darte una respuesta exacta, escríbeme por WhatsApp y te atiendo al instante.\n\nAquí puedo ayudarte con: productos, precios, portafolio o cotizar tu proyecto. Toca un botón de abajo 👇', cta: true };
     }
@@ -493,7 +493,7 @@ if (has(['contacto', 'whatsapp', 'telefono', 'numero', 'correo', 'email', 'habla
     }
 
     function showWelcome() {
-      var welcome = '¡Hola! 👋 Bienvenido a KONFÍO ZINC. Soy ZINC, el asesor virtual.\n\nCreamos tarjetas digitales, landing pages, catálogos y menús digitales, y asistentes con IA para tu negocio.\n\nCuéntame, ¿qué te gustaría crear?';
+      var welcome = '¡Hola! 👋 Bienvenido a KONFÍO ZINC. Soy ZINC, el asesor virtual.\n\nCreamos Mini Webs, landing pages, catálogos y menús digitales, y asistentes con IA para tu negocio.\n\nCuéntame, ¿qué te gustaría crear?';
       addMessage(welcome, 'bot');
       history.push({ role: 'assistant', content: welcome });
     }

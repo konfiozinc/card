@@ -221,7 +221,7 @@
       });
       const result = await response.json().catch(() => ({}));
       if (!response.ok || result.saved !== true) throw new Error('not-confirmed');
-      status.textContent = 'Solicitud recibida. Te contactaremos por WhatsApp en horario hábil.';
+      status.textContent = 'Solicitud recibida. Te contactaremos por WhatsApp para coordinar la atención.';
       status.dataset.kind = 'success';
       try { localStorage.setItem('kz_lead_last', String(Date.now())); } catch { /* sin almacenamiento */ }
       form.reset();
