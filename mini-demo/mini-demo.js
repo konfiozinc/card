@@ -599,10 +599,10 @@ function instantanea() {
     logo: estado.logo,
     logoAspecto: estado.logoAspecto,
     formaLogo: estado.formaLogo || "circular",
-    fotos: estado.fotos.map((f, i) => ({
-      propia: !!f,
-      src: f || imagenDeMuestra(pl.muestra[i].titulo, pl.muestra[i].subtitulo, primario, secundario, i)
-    }))
+    muestra: pl.muestra,
+    /* Las muestras se generan más abajo, con la proporción exacta del hueco:
+       así el recorte de `cover` no corta el título ni el subtítulo. */
+    fotos: estado.fotos.map((f) => ({ propia: !!f, src: f || null }))
   };
 }
 
@@ -873,7 +873,11 @@ async function componerLamina() {
   const tiles = [];
   for (let i = 0; i < 3; i += 1) {
     const x = innerX + i * (anchoTile + SEP_TILE);
-    const img = await cargarImagen(d.fotos[i].src);
+    /* La muestra se genera con la proporción exacta del recuadro (2× para
+       nitidez): `cover` la encaja sin recortar y el texto queda completo. */
+    const fuenteFoto = d.fotos[i].src
+      || imagenDeMuestra(d.muestra[i].titulo, d.muestra[i].subtitulo, d.primario, d.secundario, i, { ancho: anchoTile * 2, alto: altoImg * 2 });
+    const img = await cargarImagen(fuenteFoto);
     ctx.save();
     redondear(ctx, x, tilesTop, anchoTile, altoImg, 16);
     ctx.clip();
