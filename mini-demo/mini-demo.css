@@ -102,7 +102,11 @@ h2 { font-size: clamp(1.25rem, 5vw, 1.6rem); }
 /* ── Plantillas ────────────────────────────────────────────────────── */
 .rejilla-plantillas { display: grid; gap: 14px; }
 @media (min-width: 680px) { .rejilla-plantillas { grid-template-columns: repeat(3, 1fr); } }
+/* Tarjetas de plantilla: columna flexible. Antes el cuerpo era inline, así que
+   el padding no generaba caja y el texto se montaba sobre la ilustración y se
+   recortaba. Ahora la altura es flexible y la separación es real. */
 .tarjeta-plantilla {
+  display: flex; flex-direction: column;
   text-align: left; padding: 0; overflow: hidden;
   background: var(--ui-superficie); border: 1px solid var(--ui-borde);
   border-radius: var(--ui-radio); cursor: pointer; color: inherit;
@@ -110,12 +114,28 @@ h2 { font-size: clamp(1.25rem, 5vw, 1.6rem); }
 }
 .tarjeta-plantilla:hover { transform: translateY(-2px); }
 .tarjeta-plantilla[aria-pressed="true"] {
-  border-color: var(--ui-acento); box-shadow: 0 0 0 2px rgba(34, 211, 238, .25);
+  border-color: var(--ui-acento); box-shadow: 0 0 0 2px rgba(34, 211, 238, .38);
+  background: #13233a;
 }
-.tarjeta-plantilla__muestra { height: 120px; display: block; }
-.tarjeta-plantilla__cuerpo { padding: 12px 14px 16px; }
-.tarjeta-plantilla__nombre { margin: 0 0 2px; font-size: 1.05rem; }
-.tarjeta-plantilla__para { margin: 0; color: var(--ui-tenue); font-size: .82rem; }
+.tarjeta-plantilla__muestra {
+  position: relative; display: block; flex: 0 0 auto;
+  height: 104px; margin: 10px 10px 0; border-radius: 12px;
+}
+.tarjeta-plantilla__elegida {
+  position: absolute; top: 8px; right: 8px;
+  padding: 3px 10px; border-radius: 999px;
+  background: #04121a; color: var(--ui-acento);
+  font-size: .66rem; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+}
+.tarjeta-plantilla__cuerpo { display: block; padding: 10px 14px 16px; }
+.tarjeta-plantilla__nombre {
+  display: block; margin: 0 0 3px;
+  font-size: 1.05rem; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere;
+}
+.tarjeta-plantilla__para {
+  display: block; margin: 0;
+  color: var(--ui-tenue); font-size: .82rem; line-height: 1.4; overflow-wrap: anywhere;
+}
 
 /* ── Formulario ────────────────────────────────────────────────────── */
 fieldset {
@@ -253,13 +273,28 @@ legend { padding: 0 8px; font-weight: 700; font-size: .92rem; color: var(--ui-ac
 .preview__nota { margin: 0; font-size: .78rem; color: var(--ui-tenue); }
 
 /* ── Resumen ───────────────────────────────────────────────────────── */
-.resumen { background: var(--ui-superficie); border: 1px solid var(--ui-borde); border-radius: var(--ui-radio); padding: 12px 16px; }
-.resumen dl { margin: 0; display: grid; grid-template-columns: 120px 1fr; gap: 8px 12px; }
-.resumen dt { color: var(--ui-tenue); font-size: .85rem; }
-.resumen dd { margin: 0; font-weight: 600; }
+.resumen { background: var(--ui-superficie); border: 1px solid var(--ui-borde); border-radius: var(--ui-radio); padding: 14px 16px; }
+.resumen dl { margin: 0; display: grid; grid-template-columns: 106px 1fr; gap: 10px 14px; }
+.resumen dt { color: var(--ui-tenue); font-size: .82rem; line-height: 1.35; }
+.resumen dd { margin: 0; font-weight: 600; line-height: 1.45; overflow-wrap: anywhere; }
 .resumen dd.resumen__tenue { font-weight: 400; color: var(--ui-tenue); font-size: .82rem; }
-.estampa { display: inline-flex; gap: 6px; align-items: center; }
-.estampa i { width: 16px; height: 16px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,.4); }
+/* En pantallas estrechas el resumen pasa a una columna: los textos largos
+   (servicios, descripción) dejan de comprimirse contra la etiqueta. */
+@media (max-width: 440px) {
+  .resumen dl { grid-template-columns: 1fr; gap: 0; }
+  .resumen dt { margin-top: 12px; font-size: .7rem; text-transform: uppercase; letter-spacing: .05em; }
+  .resumen dt:first-of-type { margin-top: 0; }
+  .resumen dd { margin-bottom: 2px; }
+}
+.estampa { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.estampa__color {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 3px 11px 3px 4px; border-radius: 999px;
+  background: var(--ui-superficie-2); border: 1px solid var(--ui-borde);
+  font-size: .82rem; font-weight: 600;
+}
+.estampa__color i { width: 18px; height: 18px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,.35); }
+.estampa__color small { color: var(--ui-tenue); font-weight: 500; }
 .pie-legal { color: var(--ui-tenue); font-size: .75rem; text-align: center; margin-top: 18px; }
 
 /* ── Aviso (toast) ─────────────────────────────────────────────────── */
@@ -270,6 +305,28 @@ legend { padding: 0 8px; font-weight: 700; font-size: .92rem; color: var(--ui-ac
   color: var(--ui-texto); padding: 10px 16px; border-radius: 999px;
   font-size: .85rem; box-shadow: var(--ui-sombra); max-width: calc(100vw - 32px);
 }
+
+/* ── Visor de la imagen generada ───────────────────────────────────────
+   Alternativa al guardado automático: se muestra la imagen para que el
+   visitante la guarde con una pulsación larga. No depende del gestor de
+   descargas del navegador ni pide desactivar ninguna protección. */
+.visor {
+  position: fixed; inset: 0; z-index: 80;
+  display: grid; place-items: center; padding: 16px;
+  background: rgba(2, 8, 20, .84);
+  backdrop-filter: blur(4px);
+}
+.visor__caja {
+  width: 100%; max-width: 430px; max-height: 92dvh; overflow-y: auto;
+  display: grid; gap: 12px;
+  background: var(--ui-superficie); border: 1px solid var(--ui-borde);
+  border-radius: var(--ui-radio); padding: 16px;
+}
+.visor__caja h2 { margin: 0; font-size: 1.05rem; }
+.visor__ayuda { margin: 0; font-size: .86rem; color: var(--ui-tenue); }
+.visor__ayuda strong { color: var(--ui-texto); }
+.visor img { width: 100%; height: auto; border-radius: 10px; border: 1px solid var(--ui-borde); background: #fff; }
+.visor__nota { margin: 0; font-size: .78rem; color: var(--ui-tenue); }
 
 /* ═══ LAS TRES MINI WEBS (dentro del móvil) ══════════════════════════
    Comparten estructura y heredan los colores del cliente por --p / --s. */

@@ -40,6 +40,38 @@ function esc(t) {
   return String(t == null ? "" : t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
+/**
+ * Formato de precio en pesos colombianos, sin alterar el valor numérico:
+ *   "12000" → "$ 12.000"      "1.500.000" → "$ 1.500.000"
+ *   "12,5"  → "$ 12,50"       "Cotizar"   → "Cotizar" (no es un importe)
+ * El valor que se guarda en el estado sigue siendo el texto que escribió el
+ * visitante; esto solo cambia cómo se muestra.
+ */
+function formatearPrecio(valor) {
+  const texto = String(valor == null ? "" : valor).trim();
+  if (!texto) return "";
+  const m = texto.match(/^[^\d]*(\d[\d.,]*)[^\d]*$/);
+  if (!m) return texto;
+  const crudo = m[1];
+  const separadores = crudo.replace(/\d/g, "");
+  let numero;
+  if (separadores) {
+    const ultimo = separadores.slice(-1);
+    const partes = crudo.split(ultimo);
+    const cola = partes[partes.length - 1];
+    if (cola.length === 1 || cola.length === 2) {
+      numero = Number(partes.slice(0, -1).join("").replace(/[.,]/g, "") + "." + cola);
+    } else {
+      numero = Number(crudo.replace(/[.,]/g, ""));
+    }
+  } else {
+    numero = Number(crudo);
+  }
+  if (!Number.isFinite(numero)) return texto;
+  const decimales = Number.isInteger(numero) ? 0 : 2;
+  return "$ " + numero.toLocaleString("es-CO", { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
+}
+
 /* ── Navegación por pasos ─────────────────────────────────────────── */
 const PASOS = ["bienvenida", "plantillas", "personalizar", "preview", "solicitud"];
 const NOMBRES = { bienvenida: "Bienvenida", plantillas: "Estilo", personalizar: "Personaliza", preview: "Vista previa", solicitud: "Solicitud" };
@@ -83,8 +115,10 @@ function pintarPlantillas() {
   if (!cont) return;
   cont.innerHTML = Object.values(PLANTILLAS).map((pl) => {
     const sel = estado.plantilla === pl.id;
-    return `<button type="button" class="tarjeta-plantilla" data-plantilla="${esc(pl.id)}" aria-pressed="${sel}">
-      <span class="tarjeta-plantilla__muestra" style="background:linear-gradient(135deg,${esc(pl.colores.primario)} 0%,${esc(pl.colores.primario)} 55%,${esc(pl.colores.secundario)} 55%,${esc(pl.colores.secundario)} 100%);${pl.estilo.radio === "22px" ? "border-radius:16px;margin:10px;height:100px" : ""}"></span>
+    return `<button type="button" class="tarjeta-plantilla" data-plantilla="${esc(pl.id)}" aria-pressed="${sel}" aria-label="${esc(pl.nombre)}: ${esc(pl.paraQuien)}${sel ? " (elegida)" : ""}">
+      <span class="tarjeta-plantilla__muestra" style="background:linear-gradient(135deg,${esc(pl.colores.primario)} 0%,${esc(pl.colores.primario)} 55%,${esc(pl.colores.secundario)} 55%,${esc(pl.colores.secundario)} 100%)">
+        ${sel ? `<span class="tarjeta-plantilla__elegida">Elegida</span>` : ""}
+      </span>
       <span class="tarjeta-plantilla__cuerpo">
         <span class="tarjeta-plantilla__nombre">${esc(pl.nombre)}</span>
         <span class="tarjeta-plantilla__para">${esc(pl.paraQuien)}</span>
@@ -298,7 +332,7 @@ function renderDemo() {
     : `<div class="demo__logo${claseForma()}" aria-hidden="true">${esc(nombre.slice(0, 2).toUpperCase())}</div>`;
 
   const serviciosHtml = servicios.length
-    ? servicios.map((s) => `<div class="demo__servicio"><span>${esc(s.nombre)}</span><b>${esc(s.precio || "Consultar")}</b></div>`).join("")
+    ? servicios.map((s) => `<div class="demo__servicio"><span>${esc(s.nombre)}</span><b>${esc(formatearPrecio(s.precio) || "Consultar")}</b></div>`).join("")
     : `<div class="demo__servicio"><span>${esc("Añade tus servicios en el paso anterior")}</span><b>—</b></div>`;
 
   const fotos = estado.fotos.map((f, i) => ({
@@ -391,23 +425,32 @@ function textoWhatsApp() {
   const servicios = estado.servicios.filter((s) => s.nombre.trim());
   const propias = estado.fotos.filter(Boolean).length;
   const desc = estado.descripcion.trim();
+  const nombre = estado.nombre.trim();
+  const origen = estado.coloresPropios ? "elegido por mí" : "del estilo";
   const lineas = [
     "Hola KONFÍO ZINC, vengo del demostrador de Mini Webs.",
     "",
-    "— DATOS QUE ESCRIBÍ —",
-    "Negocio: " + (estado.nombre.trim() || "(sin escribir todavía)"),
-    "Descripción: " + (desc || "(no escribí descripción)"),
-    "Estilo elegido: " + (pl ? pl.nombre : "(sin estilo)"),
-    "Colores: " + estado.primario + " y " + estado.secundario + (estado.coloresPropios ? " (los elegí yo)" : " (del estilo)"),
+    "1) MI NEGOCIO",
+    "• Nombre: " + (nombre || "(sin escribir todavía)"),
+    "• Descripción: " + (desc || "(no escribí descripción)"),
     "",
-    "Servicios:",
-    ...(servicios.length ? servicios.map((s) => "• " + s.nombre + (s.precio ? " — " + s.precio : "")) : ["• (aún no escribí servicios)"]),
+    "2) DISEÑO QUE ELEGÍ",
+    "• Estilo: " + (pl ? pl.nombre + " — " + pl.paraQuien : "(sin elegir)"),
+    "• Color principal: " + estado.primario + " (" + origen + ")",
+    "• Color secundario: " + estado.secundario + " (" + origen + ")",
     "",
-    "Logo: " + (estado.logo ? "sí, cargado" : "no"),
-    "Fotografías propias: " + propias + " de 3" + (propias < 3 ? " (el resto son de ejemplo)" : ""),
+    "3) SERVICIOS QUE ESCRIBÍ",
+    ...(servicios.length
+      ? servicios.map((s) => "• " + s.nombre + (s.precio ? " — " + formatearPrecio(s.precio) : ""))
+      : ["• (aún no escribí servicios)"]),
     "",
-    "Nota: los textos de ejemplo de la plantilla no son mi información; los datos que vale la pena revisar son los que escribí aquí.",
-    "Adjuntaré la imagen de mi Mini Web desde el chat si quiero mostrarla (la descargo y la adjunto yo; el demostrador no envía nada)."
+    "4) IMÁGENES",
+    "• Logo: " + (estado.logo ? "sí, cargado" : "no"),
+    "• Fotografías propias: " + propias + " de 3" + (propias < 3 ? " (el resto son de ejemplo)" : ""),
+    "",
+    "PARA TENER EN CUENTA",
+    "• Los textos de ejemplo de la plantilla no son mi información: lo que vale es lo que escribí arriba.",
+    "• La imagen de mi Mini Web la descargo y la adjunto yo en el chat; el demostrador no envía nada."
   ];
   return lineas.join("\n");
 }
@@ -423,9 +466,12 @@ function pintarResumen() {
       <dl>
         <dt>Negocio</dt><dd>${esc(estado.nombre.trim() || "Sin escribir todavía")}</dd>
         <dt>Estilo</dt><dd>${esc(pl ? pl.nombre : "Sin elegir")}</dd>
-        <dt>Colores</dt><dd><span class="estampa"><i style="background:${esc(estado.primario)}"></i>${esc(estado.primario)} · <i style="background:${esc(estado.secundario)}"></i>${esc(estado.secundario)}</span></dd>
+        <dt>Colores</dt><dd><span class="estampa">
+          <span class="estampa__color"><i style="background:${esc(estado.primario)}"></i>${esc(estado.primario)} <small>principal</small></span>
+          <span class="estampa__color"><i style="background:${esc(estado.secundario)}"></i>${esc(estado.secundario)} <small>secundario</small></span>
+        </span></dd>
         <dt>Descripción</dt><dd>${desc ? esc(desc) : `Sin escribir todavía <em>(en la demo se ve el texto de ejemplo del estilo)</em>`}</dd>
-        <dt>Servicios</dt><dd>${esc(servicios.length ? servicios.map((s) => s.nombre + (s.precio ? " (" + s.precio + ")" : "")).join(" · ") : "Sin escribir todavía")}</dd>
+        <dt>Servicios</dt><dd>${esc(servicios.length ? servicios.map((s) => s.nombre + (s.precio ? " (" + formatearPrecio(s.precio) + ")" : "")).join(" · ") : "Sin escribir todavía")}</dd>
         <dt>Logo</dt><dd>${estado.logo ? "Sí" : "No"}</dd>
         <dt>Fotografías</dt><dd>${propias} tuyas · ${3 - propias} de ejemplo</dd>
       </dl>`;
@@ -640,7 +686,7 @@ async function componerLamina() {
       ctx.fillText(partirTexto(ctx, s.nombre, tarjetaW - 420, 1)[0] || s.nombre, M + 78, y + 40);
       ctx.textAlign = "right";
       ctx.fillStyle = estado.primario;
-      ctx.fillText(s.precio || "Consultar", M + tarjetaW - 78, y + 40);
+      ctx.fillText(formatearPrecio(s.precio) || "Consultar", M + tarjetaW - 78, y + 40);
       ctx.textAlign = "left";
       y += 24;
     }
@@ -715,15 +761,57 @@ async function descargarImagen() {
         document.body.appendChild(a);
         a.click();
         a.remove();
-        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        /* Se libera tarde a propósito: si el móvil tarda en abrir el gestor de
+           descargas, revocar el blob de inmediato puede cortar la descarga. */
+        setTimeout(() => URL.revokeObjectURL(url), 120000);
         toast("Imagen descargada: " + a.download);
-        resolver({ ok: true, avisos, nombre: a.download });
+        resolver({ ok: true, avisos, nombre: a.download, blob });
       }, "image/png");
     } catch (e) {
-      toast("El navegador bloqueó la descarga de la imagen.");
+      toast("El navegador bloqueó la descarga. Usa «Ver imagen para guardar».");
       resolver({ ok: false, avisos });
     }
   });
+}
+
+/* ── Visor: guardar la imagen sin el gestor de descargas ──────────────
+   Muchos navegadores móviles bloquean la descarga directa cuando el origen
+   no es HTTPS. Mostrar la imagen permite guardarla con una pulsación larga
+   sin desactivar ninguna protección del teléfono. */
+let visorUrl = null;
+
+function cerrarVisor() {
+  const visor = $("#visor");
+  if (visor) visor.hidden = true;
+  if (visorUrl) { URL.revokeObjectURL(visorUrl); visorUrl = null; }
+  const img = $("#visor-img");
+  if (img) img.removeAttribute("src");
+  const abridor = document.activeElement;
+  if (abridor && abridor.blur) abridor.blur();
+}
+
+/** Genera la lámina y la muestra a tamaño completo para guardarla a mano. */
+async function verImagen() {
+  if (!estado.plantilla) { toast("Elige un estilo antes de ver la imagen."); return { ok: false }; }
+  const { lienzo, avisos } = await componerLamina();
+  if (!lienzo) { toast("No se pudo generar la imagen."); return { ok: false, avisos }; }
+  let url;
+  try {
+    const dataUrl = lienzo.toDataURL("image/png");
+    url = dataUrl;
+  } catch (e) {
+    toast("El navegador no permitió generar la imagen.");
+    return { ok: false, avisos };
+  }
+  const img = $("#visor-img");
+  const visor = $("#visor");
+  if (!img || !visor) return { ok: false, avisos };
+  img.src = url;
+  visorUrl = null;
+  visor.hidden = false;
+  const cerrar = $("#visor-cerrar");
+  if (cerrar) cerrar.focus();
+  return { ok: true, avisos };
 }
 
 /* ── Arranque ────────────────────────────────────────────────────── */
@@ -780,6 +868,11 @@ function iniciar() {
 
   $("#btn-descargar")?.addEventListener("click", () => { descargarImagen(); });
   $("#btn-descargar-2")?.addEventListener("click", () => { descargarImagen(); });
+  $("#btn-ver-imagen")?.addEventListener("click", () => { verImagen(); });
+  $("#btn-ver-imagen-2")?.addEventListener("click", () => { verImagen(); });
+  $("#visor-cerrar")?.addEventListener("click", cerrarVisor);
+  $("#visor")?.addEventListener("click", (e) => { if (e.target === e.currentTarget) cerrarVisor(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape") cerrarVisor(); });
 
   const pantalla = $("#demo-movil");
   if (pantalla) {
@@ -797,4 +890,4 @@ function iniciar() {
 iniciar();
 
 /* Expuesto solo para las pruebas locales (no se usa en producción). */
-window.__miniDemo = { estado, ir, renderDemo, textoWhatsApp, descargarImagen, componerLamina, avisosImagen };
+window.__miniDemo = { estado, ir, renderDemo, textoWhatsApp, descargarImagen, componerLamina, avisosImagen, formatearPrecio, verImagen, cerrarVisor };
