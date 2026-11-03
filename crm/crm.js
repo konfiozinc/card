@@ -372,7 +372,11 @@ $("#btn-alta").addEventListener("click", async () => {
   };
 
   if (r.ok) {
-    await auditar("prospecto_creado", r.telefono);
+    /* KZ-PRIV-CRM-001 · MINIMIZACIÓN: la auditoría registra el UUID del
+       prospecto, no su teléfono. El número sigue donde corresponde (crm_leads y
+       el marcador crm_dedup, con su retención) y la trazabilidad se mantiene:
+       acción + id + autor + rol + fecha. */
+    await auditar("prospecto_creado", r.id);
     $("#n-nombre").value = ""; $("#n-telefono").value = ""; $("#n-consent").checked = false;
     await cargarLeads(); await pintarStats();
     if (sesion.rol === "admin") await pintarAuditoria();
