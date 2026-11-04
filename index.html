@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="premium-assets/chat.css">
 <link rel="stylesheet" href="assets/css/kz-carrusel.css">
 <link rel="stylesheet" href="assets/css/kz-web-003.css">
+<link rel="stylesheet" href="assets/css/kz-rescate-001.css">
 </head>
 <body>
   <a class="skip-link" href="#contenido">Saltar al contenido</a>
@@ -85,47 +86,153 @@
         <p class="section-kicker reveal">02 / SERVICIOS</p>
         <h2 id="services-title" class="reveal">Una solución para<br><span>cada siguiente paso.</span></h2>
       </div>
-      <div class="service-stack">
-        <article class="service-panel service-panel--cyan" data-service>
-          <div class="service-panel__number">01</div>
-          <div class="service-panel__body">
-            <p>Presencia esencial</p>
-            <h3>Mini Webs</h3>
-            <p>Tu negocio claro, confiable y listo para compartir. Una experiencia compacta que reúne contacto, servicios y marca.</p>
-            <ul><li>Responsive</li><li>WhatsApp</li><li>Dominio primer año</li></ul>
+      <!-- KZ-WEB-RESCATE-001 · Servicios en tarjetas apiladas.
+           Cada tarjeta muestra un producto REAL y publicado: las capturas salen
+           de assets/img/portafolio/ y los enlaces se verificaron vivos el 4-nov-2026.
+           Las siete tarjetas van una debajo de otra en el flujo normal: al bajar,
+           cada una se fija y la siguiente se le monta encima mientras la de abajo
+           se reduce y se oscurece un poco. Sin JavaScript siguen siendo siete
+           tarjetas legibles, una tras otra. -->
+      <div class="kz-serv" data-kz-pila>
+
+        <article class="kz-serv__panel" id="ks-serv-basica" data-servicio="basica" aria-label="Servicio 1 de 7">
+          <figure class="kz-serv__muestra">
+            <img src="assets/img/portafolio/mega-express.jpg" alt="Captura del sitio publicado de Mega Express, proveedor de internet por fibra óptica" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption class="kz-serv__sello">Producto real · Mega Express</figcaption>
+          </figure>
+          <div class="kz-serv__texto">
+            <p class="kz-serv__rubro">Presencia esencial</p>
+            <h3>Mini Web Básica</h3>
+            <p class="kz-serv__desc">Tu negocio claro y listo para compartir: contacto, WhatsApp, redes y ubicación en un solo enlace.</p>
+            <ul class="kz-serv__lista">
+              <li>Contacto y redes</li><li>WhatsApp directo</li><li>Ubicación con mapa</li><li>QR con tu marca</li><li>Dominio el primer año</li>
+            </ul>
+            <div class="kz-serv__acciones">
+              <a class="kz-serv__cta" href="precios.html">Ver el plan y el precio</a>
+              <a class="kz-serv__cta kz-serv__cta--vivo" href="https://konfiozinc.github.io/mega-express/" target="_blank" rel="noopener noreferrer">Ver el producto en vivo ↗</a>
+            </div>
           </div>
-          <svg viewBox="0 0 300 300" aria-hidden="true"><circle cx="150" cy="150" r="104"/><circle cx="150" cy="150" r="62"/><path d="M46 150h208M150 46v208"/></svg>
         </article>
-        <article class="service-panel service-panel--violet" data-service>
-          <div class="service-panel__number">02</div>
-          <div class="service-panel__body">
-            <p>Venta y consulta</p>
-            <h3>Menús & catálogos</h3>
-            <p>Productos que se entienden, se exploran y terminan en una conversación lista para cerrar.</p>
-            <ul><li>Contenido editable</li><li>Pedidos</li><li>Filtros</li></ul>
+
+        <article class="kz-serv__panel" id="ks-serv-pro" data-servicio="pro" aria-label="Servicio 2 de 7">
+          <figure class="kz-serv__muestra">
+            <img src="assets/img/portafolio/postres.jpg" alt="Captura del sitio publicado de Postres Snoopy, con catálogo y pedidos por WhatsApp" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption class="kz-serv__sello">Producto real · Postres Snoopy</figcaption>
+          </figure>
+          <div class="kz-serv__texto">
+            <p class="kz-serv__rubro">Experiencia ampliada</p>
+            <h3>Mini Web Pro</h3>
+            <p class="kz-serv__desc">Todo lo de la Básica, más catálogo o menú digital, galería de productos y pedido por WhatsApp.</p>
+            <ul class="kz-serv__lista">
+              <li>Catálogo o menú digital</li><li>Galería de productos</li><li>Pedido por WhatsApp</li><li>Soporte prioritario</li>
+            </ul>
+            <div class="kz-serv__acciones">
+              <a class="kz-serv__cta" href="precios.html">Ver el plan y el precio</a>
+              <a class="kz-serv__cta kz-serv__cta--vivo" href="https://konfiozinc.github.io/postres/" target="_blank" rel="noopener noreferrer">Ver el producto en vivo ↗</a>
+            </div>
           </div>
-          <svg viewBox="0 0 300 300" aria-hidden="true"><path d="M51 64h198v172H51z"/><path d="M85 100h130M85 138h85M85 176h130M85 214h65"/></svg>
         </article>
-        <article class="service-panel service-panel--ice" data-service>
-          <div class="service-panel__number">03</div>
-          <div class="service-panel__body">
-            <p>Campañas y conversión</p>
-            <h3>Landing pages</h3>
-            <p>Una narrativa precisa para convertir atención en acción. Estrategia, dirección de arte y desarrollo en una sola entrega.</p>
-            <ul><li>Copy estratégico</li><li>SEO técnico</li><li>Analítica preparada</li></ul>
+
+        <article class="kz-serv__panel" id="ks-serv-menu" data-servicio="menu" aria-label="Servicio 3 de 7">
+          <figure class="kz-serv__muestra">
+            <img src="assets/img/portafolio/eltiti.jpg" alt="Captura del menú digital publicado de El Titi, restaurante de comidas rápidas" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption class="kz-serv__sello">Producto real · El Titi</figcaption>
+          </figure>
+          <div class="kz-serv__texto">
+            <p class="kz-serv__rubro">Venta y consulta</p>
+            <h3>Menú digital</h3>
+            <p class="kz-serv__desc">Precios y categorías siempre al día, sin reimprimir: el cliente consulta y pide por WhatsApp.</p>
+            <ul class="kz-serv__lista">
+              <li>Por categorías</li><li>Precios actualizables</li><li>Pedido por WhatsApp</li><li>QR para la mesa</li>
+            </ul>
+            <div class="kz-serv__acciones">
+              <a class="kz-serv__cta" href="servicios/menus-digitales.html">Ver el servicio</a>
+              <a class="kz-serv__cta kz-serv__cta--vivo" href="https://konfiozinc.github.io/eltiti/" target="_blank" rel="noopener noreferrer">Ver el producto en vivo ↗</a>
+            </div>
           </div>
-          <svg viewBox="0 0 300 300" aria-hidden="true"><path d="M53 75h194v150H53z"/><path d="M53 108h194"/><circle cx="76" cy="91" r="5"/><circle cx="94" cy="91" r="5"/><path d="M90 145h120M90 171h85M90 197h102"/></svg>
         </article>
-        <article class="service-panel service-panel--steel" data-service>
-          <div class="service-panel__number">04</div>
-          <div class="service-panel__body">
-            <p>Atención aumentada</p>
-            <h3>Agentes IA</h3>
-            <p>Asistentes con una fuente de conocimiento definida, respuestas de respaldo y controles para operar con confianza.</p>
-            <ul><li>Contexto propio</li><li>Disponibilidad</li><li>Escalamiento humano</li></ul>
+
+        <article class="kz-serv__panel" id="ks-serv-catalogo" data-servicio="catalogo" aria-label="Servicio 4 de 7">
+          <figure class="kz-serv__muestra">
+            <img src="assets/img/portafolio/proyecto-dta.jpg" alt="Captura del catálogo digital publicado de DTA Chanclas, con productos y precios" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption class="kz-serv__sello">Producto real · DTA Chanclas</figcaption>
+          </figure>
+          <div class="kz-serv__texto">
+            <p class="kz-serv__rubro">Venta y consulta</p>
+            <h3>Catálogo digital</h3>
+            <p class="kz-serv__desc">Tu vitrina ordenada por categorías, para que el cliente vea y consulte sin que repitas precios.</p>
+            <ul class="kz-serv__lista">
+              <li>Productos por categoría</li><li>Precios y descripciones</li><li>Consulta directa</li><li>Contenido editable</li>
+            </ul>
+            <div class="kz-serv__acciones">
+              <a class="kz-serv__cta" href="servicios/catalogos-digitales.html">Ver el servicio</a>
+              <a class="kz-serv__cta kz-serv__cta--vivo" href="https://konfiozinc.github.io/proyecto-dta/" target="_blank" rel="noopener noreferrer">Ver el producto en vivo ↗</a>
+            </div>
           </div>
-          <svg viewBox="0 0 300 300" aria-hidden="true"><path d="M87 86h126v106H87z"/><circle cx="121" cy="137" r="10"/><circle cx="179" cy="137" r="10"/><path d="M117 169c20 14 46 14 66 0M150 86V56M131 212h38"/></svg>
         </article>
+
+        <article class="kz-serv__panel" id="ks-serv-landing" data-servicio="landing" aria-label="Servicio 5 de 7">
+          <figure class="kz-serv__muestra">
+            <img src="assets/img/portafolio/unefibra.jpg" alt="Captura de la landing page publicada de UneFibra, internet por fibra óptica" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption class="kz-serv__sello">Producto real · UneFibra</figcaption>
+          </figure>
+          <div class="kz-serv__texto">
+            <p class="kz-serv__rubro">Campañas y conversión</p>
+            <h3>Landing page</h3>
+            <p class="kz-serv__desc">Una página enfocada en una sola acción, para que la visita termine en conversación y no en duda.</p>
+            <ul class="kz-serv__lista">
+              <li>Copy orientado a la acción</li><li>Formulario conectado</li><li>SEO técnico</li><li>Analítica preparada</li>
+            </ul>
+            <div class="kz-serv__acciones">
+              <a class="kz-serv__cta" href="servicios/landing-pages.html">Ver el servicio</a>
+              <a class="kz-serv__cta kz-serv__cta--vivo" href="https://konfiozinc.github.io/unefibra/" target="_blank" rel="noopener noreferrer">Ver el producto en vivo ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="kz-serv__panel" id="ks-serv-qr" data-servicio="qr" aria-label="Servicio 6 de 7">
+          <figure class="kz-serv__muestra">
+            <img src="assets/img/portafolio/eltiti-detalle.jpg" alt="Detalle del menú digital publicado de El Titi, entregado con su código QR" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption class="kz-serv__sello">Producto real · El Titi</figcaption>
+          </figure>
+          <div class="kz-serv__texto">
+            <p class="kz-serv__rubro">Puente físico y digital</p>
+            <h3>Código QR</h3>
+            <p class="kz-serv__desc">El paso del mundo físico a tu web en un escaneo, con tu marca en el código en lugar de un QR genérico.</p>
+            <ul class="kz-serv__lista">
+              <li>Con tu logo y colores</li><li>Para mesa, vitrina o tarjeta</li><li>Listo para imprimir</li><li>Apunta a tu sitio</li>
+            </ul>
+            <div class="kz-serv__acciones">
+              <a class="kz-serv__cta" href="servicios/codigos-qr.html">Ver el servicio</a>
+              <a class="kz-serv__cta kz-serv__cta--vivo" href="https://konfiozinc.github.io/eltiti/" target="_blank" rel="noopener noreferrer">Ver el producto en vivo ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="kz-serv__panel" id="ks-serv-agente" data-servicio="agente" aria-label="Servicio 7 de 7">
+          <figure class="kz-serv__muestra">
+            <img src="assets/img/portafolio/nutridrink.jpg" alt="Captura del sitio publicado de NutrDrink, con su asistente de inteligencia artificial" width="600" height="800" loading="lazy" decoding="async">
+            <figcaption class="kz-serv__sello">Producto real · NutrDrink</figcaption>
+          </figure>
+          <div class="kz-serv__texto">
+            <p class="kz-serv__rubro">Atención aumentada</p>
+            <h3>Agente IA</h3>
+            <p class="kz-serv__desc">Un asistente que responde con la información de tu negocio y sabe cuándo pasar la conversación a una persona.</p>
+            <ul class="kz-serv__lista">
+              <li>Contexto de tu negocio</li><li>Respuestas de respaldo</li><li>Escalamiento humano</li><li>Disponible sin horario</li>
+            </ul>
+            <div class="kz-serv__acciones">
+              <a class="kz-serv__cta" href="servicios/agentes-ia.html">Ver el servicio</a>
+              <a class="kz-serv__cta kz-serv__cta--vivo" href="https://konfiozinc.github.io/nutridrink/" target="_blank" rel="noopener noreferrer">Ver el producto en vivo ↗</a>
+            </div>
+          </div>
+        </article>
+
+        <p class="kz-serv__nota">
+          Cada tarjeta muestra una captura real de un producto publicado, no una maqueta.
+          Los enlaces abren el sitio en vivo; los precios oficiales vigentes están en
+          <a href="precios.html">Precios</a>.
+        </p>
       </div>
     </section>
 
@@ -153,22 +260,22 @@
             role="group" aria-roledescription="diapositivas" aria-label="Desliza o usa las flechas para ver los cuatro proyectos">
           <li class="kz-carrusel__slide" role="group" aria-roledescription="diapositiva" aria-label="1 de 4: Postres Snoopy">
             <a class="project project--snoopy" href="https://konfiozinc.github.io/postres/" target="_blank" rel="noopener noreferrer">
-              <span class="project__meta">E-COMMERCE LIGERO · 2026</span><strong>POSTRES<br>SNOOPY</strong><span class="project__arrow" aria-hidden="true">↗</span>
+              <img class="project__shot" src="assets/img/portafolio/postres.jpg" alt="Captura del sitio de Postres Snoopy" width="600" height="800" loading="lazy" decoding="async"><span class="project__meta">E-COMMERCE LIGERO · 2026</span><strong>POSTRES<br>SNOOPY</strong><span class="project__arrow" aria-hidden="true">↗</span>
             </a>
           </li>
           <li class="kz-carrusel__slide" role="group" aria-roledescription="diapositiva" aria-label="2 de 4: Red CaliNet">
             <a class="project project--calinet" href="https://konfiozinc.github.io/redcalinet/" target="_blank" rel="noopener noreferrer">
-              <span class="project__meta">CONECTIVIDAD · 2026</span><strong>RED<br>CALINET</strong><span class="project__arrow" aria-hidden="true">↗</span>
+              <img class="project__shot" src="assets/img/portafolio/redcalinet.jpg" alt="Captura del sitio de Red CaliNet" width="600" height="800" loading="lazy" decoding="async"><span class="project__meta">CONECTIVIDAD · 2026</span><strong>RED<br>CALINET</strong><span class="project__arrow" aria-hidden="true">↗</span>
             </a>
           </li>
           <li class="kz-carrusel__slide" role="group" aria-roledescription="diapositiva" aria-label="3 de 4: UneFibra">
             <a class="project project--unefibra" href="https://konfiozinc.github.io/unefibra/" target="_blank" rel="noopener noreferrer">
-              <span class="project__meta">TELECOM · 2026</span><strong>UNE<br>FIBRA</strong><span class="project__arrow" aria-hidden="true">↗</span>
+              <img class="project__shot" src="assets/img/portafolio/unefibra.jpg" alt="Captura del sitio de UneFibra" width="600" height="800" loading="lazy" decoding="async"><span class="project__meta">TELECOM · 2026</span><strong>UNE<br>FIBRA</strong><span class="project__arrow" aria-hidden="true">↗</span>
             </a>
           </li>
           <li class="kz-carrusel__slide" role="group" aria-roledescription="diapositiva" aria-label="4 de 4: El Titi">
             <a class="project project--eltiti" href="https://konfiozinc.github.io/eltiti/" target="_blank" rel="noopener noreferrer">
-              <span class="project__meta">MENÚ DIGITAL · 2026</span><strong>EL<br>TITI</strong><span class="project__arrow" aria-hidden="true">↗</span>
+              <img class="project__shot" src="assets/img/portafolio/eltiti.jpg" alt="Captura del menú digital de El Titi" width="600" height="800" loading="lazy" decoding="async"><span class="project__meta">MENÚ DIGITAL · 2026</span><strong>EL<br>TITI</strong><span class="project__arrow" aria-hidden="true">↗</span>
             </a>
           </li>
         </ul>
@@ -368,6 +475,7 @@
   <script src="assets/js/config.js"></script>
   <script src="assets/js/main.js" defer></script>
 <script src="assets/js/kz-carrusel.js" defer></script>
+<script src="assets/js/kz-pila-servicios.js" defer></script>
 <script src="assets/js/push.js" defer></script>
 </body>
 </html>
