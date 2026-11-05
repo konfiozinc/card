@@ -191,7 +191,19 @@ async function revisarConsola(revisiones) {
     console.log('    sus peticiones se cortan y su fallo no cuenta como error del sitio.');
   }
 
-  const navegador = await chromium.launch();
+  /* Si el navegador no arranca (p. ej. Playwright instalado sin su Chromium, que
+     es como corre el CI), se avisa y se sigue: el resto de reglas valen igual.
+     Nunca se cae con una traza: un verificador que revienta se acaba ignorando. */
+  let navegador;
+  try {
+    navegador = await chromium.launch();
+  } catch (e) {
+    console.warn('  ⚠ no se pudo abrir Chromium: se omite la revisión de consola.');
+    console.warn('    ' + String(e.message).split('\n')[0].slice(0, 110));
+    console.warn('    Para habilitarla: cd herramientas && npx playwright install chromium');
+    servidor.close();
+    return false;
+  }
   const LOCAL = `127.0.0.1:${PUERTO}`;
   for (const rev of revisiones) {
     const ctx = await navegador.newContext({ viewport: { width: 1280, height: 800 } });
