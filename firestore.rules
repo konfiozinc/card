@@ -527,6 +527,100 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    /* ── cotizaciones (KZ-CRM-COTIZACIONES-002) ──────────────────────
+       Registro INTERNO de la cotización: solo lo lee el equipo. El cliente
+       NUNCA toca esta colección; ve una proyección en `cotizaciones_publicas`.
+       Decisiones aprobadas por Darwin:
+         · crear y enviar: OPERADOR y ADMIN;
+         · reabrir o anular: solo ADMIN;
+         · nada se borra (salvo un borrador, y solo ADMIN). */
+    match /cotizaciones/{cotizacionId} {
+      function estadoValido(v) {
+        return v in ['BORRADOR', 'ENVIADA', 'ACEPTADA', 'RECHAZADA'];
+      }
+      // El total no se envía «a dedo»: tiene que cuadrar con sus partes.
+      function importesCoherentes() {
+        return request.resource.data.subtotal is number
+            && request.resource.data.subtotal >= 0
+            && request.resource.data.descuento is number
+            && request.resource.data.descuento >= 0
+            && request.resource.data.total is number
+            && request.resource.data.total >= 0
+            && request.resource.data.descuento <= request.resource.data.subtotal
+            && request.resource.data.total == request.resource.data.subtotal - request.resource.data.descuento;
+      }
+      function itemsValidos() {
+        return request.resource.data.items is list
+            && request.resource.data.items.size() > 0
+            && request.resource.data.items.size() <= 30;
+      }
+      // Volver de un estado final a borrador es REABRIR: solo ADMIN.
+      function reapertura() {
+        return request.resource.data.get('estado', '') == 'BORRADOR'
+            && resource.data.get('estado', '') != 'BORRADOR';
+      }
+      function camposPermitidos() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'numero', 'version', 'estado', 'items', 'subtotal', 'descuento', 'total',
+          'notaCliente', 'notasInternas', 'formaPago', 'validaHasta',
+          'enviadaEn', 'respondidaEn', 'motivoRechazo', 'token',
+          'clienteId', 'actualizadoEn', 'actualizadoPor'
+        ]);
+      }
+
+      allow read: if esOperador();
+      allow create: if esOperador()
+        && request.resource.data.creadoPor == request.auth.uid
+        && estadoValido(request.resource.data.get('estado', ''))
+        && itemsValidos()
+        && importesCoherentes();
+      allow update: if esOperador()
+        && camposPermitidos()
+        && estadoValido(request.resource.data.get('estado', ''))
+        && request.resource.data.creadoPor == resource.data.creadoPor
+        && itemsValidos()
+        && importesCoherentes()
+        && (!reapertura() || esAdmin());
+      allow delete: if esAdmin() && resource.data.get('estado', '') == 'BORRADOR';
+    }
+
+    /* ── cotizaciones_publicas · lo que ve el cliente ─────────────────
+       Es una PROYECCIÓN sin datos internos (notas, correo, identificadores).
+       Las reglas de Firestore no pueden ocultar campos: si el documento es
+       legible, se lee entero. De ahí que sean dos documentos.
+
+       El enlace se comparte por WhatsApp y se abre SIN sesión:
+         · `get` público, `list` cerrado → sin el token no se llega a nada;
+         · el token es aleatorio de 22 caracteres, no adivinable;
+         · el cliente solo puede responder (aceptar/rechazar) y solo si la
+           cotización está ENVIADA; no puede tocar importes ni contenido. */
+    match /cotizaciones_publicas/{token} {
+      function respuestaDelCliente() {
+        return resource.data.get('estado', '') == 'ENVIADA'
+            && request.resource.data.get('estado', '') in ['ACEPTADA', 'RECHAZADA']
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'respondidaEn'])
+            && request.resource.data.get('respondidaEn', null) == request.time;
+      }
+      allow get: if true;
+      allow list: if false;
+      allow create: if esOperador();
+      allow update: if esOperador() || respuestaDelCliente();
+      allow delete: if esOperador();
+    }
+
+    /* ── numeración de cotizaciones ──────────────────────────────────
+       `configuracion` exige SUPERADMIN para escribir, y quien cotiza es un
+       OPERADOR. Este bloque abre SOLO el documento del contador, y solo con
+       esa forma, para que la numeración se pueda hacer en una transacción. */
+    match /configuracion/contadores_cotizacion {
+      allow read: if esOperador();
+      allow create, update: if esOperador()
+        && request.resource.data.keys().hasOnly(['anio', 'ultimo', 'actualizadoEn'])
+        && request.resource.data.anio is number
+        && request.resource.data.ultimo is number
+        && request.resource.data.ultimo >= 1;
+    }
+
     /* ── Denegar todo lo demás ─────────────────────────────────────── */
     match /{document=**} {
       allow read, write: if false;

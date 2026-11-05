@@ -24,6 +24,9 @@ const NAV = [
   { key: 'vencimientos',   label: 'Vencimientos',   href: 'vencimientos.html',   icono: 'fa-calendar-check', min: 'OPERADOR' },
   { key: 'clientes-mes',   label: 'Clientes por mes', href: 'clientes-por-mes.html', icono: 'fa-calendar-days', min: 'OPERADOR' },
   { key: 'contactos',      label: 'Contactos',      href: 'contactos.html',      icono: 'fa-envelope',    min: 'OPERADOR' },
+  /* Cotizaciones (KZ-CRM-COTIZACIONES-002): las crea y envía cualquier
+     OPERADOR; reabrir o anular es cosa de ADMIN, y eso lo imponen las reglas. */
+  { key: 'cotizaciones',   label: 'Cotizaciones',   href: 'cotizaciones.html',   icono: 'fa-file-invoice-dollar', min: 'OPERADOR' },
   { key: 'servicios',      label: 'Servicios',      href: 'servicios.html',      icono: 'fa-layer-group', min: 'OPERADOR' },
   { key: 'pagos',          label: 'Pagos',          href: 'pagos.html',          icono: 'fa-money-bill',  min: 'OPERADOR' },
   { key: 'planes',         label: 'Planes',         href: 'planes.html',         icono: 'fa-tags',        min: 'ADMIN' },

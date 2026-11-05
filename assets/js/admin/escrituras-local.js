@@ -847,3 +847,267 @@ export async function recalcularEstados() {
   }
   return { actualizados: n };
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   COTIZACIONES · KZ-CRM-COTIZACIONES-002
+   ──────────────────────────────────────────────────────────────────────
+   Decisiones aprobadas por Darwin:
+     · crear y enviar: OPERADOR y ADMIN   · reabrir/anular: solo ADMIN
+     · validez por defecto: 15 días       · descuento: en pesos
+     · la aceptación del cliente guarda fecha y hora
+
+   Dos colecciones, y el motivo importa: las reglas de Firestore NO pueden
+   ocultar campos, así que lo que se comparte por enlace es una PROYECCIÓN
+   sin notas internas (`cotizaciones_publicas`), no el registro interno.
+   ══════════════════════════════════════════════════════════════════════ */
+
+const VALIDEZ_DIAS = 15;
+const ESTADOS_COTIZACION = ['BORRADOR', 'ENVIADA', 'ACEPTADA', 'RECHAZADA'];
+
+/** Token del enlace público: 128 bits en hexadecimal. No adivinable. */
+function tokenCotizacion() {
+  const bytes = new Uint8Array(16);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+const fechaMas = (dias) => {
+  const d = new Date();
+  d.setDate(d.getDate() + dias);
+  return iso(d);
+};
+
+/** Limpia y valida los ítems. Cada uno trae su subtotal ya calculado. */
+function normalizarItems(items) {
+  const limpios = (Array.isArray(items) ? items : []).map((i) => {
+    const concepto = String(i.concepto || '').trim();
+    const cantidad = Math.max(1, Math.round(Number(i.cantidad) || 1));
+    const valorUnitario = Math.max(0, Math.round(Number(i.valorUnitario) || 0));
+    return { concepto, detalle: String(i.detalle || '').trim(), cantidad, valorUnitario, subtotal: cantidad * valorUnitario };
+  }).filter((i) => i.concepto !== '');
+  if (limpios.length === 0) throw new Error('La cotización necesita al menos un ítem con concepto.');
+  if (limpios.length > 30) throw new Error('Demasiados ítems: el máximo es 30.');
+  return limpios;
+}
+
+/** Totales. El descuento nunca supera el subtotal (y las reglas lo exigen). */
+function calcularTotales(items, descuento) {
+  const subtotal = items.reduce((s, i) => s + i.subtotal, 0);
+  const desc = Math.max(0, Math.min(Math.round(Number(descuento) || 0), subtotal));
+  return { subtotal, descuento: desc, total: subtotal - desc };
+}
+
+/** Crea una cotización en BORRADOR (sin número ni enlace todavía). */
+export async function crearCotizacion(d) {
+  const c = await requerir('OPERADOR');
+  const items = normalizarItems(d.items);
+  const { subtotal, descuento, total } = calcularTotales(items, d.descuento);
+
+  const cotizacion = {
+    numero: null,
+    version: 1,
+    estado: 'BORRADOR',
+    items, subtotal, descuento, total,
+    moneda: 'COP',
+    formaPago: d.formaPago === 'MITAD' ? 'MITAD' : 'UNICO',
+    notaCliente: String(d.notaCliente || '').trim(),
+    notasInternas: String(d.notasInternas || '').trim(),
+    validaHasta: d.validaHasta || fechaMas(VALIDEZ_DIAS),
+    prospectoId: d.prospectoId || null,
+    clienteId: null,
+    prospectoNombre: String(d.prospectoNombre || '').trim(),
+    prospectoTelefono: String(d.prospectoTelefono || '').replace(/\D/g, ''),
+    creadoPor: c.uid,
+    creadoPorNombre: c.nombre,
+    creadoEn: serverTimestamp(),
+    actualizadoEn: serverTimestamp(),
+    actualizadoPor: c.nombre,
+    enviadaEn: null,
+    respondidaEn: null,
+    motivoRechazo: '',
+    token: null
+  };
+
+  const ref = await addDoc(collection(db, 'cotizaciones'), cotizacion);
+  await auditar(c, 'CREAR_COTIZACION', 'cotizaciones', ref.id, null, { total, estado: 'BORRADOR' });
+  return { id: ref.id, total };
+}
+
+/** Edita una cotización en BORRADOR o (solo ADMIN) reabre una cerrada. */
+export async function actualizarCotizacion(cotizacionId, d) {
+  const c = await requerir('OPERADOR');
+  const ref = doc(db, 'cotizaciones', cotizacionId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error('La cotización no existe.');
+  const antes = snap.data();
+
+  const reabrir = String(d.estado || '') === 'BORRADOR' && antes.estado !== 'BORRADOR';
+  if (reabrir && (NIVEL[c.rol] || 0) < NIVEL.ADMIN) {
+    throw new Error('Solo un ADMIN puede reabrir una cotización ya enviada.');
+  }
+  if (antes.estado === 'ENVIADA' && !reabrir && String(d.estado || antes.estado) === 'ENVIADA') {
+    throw new Error('Está enviada al cliente: reábrela (ADMIN) para poder cambiarla.');
+  }
+
+  const items = normalizarItems(d.items || antes.items);
+  const { subtotal, descuento, total } = calcularTotales(items, d.descuento ?? antes.descuento);
+
+  const cambios = {
+    items, subtotal, descuento, total,
+    formaPago: d.formaPago === 'MITAD' ? 'MITAD' : 'UNICO',
+    notaCliente: String(d.notaCliente ?? antes.notaCliente ?? '').trim(),
+    notasInternas: String(d.notasInternas ?? antes.notasInternas ?? '').trim(),
+    validaHasta: d.validaHasta || antes.validaHasta,
+    actualizadoEn: serverTimestamp(),
+    actualizadoPor: c.nombre
+  };
+  if (reabrir) { cambios.estado = 'BORRADOR'; cambios.respondidaEn = null; cambios.motivoRechazo = ''; }
+
+  await updateDoc(ref, cambios);
+  await auditar(c, reabrir ? 'REABRIR_COTIZACION' : 'EDITAR_COTIZACION', 'cotizaciones', cotizacionId,
+    { total: antes.total, estado: antes.estado }, { total, estado: cambios.estado || antes.estado });
+  return { total, estado: cambios.estado || antes.estado };
+}
+
+/**
+ * ENVÍA la cotización: numera (transacción sobre el contador), marca ENVIADA,
+ * genera el token y publica la proyección para el cliente.
+ * Todo en una transacción: o quedan las tres cosas o no queda ninguna.
+ */
+export async function enviarCotizacion(cotizacionId) {
+  const c = await requerir('OPERADOR');
+  const ref = doc(db, 'cotizaciones', cotizacionId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error('La cotización no existe.');
+  const q = snap.data();
+
+  if (q.estado === 'ACEPTADA' || q.estado === 'RECHAZADA') {
+    throw new Error('Esta cotización ya está ' + q.estado.toLowerCase() + ': crea una versión nueva.');
+  }
+  if (q.estado === 'ENVIADA' && q.numero) {
+    return { yaEnviada: true, numero: q.numero, token: q.token };
+  }
+  if (!q.prospectoNombre) throw new Error('Falta el nombre del prospecto.');
+
+  const token = q.token || tokenCotizacion();
+  let numero = null;
+
+  await runTransaction(db, async (tx) => {
+    const contadorRef = doc(db, 'configuracion', 'contadores_cotizacion');
+    const contador = await tx.get(contadorRef);
+    const anio = new Date().getFullYear();
+    const previo = contador.exists() ? contador.data() : { anio, ultimo: 0 };
+    const ultimo = Number(previo.anio) === anio ? (Number(previo.ultimo) || 0) + 1 : 1;
+    numero = 'COT-' + anio + '-' + String(ultimo).padStart(4, '0');
+
+    tx.set(contadorRef, { anio, ultimo, actualizadoEn: serverTimestamp() }, { merge: true });
+    tx.update(ref, {
+      numero, token, estado: 'ENVIADA',
+      enviadaEn: serverTimestamp(),
+      actualizadoEn: serverTimestamp(),
+      actualizadoPor: c.nombre
+    });
+    tx.set(doc(db, 'cotizaciones_publicas', token), {
+      cotizacionId,
+      numero,
+      version: q.version || 1,
+      negocio: q.prospectoNombre,
+      items: q.items,
+      subtotal: q.subtotal,
+      descuento: q.descuento,
+      total: q.total,
+      moneda: q.moneda || 'COP',
+      formaPago: q.formaPago,
+      notaCliente: q.notaCliente || '',
+      validaHasta: q.validaHasta,
+      estado: 'ENVIADA',
+      emitidaEn: serverTimestamp(),
+      respondidaEn: null
+    });
+  });
+
+  await auditar(c, 'ENVIAR_COTIZACION', 'cotizaciones', cotizacionId, { estado: q.estado }, { estado: 'ENVIADA', numero });
+  return { numero, token, yaEnviada: false };
+}
+
+/** Registra la respuesta del cliente (aceptada o rechazada) desde el panel. */
+export async function responderCotizacion(cotizacionId, estado, motivo) {
+  const c = await requerir('OPERADOR');
+  if (!['ACEPTADA', 'RECHAZADA'].includes(estado)) throw new Error('Respuesta no válida.');
+  const ref = doc(db, 'cotizaciones', cotizacionId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error('La cotización no existe.');
+  const q = snap.data();
+
+  await updateDoc(ref, {
+    estado,
+    respondidaEn: serverTimestamp(),
+    motivoRechazo: estado === 'RECHAZADA' ? String(motivo || '').trim() : '',
+    actualizadoEn: serverTimestamp(),
+    actualizadoPor: c.nombre
+  });
+  if (q.token) {
+    await updateDoc(doc(db, 'cotizaciones_publicas', q.token), { estado, respondidaEn: serverTimestamp() })
+      .catch(() => { /* la proyección se puede regenerar */ });
+  }
+  await auditar(c, 'RESPUESTA_COTIZACION', 'cotizaciones', cotizacionId, { estado: q.estado }, { estado, motivo: motivo || '' });
+  return { estado };
+}
+
+/**
+ * Trae al registro interno la respuesta que el cliente dio en el enlace público.
+ * Spark no tiene procesos en segundo plano: igual que el panel deriva los
+ * vencimientos al abrir la página, aquí se sincroniza al listar.
+ */
+export async function sincronizarRespuestaCotizacion(cotizacionId) {
+  const c = await requerir('OPERADOR');
+  const ref = doc(db, 'cotizaciones', cotizacionId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return { sincronizada: false };
+  const q = snap.data();
+  if (q.estado !== 'ENVIADA' || !q.token) return { sincronizada: false };
+
+  const publico = await getDoc(doc(db, 'cotizaciones_publicas', q.token)).catch(() => null);
+  if (!publico || !publico.exists()) return { sincronizada: false };
+  const p = publico.data();
+  if (!['ACEPTADA', 'RECHAZADA'].includes(p.estado)) return { sincronizada: false };
+
+  await updateDoc(ref, {
+    estado: p.estado,
+    respondidaEn: p.respondidaEn || serverTimestamp(),
+    actualizadoEn: serverTimestamp(),
+    actualizadoPor: c.nombre + ' (respuesta del cliente)'
+  });
+  await auditar(c, 'RESPUESTA_CLIENTE', 'cotizaciones', cotizacionId, { estado: 'ENVIADA' }, { estado: p.estado });
+  return { sincronizada: true, estado: p.estado };
+}
+
+/** Convierte una cotización ACEPTADA en cliente con su primer servicio. */
+export async function convertirCotizacionEnCliente(cotizacionId, extra = {}) {
+  const c = await requerir('OPERADOR');
+  const snap = await getDoc(doc(db, 'cotizaciones', cotizacionId));
+  if (!snap.exists()) throw new Error('La cotización no existe.');
+  const q = snap.data();
+  if (q.estado !== 'ACEPTADA') throw new Error('Solo se convierte una cotización aceptada.');
+  if (q.clienteId) throw new Error('Esta cotización ya generó un cliente.');
+
+  const servicio = q.items[0] ? q.items[0].concepto : 'Mini Web';
+  const res = await crearCliente({
+    nombre: q.prospectoNombre,
+    telefono: q.prospectoTelefono,
+    email: extra.email || '',
+    ciudad: extra.ciudad || '',
+    servicio,
+    precio: q.total,
+    observaciones: 'Viene de la cotización ' + (q.numero || cotizacionId) + '.',
+    ...extra
+  });
+
+  await updateDoc(doc(db, 'cotizaciones', cotizacionId), {
+    clienteId: res.id,
+    actualizadoEn: serverTimestamp(),
+    actualizadoPor: c.nombre
+  });
+  await auditar(c, 'COTIZACION_A_CLIENTE', 'cotizaciones', cotizacionId, null, { clienteId: res.id });
+  return res;
+}

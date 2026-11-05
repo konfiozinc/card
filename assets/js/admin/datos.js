@@ -22,7 +22,9 @@ import {
   actualizarServicio, cambiarEstadoServicio,
   actualizarContacto, crearContacto, agregarSeguimientoContacto, convertirContactoEnCliente,
   prepararNotificacion, marcarNotificacionEnviada, registrarToken,
-  seedInicial, recalcularEstados
+  seedInicial, recalcularEstados,
+  crearCotizacion, actualizarCotizacion, enviarCotizacion, responderCotizacion,
+  sincronizarRespuestaCotizacion, convertirCotizacionEnCliente
 } from './escrituras-local.js';
 /* MODO SPARK: no hay Cloud Functions. Todo se escribe desde el cliente y la
    única autoridad son las reglas de Firestore. La gestión de usuarios es la
@@ -156,6 +158,53 @@ export async function cargarPagos() {
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
+/* ── Cotizaciones · KZ-CRM-COTIZACIONES-002 ────────────────────────── */
+
+/** Todas las cotizaciones, las más recientes primero.
+ *  Igual que con los contactos, se ordena en memoria: `emitidaEn`/`creadoEn`
+ *  son Timestamps y una cotización en borrador puede no tenerlos todos. */
+export async function cargarCotizaciones() {
+  const snap = await getDocs(collection(db, 'cotizaciones'));
+  const aMs = (v) => {
+    if (!v) return 0;
+    if (typeof v.toDate === 'function') return v.toDate().getTime();
+    const d = new Date(v);
+    return isNaN(d) ? 0 : d.getTime();
+  };
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .sort((x, y) => aMs(y.creadoEn) - aMs(x.creadoEn));
+}
+
+/** Una cotización concreta. */
+export async function cargarCotizacion(id) {
+  const snap = await getDoc(doc(db, 'cotizaciones', id));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+}
+
+/** La cotización "viva" de un prospecto: la última que no está cerrada.
+ *  Sirve para la columna de la lista de Contactos. */
+export function cotizacionVigenteDe(cotizaciones, contactoId) {
+  if (!contactoId) return null;
+  const suyas = cotizaciones.filter((c) => c.prospectoId === contactoId);
+  if (suyas.length === 0) return null;
+  const abierta = suyas.find((c) => c.estado === 'ENVIADA' || c.estado === 'BORRADOR');
+  return abierta || suyas[0];
+}
+
+/** Texto e intensidad del estado, para pintarlo como badge. */
+export function etiquetaCotizacion(estado) {
+  return {
+    BORRADOR: 'Borrador',
+    ENVIADA: 'Enviada',
+    ACEPTADA: 'Aceptada',
+    RECHAZADA: 'Rechazada'
+  }[estado] || estado || '—';
+}
+
+/** ¿Se puede seguir editando? (borrador, o el ADMIN reabriendo) */
+export const cotizacionEditable = (estado) => estado === 'BORRADOR';
+
 /** Todos los servicios (instancias por cliente). */
 export async function cargarServicios() {
   const snap = await getDocs(query(collection(db, 'servicios'), orderBy('fechaVencimiento')));
@@ -246,7 +295,9 @@ export const escrituras = {
   actualizarServicio, cambiarEstadoServicio,
   actualizarContacto, crearContacto, agregarSeguimientoContacto, convertirContactoEnCliente,
   prepararNotificacion, marcarNotificacionEnviada, registrarToken, crearUsuario, actualizarUsuario,
-  seedInicial, recalcularEstados
+  seedInicial, recalcularEstados,
+  crearCotizacion, actualizarCotizacion, enviarCotizacion, responderCotizacion,
+  sincronizarRespuestaCotizacion, convertirCotizacionEnCliente
 };
 
 /* ── Obligación renovable de un servicio (KZ-OPS-001) ──────────────────

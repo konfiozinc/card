@@ -94,7 +94,7 @@ const servidor = http.createServer((req, res) => {
 });
 
 const paginas = [
-  'index.html', 'panel.html', 'precios.html', 'servicios.html', 'portafolio.html', 'blog.html',
+  'index.html', 'precios.html', 'servicios.html', 'portafolio.html', 'blog.html',
   'nosotros.html', 'contacto.html', 'aliados.html', 'gracias.html', 'politica-privacidad.html',
   'admin/index.html', 'admin/dashboard.html', 'admin/clientes.html', 'admin/pagos.html',
   'admin/servicios.html', 'admin/planes.html', 'admin/usuarios.html', 'admin/notificaciones.html',
@@ -149,7 +149,7 @@ const internas = ['docs/PLAN-PUBLICACION-CARD.md', 'docs/VENTANA-DE-LANZAMIENTO-
     servidas.length ? servidas.slice(0, 4).join(' | ') : `${internas.length} rutas internas fuera`);
 
   /* ── 5. Contraste: el sitio sí se sirve ─────────────────────────── */
-  const vivas = ['index.html', 'panel.html', 'precios.html', 'admin/index.html', 'assets/css/admin.css',
+  const vivas = ['index.html', 'precios.html', 'admin/index.html', 'assets/css/admin.css',
     'assets/js/admin/core.js', 'robots.txt', 'sitemap.xml'];
   const caidas = [];
   for (const r of vivas) {

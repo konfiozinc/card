@@ -7,7 +7,7 @@
    acto explícito, nunca automático. */
 import { requireAuth, canAccess } from '../assets/js/admin/shell.js';
 import { setTitulo, toast, confirmar, esc, descargarCSV, badgeEstado } from '../assets/js/admin/ui.js';
-import { cargarContactos, escrituras, CFG } from '../assets/js/admin/datos.js';
+import { cargarContactos, cargarCotizaciones, cotizacionVigenteDe, etiquetaCotizacion, escrituras, CFG } from '../assets/js/admin/datos.js';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../assets/js/admin/core.js';
 
@@ -24,6 +24,9 @@ const ETIQUETA_ESTADO = {
 };
 
 let contactos = [];
+/* KZ-CRM-COTIZACIONES-002: la cotización viva de cada prospecto.
+   Se cargan una vez y se refrescan al volver de crear/enviar. */
+let cotizaciones = [];
 let filtros = { q: '', estado: '' };
 
 const estadoDe = (c) => (ESTADOS.includes(c.estado) ? c.estado : 'NUEVO');
@@ -64,6 +67,7 @@ function pintar() {
     const est = estadoDe(c);
     const seg = seguimientoDe(c);
     const ultima = seg.length ? seg[seg.length - 1] : null;
+    const cot = cotizacionVigenteDe(cotizaciones, c.id);
     return `<tr data-id="${esc(c.id)}">
       <td class="celda-suave">${esc(fecha(c))}</td>
       <td><div class="celda-fuerte">${esc(c.nombre || '—')}</div></td>
@@ -72,8 +76,13 @@ function pintar() {
       <td><div class="celda-suave" style="max-width:240px;">${esc(c.mensaje || '—')}</div></td>
       <td>${badge(est)}${c.clienteId ? `<div class="celda-suave">cliente ${esc(c.clienteId)}</div>` : ''}
         ${ultima ? `<div class="celda-suave">${esc(String(ultima.nota || '').slice(0, 60))}</div>` : ''}</td>
+      <td>${cot
+        ? `<div class="celda-fuerte" style="font-family:ui-monospace,monospace;font-size:.74rem">${esc(cot.numero || 'borrador')}</div>
+           <div class="celda-suave">${esc(etiquetaCotizacion(cot.estado))} · ${esc('$ ' + (Number(cot.total) || 0).toLocaleString('es-CO'))}</div>`
+        : '<span class="celda-suave">—</span>'}</td>
       <td><div class="acciones-fila">
         <button data-a="detalle" title="Ver seguimiento" aria-label="Ver seguimiento"><i class="fas fa-eye" aria-hidden="true"></i></button>
+        <button data-a="cotizar" title="${cot ? 'Ver cotización' : 'Cotizar'}" aria-label="Cotizar"><i class="fas fa-file-invoice-dollar" aria-hidden="true"></i></button>
         <button data-a="whatsapp" title="Abrir WhatsApp" aria-label="Abrir WhatsApp"><i class="fab fa-whatsapp" aria-hidden="true"></i></button>
         <button data-a="seguimiento" title="Añadir seguimiento" aria-label="Añadir seguimiento"><i class="fas fa-note-sticky" aria-hidden="true"></i></button>
         ${est !== 'CONVERTIDO' && !c.clienteId ? `<button data-a="convertir" title="Convertir en cliente" aria-label="Convertir en cliente"><i class="fas fa-user-plus" aria-hidden="true"></i></button>` : ''}
@@ -107,7 +116,7 @@ function pintar() {
 
     <div class="tabla__wrap">
       <table class="tabla"><thead><tr>
-        <th>Recibido</th><th>Nombre</th><th>Contacto</th><th>Servicio</th><th>Mensaje</th><th>Estado</th><th>Acciones</th>
+        <th>Recibido</th><th>Nombre</th><th>Contacto</th><th>Servicio</th><th>Mensaje</th><th>Estado</th><th>Cotización</th><th>Acciones</th>
       </tr></thead><tbody>${filas || ''}</tbody></table>
       ${f.length ? '' : '<p class="tabla__vacia">No hay contactos que coincidan. Cuando alguien envíe el formulario del sitio, aparecerán aquí.</p>'}
     </div>`;
@@ -277,6 +286,12 @@ async function manejarAccion(e) {
   const a = btn.dataset.a;
 
   if (a === 'detalle') return verDetalle(c);
+  if (a === 'cotizar') {
+    const cot = cotizacionVigenteDe(cotizaciones, c.id);
+    if (cot) { location.href = 'cotizaciones.html'; return; }
+    location.href = `cotizacion-nueva.html?contacto=${encodeURIComponent(c.id)}`;
+    return;
+  }
   if (a === 'seguimiento') return abrirSeguimiento(c);
   if (a === 'convertir') return abrirConversion(c);
 
@@ -315,6 +330,9 @@ function exportar() {
 
 async function recargar() {
   contactos = await cargarContactos();
+  /* Si la carga de cotizaciones fallara, la lista de contactos debe seguir
+     funcionando: es información complementaria, no el núcleo de la pantalla. */
+  cotizaciones = await cargarCotizaciones().catch(() => []);
   pintar();
 }
 
