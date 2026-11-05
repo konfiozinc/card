@@ -13,9 +13,15 @@ name: Calidad KONFÍO ZINC
 #   Lo que se puede ejecutar sin depender de la máquina del propietario:
 #     · `estatica`  — sintaxis del código de cliente + puerta de calidad
 #                     (privacidad, endpoints ficticios, recursos, oferta,
-#                     credenciales) + verificador de precios.
+#                     credenciales) + verificador de precios + Definición de
+#                     Terminado en modo estático.
 #     · `reglas`    — 125 comprobaciones de reglas de Firestore, seguridad,
 #                     captación y modelo financiero contra los emuladores.
+#     · `calidad-html` — KZ-QA-GLOBAL-003: las 62 páginas abiertas en Chromium,
+#                     exigiendo cero errores de consola. Es el mismo verificador
+#                     que corre el pre-push del propietario, para que nadie pueda
+#                     publicar saltándose el escudo local. Usa el Google Chrome
+#                     del runner (KZ_CHROMIUM_PATH): no descarga 150 MB de más.
 #
 #   Las suites de navegador (panel, financiero y recorrido operativo E2E) NO se
 #   ejecutan aquí a propósito: `herramientas/preparar-staging.js` construye un
@@ -75,6 +81,12 @@ jobs:
 
       - name: Precios y oferta comercial (AGENTS.md)
         run: node herramientas/verificar-precios.js
+
+      # Mismas reglas que el pre-commit del propietario, sin navegador (1 s). Va
+      # también aquí para que el escudo estático no dependa de que el trabajo con
+      # Chromium llegue a instalarse.
+      - name: Definición de Terminado de las páginas (estático)
+        run: node herramientas/verificar-calidad-html.js --sin-consola
 
   reglas:
     name: Reglas de Firestore (emulador)
@@ -153,3 +165,32 @@ jobs:
           path: test-results/kz-tech-001/
           if-no-files-found: warn
           retention-days: 14
+
+  calidad-html:
+    name: Calidad HTML (62 páginas, consola incluida)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # El runner ya trae Google Chrome en esta ruta —el mismo que usa el trabajo
+      # visual—. Se le pasa al verificador para no descargar el navegador de
+      # Playwright (150 MB) y para que la revisión de consola se ejecute de verdad
+      # en lugar de omitirse en silencio.
+      KZ_CHROMIUM_PATH: /usr/bin/google-chrome
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: herramientas/package-lock.json
+
+      - name: Dependencias de prueba bloqueadas
+        run: npm ci --prefix herramientas
+        env:
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+
+      # KZ-QA-GLOBAL-003: el mismo escudo que el pre-push del propietario, del
+      # lado del servidor. Si alguien publica con `--no-verify`, esto lo detecta.
+      - name: "Definición de Terminado: 62 páginas y cero errores de consola"
+        run: node herramientas/verificar-calidad-html.js

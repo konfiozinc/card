@@ -48,4 +48,23 @@ if [ -f herramientas/verificar-precios.js ] && command -v node >/dev/null 2>&1; 
   }
 fi
 
+# Calidad de las páginas web (KZ-QA-GLOBAL-003): título único, descripción de 160
+# caracteres como máximo, Open Graph completo, favicon SVG + PNG 32/64 + apple-touch,
+# alt en todas las imágenes y lang="es", en las 62 páginas del sitio.
+#
+# Aquí solo el análisis estático: tarda un segundo y solo habla si falla, para no
+# ensuciar cada commit. La séptima regla —cero errores de consola, abriendo cada
+# página en Chromium— tarda unos 3 minutos y se comprueba en el pre-push, que es
+# el paso previo a publicar.
+if [ -f herramientas/verificar-calidad-html.js ] && command -v node >/dev/null 2>&1; then
+  if ! salida_calidad=$(node herramientas/verificar-calidad-html.js --sin-consola 2>&1); then
+    echo ""
+    echo "$salida_calidad"
+    echo ""
+    echo "COMMIT BLOQUEADO: alguna pagina incumple la Definicion de Terminado (KZ-QA-GLOBAL-001)."
+    echo "Corrige lo indicado arriba, o usa 'git commit --no-verify' si sabes por que."
+    exit 1
+  fi
+fi
+
 exit 0

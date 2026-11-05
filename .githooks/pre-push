@@ -1,0 +1,29 @@
+#!/bin/sh
+# Pre-push hook: la calidad completa antes de publicar (KZ-QA-GLOBAL-003).
+#
+# El pre-commit comprueba en un segundo las seis reglas sobre el HTML. Aqui se
+# anade la septima: abrir cada una de las 62 paginas en Chromium y exigir cero
+# errores de JavaScript. Tarda unos 3 minutos, asi que vive en el push y no en
+# cada commit: se paga una vez por publicacion, antes de que algo salga al sitio.
+#
+# Si Chromium no esta disponible (una maquina sin los navegadores de Playwright),
+# el verificador lo avisa y sigue con las seis reglas: el push no se bloquea por
+# una herramienta ausente, pero queda dicho en pantalla.
+#
+# Saltar con: git push --no-verify   (queda como decision consciente y anotada)
+
+if [ -f herramientas/verificar-calidad-html.js ] && command -v node >/dev/null 2>&1; then
+  echo "Verificando la calidad de las 62 paginas del sitio (incluye consola, ~3 min)..."
+  if ! salida_calidad=$(node herramientas/verificar-calidad-html.js 2>&1); then
+    echo "$salida_calidad"
+    echo ""
+    echo "PUSH BLOQUEADO: el sitio no cumple la Definicion de Terminado."
+    echo "No se publica con el verificador en rojo. Corrige lo indicado arriba"
+    echo "o usa 'git push --no-verify' si sabes por que."
+    exit 1
+  fi
+  echo "$salida_calidad"
+  echo "Calidad OK: las 62 paginas cumplen, consola incluida. Se puede publicar."
+fi
+
+exit 0

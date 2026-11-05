@@ -20,6 +20,16 @@
 (function () {
   'use strict';
 
+  /* ── Ruta de assets/, deducida de la URL de este script ──
+     El sitio carga push.js desde la raíz («assets/js/push.js») y desde un nivel
+     («../assets/js/push.js»), así que sus recursos se resuelven a partir de su
+     propio src y no de la ruta de la página. */
+  var BASE_ASSETS = (function () {
+    var s = document.currentScript;
+    if (s && s.src) return s.src.replace(/js\/push\.js(\?.*)?$/, '');
+    return 'assets/';
+  })();
+
   /* ── Configuración (pública, igual que firebase-config.js) ── */
   var PROYECTO = 'konfio-zinc';
   var FIREBASE = {
@@ -67,39 +77,19 @@
     return 'serviceWorker' in navigator && 'Notification' in window && 'PushManager' in window;
   }
 
-  /* ── Estilos (se inyectan solos: no toca el CSS del sitio) ── */
+  /* ── Estilos ──
+     Se cargan como hoja aparte (assets/css/kz-push.css). NO se inyectan como
+     <style>: la portada declara `style-src 'self'` y el navegador bloqueaba el
+     bloque en línea, dejando el chip «Recibir avisos» sin formato y escribiendo
+     un error en la consola (medido en Chrome 156, KZ-QA-GLOBAL-003). Una hoja
+     del propio dominio sí está permitida por ese CSP. */
   function ponerEstilos() {
     if (document.getElementById('kz-push-css')) return;
-    var css = document.createElement('style');
-    css.id = 'kz-push-css';
-    css.textContent = [
-      '.kz-chip{position:fixed;left:14px;bottom:max(18px,env(safe-area-inset-bottom));z-index:9990;',
-      'display:flex;align-items:center;gap:9px;max-width:calc(100vw - 90px);padding:10px 12px;',
-      'border-radius:999px;background:#111214;color:#fff;border:1px solid rgba(255,255,255,.16);',
-      'box-shadow:0 12px 32px rgba(0,0,0,.45);font:500 13.5px/1.25 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;',
-      'opacity:0;transform:translateY(14px);transition:opacity .28s ease,transform .28s ease;pointer-events:none}',
-      '.kz-chip.kz-visible{opacity:1;transform:none;pointer-events:auto}',
-      '.kz-chip.kz-ok{background:#0f2a18;border-color:rgba(37,211,102,.45)}',
-      '.kz-chip button{cursor:pointer;border:0;background:none;color:inherit;font:inherit;padding:0}',
-      '.kz-chip .kz-accion{display:flex;align-items:center;gap:8px;text-align:left}',
-      '.kz-chip .kz-x{opacity:.6;font-size:15px;line-height:1;padding:2px 2px 2px 4px}',
-      '.kz-chip .kz-x:hover{opacity:1}',
-      '.kz-panel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.96);z-index:9995;',
-      'width:min(360px,calc(100vw - 40px));background:#141517;color:#f2f2f2;border:1px solid rgba(255,255,255,.16);',
-      'border-radius:16px;padding:20px 18px;box-shadow:0 24px 60px rgba(0,0,0,.6);',
-      'font:400 14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;opacity:0;pointer-events:none;transition:opacity .2s ease,transform .2s ease}',
-      '.kz-panel.kz-visible{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto}',
-      '.kz-panel h4{margin:0 0 8px;font-size:16px;color:#e8c96a}',
-      '.kz-panel p{margin:0 0 10px;color:#c9c9c9;font-size:13.5px}',
-      '.kz-panel ol{margin:0 0 12px 18px;padding:0;color:#c9c9c9;font-size:13.5px}',
-      '.kz-panel li{margin-bottom:4px}',
-      '.kz-panel .kz-cerrar{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,.18);',
-      'background:rgba(255,255,255,.06);color:#fff;cursor:pointer;font:inherit}',
-      '.kz-tel{position:fixed;inset:0;z-index:9994;background:rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity .2s ease}',
-      '.kz-tel.kz-visible{opacity:1;pointer-events:auto}',
-      '@media (prefers-reduced-motion:reduce){.kz-chip,.kz-panel,.kz-tel{transition:none}}'
-    ].join('');
-    document.head.appendChild(css);
+    var hoja = document.createElement('link');
+    hoja.id = 'kz-push-css';
+    hoja.rel = 'stylesheet';
+    hoja.href = BASE_ASSETS + 'css/kz-push.css';
+    document.head.appendChild(hoja);
   }
 
   /* ── Aviso flotante dentro de la página (mientras se explica o confirma) ── */

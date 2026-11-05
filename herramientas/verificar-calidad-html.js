@@ -25,8 +25,17 @@
      node herramientas/verificar-calidad-html.js --sin-consola   # salta el navegador
      node herramientas/verificar-calidad-html.js --json          # salida JSON
 
+   Variables de entorno:
+     KZ_CHROMIUM_PATH   ruta a un Chrome/Chromium ya instalado. Sirve para el CI de
+                        GitHub, que no descarga el navegador de Playwright (pesa
+                        ~150 MB y el runner ya trae Google Chrome): allí se pasa
+                        KZ_CHROMIUM_PATH=/usr/bin/google-chrome y la consola SÍ se
+                        revisa de verdad. Sin la variable se usa el navegador de
+                        Playwright y, si no está, se avisa y se sigue.
+
    Sale con código 1 si alguna página incumple algo. Se ejecuta antes de cada
-   commit, igual que verificar-precios.js.
+   commit (pre-commit, modo --sin-consola), antes de cada push (pre-push, completo)
+   y en el CI (job `calidad-html`), igual que verificar-precios.js.
    ══════════════════════════════════════════════════════════════════════════ */
 'use strict';
 
@@ -191,19 +200,29 @@ async function revisarConsola(revisiones) {
     console.log('    sus peticiones se cortan y su fallo no cuenta como error del sitio.');
   }
 
-  /* Si el navegador no arranca (p. ej. Playwright instalado sin su Chromium, que
-     es como corre el CI), se avisa y se sigue: el resto de reglas valen igual.
-     Nunca se cae con una traza: un verificador que revienta se acaba ignorando. */
+  /* Si el navegador no arranca (p. ej. Playwright instalado sin su Chromium), se
+     avisa y se sigue: el resto de reglas valen igual. Nunca se cae con una traza:
+     un verificador que revienta se acaba ignorando.
+     KZ_CHROMIUM_PATH permite usar el Chrome del runner de GitHub en vez de
+     descargar el navegador de Playwright dentro del CI. */
+  const rutaChrome = process.env.KZ_CHROMIUM_PATH || '';
   let navegador;
   try {
-    navegador = await chromium.launch();
+    navegador = await chromium.launch(rutaChrome ? { executablePath: rutaChrome } : {});
   } catch (e) {
     console.warn('  ⚠ no se pudo abrir Chromium: se omite la revisión de consola.');
+    if (rutaChrome) console.warn('    KZ_CHROMIUM_PATH=' + rutaChrome);
     console.warn('    ' + String(e.message).split('\n')[0].slice(0, 110));
     console.warn('    Para habilitarla: cd herramientas && npx playwright install chromium');
     servidor.close();
     return false;
   }
+
+  /* Se dice siempre con qué motor se juzga. No dan lo mismo: Chrome 156 marcó un
+     estilo en línea que Chromium 153 dejó pasar, y ese error estaba dejando sin
+     formato el aviso de notificaciones de la portada (KZ-QA-GLOBAL-003). */
+  console.log(`  navegador de la revisión: ${rutaChrome ? 'Chrome del sistema (' + rutaChrome + ')' : 'Chromium de Playwright'} v${navegador.version()}`);
+
   const LOCAL = `127.0.0.1:${PUERTO}`;
   for (const rev of revisiones) {
     const ctx = await navegador.newContext({ viewport: { width: 1280, height: 800 } });

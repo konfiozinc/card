@@ -1,0 +1,14 @@
+# ═══════════════════════════════════════════════════════════════════════
+#  Finales de línea por tipo de archivo · KONFÍO ZINC (KZ-QA-GLOBAL-003)
+#
+#  Los ganchos de git los ejecuta `/bin/sh`. Si se guardan con CRLF, cada línea
+#  lleva un \r invisible al final que rompe el intérprete y hace que el gancho
+#  falle sin decir por qué. Fijarlos en LF garantiza que el archivo que se
+#  ejecuta es el mismo en Windows, macOS y Linux, y que el CI de GitHub (Linux)
+#  ve exactamente lo que se probó en el equipo del propietario.
+#
+#  Nota: `core.autocrlf=true` en Windows convierte a CRLF todo lo que se marca
+#  como `text` sin una regla explícita. Esta regla manda sobre esa configuración.
+# ═══════════════════════════════════════════════════════════════════════
+
+.githooks/* text eol=lf

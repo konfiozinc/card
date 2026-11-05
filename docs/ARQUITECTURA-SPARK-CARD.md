@@ -129,3 +129,58 @@ El flujo completo —captación, seguimiento comercial, conversión a cliente, s
 cobros por concepto, renovaciones por servicio, vencimientos y dashboard— queda documentado, con los
 defectos corregidos y el procedimiento de despliegue y reversión, en
 **`docs/KZ-OPS-001-CONSOLIDACION.md`**.
+
+## 9. Escudos de calidad del repositorio (KZ-QA-GLOBAL-003)
+
+La Definición de Terminado de las páginas (`AGENTS.md`) no se recuerda de memoria: se ejecuta con
+un comando, y ese comando corre solo en tres momentos.
+
+| Momento | Qué se ejecuta | Qué bloquea |
+|---|---|---|
+| `git commit` (pre-commit) | secretos + `verificar-precios.js` + `verificar-calidad-html.js --sin-consola` | Commits con precios retirados, una clave no permitida o cualquiera de las seis reglas del HTML en rojo |
+| `git push` (pre-push) | `verificar-calidad-html.js` completo, con Chromium | Publicar con un error de consola en alguna de las 62 páginas |
+| CI `Calidad KONFÍO ZINC` | trabajo `estatica` (modo sin consola) y trabajo `calidad-html` (con el Chrome del runner) | Lo mismo, del lado del servidor: detecta una publicación hecha con `--no-verify` |
+
+- Los ganchos viven en `.githooks/` y se activan con `git config core.hooksPath .githooks`.
+  `.gitattributes` los fija en **LF**: un gancho guardado con CRLF lleva un `\r` invisible al final
+  de cada línea y `/bin/sh` falla sin decir por qué.
+- El pre-push tarda unos 3 minutos porque abre las 62 páginas en Chromium. Es el precio de que
+  nada salga al sitio con la consola sucia; en el commit diario el coste es de un segundo.
+- Si Chromium no está disponible, el verificador lo dice y sigue con las seis reglas estáticas: un
+  push no se bloquea por una herramienta ausente. En el CI, `KZ_CHROMIUM_PATH=/usr/bin/google-chrome`
+  hace que use el Chrome del runner y que la revisión de consola **sí** se ejecute de verdad.
+- Saltar los escudos es posible y queda a la vista: `git commit --no-verify` y `git push --no-verify`.
+  El trabajo del CI existe precisamente para detectar eso.
+
+## 10. Límites de seguridad declarados: el reCAPTCHA del formulario público
+
+**El formulario de solicitud del sitio público usa una clave de prueba de reCAPTCHA.** El
+`data-sitekey` de `assets/js/solicitar.js` es `6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI`, la clave
+de demostración que Google publica: **siempre deja pasar**. No frena bots y no debe contarse como
+protección.
+
+Por qué: validar un reCAPTCHA de verdad exige comprobarlo en un servidor con la clave secreta, y esta
+arquitectura no tiene backend privilegiado propio (modo Spark, sin Cloud Functions). Además
+`solicitar.js` ni siquiera exige el captcha cuando el widget no llegó a cargar («si no cargó, no lo
+exigimos»), así que en la práctica es decorativo.
+
+Lo que **sí** protege hoy la captación:
+
+- **El navegador no escribe en Firestore.** `firestore.rules` cierra la creación de `contactos`
+  (`allow create: false`): solo el Worker de captación, con cuenta de servicio, puede crear un lead.
+- **El Worker valida el cuerpo** del formulario antes de escribir.
+- **El techo práctico es la cuota gratuita de Firestore**, y los duplicados se ven en el panel.
+
+Lo que **no** está activo, y conviene no confundir con protección:
+
+- **El limitador por IP del Worker (`superaLimite`) está preparado pero no activado.** El
+  *rate-limit* del lado del servidor no existe hoy; figura como riesgo residual declarado en
+  `docs/KZ-SEC-002-DESPLIEGUE.md` §5.1.
+- **El honeypot y el cooldown de 60 s viven en `premium-assets/app.js`**, que sirve la demo premium:
+  `premium/demo.html` y `premium/premium.css` están **excluidos de la publicación** por
+  `_config.yml`. El formulario público (`solicitar.js`) no los tiene.
+
+**Camino de mejora, cuando el proyecto migre a Blaze:** verificar el token de reCAPTCHA en servidor
+con la clave secreta y activar el limitador `superaLimite` del Worker. Son cambios de backend, no de
+HTML; hasta entonces, la barrera fuerte es que el navegador no puede escribir en `contactos`.
+
