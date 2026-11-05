@@ -1,13 +1,21 @@
-/* ── cotizaciones.js · lista y gestión (KZ-CRM-COTIZACIONES-002) ──────
+/* ── cotizaciones.js · lista y gestión (KZ-CRM-COTIZACIONES-002/004) ──
    Crear y enviar: OPERADOR y ADMIN. Reabrir/anular: solo ADMIN (lo imponen
    las reglas; aquí solo se oculta el botón y se avisa antes).
 
-   Spark no tiene procesos en segundo plano, así que la respuesta que el
-   cliente da en el enlace público se trae al registro interno al abrir esta
-   página (igual que Vencimientos deriva el estado al cargar). */
+   KZ-CRM-COTIZACIONES-004 · TIEMPO REAL
+   Antes la página leía una vez y había que pulsar F5 para ver si el cliente
+   había respondido. Ahora se escuchan dos colecciones con `onSnapshot`:
+     · `cotizaciones`          → el registro interno (lo que pinta la tabla)
+     · `cotizaciones_publicas` → la proyección que el cliente modifica al
+                                 aceptar o rechazar en su enlace
+   Cuando el cliente responde, el segundo aviso trae la respuesta al registro
+   interno y el primero repinta la fila al instante, con un aviso flotante.
+   Sin recargar nada. */
 import { requireAuth } from '../assets/js/admin/shell.js';
-import { setTitulo, toast, esc, fmtCOP, confirmar, conCarga } from '../assets/js/admin/ui.js';
-import { cargarCotizaciones, cargarContactos, etiquetaCotizacion, escrituras } from '../assets/js/admin/datos.js';
+import { setTitulo, toast, esc, fmtCOP, confirmar } from '../assets/js/admin/ui.js';
+import { db } from '../assets/js/admin/core.js';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { cargarCotizaciones, etiquetaCotizacion, escrituras } from '../assets/js/admin/datos.js';
 
 const sesion = await requireAuth('cotizaciones');
 if (!sesion) throw new Error('Sin acceso');
@@ -16,7 +24,6 @@ const cont = document.getElementById('app-content');
 const esAdmin = ['ADMIN', 'SUPERADMIN'].includes(sesion.rol);
 
 let cotizaciones = [];
-let contactos = [];
 const filtro = { texto: '', estado: 'TODOS' };
 
 /** Enlace público de una cotización, sea cual sea la carpeta donde esté publicada. */
@@ -31,9 +38,40 @@ const badge = (estado) => {
   return `<span class="badge badge--${clase}">${esc(etiquetaCotizacion(estado))}</span>`;
 };
 
-const vigente = (c) => c.estado === 'ENVIADA' || c.estado === 'BORRADOR';
+/* ── Botones de la columna de acciones ────────────────────────────────
+   KZ-CRM-COTIZACIONES-004: van con texto, no solo icono, y con la clase
+   `acciones-fila--texto` para que no hereden el 30x30 px del resto del panel
+   (con ese ancho el texto se desbordaba encima del botón vecino). */
+const boton = (accion, id, icono, texto, primario = false) =>
+  `<button type="button" class="${primario ? 'is-primario' : ''}" data-accion="${accion}" data-id="${esc(id)}" title="${esc(texto)}">
+     <i class="fas ${icono}" aria-hidden="true"></i><span>${esc(texto)}</span>
+   </button>`;
+
+function accionesDe(c) {
+  const b = [];
+  b.push(boton('ver', c.id, 'fa-eye', 'Ver'));
+  if (c.estado === 'BORRADOR') {
+    b.push(boton('editar', c.id, 'fa-pen', 'Editar'));
+    b.push(boton('enviar', c.id, 'fa-paper-plane', 'Enviar', true));
+  }
+  if (c.estado === 'ENVIADA') {
+    b.push(boton('aceptar', c.id, 'fa-check', 'Aceptada'));
+    b.push(boton('rechazar', c.id, 'fa-xmark', 'Rechazada'));
+  }
+  if (c.estado === 'ACEPTADA' && !c.clienteId) {
+    b.push(boton('convertir', c.id, 'fa-user-check', 'Convertir en cliente', true));
+  }
+  if (esAdmin && !['ENVIADA', 'BORRADOR'].includes(c.estado)) {
+    b.push(boton('reabrir', c.id, 'fa-rotate-left', 'Reabrir'));
+  }
+  return b.join('');
+}
 
 function pintar() {
+  /* Al repintar en tiempo real no se debe perder el foco del buscador. */
+  const focoId = document.activeElement && document.activeElement.id;
+  const caret = focoId === 'f-texto' ? document.activeElement.selectionStart : null;
+
   const txt = filtro.texto.trim().toLowerCase();
   const visibles = cotizaciones.filter((c) => {
     if (filtro.estado !== 'TODOS' && c.estado !== filtro.estado) return false;
@@ -41,32 +79,14 @@ function pintar() {
     return `${c.numero || ''} ${c.prospectoNombre || ''} ${c.prospectoTelefono || ''}`.toLowerCase().includes(txt);
   });
 
-  const filas = visibles.map((c) => {
-    const acciones = [];
-    acciones.push(`<button class="btn btn--ghost accion" style="font-size:.74rem;padding:.3rem .6rem" data-accion="ver" data-id="${esc(c.id)}"><i class="fas fa-eye"></i> Ver</button>`);
-    if (c.estado === 'BORRADOR') {
-      acciones.push(`<button class="btn btn--ghost accion" style="font-size:.74rem;padding:.3rem .6rem" data-accion="editar" data-id="${esc(c.id)}"><i class="fas fa-pen"></i> Editar</button>`);
-      acciones.push(`<button class="btn btn--primary accion" style="font-size:.74rem;padding:.3rem .6rem" data-accion="enviar" data-id="${esc(c.id)}"><i class="fas fa-paper-plane"></i> Enviar</button>`);
-    }
-    if (c.estado === 'ENVIADA') {
-      acciones.push(`<button class="btn btn--ghost accion" style="font-size:.74rem;padding:.3rem .6rem" data-accion="aceptar" data-id="${esc(c.id)}"><i class="fas fa-check"></i> Aceptada</button>`);
-      acciones.push(`<button class="btn btn--ghost accion" style="font-size:.74rem;padding:.3rem .6rem" data-accion="rechazar" data-id="${esc(c.id)}"><i class="fas fa-xmark"></i> Rechazada</button>`);
-    }
-    if (c.estado === 'ACEPTADA' && !c.clienteId) {
-      acciones.push(`<button class="btn btn--primary accion" style="font-size:.74rem;padding:.3rem .6rem" data-accion="convertir" data-id="${esc(c.id)}"><i class="fas fa-user-check"></i> Convertir en cliente</button>`);
-    }
-    if (esAdmin && !vigente(c)) {
-      acciones.push(`<button class="btn btn--ghost accion" style="font-size:.74rem;padding:.3rem .6rem" data-accion="reabrir" data-id="${esc(c.id)}"><i class="fas fa-rotate-left"></i> Reabrir</button>`);
-    }
-    return `<tr data-id="${esc(c.id)}">
+  const filas = visibles.map((c) => `<tr data-id="${esc(c.id)}">
       <td><span class="celda-suave" style="font-family:ui-monospace,monospace">${esc(c.numero || '—')}</span></td>
       <td><b>${esc(c.prospectoNombre || '(sin nombre)')}</b><br><span class="celda-suave">${esc(c.prospectoTelefono || '')}</span></td>
       <td class="celda-suave">${esc(c.validaHasta || '—')}</td>
       <td style="text-align:right;font-variant-numeric:tabular-nums">${c.descuento ? `<span class="celda-suave" style="display:block;font-size:.7rem">− ${esc(fmtCOP(c.descuento))}</span>` : ''}<b>${esc(fmtCOP(c.total))}</b></td>
       <td>${badge(c.estado)}</td>
-      <td><div class="acciones-fila">${acciones.join('')}</div></td>
-    </tr>`;
-  }).join('');
+      <td class="col-acciones"><div class="acciones-fila acciones-fila--texto">${accionesDe(c)}</div></td>
+    </tr>`).join('');
 
   const conteo = {
     BORRADOR: cotizaciones.filter((c) => c.estado === 'BORRADOR').length,
@@ -78,7 +98,7 @@ function pintar() {
   cont.innerHTML = `
     <div class="page-head">
       <div>
-        <h2>Cotizaciones</h2>
+        <h2>Cotizaciones <span class="badge badge--activo" id="vivo" title="La tabla se actualiza sola"><i class="fas fa-circle" style="font-size:.5rem"></i> en vivo</span></h2>
         <p class="celda-suave">${conteo.BORRADOR} borrador(es) · ${conteo.ENVIADA} enviada(s) ·
           ${conteo.ACEPTADA} aceptada(s) · ${conteo.RECHAZADA} rechazada(s)</p>
       </div>
@@ -102,7 +122,7 @@ function pintar() {
       ${visibles.length === 0
         ? `<p class="tabla__vacia" style="padding:2rem 1.3rem">Todavía no hay cotizaciones. Crea la primera con el botón de arriba,
              o desde <a href="contactos.html">Contactos</a> con el botón <b>Cotizar</b>.</p>`
-        : `<div class="tabla__wrap" style="overflow-x:auto"><table class="tabla" style="min-width:880px">
+        : `<div class="tabla__wrap" style="overflow-x:auto"><table class="tabla" style="min-width:900px">
             <thead><tr><th>Número</th><th>Prospecto</th><th>Válida hasta</th><th style="text-align:right">Total</th><th>Estado</th><th>Acciones</th></tr></thead>
             <tbody>${filas}</tbody></table></div>`}
     </div>`;
@@ -111,6 +131,59 @@ function pintar() {
   $('f-texto')?.addEventListener('input', (e) => { filtro.texto = e.target.value; pintar(); });
   $('f-estado')?.addEventListener('change', (e) => { filtro.estado = e.target.value; pintar(); });
   cont.querySelectorAll('[data-accion]').forEach((b) => b.addEventListener('click', () => accion(b.dataset.accion, b.dataset.id)));
+
+  if (focoId === 'f-texto' && $('f-texto')) {
+    const el = $('f-texto');
+    el.focus();
+    if (caret !== null) el.setSelectionRange(caret, caret);
+  }
+}
+
+/* ── Tiempo real ─────────────────────────────────────────────────────── */
+const respuestasVistas = new Set(); // tokens cuya respuesta ya se procesó
+let primeraFotoPublicas = true;
+
+function arrancarTiempoReal() {
+  /* 1 · El registro interno: repinta la tabla al instante. */
+  onSnapshot(collection(db, 'cotizaciones'), (snap) => {
+    cotizaciones = snap.docs
+      .map((d) => ({ id: d.id, ...d.data() }))
+      .sort((a, b) => {
+        const ms = (v) => (v && v.toDate ? v.toDate().getTime() : 0);
+        return ms(b.creadoEn) - ms(a.creadoEn);
+      });
+    pintar();
+  }, (e) => {
+    console.warn('[cotizaciones] no se pudo escuchar la colección:', e.code || e.message);
+  });
+
+  /* 2 · La proyección pública: aquí escribe el cliente cuando responde. */
+  onSnapshot(collection(db, 'cotizaciones_publicas'), (snap) => {
+    const primeras = primeraFotoPublicas;
+    primeraFotoPublicas = false;
+    snap.docs.forEach(async (d) => {
+      const p = d.data();
+      if (!['ACEPTADA', 'RECHAZADA'].includes(p.estado)) return;
+      if (respuestasVistas.has(d.id)) return;
+      respuestasVistas.add(d.id);
+      const cot = cotizaciones.find((c) => c.id === p.cotizacionId);
+      /* Solo interesa si el registro interno aún no lo sabe. */
+      if (!cot || cot.estado !== 'ENVIADA') return;
+      try {
+        const r = await escrituras.sincronizarRespuestaCotizacion(p.cotizacionId);
+        if (r.sincronizada) {
+          /* El aviso se muestra salvo en la primera foto (respuestas antiguas). */
+          if (!primeras) {
+            toast(`Cotización ${cot.numero || ''} actualizada por el cliente: ${etiquetaCotizacion(p.estado)}`, 'ok');
+          }
+        }
+      } catch (e) {
+        console.warn('[cotizaciones] no se pudo traer la respuesta:', e.message);
+      }
+    });
+  }, (e) => {
+    console.warn('[cotizaciones] no se pudo escuchar las públicas:', e.code || e.message);
+  });
 }
 
 async function recargar() {
@@ -125,11 +198,9 @@ async function accion(nombre, id) {
     if (nombre === 'editar') { location.href = `cotizacion-nueva.html?id=${encodeURIComponent(id)}`; return; }
 
     if (nombre === 'enviar') {
-      await conCarga(null, '', async () => {
-        const r = await escrituras.enviarCotizacion(id);
-        await recargar(); pintar();
-        await verCotizacion(cotizaciones.find((x) => x.id === id) || c, { recienEnviada: true, numero: r.numero });
-      });
+      const r = await escrituras.enviarCotizacion(id);
+      await recargar(); pintar();
+      await verCotizacion(cotizaciones.find((x) => x.id === id) || c, { recienEnviada: true, numero: r.numero });
       return;
     }
     if (nombre === 'aceptar' || nombre === 'rechazar') {
@@ -209,22 +280,7 @@ async function verCotizacion(c, opciones = {}) {
   if (opciones.recienEnviada) toast('Cotización enviada: ' + (opciones.numero || ''), 'ok');
 }
 
-/* ── Arranque ─────────────────────────────────────────────────────────── */
+/* ── Arranque ────────────────────────────────────────────────────────── */
 await recargar();
-
-/* Traer las respuestas dadas desde el enlace público (máx. 20 para no alargar). */
-const pendientes = cotizaciones.filter((c) => c.estado === 'ENVIADA' && c.token).slice(0, 20);
-let sincronizadas = 0;
-for (const c of pendientes) {
-  try {
-    const r = await escrituras.sincronizarRespuestaCotizacion(c.id);
-    if (r.sincronizada) sincronizadas++;
-  } catch { /* si falla, la lista se muestra igual */ }
-}
-if (sincronizadas > 0) {
-  await recargar();
-  toast(`${sincronizadas} respuesta(s) del cliente traídas al panel`, 'ok');
-}
-
-try { contactos = await cargarContactos(); } catch { contactos = []; }
 pintar();
+arrancarTiempoReal();

@@ -590,8 +590,11 @@ service cloud.firestore {
        legible, se lee entero. De ahí que sean dos documentos.
 
        El enlace se comparte por WhatsApp y se abre SIN sesión:
-         · `get` público, `list` cerrado → sin el token no se llega a nada;
-         · el token es aleatorio de 22 caracteres, no adivinable;
+         · `get` público y `list` solo para el equipo (KZ-CRM-COTIZACIONES-004):
+           sin el token, un anónimo no llega a nada, pero el panel SÍ puede
+           escuchar la colección con onSnapshot y enterarse al instante de la
+           respuesta del cliente sin recargar la página;
+         · el token es aleatorio de 128 bits, no adivinable;
          · el cliente solo puede responder (aceptar/rechazar) y solo si la
            cotización está ENVIADA; no puede tocar importes ni contenido. */
     match /cotizaciones_publicas/{token} {
@@ -602,7 +605,7 @@ service cloud.firestore {
             && request.resource.data.get('respondidaEn', null) == request.time;
       }
       allow get: if true;
-      allow list: if false;
+      allow list: if esOperador();
       allow create: if esOperador();
       allow update: if esOperador() || respuestaDelCliente();
       allow delete: if esOperador();

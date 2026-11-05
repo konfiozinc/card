@@ -377,3 +377,27 @@ code { font-family: ui-monospace, Consolas, monospace; color: var(--kz-cyan); fo
 @media (max-width: 520px) {
   .acciones-fila button { min-width: 40px; min-height: 40px; }
 }
+
+/* ══ Acciones con TEXTO (KZ-CRM-COTIZACIONES-004) ════════════════════════
+   La regla general de `.acciones-fila button` fija 30x30 px porque el resto del
+   panel usa ahí botones de solo icono. En la tabla de Cotizaciones los botones
+   llevan texto («Ver», «Convertir en cliente»…): con 30 px de ancho el texto se
+   desbordaba y los botones se pisaban entre sí.
+   Este modificador suelta el ancho y el alto, pone los iconos y el texto en
+   línea y evita que se partan en dos renglones. */
+.acciones-fila--texto { flex-wrap: nowrap; align-items: center; }
+.acciones-fila--texto button {
+  width: auto; height: auto; min-width: 0; min-height: 30px;
+  display: inline-flex; align-items: center; gap: .35rem;
+  padding: .28rem .55rem; white-space: nowrap;
+  font-size: .73rem; font-weight: 600; line-height: 1;
+  background: rgba(255,255,255,.04); border: 1px solid var(--border); color: var(--muted);
+  border-radius: 8px; cursor: pointer; transition: all .2s;
+}
+.acciones-fila--texto button:hover { color: var(--kz-cyan); border-color: var(--border-gold); }
+.acciones-fila--texto button.is-primario {
+  background: rgba(0,229,255,.12); border-color: rgba(0,229,255,.42); color: var(--kz-cyan);
+}
+.acciones-fila--texto button:disabled { opacity: .5; cursor: default; }
+/* La columna de acciones no se estrangula: la tabla ya tiene scroll horizontal. */
+.tabla .col-acciones { width: 1%; white-space: nowrap; }
