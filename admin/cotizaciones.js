@@ -141,7 +141,12 @@ function pintar() {
 
 /* ── Tiempo real ─────────────────────────────────────────────────────── */
 const respuestasVistas = new Set(); // tokens cuya respuesta ya se procesó
-let primeraFotoPublicas = true;
+/* Momento en que se abrió la página. Se usa para distinguir una respuesta que
+   llega MIENTRAS miramos (aviso) de una que ya estaba antes de entrar (silencio).
+   Antes se distinguía por «primer retrato del snapshot», y eso fallaba en un caso
+   real: si el cliente respondía en los primeros segundos, su respuesta viajaba
+   en el primer retrato y el aviso no salía nunca. */
+const CARGA_MS = Date.now();
 
 function arrancarTiempoReal() {
   /* 1 · El registro interno: repinta la tabla al instante. */
@@ -159,8 +164,6 @@ function arrancarTiempoReal() {
 
   /* 2 · La proyección pública: aquí escribe el cliente cuando responde. */
   onSnapshot(collection(db, 'cotizaciones_publicas'), (snap) => {
-    const primeras = primeraFotoPublicas;
-    primeraFotoPublicas = false;
     snap.docs.forEach(async (d) => {
       const p = d.data();
       if (!['ACEPTADA', 'RECHAZADA'].includes(p.estado)) return;
@@ -172,8 +175,10 @@ function arrancarTiempoReal() {
       try {
         const r = await escrituras.sincronizarRespuestaCotizacion(p.cotizacionId);
         if (r.sincronizada) {
-          /* El aviso se muestra salvo en la primera foto (respuestas antiguas). */
-          if (!primeras) {
+          /* Aviso solo si la respuesta es reciente (llegó estando en la página).
+             Con 3 s de margen por el desfase de relojes. */
+          const cuando = p.respondidaEn && p.respondidaEn.toDate ? p.respondidaEn.toDate().getTime() : 0;
+          if (cuando >= CARGA_MS - 3000) {
             toast(`Cotización ${cot.numero || ''} actualizada por el cliente: ${etiquetaCotizacion(p.estado)}`, 'ok');
           }
         }
