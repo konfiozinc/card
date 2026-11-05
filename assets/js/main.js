@@ -1018,7 +1018,11 @@
         · un token identifica cada petición: una respuesta tardía no puede
           alterar una conversación posterior;
         · si no hay respuesta, se avisa con claridad y se mantiene el respaldo. */
-    var ESPERA_MAX_MS = 20000;   /* el Worker mide 4–7 s: 20 s cubre respuestas lentas sin bloquear al visitante */
+    /* KZ-AI-IDENTIDAD-003 · 25 s: el Worker se autoimpone un presupuesto de
+       14 s por mensaje, así que este plazo da margen de sobra para la red sin
+       que el visitante quede esperando una eternidad. Antes eran 20 s y el
+       navegador se cansaba justo cuando el Worker iba por el segundo modelo. */
+    var ESPERA_MAX_MS = 25000;
     var enviando = false;
     var peticionActual = 0;
 
@@ -1114,12 +1118,24 @@
           if (miPeticion !== peticionActual) return;
           hideTyping();
           var motivo = err && err.kzMotivo;
-          if (motivo === 'tiempo' || motivo === 'red') {
+          var caidaDeRed = (motivo === 'tiempo' || motivo === 'red');
+          if (caidaDeRed) {
             addMessage('No pude conectar con el asesor en este momento. Te respondo con lo esencial y, si quieres, seguimos por WhatsApp.', 'bot');
           }
           var res = getLocalResponse(userMsg);
           addMessage(res.text, 'bot');
-          history.push({ role: 'assistant', content: res.text });
+          /* KZ-AI-IDENTIDAD-003 · CORRECCIÓN DEL DESFASE DE TURNOS.
+             Si la petición se cayó por tiempo o por red, el mensaje del usuario
+             quedó sin respuesta. Se retira del historial (y no se guarda el
+             respaldo local como turno del asistente, porque solo es un texto de
+             pantalla): así la siguiente pregunta se envía con el historial
+             limpio y el modelo contesta a lo que se acaba de preguntar, no a la
+             pregunta anterior. */
+          if (caidaDeRed) {
+            if (history.length && history[history.length - 1].role === 'user') history.pop();
+          } else {
+            history.push({ role: 'assistant', content: res.text });
+          }
           if (res.cta) showWhatsAppButton();
         } catch (e) {
           /* garantía: el respaldo nunca deja el indicador vivo */
