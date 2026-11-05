@@ -639,6 +639,43 @@ function normalizarEstadoContacto(e) {
   throw new Error('Estado de contacto no válido: ' + e);
 }
 
+/** KZ-CRM-FIX-002 · ALTA MANUAL DE UN PROSPECTO.
+ *  Los leads del sitio entran por el Worker de captación; este es el camino para
+ *  los que llegan por WhatsApp, por llamada o en persona, que hasta ahora no
+ *  tenían puerta de entrada. Nace siempre en estado NUEVO, queda marcado con
+ *  origen PANEL y firmado por quien lo creó, y se registra en la auditoría.
+ *  No se permiten dos prospectos con el mismo teléfono. */
+export async function crearContacto(d) {
+  const c = await requerir('OPERADOR');
+
+  const nombre = String((d && d.nombre) || '').trim();
+  const telefono = String((d && d.telefono) || '').replace(/[^\d+]/g, '');
+  const email = String((d && d.email) || '').trim();
+  const servicio = String((d && d.servicio) || '').trim();
+  const mensaje = String((d && (d.mensaje || d.notas)) || '').trim();
+
+  if (!nombre) throw new Error('El nombre del prospecto es obligatorio.');
+  if (!telefono) throw new Error('El teléfono del prospecto es obligatorio.');
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error('El correo no tiene un formato válido.');
+
+  const dupTel = await getDocs(query(collection(db, 'contactos'), where('telefono', '==', telefono), limit(1)));
+  if (!dupTel.empty) throw new Error(`Ya existe un prospecto con el teléfono ${telefono}.`);
+
+  const ref = await addDoc(collection(db, 'contactos'), {
+    nombre, telefono, email, servicio, mensaje,
+    estado: 'NUEVO',
+    origen: 'PANEL',
+    creadoPor: c.uid,
+    creadoPorNombre: c.nombre || '',
+    createdAt: serverTimestamp()
+  });
+
+  await auditar(c, 'CREAR_CONTACTO', 'contactos', ref.id, null,
+    { nombre, telefono, email, servicio, estado: 'NUEVO', origen: 'PANEL' });
+
+  return { id: ref.id };
+}
+
 /** Cambia el estado comercial de un lead y/o deja constancia de la gestión. */
 export async function actualizarContacto(contactoId, cambios) {
   const c = await requerir('OPERADOR');

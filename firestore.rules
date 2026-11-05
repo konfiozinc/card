@@ -458,8 +458,37 @@ service cloud.firestore {
         return (!('actualizadoPor' in request.resource.data)
                  || request.resource.data.actualizadoPor == request.auth.uid);
       }
+      /* KZ-CRM-FIX-002 · ALTA MANUAL DE PROSPECTOS DESDE EL PANEL.
+         `create` estaba cerrado del todo (KZ-SEC-002) para que nadie pudiera
+         inyectar leads desde un navegador. Eso sigue igual para visitantes
+         anónimos: la única puerta pública es el Worker de captación. Lo que se
+         abre es el alta MANUAL hecha por un OPERADOR autenticado, para los
+         clientes que llegan por WhatsApp, llamada o en persona. Se acota para
+         que no sirva de puerta trasera:
+           · solo los campos del formulario;
+           · nace siempre en estado NUEVO (no se puede crear «CONVERTIDO»);
+           · marcado como origen PANEL, distinto de los leads del sitio;
+           · firmado por quien lo crea (creadoPor == su propio uid);
+           · nombre y teléfono obligatorios y con tope de longitud. */
+      function altaManualValida() {
+        return textoNoVacio(request.resource.data.get('nombre', ''))
+            && request.resource.data.nombre.size() <= 120
+            && textoNoVacio(request.resource.data.get('telefono', ''))
+            && request.resource.data.telefono.size() <= 30
+            && request.resource.data.get('estado', '') == 'NUEVO'
+            && request.resource.data.get('origen', '') == 'PANEL'
+            && request.resource.data.get('creadoPor', '') == request.auth.uid
+            && (!('email' in request.resource.data) || request.resource.data.email.size() <= 120)
+            && (!('servicio' in request.resource.data) || request.resource.data.servicio.size() <= 120)
+            && (!('mensaje' in request.resource.data) || request.resource.data.mensaje.size() <= 1000)
+            && request.resource.data.keys().hasAll(['nombre', 'telefono', 'estado', 'createdAt'])
+            && request.resource.data.keys().hasOnly([
+                 'nombre', 'telefono', 'email', 'servicio', 'mensaje', 'estado',
+                 'origen', 'creadoPor', 'creadoPorNombre', 'createdAt'
+               ]);
+      }
 
-      allow create: if false;
+      allow create: if esOperador() && altaManualValida();
       allow read: if esOperador();
       allow update: if esOperador()
         && identidadDelLeadIntacta()

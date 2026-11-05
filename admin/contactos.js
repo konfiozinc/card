@@ -93,6 +93,7 @@ function pintar() {
       </div>
       <div class="page-head__acciones">
         <button class="btn btn--ghost" id="btn-csv"><i class="fas fa-file-csv" aria-hidden="true"></i> Exportar</button>
+        <button class="btn btn--primary" id="btn-nuevo-contacto"><i class="fas fa-user-plus" aria-hidden="true"></i> Nuevo contacto</button>
       </div>
     </div>
 
@@ -114,6 +115,7 @@ function pintar() {
   document.getElementById('f-q').addEventListener('input', (e) => { filtros.q = e.target.value; pintar(); });
   document.getElementById('f-estado').addEventListener('change', (e) => { filtros.estado = e.target.value; pintar(); });
   document.getElementById('btn-csv').addEventListener('click', exportar);
+  document.getElementById('btn-nuevo-contacto').addEventListener('click', abrirNuevoContacto);
   cont.querySelector('tbody').addEventListener('click', manejarAccion);
 }
 
@@ -151,6 +153,58 @@ function verDetalle(c) {
         ? seg.map((s) => `<div class="celda-suave">${esc(String(s.fecha || '').slice(0, 16).replace('T', ' '))} — ${esc(s.nota || '')} <em>(${esc(s.usuario || '—')})</em></div>`).join('')
         : '<p class="celda-suave">Sin gestiones registradas todavía.</p>'}
     </div>`, null);
+}
+
+/* KZ-CRM-FIX-002 · ALTA MANUAL DE UN PROSPECTO.
+   Los leads del sitio entran por el Worker de captación; este formulario existe
+   para los que llegan por WhatsApp, por llamada o en persona, que hasta ahora
+   no tenían puerta de entrada. Nace siempre en estado NUEVO. */
+function abrirNuevoContacto() {
+  const servicios = (CFG.servicios || []).map((s) => s.etiqueta || s);
+  caja('Nuevo contacto (prospecto)', `
+    <form id="ct-form" class="modal__body">
+      <div class="grid-2">
+        <div class="campo"><label for="nc-nombre">Nombre *</label>
+          <input id="nc-nombre" maxlength="120" autocomplete="name" required></div>
+        <div class="campo"><label for="nc-telefono">Teléfono *</label>
+          <input id="nc-telefono" type="tel" inputmode="numeric" maxlength="18" autocomplete="tel" required></div>
+        <div class="campo"><label for="nc-email">Correo (opcional)</label>
+          <input id="nc-email" type="email" maxlength="120" autocomplete="email"></div>
+        <div class="campo"><label for="nc-servicio">Servicio de interés</label>
+          <select id="nc-servicio"><option value="">—</option>${servicios.map((s) => `<option>${esc(s)}</option>`).join('')}</select></div>
+      </div>
+      <div class="campo"><label for="nc-notas">Notas</label>
+        <textarea id="nc-notas" rows="3" maxlength="1000" placeholder="De dónde llegó, qué pidió, próximo paso…"></textarea></div>
+      <div class="aviso aviso--error" id="ct-error" hidden></div>
+    </form>`, 'Guardar contacto');
+
+  const err = document.getElementById('ct-error');
+  document.getElementById('ct-form').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    err.hidden = true;
+    const nombre = document.getElementById('nc-nombre').value.trim();
+    const telefono = document.getElementById('nc-telefono').value.trim();
+    if (!nombre || !telefono) {
+      err.textContent = 'Nombre y teléfono son obligatorios para crear el prospecto.';
+      err.hidden = false;
+      return;
+    }
+    try {
+      await escrituras.crearContacto({
+        nombre,
+        telefono,
+        email: document.getElementById('nc-email').value.trim(),
+        servicio: document.getElementById('nc-servicio').value,
+        mensaje: document.getElementById('nc-notas').value.trim()
+      });
+      document.getElementById('modal-contacto').classList.remove('is-open');
+      toast('Prospecto creado');
+      await recargar();
+    } catch (ex) {
+      err.textContent = ex.message;
+      err.hidden = false;
+    }
+  });
 }
 
 function abrirSeguimiento(c) {

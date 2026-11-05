@@ -20,7 +20,7 @@ import {
   activarServicio, suspenderServicio, desactivarServicio, reactivarServicio,
   inhabilitarServicio, eliminarCliente, crearServicio, cargarServiciosDeCliente,
   actualizarServicio, cambiarEstadoServicio,
-  actualizarContacto, agregarSeguimientoContacto, convertirContactoEnCliente,
+  actualizarContacto, crearContacto, agregarSeguimientoContacto, convertirContactoEnCliente,
   prepararNotificacion, marcarNotificacionEnviada, registrarToken,
   seedInicial, recalcularEstados
 } from './escrituras-local.js';
@@ -244,7 +244,7 @@ export const escrituras = {
   activarServicio, suspenderServicio, desactivarServicio, reactivarServicio,
   inhabilitarServicio, eliminarCliente, crearServicio, cargarServiciosDeCliente,
   actualizarServicio, cambiarEstadoServicio,
-  actualizarContacto, agregarSeguimientoContacto, convertirContactoEnCliente,
+  actualizarContacto, crearContacto, agregarSeguimientoContacto, convertirContactoEnCliente,
   prepararNotificacion, marcarNotificacionEnviada, registrarToken, crearUsuario, actualizarUsuario,
   seedInicial, recalcularEstados
 };

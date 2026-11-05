@@ -331,7 +331,7 @@ function abrirEditor(c) {
         <div class="campo"><label>Servicio *</label><select id="e-servicio">${SERVICIOS.map(s => `<option ${c && c.servicio === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
         <div class="campo"><label>Categoría (solo Tarjetas)</label><select id="e-categoria"><option value="">—</option>${CATS.map(x => `<option ${c && c.categoria === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
         <div class="campo"><label>Paquete / plan</label><select id="e-plan"><option value="">Sin paquete</option>${p}</select></div>
-        <div class="campo"><label>Precio (COP)</label><input id="e-precio" type="number" value="${c ? c.precio : ''}"></div>
+        <div class="campo"><label>Precio (COP)${c ? '' : ' *'}</label><input id="e-precio" type="number" min="0" step="100" value="${c ? c.precio : ''}" aria-describedby="e-precio-nota"><div class="celda-suave" id="e-precio-nota" style="font-size:12px">${c ? 'Puedes corregirlo al editar.' : 'Obligatorio para crear el cliente.'}</div></div>
         <div class="campo"><label>Método preferido</label><select id="e-metodo"><option value="">—</option>${METODOS.map(m => `<option ${c && c.metodoPagoPreferido === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></div>
         <div class="campo"><label>Activación *</label><input id="e-activacion" type="date" value="${c ? c.fechaActivacion : hoyISO()}"></div>
         <div class="campo"><label>Duración del servicio</label><select id="e-duracion">
@@ -382,6 +382,20 @@ function abrirEditor(c) {
     const v = id => document.getElementById(id).value.trim();
     if (!v('e-nombre') || !v('e-telefono')) { err.textContent = 'Nombre y teléfono son obligatorios.'; err.hidden = false; return; }
     if (!v('e-activacion')) { err.textContent = 'La fecha de activación es obligatoria.'; err.hidden = false; return; }
+    /* KZ-CRM-FIX-002 · El precio deja de ser opcional AL CREAR.
+       Antes, si se dejaba vacío, el cliente se guardaba con $0 sin ningún aviso:
+       un error de digitación silencioso en un cobro real. Al EDITAR no se exige,
+       porque hay clientes antiguos con precio 0 y hay que poder corregirles
+       otros datos sin bloquear la ficha. */
+    if (!edicionId) {
+      const precioNum = Number(v('e-precio'));
+      if (!v('e-precio') || !Number.isFinite(precioNum) || precioNum <= 0) {
+        err.textContent = 'El precio del servicio es obligatorio para crear el cliente.';
+        err.hidden = false;
+        document.getElementById('e-precio').focus();
+        return;
+      }
+    }
     const datos = {
       nombre: v('e-nombre'), empresa: v('e-empresa'), documento: v('e-documento'),
       telefono: v('e-telefono'), whatsapp: v('e-whatsapp'), email: v('e-email'),
