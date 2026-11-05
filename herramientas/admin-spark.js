@@ -21,6 +21,7 @@
      --rol --email … | --uid … --valor ADMIN|OPERADOR|SUPERADMIN
      --deshabilitar --email … | --uid …
      --vincular --email …              mueve la ficha heredada al UID real
+     --revocar-sesiones --email … | --uid …   cierra las sesiones de otros equipos
 
    Ejemplos:
      node herramientas/admin-spark.js --diagnostico
@@ -245,6 +246,26 @@ async function deshabilitar(admin, db) {
   return 0;
 }
 
+/* Revoca los tokens de actualización: invalida las sesiones abiertas en
+   cualquier equipo. El panel NO puede hacerlo (es una operación exclusiva
+   del Admin SDK, y el sitio es estático en plan Spark), así que la
+   contraparte del botón «Cambiar contraseña» vive aquí. */
+async function revocarSesiones(admin, db) {
+  const email = val('--email');
+  const uid = val('--uid');
+  const objetivo = uid ? await porUid(admin, db, uid) : await porEmail(admin, db, email || '');
+  console.log('\n═══ REVOCAR SESIONES ═══');
+  console.log(`  destino: ${enmascarar(objetivo.cuenta ? objetivo.cuenta.email : objetivo.email)}`);
+  if (!objetivo.cuenta) salir(1, '\n  ✖ No hay cuenta de Authentication con ese correo.\n');
+  console.log('  efecto: se invalidan todos los tokens de actualización emitidos hasta ahora.');
+  console.log('          El usuario tendrá que volver a entrar en todos sus equipos.');
+  if (!exigirAplicar()) return 0;
+  await admin.auth().revokeRefreshTokens(objetivo.cuenta.uid);
+  console.log('  ✓ tokens de actualización revocados');
+  registrarLocal('REVOCAR_SESIONES', `${AUTORIZADO}`);
+  return 0;
+}
+
 async function vincular(admin, db) {
   const email = (val('--email') || '').trim().toLowerCase();
   const estado = await porEmail(admin, db, email);
@@ -276,8 +297,9 @@ async function vincular(admin, db) {
   else if (hay('--rol')) codigo = await cambiarRol(admin, db);
   else if (hay('--deshabilitar')) codigo = await deshabilitar(admin, db);
   else if (hay('--vincular')) codigo = await vincular(admin, db);
+  else if (hay('--revocar-sesiones')) codigo = await revocarSesiones(admin, db);
   else {
-    console.log('\n  Órdenes: --diagnostico | --crear-cuenta | --rol | --deshabilitar | --vincular');
+    console.log('\n  Órdenes: --diagnostico | --crear-cuenta | --rol | --deshabilitar | --vincular | --revocar-sesiones');
     console.log('  Todas simulan por omisión; para ejecutar: --aplicar --autorizado-por "nombre"\n');
     codigo = 2;
   }

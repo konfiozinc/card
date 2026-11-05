@@ -30,7 +30,10 @@ const NAV = [
   { key: 'notificaciones', label: 'Notificaciones', href: 'notificaciones.html', icono: 'fa-bell',        min: 'ADMIN' },
   { key: 'configuracion',  label: 'Configuración',  href: 'configuracion.html',  icono: 'fa-gear',        min: 'SUPERADMIN' },
   { key: 'usuarios',       label: 'Usuarios',       href: 'usuarios.html',       icono: 'fa-user-shield', min: 'SUPERADMIN' },
-  { key: 'auditoria',      label: 'Auditoría',      href: 'auditoria.html',      icono: 'fa-clipboard-list', min: 'SUPERADMIN' }
+  { key: 'auditoria',      label: 'Auditoría',      href: 'auditoria.html',      icono: 'fa-clipboard-list', min: 'SUPERADMIN' },
+  /* Mi perfil: disponible para cualquier rol, porque cada quien administra
+     su propia contraseña (KZ-CRM-PASSWORD-UI-001). */
+  { key: 'perfil',         label: 'Mi perfil',      href: 'perfil.html',         icono: 'fa-key',         min: 'OPERADOR' }
 ];
 
 /**
