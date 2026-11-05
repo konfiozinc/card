@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#050B14">
   <meta name="description" content="Información de privacidad de la web pública de Konfío Zinc.">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self'; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'">
   <meta property="og:title" content="Privacidad — Konfío Zinc">
   <meta property="og:description" content="Comportamiento de datos y canales de privacidad de la web pública de Konfío Zinc.">
   <meta property="og:type" content="website">
@@ -19,13 +19,16 @@
   <meta name="twitter:image" content="https://konfiozinc.github.io/card/assets/img/og/og-1200x630.png">
   <link rel="canonical" href="https://konfiozinc.github.io/card/politica-privacidad.html">
   <title>Privacidad — Konfío Zinc</title>
+  <link rel="icon" type="image/svg+xml" href="assets/img/marca/favicon.svg">
   <link rel="icon" type="image/png" sizes="64x64" href="assets/img/logos/favicon-64.png">
   <link rel="icon" type="image/png" sizes="32x32" href="assets/img/logos/favicon-32.png">
   <link rel="apple-touch-icon" sizes="180x180" href="assets/img/icons/apple-touch-icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" onload="this.rel='stylesheet'" />
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" /></noscript>
+  <!-- Hoja de estilos normal, no `preload` + `onload`: el CSP de esta página
+       prohíbe los manejadores en línea, así que el truco de `onload` quedaba
+       bloqueado y las tipografías de marca nunca se cargaban (KZ-QA-GLOBAL-002). -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap">
   <link rel="stylesheet" href="assets/css/kz-neon.css">
   <link rel="stylesheet" href="premium-assets/styles.css">
 </head>

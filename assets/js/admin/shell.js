@@ -102,24 +102,43 @@ function renderShell(activeKey, rol, nombre) {
 }
 
 /**
+ * Promesa que NUNCA se resuelve.
+ *
+ * Se devuelve cuando se niega el acceso. La página hace
+ * `const sesion = await requireAuth(...)` y a continuación
+ * `if (!sesion) throw new Error('Sin acceso')`; al no resolverse nunca, el
+ * `await` deja la evaluación del módulo suspendida: el código de la página no
+ * se ejecuta, igual que antes, pero SIN escribir un error en la consola del
+ * navegador.
+ *
+ * Motivo (KZ-QA-GLOBAL-002): la Definición de Terminado exige cero errores de
+ * consola, y aquel `throw` los producía en las 15 páginas del panel cada vez que
+ * alguien las abría sin sesión. El `throw` de cada página se conserva como red
+ * de seguridad por si algún día esta función vuelve a resolver con null.
+ */
+function bloqueado() {
+  return new Promise(() => {});
+}
+
+/**
  * Guard de autenticación y autorización.
  * @param {string} activeKey Clave de la sección actual (para el menú).
- * @returns {Promise<{uid:string, rol:string, nombre:string, email:string}|null>}
- *          null si no hay sesión válida (y ya redirigió o mostró el aviso).
+ * @returns {Promise<{uid:string, rol:string, nombre:string, email:string}>}
+ *          Resuelve solo con sesión autorizada. Si se niega el acceso, redirige
+ *          y la promesa queda pendiente para siempre (ver `bloqueado`).
  */
 export function requireAuth(activeKey) {
   if (!isConfigured()) {
     const shell = document.getElementById('app-shell');
     if (shell) shell.innerHTML = `<div class="content">${MENSAJE_NO_CONFIGURADO}</div>`;
-    return Promise.resolve(null);
+    return bloqueado();
   }
 
   return new Promise((resolve) => {
     onAuthStateChanged(auth, async (user) => {
       if (!user) {
         location.replace('index.html');
-        resolve(null);
-        return;
+        return;                      // la promesa queda pendiente (ver `bloqueado`)
       }
       try {
         const snap = await getDoc(doc(db, 'usuarios', user.uid));
@@ -130,16 +149,14 @@ export function requireAuth(activeKey) {
         if (!data || data.activo !== true) {
           await signOut(auth);
           location.replace('index.html?motivo=sin-permiso');
-          resolve(null);
-          return;
+          return;                    // la promesa queda pendiente (ver `bloqueado`)
         }
 
         /* La sección pedida exige un rol que este usuario no tiene */
         const seccion = NAV.find((n) => n.key === activeKey);
         if (seccion && !canAccess(data.rol, seccion.min)) {
           location.replace('dashboard.html?motivo=sin-permiso');
-          resolve(null);
-          return;
+          return;                    // la promesa queda pendiente (ver `bloqueado`)
         }
 
         renderShell(activeKey, data.rol, data.nombre || user.email);
