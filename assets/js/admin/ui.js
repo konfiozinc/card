@@ -78,7 +78,7 @@ export function badgeEstado(estado) {
 export function setTitulo(t) {
   const el = document.getElementById('topbar-title');
   if (el) el.textContent = t;
-  document.title = t + ' — Panel KONFÍO ZINC';
+  document.title = t + ' | KONFÍO ZINC';
 }
 
 /** Aviso flotante. tipo: 'ok' | 'error' | 'info' */
