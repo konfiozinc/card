@@ -21,9 +21,19 @@
           errores de consola. Solo cuentan los que provienen del propio sitio.
 
    Uso:
-     node herramientas/verificar-calidad-html.js                # todo
+     node herramientas/verificar-calidad-html.js                # todo (sitio card)
      node herramientas/verificar-calidad-html.js --sin-consola   # salta el navegador
      node herramientas/verificar-calidad-html.js --json          # salida JSON
+
+   Clientes (KZ-QA-CLIENTES-001):
+     node herramientas/verificar-calidad-html.js --clientes
+        Audita TODOS los proyectos de clientes del workspace: cada carpeta
+        numerada (2-TARJETAS-PRO, 3-TARJETAS-ELITE, 7-CATALOGOS,
+        8-MENUS-DIGITALES…) que tenga su propio index.html. Un proyecto sin
+        metadatos, favicon o con errores de consola hace que el comando salga
+        con código 1.
+     node herramientas/verificar-calidad-html.js --raiz "C:\ruta\proyecto"
+        Audita una carpeta concreta (útil desde el propio proyecto del cliente).
 
    Variables de entorno:
      KZ_CHROMIUM_PATH   ruta a un Chrome/Chromium ya instalado. Sirve para el CI de
@@ -35,7 +45,9 @@
 
    Sale con código 1 si alguna página incumple algo. Se ejecuta antes de cada
    commit (pre-commit, modo --sin-consola), antes de cada push (pre-push, completo)
-   y en el CI (job `calidad-html`), igual que verificar-precios.js.
+   y en el CI (job `calidad-html`), igual que verificar-precios.js. Desde
+   KZ-QA-CLIENTES-001 también antes de tocar cualquier proyecto de cliente:
+   NINGÚN proyecto de cliente se publica si este comando no sale con 0.
    ══════════════════════════════════════════════════════════════════════════ */
 'use strict';
 
@@ -47,6 +59,40 @@ const RAIZ = path.resolve(__dirname, '..');
 const EXCLUIR = [/node_modules/, /[\\/]\.git[\\/]/, /[\\/]crm-dev[\\/]/, /[\\/]docs[\\/]/, /[\\/]evidencias/, /[\\/]_transferencia[\\/]/];
 const JSON_SALIDA = process.argv.includes('--json');
 const SIN_CONSOLA = process.argv.includes('--sin-consola');
+const MODO_CLIENTES = process.argv.includes('--clientes');
+const RAIZ_PUNTUAL = (() => {
+  const i = process.argv.indexOf('--raiz');
+  return i > -1 && process.argv[i + 1] ? path.resolve(process.argv[i + 1]) : null;
+})();
+
+/* ── Proyectos de clientes (KZ-QA-CLIENTES-001) ──────────────────────────
+   Se consideran proyectos las carpetas de primer nivel cuya ruta empiece con un
+   número (2-TARJETAS-PRO, 3-TARJETAS-ELITE, 7-CATALOGOS, 8-MENUS-DIGITALES…)
+   y que contengan su propio index.html. El sitio card se audita aparte. */
+const WORKSPACE = path.resolve(RAIZ, '..', '..');
+const NO_ES_PROYECTO = [/node_modules/, /[\\/]\.git/, /[\\/]_originales/, /[\\/]_backup/, /[\\/]\.worktrees/, /[\\/]herramientas/, /[\\/]evidencias/];
+/* Carpetas de primer nivel que no son proyectos de cliente: respaldos y
+   herramientas internas. El sitio card tampoco: se audita aparte. */
+const CARPETAS_IGNORADAS = [/BACKUPS/i, /HERRAMIENTAS-DESARROLLO/i, /^\./];
+
+function proyectosClientes() {
+  const encontrados = [];
+  if (!fs.existsSync(WORKSPACE)) return encontrados;
+  for (const carpeta of fs.readdirSync(WORKSPACE, { withFileTypes: true })) {
+    if (!carpeta.isDirectory() || !/^\d+-/.test(carpeta.name)) continue;
+    if (CARPETAS_IGNORADAS.some((rx) => rx.test(carpeta.name))) continue;
+    const base = path.join(WORKSPACE, carpeta.name);
+    for (const proyecto of fs.readdirSync(base, { withFileTypes: true })) {
+      if (!proyecto.isDirectory()) continue;
+      const raiz = path.join(base, proyecto.name);
+      if (path.resolve(raiz) === path.resolve(RAIZ)) continue;    // el sitio card va aparte
+      if (NO_ES_PROYECTO.some((rx) => rx.test(raiz))) continue;
+      if (!fs.existsSync(path.join(raiz, 'index.html'))) continue;
+      encontrados.push({ nombre: `${carpeta.name}/${proyecto.name}`, raiz });
+    }
+  }
+  return encontrados.sort((a, b) => a.nombre.localeCompare(b.nombre));
+}
 
 function paginasHtml(dir, salida = []) {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -59,8 +105,8 @@ function paginasHtml(dir, salida = []) {
 }
 
 /** Revisa el <head> y las imágenes de una página. */
-function revisar(ruta) {
-  const rel = path.relative(RAIZ, ruta).replace(/\\/g, '/');
+function revisar(ruta, raiz) {
+  const rel = path.relative(raiz || RAIZ, ruta).replace(/\\/g, '/');
   const texto = fs.readFileSync(ruta, 'utf8');
   const cabecera = texto.slice(0, Math.max(texto.indexOf('</head>'), 0));
   const fallos = [];
@@ -110,16 +156,24 @@ function revisar(ruta) {
   const imgs = [...texto.matchAll(/<img\b([^>]*)>/gi)].map((m) => m[1]);
   let sinAlt = 0;
   const rotas = [];
+  let noVerificables = 0;
+  /* KZ-QA-CLIENTES-001 · Muchos proyectos antiguos generan las imágenes por
+     JavaScript dentro del propio HTML (`src="' + urlImagen(p) + '"`). Ahí no hay
+     una ruta que comprobar y antes se contaban como «imágenes rotas»: eran
+     falsos positivos, y un verificador que grita en falso se acaba ignorando.
+     Solo se comprueba en disco lo que tiene forma de ruta relativa real. */
+  const FORMA_DE_RUTA = /^[A-Za-z0-9._~\/%-]+$/;
   for (const attrs of imgs) {
     if (!/\balt\s*=/.test(attrs)) sinAlt++;
     const src = (attrs.match(/\bsrc\s*=\s*"([^"]*)"/) || [])[1];
-    if (src && !/^(https?:|data:|#)/i.test(src) && !src.includes('${')) {
-      const limpio = src.split('?')[0];
-      if (!fs.existsSync(path.resolve(path.dirname(ruta), limpio))) rotas.push(limpio);
-    }
+    if (!src || /^(https?:|data:|#)/i.test(src)) continue;
+    if (src.includes('${') || !FORMA_DE_RUTA.test(src.split('?')[0])) { noVerificables++; continue; }
+    const limpio = src.split('?')[0];
+    if (!fs.existsSync(path.resolve(path.dirname(ruta), limpio))) rotas.push(limpio);
   }
   if (sinAlt) fallos.push(`${sinAlt} imagen(es) sin atributo alt`);
   if (rotas.length) fallos.push(`${rotas.length} imagen(es) rotas: ${[...new Set(rotas)].slice(0, 2).join(', ')}`);
+  if (noVerificables) avisos.push(`${noVerificables} imagen(es) con src generado por JavaScript (no comprobables)`);
 
   return { archivo: rel, fallos, avisos, consola: null };
 }
@@ -153,7 +207,8 @@ async function alcanzable(url, ms = 5000) {
      examen es estricto. (KZ-QA-GLOBAL-002: este equipo tiene Google bloqueado.)
    · La navegación espera `domcontentloaded` + 1,2 s, no `load`: el `load` puede
      quedarse 30 s esperando un script de un tercero que nunca llega. */
-async function revisarConsola(revisiones) {
+async function revisarConsola(revisiones, raiz) {
+  const RAIZ_PROYECTO = raiz || RAIZ;
   let chromium;
   try {
     ({ chromium } = require(path.join(__dirname, 'node_modules', 'playwright')));
@@ -178,7 +233,7 @@ async function revisarConsola(revisiones) {
          que un enlace como 404.html → /card/index.html no dé un 404 falso. */
       if (rel === '/card' || rel.startsWith('/card/')) rel = rel.slice('/card'.length) || '/';
       if (rel === '/' || rel.endsWith('/')) rel += 'index.html';
-      const datos = fs.readFileSync(path.join(RAIZ, rel));
+      const datos = fs.readFileSync(path.join(RAIZ_PROYECTO, rel));
       res.writeHead(200, { 'Content-Type': MIME[path.extname(rel).toLowerCase()] || 'application/octet-stream' });
       res.end(datos);
     } catch {
@@ -279,34 +334,68 @@ async function revisarConsola(revisiones) {
 
 /* ── Ejecución ─────────────────────────────────────────────────────── */
 (async () => {
-  const archivos = paginasHtml(RAIZ).sort();
-  const revisiones = archivos.map(revisar);
-  const conConsola = SIN_CONSOLA ? false : await revisarConsola(revisiones);
-  const conFallos = revisiones.filter((r) => r.fallos.length);
+  /* Qué se audita: el sitio card (por omisión), una carpeta concreta (--raiz) o
+     todos los proyectos de clientes del workspace (--clientes).
+     KZ-QA-CLIENTES-001: ningún proyecto de cliente se publica si esto no da 0. */
+  let proyectos;
+  if (MODO_CLIENTES) {
+    proyectos = proyectosClientes();
+    if (!proyectos.length) { console.error('No se encontró ningún proyecto de cliente con index.html.'); process.exit(1); }
+  } else if (RAIZ_PUNTUAL) {
+    if (!fs.existsSync(path.join(RAIZ_PUNTUAL, 'index.html'))) {
+      console.error('La carpeta indicada no tiene index.html: ' + RAIZ_PUNTUAL);
+      process.exit(1);
+    }
+    proyectos = [{ nombre: path.basename(RAIZ_PUNTUAL), raiz: RAIZ_PUNTUAL }];
+  } else {
+    proyectos = [{ nombre: 'card (sitio principal)', raiz: RAIZ }];
+  }
+
+  const resultados = [];
+  for (const proyecto of proyectos) {
+    const archivos = paginasHtml(proyecto.raiz).sort();
+    const revisiones = archivos.map((f) => revisar(f, proyecto.raiz));
+    const conConsola = SIN_CONSOLA ? false : await revisarConsola(revisiones, proyecto.raiz);
+    resultados.push({ proyecto, archivos, revisiones, conConsola, conFallos: revisiones.filter((r) => r.fallos.length) });
+  }
+
+  const totalFallos = resultados.reduce((n, r) => n + r.conFallos.length, 0);
+  const paginas = resultados.reduce((n, r) => n + r.archivos.length, 0);
 
   if (JSON_SALIDA) {
-    console.log(JSON.stringify({ total: archivos.length, conFallos: conFallos.length, consola: conConsola, paginas: revisiones }, null, 2));
-  } else {
-    console.log('\n═══ verificar-calidad-html · Definition of Done ═══\n');
-    console.log(`  páginas revisadas      : ${archivos.length}`);
-    console.log(`  errores de consola     : ${conConsola ? 'revisados en Chromium' : 'OMITIDOS (--sin-consola o sin Playwright)'}`);
-    for (const r of conFallos) {
-      console.log(`\n  ✗ ${r.archivo}`);
-      for (const f of r.fallos) console.log(`      ${f}`);
-      if (r.consola) for (const c of r.consola.slice(0, 3)) console.log(`      ↳ ${c}`);
-    }
-    const avisos = revisiones.filter((r) => r.avisos.length);
-    if (avisos.length) {
-      console.log(`\n  avisos (no bloquean): ${avisos.length} página(s)`);
-      for (const r of avisos.slice(0, 6)) console.log(`    · ${r.archivo}: ${r.avisos.join(' · ')}`);
-    }
-    console.log('');
-    if (conFallos.length) {
-      console.log(`RESULTADO: FALLA — ${conFallos.length} de ${archivos.length} páginas incumplen el estándar.`);
-      console.log('  Corrige lo indicado antes de commitear (regla KZ-QA-GLOBAL-001).\n');
-    } else {
-      console.log(`RESULTADO: OK — ${archivos.length}/${archivos.length} páginas cumplen el estándar${conConsola ? ', incluida la consola sin errores' : ''}.\n`);
-    }
+    console.log(JSON.stringify({
+      proyectos: resultados.map((r) => ({
+        proyecto: r.proyecto.nombre, paginas: r.archivos.length,
+        conFallos: r.conFallos.length, consola: r.conConsola, detalle: r.revisiones
+      }))
+    }, null, 2));
+    process.exit(totalFallos ? 1 : 0);
   }
-  process.exit(conFallos.length ? 1 : 0);
+
+  console.log('\n═══ verificar-calidad-html · Definition of Done ═══\n');
+  for (const r of resultados) {
+    console.log(`${r.conFallos.length ? '✗' : '✓'} ${r.proyecto.nombre}`);
+    console.log(`    páginas : ${r.archivos.length}`);
+    console.log(`    consola : ${r.conConsola ? 'revisada en Chromium' : 'OMITIDA (--sin-consola o sin Playwright)'}`);
+    if (!r.archivos.length) console.log('    ⚠ no se encontraron páginas HTML');
+    for (const rev of r.conFallos) {
+      console.log(`    ✗ ${rev.archivo}`);
+      for (const f of rev.fallos) console.log(`        ${f}`);
+      if (rev.consola) for (const c of rev.consola.slice(0, 3)) console.log(`        ↳ ${c}`);
+    }
+    const avisos = r.revisiones.filter((x) => x.avisos.length);
+    if (avisos.length) console.log(`    avisos (no bloquean): ${avisos.length} página(s)`);
+    console.log('');
+  }
+
+  if (totalFallos) {
+    const malos = resultados.filter((r) => r.conFallos.length).map((r) => r.proyecto.nombre);
+    console.log(`RESULTADO: FALLA — ${totalFallos} de ${paginas} páginas incumplen el estándar.`);
+    console.log(`  proyectos afectados: ${malos.join(', ')}`);
+    console.log('  Corrige lo indicado antes de publicar (KZ-QA-GLOBAL-001 / KZ-QA-CLIENTES-001).\n');
+    process.exit(1);
+  }
+  const consolaOk = resultados.every((r) => r.conConsola);
+  console.log(`RESULTADO: OK — ${paginas}/${paginas} páginas en ${resultados.length} proyecto(s) cumplen el estándar${consolaOk ? ', incluida la consola sin errores' : ''}.\n`);
+  process.exit(0);
 })();
