@@ -165,7 +165,12 @@ function revisar(ruta, raiz) {
   const FORMA_DE_RUTA = /^[A-Za-z0-9._~\/%-]+$/;
   for (const attrs of imgs) {
     if (!/\balt\s*=/.test(attrs)) sinAlt++;
-    const src = (attrs.match(/\bsrc\s*=\s*"([^"]*)"/) || [])[1];
+    /* KZ-QA-CLIENTES-002 · Solo el atributo `src` de verdad. `:src="img"` y
+       `x-bind:src="…"` son expresiones de Alpine: el valor se calcula en el
+       navegador y no es una ruta. Antes se leían como rutas y salían «imágenes
+       rotas» que no lo eran (`img`, `newProduct.imagen`). Un `src` roto de
+       verdad, sin los dos puntos, se sigue detectando igual. */
+    const src = (attrs.match(/(?<![:\w-])src\s*=\s*"([^"]*)"/) || [])[1];
     if (!src || /^(https?:|data:|#)/i.test(src)) continue;
     if (src.includes('${') || !FORMA_DE_RUTA.test(src.split('?')[0])) { noVerificables++; continue; }
     const limpio = src.split('?')[0];
