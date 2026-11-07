@@ -65,7 +65,13 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .button--brand { color: var(--black); background: var(--kz-gradient-brand); box-shadow: var(--kz-glow-cta); }
 .button--brand:hover,.button--brand:focus-visible { box-shadow: 0 16px 55px rgb(var(--kz-rgb-cyan) / .34); }
 .button--line { color: var(--white); background: rgba(255,255,255,.025); border-color: var(--line); }
-.button--line:var(--kz-border); background: rgb(var(--kz-rgb-cyan) / .07); }
+/* KZ-AGENCIA-001 · esta regla estaba rota (`:var(--kz-border)` sin selector): el navegador la
+   descartaba y el botón secundario no tenía realce al pasar el ratón. Se reconstruye. */
+.button--line:hover,.button--line:focus-visible { border-color: var(--kz-border); background: rgb(var(--kz-rgb-cyan) / .07); }
+/* CTA del portafolio: violeta sólido, el único botón del hero con ese color, para que se distinga
+   de «Explorar soluciones» (degradado cian) y de «Ver trabajo real» (contorno). */
+.button--portfolio { color: var(--white); background: var(--kz-violet); border-color: rgb(var(--kz-rgb-violet) / .6); box-shadow: 0 12px 40px rgb(var(--kz-rgb-violet) / .32); }
+.button--portfolio:hover,.button--portfolio:focus-visible { background: var(--kz-violet-light); box-shadow: 0 16px 55px rgb(var(--kz-rgb-violet) / .48); }
 .hero__rail { position: absolute; right: var(--pad); bottom: 50px; display: flex; align-items: center; gap: 16px; color: var(--muted); font-size: 9px; letter-spacing: .25em; writing-mode: vertical-rl; }
 .hero__rail i { width: 1px; height: 66px; background: linear-gradient(var(--kz-cyan),transparent); }
 .hero__note { position: absolute; top: 25%; right: var(--pad); margin: 0; color: var(--kz-text-muted); font-size: 11px; line-height: 1.6; text-align: right; letter-spacing: .08em; text-transform: uppercase; }
