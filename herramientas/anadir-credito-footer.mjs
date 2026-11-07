@@ -86,6 +86,10 @@ export function parecePaginaAdmin(archivo, dirProyecto) {
   return /^(admin|panel|crm)\//i.test(rel) || /^(admin|panel)\.html$/i.test(rel)
 }
 
+// La marca escrita como texto lleva un espacio: «KONFÍO ZINC». Exigir el espacio evita confundir
+// una mención visible con el dominio `konfiozinc.github.io`, que aparece en cualquier enlace.
+const RX_MARCA = /KONF[ÍI]O\s+ZINC/i
+
 const TEXTO_MARCA = `Diseñado por <a href="${URL_AGENCIA}" target="_blank" style="color: inherit; text-decoration: underline; opacity: 0.8;">${MARCA}</a>`
 const textoPrivacidad = (href) => `<a href="${href}" style="color: inherit; text-decoration: underline; opacity: 0.8;">Políticas de Privacidad</a>`
 
@@ -99,7 +103,7 @@ const CIERRE_DE_BLOQUE = /<\/(div|p|ul|ol|li|section|nav|address|dl|dt|dd|table|
  *   'añadido' | 'ya-estaba' (ya lo puso esta herramienta) | 'ya-tenia-todo' | 'sin-cierre'
  */
 export function insertarCredito(footerHtml, { hrefPrivacidad, sinDuplicar = false }) {
-  const yaMarca = new RegExp('KONF[ÍI]O\\s*ZINC', 'i').test(footerHtml)
+  const yaMarca = RX_MARCA.test(footerHtml)
   if (yaMarca && /Diseñado por/i.test(footerHtml)) {
     return { html: footerHtml, estado: 'ya-estaba', partes: [] }
   }
