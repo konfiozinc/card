@@ -11,6 +11,9 @@
 import { requireAuth } from '../assets/js/admin/shell.js';
 import { setTitulo, toast, esc, fmtCOP, val, marcarInvalido } from '../assets/js/admin/ui.js';
 import { cargarContactos, cargarCotizacion, escrituras, CFG } from '../assets/js/admin/datos.js';
+/* KZ-CRM-007 · misma regla que aplica el módulo de escrituras, para avisar antes
+   de tocar Firebase en lugar de después. */
+import { revisarImportes } from '../assets/js/admin/reglas-cotizacion.js';
 
 const sesion = await requireAuth('cotizaciones');
 if (!sesion) throw new Error('Sin acceso');
@@ -232,6 +235,16 @@ document.getElementById('btn-guardar').addEventListener('click', async () => {
 
 document.getElementById('btn-enviar').addEventListener('click', async () => {
   try {
+    /* KZ-CRM-007 · se comprueba el importe ANTES de escribir nada: si el total es
+       cero no se crea ni el borrador en Firebase, así que no queda basura en la
+       base ni un número de cotización gastado. */
+    const t = totales();
+    const problema = revisarImportes(t.subtotal, t.total);
+    if (problema) {
+      marcarInvalido('cot-items', problema);
+      toast(problema, 'error');
+      return;
+    }
     const id = await guardar();
     if (!id) return;
     const r = await escrituras.enviarCotizacion(id);

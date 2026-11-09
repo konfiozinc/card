@@ -15,6 +15,8 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 import { db, auth } from './core.js';
+/* KZ-CRM-007 · regla que impide enviar una cotización de importe cero. */
+import { revisarImportes } from './reglas-cotizacion.js';
 import {
   collection, doc, addDoc, setDoc, getDoc, getDocs, updateDoc, deleteDoc,
   writeBatch, serverTimestamp, query, where, limit, runTransaction
@@ -988,6 +990,15 @@ export async function enviarCotizacion(cotizacionId) {
     return { yaEnviada: true, numero: q.numero, token: q.token };
   }
   if (!q.prospectoNombre) throw new Error('Falta el nombre del prospecto.');
+
+  /* KZ-CRM-007 · BLINDAJE. Una cotización con importe cero no se envía NUNCA.
+     Se comprueba aquí, antes de la transacción, así que no se escribe nada: ni
+     número, ni token, ni proyección pública. Cubre todos los caminos (el botón
+     «Guardar y enviar» del formulario y el botón «Enviar» de la lista), porque
+     ambos acaban en esta función. El 8-nov-2026 salió una cotización con Total
+     $0 y hubo que reabrirla, corregirla y reenviarla gastando un número. */
+  const problemaImportes = revisarImportes(q.subtotal, q.total);
+  if (problemaImportes) throw new Error(problemaImportes);
 
   const token = q.token || tokenCotizacion();
   let numero = null;
