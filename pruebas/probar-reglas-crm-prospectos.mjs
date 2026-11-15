@@ -47,7 +47,6 @@ const inexistente = base('uid-fantasma@ejemplo.test', 'uid-fantasma@ejemplo.test
 const ficha = (extra = {}) => ({
   nombre: 'Ficticio Uno', telefono: '3000000000', servicio: 'Mini Web Pro', origen: 'manual',
   estado: 'NUEVO', proximaFecha: '', notas: [], huella: 'h-ficticia',
-  historial: [{ tipo: 'alta', autor: 'uid-admin@ejemplo.test', fecha: Timestamp.now() }],
   creadoPor: 'uid-admin@ejemplo.test', creadoEn: serverTimestamp(), actualizadoEn: serverTimestamp(), version: 1,
   ...extra,
 });
@@ -56,7 +55,7 @@ async function prueba(nombre, fn) { try { await fn(); ok(nombre); } catch (e) { 
 
 /* Altas y roles */
 await prueba('ADMIN crea prospecto válido', () => assertSucceeds(setDoc(doc(admin, 'crm_prospectos', 'p1'), ficha())));
-await prueba('SUPERADMIN crea prospecto válido', () => assertSucceeds(setDoc(doc(supera, 'crm_prospectos', 'p2'), ficha({ creadoPor: 'uid-super@ejemplo.test', historial: [{ tipo: 'alta', autor: 'uid-super@ejemplo.test', fecha: Timestamp.now() }] }))));
+await prueba('SUPERADMIN crea prospecto valido', () => assertSucceeds(setDoc(doc(supera, 'crm_prospectos', 'p2'), ficha({ creadoPor: 'uid-super@ejemplo.test' }))));
 await prueba('OPERADOR NO crea', () => assertFails(setDoc(doc(oper, 'crm_prospectos', 'p3'), ficha({ creadoPor: 'uid-oper@ejemplo.test', historial: [{ tipo: 'alta', autor: 'uid-oper@ejemplo.test', fecha: Timestamp.now() }] }))));
 await prueba('rol desconocido NO crea', () => assertFails(setDoc(doc(raro, 'crm_prospectos', 'p4'), ficha({ creadoPor: 'uid-raro@ejemplo.test' }))));
 await prueba('UID inexistente NO crea', () => assertFails(setDoc(doc(inexistente, 'crm_prospectos', 'p5'), ficha({ creadoPor: 'uid-fantasma@ejemplo.test' }))));

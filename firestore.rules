@@ -665,9 +665,13 @@ service cloud.firestore {
       allow read: if esAdmin() || esSuperadmin();
       allow create: if (esAdmin() || esSuperadmin())
         && request.resource.data.keys().hasOnly(['tipo','detalle','desde','hacia','autor','fecha'])
-        && request.resource.data.tipo is string
+        && request.resource.data.tipo in ['alta','estado','nota']
         && request.resource.data.autor == request.auth.uid
-        && request.resource.data.fecha == request.time;
+        && request.resource.data.fecha == request.time
+          && (request.resource.data.tipo != 'estado' || (
+               request.resource.data.desde in ['NUEVO','PENDIENTE_CONTACTAR','CONTACTADO','COTIZACION_ENVIADA','NEGOCIACION','GANADO','PERDIDO']
+               && request.resource.data.hacia in ['NUEVO','PENDIENTE_CONTACTAR','CONTACTADO','COTIZACION_ENVIADA','NEGOCIACION','GANADO','PERDIDO']
+               && request.resource.data.desde != request.resource.data.hacia));
       allow update, delete: if false;
     }
     allow delete: if false;
