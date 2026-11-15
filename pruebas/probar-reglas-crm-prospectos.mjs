@@ -17,12 +17,23 @@ const entorno = await initializeTestEnvironment({
 });
 
 /* Datos ficticios: usuarios y roles del esquema real de Card Spark. */
+/* Usuarios ficticios con el CONTRATO REAL de Card Spark:
+   - exige `activo: true` ademas del rol (esAdmin comprueba get('activo',false)==true)
+   - la ficha se busca por UID (porUid) y por correo (porCorreo): se crean ambas rutas.
+   Sin esto la evaluacion revienta y parece un fallo de permisos cuando es de datos. */
 await entorno.withSecurityRulesDisabled(async (ctx) => {
   const db = ctx.firestore();
-  await setDoc(doc(db, 'usuarios', 'uid-admin@ejemplo.test'), { rol: 'ADMIN', email: 'uid-admin@ejemplo.test' });
-  await setDoc(doc(db, 'usuarios', 'uid-super@ejemplo.test'), { rol: 'SUPERADMIN', email: 'uid-super@ejemplo.test' });
-  await setDoc(doc(db, 'usuarios', 'uid-oper@ejemplo.test'), { rol: 'OPERADOR', email: 'uid-oper@ejemplo.test' });
-  await setDoc(doc(db, 'usuarios', 'uid-raro@ejemplo.test'), { rol: 'INVENTADO', email: 'uid-raro@ejemplo.test' });
+  const cuentas = [
+    ['uid-admin@ejemplo.test', 'uid-admin@ejemplo.test', 'ADMIN'],
+    ['uid-super@ejemplo.test', 'uid-super@ejemplo.test', 'SUPERADMIN'],
+    ['uid-oper@ejemplo.test', 'uid-oper@ejemplo.test', 'OPERADOR'],
+    ['uid-raro@ejemplo.test', 'uid-raro@ejemplo.test', 'INVENTADO'],
+  ];
+  for (const [uid, correo, rol] of cuentas) {
+    const ficha = { rol, activo: true, email: correo };
+    await setDoc(doc(db, 'usuarios', uid), ficha);
+    await setDoc(doc(db, 'usuarios', correo), ficha);
+  }
 });
 
 const base = (uid, email) => entorno.authenticatedContext(uid, { email }).firestore();
