@@ -45,34 +45,4 @@ if (-not $listo) { Paso 'FATAL: el emulador no levantó en 8080 (ver emuladores.
 Paso '  OK emuladores en 127.0.0.1:8080 / :9099'
 
 Paso '== 4 · Servidor web local =='
-$servidor = Join-Path $evid 'servidor-local.mjs'
-@'
-import { createServer } from 'node:http';
-import { readFileSync, existsSync } from 'node:fs';
-import { join, extname } from 'node:path';
-const raiz = process.argv[2];
-const tipos = { '.html':'text/html; charset=utf-8', '.js':'application/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json', '.png':'image/png', '.svg':'image/svg+xml', '.jpg':'image/jpeg', '.webp':'image/webp' };
-createServer((req, res) => {
-  const ruta = decodeURIComponent(new URL(req.url, 'http://x').pathname);
-  const f = join(raiz, ruta === '/' ? 'admin/dashboard.html' : ruta);
-  if (!f.startsWith(raiz) || !existsSync(f)) { res.writeHead(404); res.end('no'); return; }
-  res.writeHead(200, { 'Content-Type': tipos[extname(f)] || 'application/octet-stream', 'Cache-Control': 'no-store' });
-  res.end(readFileSync(f));
-}).listen(5500, '127.0.0.1', () => console.log('listo 5500'));
-'@ | Set-Content -Path $servidor -Encoding UTF8
-$web = Start-Process -FilePath 'node' -ArgumentList $servidor, (Resolve-Path $raiz) -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $evid 'web.log') -RedirectStandardError (Join-Path $evid 'web.err.log')
-Start-Sleep -Seconds 3
-Paso '  OK servidor en http://127.0.0.1:5500'
-
-Paso '== 5 · Recorrido con Playwright =='
-$guion = Join-Path $PSScriptRoot 'visual-cardspark.mjs'
-$out = & node $guion $raiz $evid 2>&1
-$out | ForEach-Object { Paso "  $_" }
-if ($LASTEXITCODE -ne 0) { $fallos++ }
-
-Paso '== 6 · Cierre de procesos de la prueba =='
-foreach ($p in @($web, $emuladores)) { if ($p -and -not $p.HasExited) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue } }
-Paso '  OK procesos de la prueba detenidos (no se tocaron otros)'
-
-Paso ('Evidencias en: ' + (Resolve-Path $evid))
-if ($fallos -eq 0) { Paso 'RESULTADO: PASS'; exit 0 } else { Paso "RESULTADO: FAIL ($fallos)"; exit 1 }
+$servidor = Join-Path $PSScriptRoot 'servidor-aislado.mjs'
