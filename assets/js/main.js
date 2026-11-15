@@ -1018,11 +1018,12 @@
         · un token identifica cada petición: una respuesta tardía no puede
           alterar una conversación posterior;
         · si no hay respuesta, se avisa con claridad y se mantiene el respaldo. */
-    /* KZ-AI-IDENTIDAD-003 · 25 s: el Worker se autoimpone un presupuesto de
-       14 s por mensaje, así que este plazo da margen de sobra para la red sin
-       que el visitante quede esperando una eternidad. Antes eran 20 s y el
-       navegador se cansaba justo cuando el Worker iba por el segundo modelo. */
-    var ESPERA_MAX_MS = 25000;
+    /* KZ-AI-005 · 35 s: el motor Workers AI (Llama 3.3) puede tardar hasta 23,5 s
+       medidos en pruebas reales, y la versión candidata del Worker se autoimpone
+       35 s. Este plazo debe ir SIEMPRE por encima del del Worker, o el navegador
+       se cansa antes de que el Worker conteste. Antes eran 25 s (y 20 s antes de
+       eso). Sólo afecta al chat: el resto de peticiones del sitio no lo usan. */
+    var ESPERA_MAX_MS = 35000;
     var enviando = false;
     var peticionActual = 0;
 
