@@ -656,10 +656,7 @@ service cloud.firestore {
       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(camposEdicion())
       && request.resource.data.estado in estadosValidos()
       && request.resource.data.creadoPor == resource.data.creadoPor
-      && request.resource.data.actualizadoEn == request.time
-      && request.resource.data.historial.size() == resource.data.historial.size() + 1
-      && request.resource.data.historial[resource.data.historial.size()] is map
-      && request.resource.data.historial[resource.data.historial.size()].autor == request.auth.uid;
+      && request.resource.data.actualizadoEn == request.time;
     /* KZ-UNIFICACION-002 · Historial INMUTABLE por subcolección.
        Una lista dentro del documento NO puede demostrarse append-only con reglas
        (size()+1 no impide reemplazarla por otra lista del mismo tamaño). Cada
