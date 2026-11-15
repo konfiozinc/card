@@ -370,3 +370,9 @@ img, svg, video, canvas, iframe { max-width: 100%; height: auto; }
   .price-list strong { font-size: clamp(1.7rem, 2.2vw, 2.2rem); }
   .manifesto h2, .principles h2 { font-size: clamp(2.4rem, 3vw, 3.2rem); }
 }
+
+
+/* KZ-CRM-032 · Casilla de autorización del formulario de contacto. */
+.lead-form__consent{display:flex;gap:.6rem;align-items:flex-start;font-size:.9rem;line-height:1.45;margin:0 0 .9rem;cursor:pointer}
+.lead-form__consent input{margin-top:.25rem;flex:0 0 auto;width:1.05rem;height:1.05rem;accent-color:#F0B429}
+.lead-form__consent.has-error span{color:#ff6b6b}

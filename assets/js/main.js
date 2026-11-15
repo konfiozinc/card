@@ -589,13 +589,27 @@
          cambiaba, los datos personales se habrían enviado a un tercero. Se
          eliminó la rama entera: no hay ninguna vía que saque los datos del
          circuito seguro (Worker → cuenta de servicio). */
+      /* KZ-CRM-032 · Sin autorización del titular no se envía nada. La casilla
+         llega vacía y el formulario no la reclama: se corta aquí, antes de
+         cualquier petición. */
+      var casilla = document.getElementById('consentimiento');
+      if (!casilla || casilla.checked !== true) {
+        if (casilla) casilla.focus();
+        /* El botón ya se había deshabilitado arriba: se devuelve a su estado. */
+        if (btn) { btn.disabled = false; btn.innerHTML = original; }
+        showBox(errorBox, '⚠️ Marca la autorización para poder enviar tu solicitud.');
+        track('form_error', { form: 'contacto' });
+        return;
+      }
+
       var lead = {
         fecha: new Date().toISOString(),
         nombre: (document.getElementById('nombre') || {}).value || '',
         email: (document.getElementById('email') || {}).value || '',
         telefono: (document.getElementById('telefono') || {}).value || '',
         servicio: (document.getElementById('servicio') || {}).value || '',
-        mensaje: (document.getElementById('mensaje') || {}).value || ''
+        mensaje: (document.getElementById('mensaje') || {}).value || '',
+        consentimiento: !!((document.getElementById('consentimiento') || {}).checked)
       };
 
       /* KZ-SEC-002: el formulario estándar también pasa por el Worker `/leads`
@@ -607,7 +621,8 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           nombre: lead.nombre, email: lead.email, telefono: lead.telefono,
-          servicio: lead.servicio, mensaje: lead.mensaje, website: ''
+          servicio: lead.servicio, mensaje: lead.mensaje, website: '',
+          consentimiento: lead.consentimiento === true
         })
       }).then(function (res) {
         if (!res.ok) throw new Error('HTTP ' + res.status);
