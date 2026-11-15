@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="es-CO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguimiento comercial · Panel KONFÍO ZINC</title><meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="admin.css">
+</head><body>
+<main class="contenedor">
+  <h1>Seguimiento comercial</h1>
+  <p>Prospectos con estado, notas y próximo contacto. Solo ADMIN y SUPERADMIN.</p>
+  <p id="vg-aviso" class="vg-aviso" role="status" aria-live="polite"></p>
+
+  <section id="vg-seguimiento" class="oculto">
+    <form id="vg-alta">
+      <label for="vg-nombre">Nombre</label><input id="vg-nombre" maxlength="120" required>
+      <label for="vg-telefono">Teléfono</label><input id="vg-telefono" type="tel" maxlength="20" required>
+      <label for="vg-servicio">Servicio</label><select id="vg-servicio"></select>
+      <button type="submit">Registrar prospecto</button>
+    </form>
+
+    <label for="vg-buscar">Buscar</label><input id="vg-buscar" type="search" placeholder="Nombre o teléfono">
+    <table><thead><tr><th>Prospecto</th><th>Estado</th><th>Servicio</th><th>Próximo contacto</th><th>Acciones</th></tr></thead>
+    <tbody id="vg-lista"></tbody></table>
+    <p class="nota">Las transiciones inválidas las rechaza también el servidor de reglas.</p>
+    <label for="vg-estado">Estados válidos</label><select id="vg-estado" aria-hidden="true" tabindex="-1" hidden></select>
+  </section>
+</main>
+<script type="module">
+  import { iniciarSeguimiento } from './seguimiento.js';
+  window.addEventListener('kz-sesion-lista', (e) => iniciarSeguimiento(e.detail));
+</script>
+</body></html>

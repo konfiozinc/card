@@ -1,0 +1,148 @@
+/* KZ-UNIFICACION-002 · Seguimiento comercial dentro de Card Spark.
+ * Reutiliza la sesión y los roles del panel (sesion/canAccess), el SDK de Firebase
+ * ya cargado y la colección nueva crm_prospectos. No abre otro panel ni otro login.
+ */
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { getFirestore, collection, query, where, orderBy, getDocs, doc, runTransaction, serverTimestamp, Timestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { firebaseConfig, canAccess } from './firebase-config.js';
+
+const ESTADOS = ['NUEVO', 'PENDIENTE_CONTACTAR', 'CONTACTADO', 'COTIZACION_ENVIADA', 'NEGOCIACION', 'GANADO', 'PERDIDO'];
+const TRANSICIONES = {
+  NUEVO: ['PENDIENTE_CONTACTAR', 'CONTACTADO', 'PERDIDO'],
+  PENDIENTE_CONTACTAR: ['CONTACTADO', 'PERDIDO'],
+  CONTACTADO: ['COTIZACION_ENVIADA', 'NEGOCIACION', 'PERDIDO'],
+  COTIZACION_ENVIADA: ['NEGOCIACION', 'GANADO', 'PERDIDO'],
+  NEGOCIACION: ['GANADO', 'PERDIDO'],
+  GANADO: [],
+  PERDIDO: ['PENDIENTE_CONTACTAR'],
+};
+const SERVICIOS = ['Mini Web Básica', 'Mini Web Pro', 'Catálogo', 'Menú digital', 'Landing page', 'Otro'];
+const digitos = (v) => String(v || '').replace(/\D/g, '');
+const norm = (v) => String(v || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+const huella = (n, t, s) => (norm(n) + '|' + digitos(t) + '|' + norm(s)).slice(0, 180);
+
+function aviso(msg, tipo) {
+  const caja = document.getElementById('vg-aviso');
+  if (!caja) return;
+  caja.textContent = msg || '';
+  caja.className = 'vg-aviso' + (tipo ? ' ' + tipo : '');
+}
+
+export function iniciarSeguimiento({ app, auth, db, sesion }) {
+  const admin = canAccess(sesion.rol, 'ADMIN') || canAccess(sesion.rol, 'SUPERADMIN');
+  const seccion = document.getElementById('vg-seguimiento');
+  if (!seccion) return;
+  if (!admin) { seccion.classList.add('oculto'); return; }
+  seccion.classList.remove('oculto');
+
+  const sel = document.getElementById('vg-estado');
+  if (sel) sel.innerHTML = ESTADOS.map((e) => '<option>' + e + '</option>').join('');
+  const serv = document.getElementById('vg-servicio');
+  if (serv) serv.innerHTML = SERVICIOS.map((s) => '<option>' + s + '</option>').join('');
+
+  async function pintar() {
+    const caja = document.getElementById('vg-lista');
+    caja.innerHTML = '<tr><td colspan="5">Cargando…</td></tr>';
+    try {
+      const snap = await getDocs(query(collection(db, 'crm_prospectos'), orderBy('actualizadoEn', 'desc')));
+      if (snap.empty) { caja.innerHTML = '<tr><td colspan="5">Sin prospectos todavía.</td></tr>'; return; }
+      caja.innerHTML = snap.docs.map((d) => {
+        const p = d.data();
+        const siguiente = (TRANSICIONES[p.estado] || [])[0] || '';
+        return '<tr><td>' + esc(p.nombre) + '</td><td>' + esc(p.estado) + '</td><td>' + esc(p.servicio) +
+          '</td><td>' + esc(p.proximaFecha || '—') + '</td><td>' +
+          (siguiente ? '<button data-mover="' + d.id + '" data-hacia="' + siguiente + '">Pasar a ' + siguiente + '</button>' : '—') +
+          ' <button data-nota="' + d.id + '">Nota</button></td></tr>';
+      }).join('');
+    } catch (e) { caja.innerHTML = '<tr><td colspan="5">No se pudo leer: ' + esc(e.code || 'error') + '</td></tr>'; }
+  }
+  const esc = (v) => String(v == null ? '' : v).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+  document.getElementById('vg-alta').addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const nombre = document.getElementById('vg-nombre').value.trim();
+    const telefono = document.getElementById('vg-telefono').value.trim();
+    const servicio = document.getElementById('vg-servicio').value;
+    if (nombre.length < 2 || digitos(telefono).length < 7) { aviso('Nombre y teléfono son obligatorios.', 'error'); return; }
+    const h = huella(nombre, telefono, servicio);
+    aviso('Guardando…');
+    try {
+      /* Antiduplicado con transacción: dos altas simultáneas no crean dos fichas. */
+      const existentes = await getDocs(query(collection(db, 'crm_prospectos'), where('huella', '==', h)));
+      if (!existentes.empty) { aviso('Ese prospecto ya existe (mismo nombre, teléfono y servicio).', 'error'); return; }
+      const nuevo = doc(collection(db, 'crm_prospectos'));
+      await runTransaction(db, async (tx) => {
+        const choque = await tx.get(query(collection(db, 'crm_prospectos'), where('huella', '==', h)));
+        if (!choque.empty) throw new Error('DUPLICADO');
+        tx.set(nuevo, {
+          nombre, telefono, servicio, huella: h, origen: 'manual', estado: 'NUEVO',
+          proximaFecha: '', notas: [],
+          historial: [{ tipo: 'alta', autor: sesion.uid, fecha: serverTimestamp() }],
+          creadoPor: sesion.uid, creadoEn: serverTimestamp(), actualizadoEn: serverTimestamp(), version: 1,
+        });
+      });
+      aviso('Prospecto registrado.', 'exito');
+      ev.target.reset();
+      pintar();
+    } catch (e) {
+      aviso(e.message === 'DUPLICADO' ? 'Ese prospecto ya existe.' : 'No se pudo guardar: ' + (e.code || e.message), 'error');
+    }
+  });
+
+  document.getElementById('vg-lista').addEventListener('click', async (ev) => {
+    const mover = ev.target.closest('button[data-mover]');
+    const nota = ev.target.closest('button[data-nota]');
+    try {
+      if (mover) {
+        const id = mover.getAttribute('data-mover');
+        const hacia = mover.getAttribute('data-hacia');
+        mover.disabled = true;
+        await runTransaction(db, async (tx) => {
+          const ref = doc(db, 'crm_prospectos', id);
+          const actual = await tx.get(ref);
+          if (!actual.exists()) throw new Error('NO_EXISTE');
+          const p = actual.data();
+          if (!(TRANSICIONES[p.estado] || []).includes(hacia)) throw new Error('TRANSICION_INVALIDA');
+          tx.update(ref, {
+            estado: hacia,
+            actualizadoEn: serverTimestamp(),
+            version: (p.version || 1) + 1,
+            historial: [...(p.historial || []), { tipo: 'estado', desde: p.estado, hacia, autor: sesion.uid, fecha: Timestamp.now() }],
+          });
+        });
+        aviso('Estado actualizado.', 'exito');
+        pintar();
+      }
+      if (nota) {
+        const id = nota.getAttribute('data-nota');
+        const texto = prompt('Nota de seguimiento (máx. 300 caracteres):');
+        if (!texto || texto.trim().length < 2) return;
+        await runTransaction(db, async (tx) => {
+          const ref = doc(db, 'crm_prospectos', id);
+          const actual = await tx.get(ref);
+          if (!actual.exists()) throw new Error('NO_EXISTE');
+          const p = actual.data();
+          tx.update(ref, {
+            notas: [...(p.notas || []), texto.trim().slice(0, 300)],
+            actualizadoEn: serverTimestamp(),
+            version: (p.version || 1) + 1,
+            historial: [...(p.historial || []), { tipo: 'nota', autor: sesion.uid, fecha: Timestamp.now() }],
+          });
+        });
+        aviso('Nota guardada.', 'exito');
+        pintar();
+      }
+    } catch (e) { aviso('Operación rechazada: ' + (e.code || e.message), 'error'); pintar(); }
+  });
+
+  const buscar = document.getElementById('vg-buscar');
+  if (buscar) buscar.addEventListener('input', () => {
+    const q = norm(buscar.value);
+    Array.prototype.forEach.call(document.querySelectorAll('#vg-lista tr'), (tr) => {
+      tr.style.display = !q || norm(tr.textContent).includes(q) ? '' : 'none';
+    });
+  });
+
+  pintar();
+}

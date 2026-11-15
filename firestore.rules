@@ -634,10 +634,10 @@ service cloud.firestore {
       return ['NUEVO','PENDIENTE_CONTACTAR','CONTACTADO','COTIZACION_ENVIADA','NEGOCIACION','GANADO','PERDIDO'];
     }
     function camposAlta() {
-      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','creadoEn','actualizadoEn','creadoPor','version'];
+      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','huella','historial','creadoEn','actualizadoEn','creadoPor','version'];
     }
     function camposEdicion() {
-      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','actualizadoEn','version'];
+      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','historial','actualizadoEn','version'];
     }
     allow read: if esAdmin() || esSuperadmin();
     allow create: if (esAdmin() || esSuperadmin())
@@ -656,7 +656,10 @@ service cloud.firestore {
       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(camposEdicion())
       && request.resource.data.estado in estadosValidos()
       && request.resource.data.creadoPor == resource.data.creadoPor
-      && request.resource.data.actualizadoEn == request.time;
+      && request.resource.data.actualizadoEn == request.time
+      && request.resource.data.historial.size() == resource.data.historial.size() + 1
+      && request.resource.data.historial[resource.data.historial.size()] is map
+      && request.resource.data.historial[resource.data.historial.size()].autor == request.auth.uid;
     allow delete: if false;
   }
   match /{document=**} {
