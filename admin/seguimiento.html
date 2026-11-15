@@ -23,8 +23,9 @@
     <label for="vg-estado">Estados válidos</label><select id="vg-estado" aria-hidden="true" tabindex="-1" hidden></select>
   </section>
 </main>
+<script src="../assets/js/config.js"></script>
 <script type="module">
   import { iniciarSeguimiento } from './seguimiento.js';
-  window.addEventListener('kz-sesion-lista', (e) => iniciarSeguimiento(e.detail));
+  iniciarSeguimiento();
 </script>
 </body></html>

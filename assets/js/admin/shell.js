@@ -23,6 +23,7 @@ const NAV = [
   { key: 'clientes',       label: 'Clientes',       href: 'clientes.html',       icono: 'fa-users',       min: 'OPERADOR' },
   { key: 'vencimientos',   label: 'Vencimientos',   href: 'vencimientos.html',   icono: 'fa-calendar-check', min: 'OPERADOR' },
   { key: 'clientes-mes',   label: 'Clientes por mes', href: 'clientes-por-mes.html', icono: 'fa-calendar-days', min: 'OPERADOR' },
+  { key: 'seguimiento', label: 'Seguimiento comercial', href: 'seguimiento.html', icono: 'fa-solid fa-chart-line' },
   { key: 'contactos',      label: 'Contactos',      href: 'contactos.html',      icono: 'fa-envelope',    min: 'OPERADOR' },
   /* Cotizaciones (KZ-CRM-COTIZACIONES-002): las crea y envía cualquier
      OPERADOR; reabrir o anular es cosa de ADMIN, y eso lo imponen las reglas. */

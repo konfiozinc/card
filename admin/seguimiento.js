@@ -5,7 +5,7 @@
 import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
 import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { getFirestore, collection, query, where, orderBy, getDocs, doc, runTransaction, serverTimestamp, Timestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
-import { firebaseConfig, canAccess } from './firebase-config.js';
+import { requireAuth, canAccess } from '../assets/js/admin/shell.js';
 
 const ESTADOS = ['NUEVO', 'PENDIENTE_CONTACTAR', 'CONTACTADO', 'COTIZACION_ENVIADA', 'NEGOCIACION', 'GANADO', 'PERDIDO'];
 const TRANSICIONES = {
@@ -29,7 +29,12 @@ function aviso(msg, tipo) {
   caja.className = 'vg-aviso' + (tipo ? ' ' + tipo : '');
 }
 
-export function iniciarSeguimiento({ app, auth, db, sesion }) {
+export async function iniciarSeguimiento() {
+  /* Sesion REAL del panel: misma autenticacion y mismos roles que el resto. */
+  const sesion = await requireAuth('seguimiento');
+  const app = getApps()[0] || null;
+  if (!app) { aviso('El panel no inicializo Firebase.', 'error'); return; }
+  const db = getFirestore(app);
   const admin = canAccess(sesion.rol, 'ADMIN') || canAccess(sesion.rol, 'SUPERADMIN');
   const seccion = document.getElementById('vg-seguimiento');
   if (!seccion) return;
