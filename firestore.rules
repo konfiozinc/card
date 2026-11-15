@@ -625,7 +625,41 @@ service cloud.firestore {
     }
 
     /* ── Denegar todo lo demás ─────────────────────────────────────── */
-    match /{document=**} {
+    /* ── crm_prospectos · seguimiento comercial (KZ-UNIFICACION-002) ──────────
+     Alcance nuevo y único. NO amplía clientes, contactos, usuarios, pagos,
+     servicios ni cotizaciones. Escritura solo ADMIN/SUPERADMIN; OPERADOR no.
+     El navegador no puede suplantar al responsable ni tocar campos de auditoría. */
+  match /crm_prospectos/{prospectoId} {
+    function estadosValidos() {
+      return ['NUEVO','PENDIENTE_CONTACTAR','CONTACTADO','COTIZACION_ENVIADA','NEGOCIACION','GANADO','PERDIDO'];
+    }
+    function camposAlta() {
+      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','creadoEn','actualizadoEn','creadoPor','version'];
+    }
+    function camposEdicion() {
+      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','actualizadoEn','version'];
+    }
+    allow read: if esAdmin() || esSuperadmin();
+    allow create: if (esAdmin() || esSuperadmin())
+      && request.resource.data.keys().hasOnly(camposAlta())
+      && request.resource.data.nombre is string
+      && request.resource.data.nombre.size() >= 2 && request.resource.data.nombre.size() <= 120
+      && request.resource.data.telefono is string
+      && request.resource.data.telefono.size() >= 7 && request.resource.data.telefono.size() <= 20
+      && request.resource.data.servicio is string && request.resource.data.servicio.size() <= 60
+      && request.resource.data.estado in estadosValidos()
+      && (!('notas' in request.resource.data) || request.resource.data.notas is list)
+      && request.resource.data.creadoPor == request.auth.uid
+      && request.resource.data.creadoEn == request.time
+      && request.resource.data.actualizadoEn == request.time;
+    allow update: if (esAdmin() || esSuperadmin())
+      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(camposEdicion())
+      && request.resource.data.estado in estadosValidos()
+      && request.resource.data.creadoPor == resource.data.creadoPor
+      && request.resource.data.actualizadoEn == request.time;
+    allow delete: if false;
+  }
+  match /{document=**} {
       allow read, write: if false;
     }
   }
