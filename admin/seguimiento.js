@@ -87,11 +87,14 @@ export async function iniciarSeguimiento() {
       await runTransaction(db, async (tx) => {
         const choque = await tx.get(nuevo);
         if (choque.exists()) throw new Error('DUPLICADO');
+        /* El historial NO vive en el documento: cada acción es inmutable. */
         tx.set(nuevo, {
           nombre, telefono, servicio, huella: h, origen: 'manual', estado: 'NUEVO',
           proximaFecha: '', notas: [],
-          historial: [{ tipo: 'alta', autor: sesion.uid, fecha: serverTimestamp() }],
           creadoPor: sesion.uid, creadoEn: serverTimestamp(), actualizadoEn: serverTimestamp(), version: 1,
+        });
+        tx.set(doc(collection(db, 'crm_prospectos', idDuplicado, 'acciones')), {
+          tipo: 'alta', autor: sesion.uid, fecha: serverTimestamp(),
         });
       });
       aviso('Prospecto registrado.', 'exito');
@@ -120,7 +123,9 @@ export async function iniciarSeguimiento() {
             estado: hacia,
             actualizadoEn: serverTimestamp(),
             version: (p.version || 1) + 1,
-            historial: [...(p.historial || []), { tipo: 'estado', desde: p.estado, hacia, autor: sesion.uid, fecha: Timestamp.now() }],
+          });
+          tx.set(doc(collection(db, 'crm_prospectos', id, 'acciones')), {
+            tipo: 'estado', desde: p.estado, hacia, autor: sesion.uid, fecha: serverTimestamp(),
           });
         });
         aviso('Estado actualizado.', 'exito');
@@ -139,7 +144,9 @@ export async function iniciarSeguimiento() {
             notas: [...(p.notas || []), texto.trim().slice(0, 300)],
             actualizadoEn: serverTimestamp(),
             version: (p.version || 1) + 1,
-            historial: [...(p.historial || []), { tipo: 'nota', autor: sesion.uid, fecha: Timestamp.now() }],
+          });
+          tx.set(doc(collection(db, 'crm_prospectos', id, 'acciones')), {
+            tipo: 'nota', detalle: texto.trim().slice(0, 300), autor: sesion.uid, fecha: serverTimestamp(),
           });
         });
         aviso('Nota guardada.', 'exito');

@@ -12,7 +12,7 @@ const ok = (nombre) => console.log('  PASS · ' + nombre);
 const ko = (nombre, e) => { fallos += 1; console.log('  FAIL · ' + nombre + ' → ' + (e && (e.code || e.message))); };
 
 const entorno = await initializeTestEnvironment({
-  projectId: 'konfio-zinc',
+  projectId: 'demo-kz-crm-prospectos',   /* demo-*: nunca contacta produccion */
   firestore: { rules: reglas, host: '127.0.0.1', port: 8080 },
 });
 
