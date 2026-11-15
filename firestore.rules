@@ -634,10 +634,10 @@ service cloud.firestore {
       return ['NUEVO','PENDIENTE_CONTACTAR','CONTACTADO','COTIZACION_ENVIADA','NEGOCIACION','GANADO','PERDIDO'];
     }
     function camposAlta() {
-      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','huella','historial','creadoEn','actualizadoEn','creadoPor','version'];
+      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','huella','creadoEn','actualizadoEn','creadoPor','version'];
     }
     function camposEdicion() {
-      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','historial','actualizadoEn','version'];
+      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','actualizadoEn','version'];
     }
     allow read: if esAdmin() || esSuperadmin();
     allow create: if (esAdmin() || esSuperadmin())
