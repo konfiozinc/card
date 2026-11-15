@@ -19,6 +19,7 @@ rules_version = '2';
 //   · Clientes: OPERADOR edita datos de contacto; los campos comerciales
 //     (servicio, plan, precio, fechas, estado) son de ADMIN; la baja lógica
 //     (`eliminado`) es de SUPERADMIN.
+//   · Auditoría e historial: se crean, nunca se modifican ni se borran.
 //   · Notificaciones: el panel solo REGISTRA avisos preparados; marcarlos
 //     enviados es un acto explícito del operador. Nada se envía solo.
 // ═══════════════════════════════════════════════════════════════════
@@ -381,8 +382,10 @@ service cloud.firestore {
       allow delete: if esAdmin();
     }
 
+    /* ── historial_estados ─────────────────────────────────────────── */
     // El panel lo escribe en cada cambio de estado; se lee desde la ficha del
     // cliente. Nunca se modifica ni se borra.
+    match /historial_estados/{id} {
       allow read: if esOperador();
       allow create: if esOperador()
         && textoNoVacio(request.resource.data.get('clienteId', ''))
@@ -631,10 +634,10 @@ service cloud.firestore {
       return ['NUEVO','PENDIENTE_CONTACTAR','CONTACTADO','COTIZACION_ENVIADA','NEGOCIACION','GANADO','PERDIDO'];
     }
     function camposAlta() {
-      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','huella','creadoEn','actualizadoEn','creadoPor','version'];
+      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','huella','historial','creadoEn','actualizadoEn','creadoPor','version'];
     }
     function camposEdicion() {
-      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','actualizadoEn','version'];
+      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','historial','actualizadoEn','version'];
     }
     allow read: if esAdmin() || esSuperadmin();
     allow create: if (esAdmin() || esSuperadmin())
@@ -654,21 +657,20 @@ service cloud.firestore {
       && request.resource.data.estado in estadosValidos()
       && request.resource.data.creadoPor == resource.data.creadoPor
       && request.resource.data.actualizadoEn == request.time
+      && request.resource.data.historial.size() == resource.data.historial.size() + 1
+      && request.resource.data.historial[resource.data.historial.size()] is map
+      && request.resource.data.historial[resource.data.historial.size()].autor == request.auth.uid;
+    /* KZ-UNIFICACION-002 · Historial INMUTABLE por subcolección.
+       Una lista dentro del documento NO puede demostrarse append-only con reglas
+       (size()+1 no impide reemplazarla por otra lista del mismo tamaño). Cada
+       acción es un documento propio: se crea y nunca se edita ni se borra. */
     match /acciones/{accionId} {
       allow read: if esAdmin() || esSuperadmin();
-      function estadosOk() {
-        return ['NUEVO','PENDIENTE_CONTACTAR','CONTACTADO','COTIZACION_ENVIADA','NEGOCIACION','GANADO','PERDIDO'];
-      }
       allow create: if (esAdmin() || esSuperadmin())
         && request.resource.data.keys().hasOnly(['tipo','detalle','desde','hacia','autor','fecha'])
-        && request.resource.data.tipo in ['alta','estado','nota']
+        && request.resource.data.tipo is string
         && request.resource.data.autor == request.auth.uid
-        && request.resource.data.fecha == request.time
-        && (!('detalle' in request.resource.data) || (request.resource.data.detalle is string && request.resource.data.detalle.size() <= 300))
-        && (request.resource.data.tipo != 'estado' || (
-             request.resource.data.desde in estadosOk()
-             && request.resource.data.hacia in estadosOk()
-             && request.resource.data.desde != request.resource.data.hacia));
+        && request.resource.data.fecha == request.time;
       allow update, delete: if false;
     }
     allow delete: if false;

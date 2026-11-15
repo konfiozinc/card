@@ -58,13 +58,31 @@ await prueba('estado inventado se rechaza', () => assertFails(setDoc(doc(admin, 
 await prueba('nombre demasiado corto se rechaza', () => assertFails(setDoc(doc(admin, 'crm_prospectos', 'p10'), ficha({ nombre: 'X' }))));
 
 /* Actualizaciones y auditoría */
-const upd = (db, id, cambios) => updateDoc(doc(db, 'crm_prospectos', id), { actualizadoEn: serverTimestamp(), version: 2, historial: [{ tipo: 'alta', autor: 'uid-admin@ejemplo.test', fecha: Timestamp.now() }, { tipo: 'estado', desde: 'NUEVO', hacia: 'CONTACTADO', autor: 'uid-admin@ejemplo.test', fecha: Timestamp.now() }], ...cambios });
-await prueba('ADMIN cambia estado con historial append-only', () => assertSucceeds(upd(admin, 'p1', { estado: 'CONTACTADO' })));
-await prueba('no se puede reescribir el historial (no append)', () => assertFails(updateDoc(doc(admin, 'crm_prospectos', 'p1'), { estado: 'GANADO', actualizadoEn: serverTimestamp(), version: 3, historial: [] })));
+const upd = (db, id, cambios) => updateDoc(doc(db, 'crm_prospectos', id), { actualizadoEn: serverTimestamp(), version: 2, ...cambios });
+await prueba('ADMIN cambia estado (modelo actual, sin historial en lista)', () => assertSucceeds(upd(admin, 'p1', { estado: 'CONTACTADO' })));
+await prueba('la lista historial ya NO se puede escribir', () => assertFails(updateDoc(doc(admin, 'crm_prospectos', 'p1'), { estado: 'GANADO', actualizadoEn: serverTimestamp(), version: 3, historial: [] })));
+
+/* Acciones: positivos reales y negativos. Un rechazo solo cuenta si el positivo existe. */
+const acc = (db, id, datos) => setDoc(doc(db, 'crm_prospectos', id, 'acciones', 'a-' + Math.random().toString(36).slice(2)), { fecha: serverTimestamp(), ...datos });
+await prueba('ADMIN crea accion alta', () => assertSucceeds(acc(admin, 'p1', { tipo: 'alta', autor: 'uid-admin@ejemplo.test' })));
+await prueba('ADMIN crea accion estado', () => assertSucceeds(acc(admin, 'p1', { tipo: 'estado', desde: 'NUEVO', hacia: 'CONTACTADO', autor: 'uid-admin@ejemplo.test' })));
+await prueba('ADMIN crea accion nota', () => assertSucceeds(acc(admin, 'p1', { tipo: 'nota', detalle: 'nota ficticia', autor: 'uid-admin@ejemplo.test' })));
+await prueba('rechaza tipo de accion inventado', () => assertFails(acc(admin, 'p1', { tipo: 'borrado_magico', autor: 'uid-admin@ejemplo.test' })));
+await prueba('rechaza autor suplantado en accion', () => assertFails(acc(admin, 'p1', { tipo: 'nota', detalle: 'x', autor: 'uid-super@ejemplo.test' })));
+await prueba('rechaza estado invalido en accion', () => assertFails(acc(admin, 'p1', { tipo: 'estado', desde: 'NUEVO', hacia: 'CASI', autor: 'uid-admin@ejemplo.test' })));
+await prueba('rechaza desde == hacia en accion', () => assertFails(acc(admin, 'p1', { tipo: 'estado', desde: 'NUEVO', hacia: 'NUEVO', autor: 'uid-admin@ejemplo.test' })));
+await prueba('rechaza campo extra en accion', () => assertFails(acc(admin, 'p1', { tipo: 'nota', detalle: 'x', autor: 'uid-admin@ejemplo.test', extra: 1 })));
+await prueba('OPERADOR no crea acciones', () => assertFails(acc(oper, 'p1', { tipo: 'nota', detalle: 'x', autor: 'uid-oper@ejemplo.test' })));
 await prueba('no se puede tocar creadoPor en edición', () => assertFails(upd(admin, 'p1', { estado: 'NEGOCIACION', creadoPor: 'uid-oper@ejemplo.test' })));
 await prueba('OPERADOR no edita', () => assertFails(upd(oper, 'p1', { estado: 'PERDIDO' })));
 
 /* Borrado */
+await prueba('nadie modifica una accion existente', async () => {
+  const ref = doc(admin, 'crm_prospectos', 'p1', 'acciones', 'a-fija');
+  await entorno.withSecurityRulesDisabled(async (ctx) => { await setDoc(doc(ctx.firestore(), 'crm_prospectos', 'p1', 'acciones', 'a-fija'), { tipo: 'nota', detalle: 'original', autor: 'uid-admin@ejemplo.test', fecha: Timestamp.now() }); });
+  await assertFails(updateDoc(ref, { detalle: 'alterada' }));
+});
+await prueba('nadie borra una accion existente', () => assertFails(deleteDoc(doc(admin, 'crm_prospectos', 'p1', 'acciones', 'a-fija'))));
 await prueba('nadie borra prospectos', async () => { await assertFails(deleteDoc(doc(admin, 'crm_prospectos', 'p1'))); await assertFails(deleteDoc(doc(supera, 'crm_prospectos', 'p2'))); });
 
 /* Regresión: colecciones anteriores conservan sus permisos */
