@@ -68,13 +68,20 @@ export function iniciarSeguimiento({ app, auth, db, sesion }) {
     const h = huella(nombre, telefono, servicio);
     aviso('Guardando…');
     try {
-      /* Antiduplicado con transacción: dos altas simultáneas no crean dos fichas. */
-      const existentes = await getDocs(query(collection(db, 'crm_prospectos'), where('huella', '==', h)));
-      if (!existentes.empty) { aviso('Ese prospecto ya existe (mismo nombre, teléfono y servicio).', 'error'); return; }
-      const nuevo = doc(collection(db, 'crm_prospectos'));
+      /* Antiduplicado ATÓMICO: el id del documento deriva de la huella, así que dos
+         altas simultáneas escriben el MISMO documento y Firestore serializa las
+         transacciones: la segunda ve el documento y se rechaza. Transaction.get solo
+         admite DocumentReference, por eso no se usa una consulta dentro del tx.
+         El id es un SHA-256: no contiene el teléfono ni el nombre en claro. */
+      const idDuplicado = 'p' + (await crypto.subtle.digest('SHA-256', new TextEncoder().encode(h)))
+        .slice(0, 0) && await (async () => {
+          const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(h));
+          return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+        })();
+      const nuevo = doc(db, 'crm_prospectos', idDuplicado);
       await runTransaction(db, async (tx) => {
-        const choque = await tx.get(query(collection(db, 'crm_prospectos'), where('huella', '==', h)));
-        if (!choque.empty) throw new Error('DUPLICADO');
+        const choque = await tx.get(nuevo);
+        if (choque.exists()) throw new Error('DUPLICADO');
         tx.set(nuevo, {
           nombre, telefono, servicio, huella: h, origen: 'manual', estado: 'NUEVO',
           proximaFecha: '', notas: [],
