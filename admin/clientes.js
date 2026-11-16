@@ -331,13 +331,13 @@ function abrirEditor(c) {
         <div class="campo"><label>Servicio *</label><select id="e-servicio">${SERVICIOS.map(s => `<option ${c && c.servicio === s ? 'selected' : ''}>${esc(s)}</option>`).join('')}</select></div>
         <div class="campo"><label>Categoría (solo Tarjetas)</label><select id="e-categoria"><option value="">—</option>${CATS.map(x => `<option ${c && c.categoria === x ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select></div>
         <div class="campo"><label>Paquete / plan</label><select id="e-plan"><option value="">Sin paquete</option>${p}</select></div>
-        <div class="campo"><label>Precio (COP)${c ? '' : ' *'}</label><input id="e-precio" type="number" min="0" step="100" value="${c ? c.precio : ''}" aria-describedby="e-precio-nota"><div class="celda-suave" id="e-precio-nota" style="font-size:12px">${c ? 'Puedes corregirlo al editar.' : 'Obligatorio para crear el cliente.'}</div></div>
+        <div class="campo"><label>Precio (COP)${c ? '' : ' *'}</label><input id="e-precio" type="number" min="0" step="100" value="${c ? esc(c.precio) : ''}" aria-describedby="e-precio-nota"><div class="celda-suave" id="e-precio-nota" style="font-size:12px">${c ? 'Puedes corregirlo al editar.' : 'Obligatorio para crear el cliente.'}</div></div>
         <div class="campo"><label>Método preferido</label><select id="e-metodo"><option value="">—</option>${METODOS.map(m => `<option ${c && c.metodoPagoPreferido === m ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select></div>
-        <div class="campo"><label>Activación *</label><input id="e-activacion" type="date" value="${c ? c.fechaActivacion : hoyISO()}"></div>
+        <div class="campo"><label>Activación *</label><input id="e-activacion" type="date" value="${c ? esc(c.fechaActivacion) : hoyISO()}"></div>
         <div class="campo"><label>Duración del servicio</label><select id="e-duracion">
           <option value="1">1 mes</option><option value="3">3 meses</option><option value="6">6 meses</option><option value="12" selected>12 meses</option>
         </select></div>
-        <div class="campo"><label>Vencimiento</label><input id="e-vencimiento" type="date" value="${c ? c.fechaVencimiento : ''}"></div>
+        <div class="campo"><label>Vencimiento</label><input id="e-vencimiento" type="date" value="${c ? esc(c.fechaVencimiento) : ''}"></div>
         <div class="campo"><label>URL del servicio</label><input id="e-url" value="${esc(c ? c.urlServicio : '')}"></div>
         <div class="campo"><label>Proyecto (repo GitHub)</label><input id="e-proyecto" value="${esc(c ? c.proyectoId : '')}"></div>
       </div>
@@ -425,7 +425,7 @@ function abrirPago(c) {
     </div>
     <form id="pago-form" class="modal__body">
       <div class="grid-2">
-        <div class="campo"><label>Monto (COP) *</label><input id="p-monto" type="number" value="${c.precio || ''}"></div>
+        <div class="campo"><label>Monto (COP) *</label><input id="p-monto" type="number" value="${esc(c.precio || '')}"></div>
         <div class="campo"><label>Método *</label><select id="p-metodo">${METODOS.map(m => `<option>${esc(m)}</option>`).join('')}</select></div>
         <div class="campo"><label>Fecha</label><input id="p-fecha" type="date" value="${hoyISO()}"></div>
         <div class="campo"><label>Referencia</label><input id="p-ref"></div>

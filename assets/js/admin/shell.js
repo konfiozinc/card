@@ -15,6 +15,12 @@ import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 const CFG = window.KZ_CONFIG || {};
+
+/* KZ-FORENSIC-FIX-002 · Escape local. `nombre` (ficha del usuario) y el mensaje
+   de error se pintaban con innerHTML sin escapar. shell.js no importa ui.js a
+   propósito: evita dependencias cruzadas en el arranque del panel. */
+const esc = (v) => String(v == null ? '' : v)
+  .replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const NIVEL = (CFG.roles && CFG.roles.niveles) || { OPERADOR: 1, ADMIN: 2, SUPERADMIN: 3 };
 
 /* Menú del panel. `min` es el rol mínimo para verlo. */
@@ -85,7 +91,7 @@ function renderShell(activeKey, rol, nombre) {
       <header class="topbar">
         <button class="topbar__burger" id="btn-burger" aria-label="Abrir menú" aria-expanded="false"><i class="fas fa-bars" aria-hidden="true"></i></button>
         <span class="topbar__title" id="topbar-title">${titulo}</span>
-        <span class="topbar__user" title="${nombre}">${nombre}</span>
+        <span class="topbar__user" title="${esc(nombre)}">${esc(nombre)}</span>
       </header>
       <main class="content" id="app-content"></main>
     </div>`;
@@ -183,7 +189,7 @@ export function requireAuth(activeKey) {
         if (shell) {
           shell.innerHTML = `<div class="content"><div class="nocfg">
             <h1>No se pudo verificar tu acceso</h1>
-            <p>${String(err.message || err)}</p>
+            <p>${esc(String(err.message || err))}</p>
             <p>Si acabas de configurar Firebase, revisa que las reglas de Firestore estén desplegadas
             (<code>firebase deploy --only firestore:rules</code>) y que tu documento exista en la
             colección <code>usuarios</code> con <code>activo: true</code>.</p>

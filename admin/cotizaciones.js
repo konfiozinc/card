@@ -254,7 +254,7 @@ async function verCotizacion(c, opciones = {}) {
           <thead><tr><th>Concepto</th><th style="text-align:right">Cant.</th><th style="text-align:right">Valor</th><th style="text-align:right">Subtotal</th></tr></thead>
           <tbody>${(c.items || []).map((i) => `<tr>
             <td>${esc(i.concepto)}${i.detalle ? `<br><span class="celda-suave">${esc(i.detalle)}</span>` : ''}</td>
-            <td style="text-align:right">${i.cantidad}</td>
+            <td style="text-align:right">${esc(i.cantidad)}</td>
             <td style="text-align:right">${esc(fmtCOP(i.valorUnitario))}</td>
             <td style="text-align:right">${esc(fmtCOP(i.subtotal))}</td></tr>`).join('')}</tbody>
         </table>

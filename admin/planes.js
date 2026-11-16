@@ -26,7 +26,7 @@ async function pintar() {
     </tr></thead><tbody>${planes.map(p => `<tr data-id="${esc(p.id)}">
       <td><div class="celda-fuerte">${esc(p.nombre)}</div><div class="celda-suave">${esc(p.descripcion || '')}</div></td>
       <td>${esc(p.servicio || '—')}${p.categoria ? ` · ${esc(p.categoria)}` : ''}</td>
-      <td>${cop(p.precio)}</td><td>${p.duracionMeses || 12} meses</td>
+      <td>${cop(p.precio)}</td><td>${esc(p.duracionMeses || 12)} meses</td>
       <td>${p.estado === 'INACTIVO' ? '<span class="badge badge--inactivo">Inactivo</span>' : '<span class="badge badge--activo">Activo</span>'}</td>
       <td><div class="acciones-fila"><button data-a="edit" title="Editar"><i class="fas fa-pen"></i></button>
       <button data-a="toggle" title="Activar/desactivar"><i class="fas fa-toggle-on"></i></button>
