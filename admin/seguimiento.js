@@ -25,8 +25,12 @@ const huella = (n, t, s) => (norm(n) + '|' + digitos(t) + '|' + norm(s)).slice(0
 function aviso(msg, tipo) {
   const caja = document.getElementById('vg-aviso');
   if (!caja) return;
+  /* Clases REALES del panel: `.vg-aviso` no existe en ninguna hoja del
+     repositorio, así que el mensaje se veía sin estilo. `.aviso` y
+     `.aviso--error` sí están definidas en assets/css/admin.css. */
   caja.textContent = msg || '';
-  caja.className = 'vg-aviso' + (tipo ? ' ' + tipo : '');
+  caja.className = 'aviso' + (tipo === 'error' ? ' aviso--error' : '');
+  caja.hidden = !msg;
 }
 
 export async function iniciarSeguimiento() {

@@ -191,6 +191,43 @@ try {
     return 'modulo listo, servicios=' + opciones;
   });
 
+  /* CANDADO DE ESTILOS (KZ-UNIFICACION-004).
+     La corrida anterior dio PASS validando sólo el DOM mientras la página se veía
+     como HTML crudo: enlazar las hojas no basta, el marcado tiene que usar sus
+     clases. Esta comprobación mide lo que el navegador pinta de verdad y FALLA si
+     el fondo es blanco. */
+  await paso('Estilos del panel aplicados (fondo e inputs oscuros)', async () => {
+    const BLANCO = 'rgb(255, 255, 255)';
+    const m = await pagina.evaluate(() => {
+      const inp = document.querySelector('#vg-nombre');
+      const sel = document.querySelector('#vg-servicio');
+      const btn = document.querySelector('#vg-alta button[type=submit]');
+      const sInp = inp ? getComputedStyle(inp) : null;
+      return {
+        fondoBody: getComputedStyle(document.body).backgroundColor,
+        colorBody: getComputedStyle(document.body).color,
+        fuente: getComputedStyle(document.body).fontFamily,
+        fondoInput: sInp ? sInp.backgroundColor : null,
+        colorInput: sInp ? sInp.color : null,
+        bordeInput: sInp ? sInp.borderTopWidth + ' ' + sInp.borderTopStyle : null,
+        enCampo: !!document.querySelector('.campo > input'),
+        fondoSelect: sel ? getComputedStyle(sel).backgroundColor : null,
+        btnClase: btn ? btn.className : '(sin boton)',
+        avisoClase: (document.getElementById('vg-aviso') || {}).className || '(sin aviso)',
+        tablaConClase: !!document.querySelector('.tabla__wrap > table.tabla'),
+      };
+    });
+    if (m.fondoBody === BLANCO) throw new Error('el fondo del body es BLANCO: la hoja del panel no está aplicada');
+    if (m.fondoBody === 'rgba(0, 0, 0, 0)') throw new Error('el body no tiene fondo propio: el tema del panel no llegó');
+    if (m.fondoInput === BLANCO) throw new Error('el input tiene fondo BLANCO: no usa la clase .campo del panel');
+    if (!m.enCampo) throw new Error('los campos no están dentro de .campo');
+    if (!/\bbtn\b/.test(m.btnClase)) throw new Error('el botón no usa la clase .btn: ' + m.btnClase);
+    if (!/^aviso/.test(m.avisoClase)) throw new Error('el aviso no usa la clase .aviso: ' + m.avisoClase);
+    if (!m.tablaConClase) throw new Error('la tabla no usa .tabla__wrap + .tabla');
+    await pagina.screenshot({ path: evid + '/04-estilos-seguimiento.png' });
+    return `body=${m.fondoBody} texto=${m.colorBody} input=${m.fondoInput} borde=${m.bordeInput} select=${m.fondoSelect} boton=.btn fuente=${m.fuente}`;
+  });
+
   await paso('Crear prospecto ficticio', async () => {
     await pagina.fill('#vg-nombre', 'Prospecto Ficticio V2');
     await pagina.fill('#vg-telefono', '3001234567');
