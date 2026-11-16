@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es-CO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seguimiento comercial · Panel KONFÍO ZINC</title><meta name="robots" content="noindex, nofollow">
+<!-- KZ-UNIFICACION-004 · Hoja de estilos y marcado.
+     Antes esta página enlazaba "admin.css" en la raíz (inexistente → 404) y luego
+     se le pusieron las hojas del panel, pero el MARCADO no usaba sus clases: los
+     inputs vivían fuera de .campo (admin.css sólo estiliza `.campo input`), el
+     mensaje usaba `.vg-aviso`, el contenedor `.contenedor` y la nota `.nota`, tres
+     clases que NO existen en ninguna hoja del repositorio. Resultado: fondo oscuro
+     del panel pero campos y botones con el estilo nativo del navegador, que es el
+     "HTML crudo" que se reportó. Aquí se usan las clases reales del sistema de
+     diseño (`.content`, `.page-head`, `.campo`, `.aviso`, `.btn`, `.tabla__wrap`,
+     `.tabla`, `.celda-suave`), las mismas que usan las otras 16 páginas. -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+<link rel="stylesheet" href="../assets/css/kz-tokens.css" />
+<link rel="stylesheet" href="../assets/css/admin.css" />
+<!-- CAUSA DEL FALLO DEL 15-NOV-2026 (21:16-21:19).
+     Esta era la ÚNICA de las 17 páginas de /admin/ sin importmap. shell.js y
+     core.js importan con especificadores desnudos ('firebase/auth',
+     'firebase/firestore', 'firebase/app'); sin importmap el navegador no puede
+     resolverlos, así que se caía TODO el grafo de módulos: seguimiento.js nunca
+     se evaluaba, requireAuth() nunca se llamaba y por eso la sección no se
+     abría, no había redirección al login sin sesión y no aparecía data-listo.
+     Se copia el mismo bloque que usan las otras 16 páginas: es el contrato real
+     de Card Spark, no uno nuevo. -->
+<script type="importmap">
+{ "imports": {
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "firebase/functions": "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js",
+    "firebase/messaging": "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js"
+} }
+</script>
+<style>[hidden]{display:none!important}</style>
+</head><body>
+<main class="content">
+  <div class="page-head">
+    <h1>Seguimiento comercial</h1>
+  </div>
+  <p class="celda-suave">Prospectos con estado, notas y próximo contacto. Solo ADMIN y SUPERADMIN.</p>
+  <p id="vg-aviso" class="aviso" role="status" aria-live="polite" hidden></p>
+
+  <!-- `hidden` es obligatorio: seguimiento.js lo retira SOLO cuando requireAuth
+       confirma una ficha activa con rol ADMIN o SUPERADMIN. Hasta la corrida del
+       15-nov-2026 esta sección usaba class="oculto", una clase que ninguna hoja de
+       estilo del repositorio define, de modo que era visible sin sesión y la
+       prueba la daba por buena. -->
+  <section id="vg-seguimiento" hidden>
+    <form id="vg-alta">
+      <div class="campo">
+        <label for="vg-nombre">Nombre</label>
+        <input id="vg-nombre" maxlength="120" required>
+      </div>
+      <div class="campo">
+        <label for="vg-telefono">Teléfono</label>
+        <input id="vg-telefono" type="tel" maxlength="20" required>
+      </div>
+      <div class="campo">
+        <label for="vg-servicio">Servicio</label>
+        <select id="vg-servicio"></select>
+      </div>
+      <button class="btn btn--primary" type="submit">Registrar prospecto</button>
+    </form>
+
+    <div class="campo" style="margin-top:1.4rem">
+      <label for="vg-buscar">Buscar</label>
+      <input id="vg-buscar" type="search" placeholder="Nombre o teléfono">
+    </div>
+
+    <!-- Tabla con el componente REAL de Card Spark: `.tabla__wrap` es el que
+         aporta `overflow-x:auto` y `.tabla` trae `min-width:880px`. Sin el
+         envoltorio, la tabla ancha desbordaba el documento a 375 px (medido:
+         scrollWidth 484) porque la página usa las hojas del panel. -->
+    <div class="tabla__wrap">
+      <table class="tabla"><thead><tr><th>Prospecto</th><th>Estado</th><th>Servicio</th><th>Próximo contacto</th><th>Acciones</th></tr></thead>
+      <tbody id="vg-lista"></tbody></table>
+    </div>
+    <p class="celda-suave" style="margin-top:.8rem">Las transiciones inválidas las rechaza también el servidor de reglas.</p>
+    <label for="vg-estado">Estados válidos</label><select id="vg-estado" aria-hidden="true" tabindex="-1" hidden></select>
+  </section>
+</main>
+<script src="../assets/js/config.js"></script>
+<script type="module">
+  import { iniciarSeguimiento } from './seguimiento.js';
+  iniciarSeguimiento();
+</script>
+</body></html>

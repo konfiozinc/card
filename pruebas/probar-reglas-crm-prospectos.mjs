@@ -1,0 +1,108 @@
+/* KZ-UNIFICACION-002 · Batería de reglas de crm_prospectos (emulador oficial).
+ * Se ejecuta con: npx firebase-tools emulators:exec --only firestore --project konfio-zinc "..."
+ * Datos 100% ficticios. Aborta con código != 0 si algo falla.
+ */
+import { initializeTestEnvironment, assertSucceeds, assertFails } from '@firebase/rules-unit-testing';
+import { readFileSync } from 'node:fs';
+import { doc, collection, getDocs, setDoc, updateDoc, deleteDoc, serverTimestamp, Timestamp } from 'firebase/firestore';
+
+const reglas = readFileSync(new URL('../firestore.rules', import.meta.url), 'utf8');
+let fallos = 0;
+const ok = (nombre) => console.log('  PASS · ' + nombre);
+const ko = (nombre, e) => { fallos += 1; console.log('  FAIL · ' + nombre + ' → ' + (e && (e.code || e.message))); };
+
+const entorno = await initializeTestEnvironment({
+  projectId: 'demo-kz-crm-prospectos',   /* demo-*: nunca contacta produccion */
+  firestore: { rules: reglas, host: '127.0.0.1', port: 8080 },
+});
+
+/* Datos ficticios: usuarios y roles del esquema real de Card Spark. */
+/* Usuarios ficticios con el CONTRATO REAL de Card Spark:
+   - exige `activo: true` ademas del rol (esAdmin comprueba get('activo',false)==true)
+   - la ficha se busca por UID (porUid) y por correo (porCorreo): se crean ambas rutas.
+   Sin esto la evaluacion revienta y parece un fallo de permisos cuando es de datos. */
+await entorno.withSecurityRulesDisabled(async (ctx) => {
+  const db = ctx.firestore();
+  const cuentas = [
+    ['uid-admin@ejemplo.test', 'uid-admin@ejemplo.test', 'ADMIN'],
+    ['uid-super@ejemplo.test', 'uid-super@ejemplo.test', 'SUPERADMIN'],
+    ['uid-oper@ejemplo.test', 'uid-oper@ejemplo.test', 'OPERADOR'],
+    ['uid-raro@ejemplo.test', 'uid-raro@ejemplo.test', 'INVENTADO'],
+  ];
+  for (const [uid, correo, rol] of cuentas) {
+    const ficha = { rol, activo: true, email: correo };
+    await setDoc(doc(db, 'usuarios', uid), ficha);
+    await setDoc(doc(db, 'usuarios', correo), ficha);
+  }
+});
+
+const base = (uid, email) => entorno.authenticatedContext(uid, { email }).firestore();
+const admin = base('uid-admin@ejemplo.test', 'uid-admin@ejemplo.test');
+const supera = base('uid-super@ejemplo.test', 'uid-super@ejemplo.test');
+const oper = base('uid-oper@ejemplo.test', 'uid-oper@ejemplo.test');
+const raro = base('uid-raro@ejemplo.test', 'uid-raro@ejemplo.test');
+const anon = entorno.unauthenticatedContext().firestore();
+const inexistente = base('uid-fantasma@ejemplo.test', 'uid-fantasma@ejemplo.test');
+
+const ficha = (extra = {}) => ({
+  nombre: 'Ficticio Uno', telefono: '3000000000', servicio: 'Mini Web Pro', origen: 'manual',
+  estado: 'NUEVO', proximaFecha: '', notas: [], huella: 'h-ficticia',
+  creadoPor: 'uid-admin@ejemplo.test', creadoEn: serverTimestamp(), actualizadoEn: serverTimestamp(), version: 1,
+  ...extra,
+});
+
+async function prueba(nombre, fn) { try { await fn(); ok(nombre); } catch (e) { ko(nombre, e); } }
+
+/* Altas y roles */
+await prueba('ADMIN crea prospecto válido', () => assertSucceeds(setDoc(doc(admin, 'crm_prospectos', 'p1'), ficha())));
+await prueba('SUPERADMIN crea prospecto valido', () => assertSucceeds(setDoc(doc(supera, 'crm_prospectos', 'p2'), ficha({ creadoPor: 'uid-super@ejemplo.test' }))));
+await prueba('OPERADOR NO crea', () => assertFails(setDoc(doc(oper, 'crm_prospectos', 'p3'), ficha({ creadoPor: 'uid-oper@ejemplo.test', historial: [{ tipo: 'alta', autor: 'uid-oper@ejemplo.test', fecha: Timestamp.now() }] }))));
+await prueba('rol desconocido NO crea', () => assertFails(setDoc(doc(raro, 'crm_prospectos', 'p4'), ficha({ creadoPor: 'uid-raro@ejemplo.test' }))));
+await prueba('UID inexistente NO crea', () => assertFails(setDoc(doc(inexistente, 'crm_prospectos', 'p5'), ficha({ creadoPor: 'uid-fantasma@ejemplo.test' }))));
+await prueba('anónimo NO crea ni lee', async () => { await assertFails(getDocs(collection(anon, 'crm_prospectos'))); await assertFails(setDoc(doc(anon, 'crm_prospectos', 'p6'), ficha())); });
+
+/* Suplantación y campos */
+await prueba('ADMIN no puede suplantar creadoPor', () => assertFails(setDoc(doc(admin, 'crm_prospectos', 'p7'), ficha({ creadoPor: 'uid-super@ejemplo.test' }))));
+await prueba('campo no autorizado se rechaza', () => assertFails(setDoc(doc(admin, 'crm_prospectos', 'p8'), ficha({ campoInventado: 'x' }))));
+await prueba('estado inventado se rechaza', () => assertFails(setDoc(doc(admin, 'crm_prospectos', 'p9'), ficha({ estado: 'CASI' }))));
+await prueba('nombre demasiado corto se rechaza', () => assertFails(setDoc(doc(admin, 'crm_prospectos', 'p10'), ficha({ nombre: 'X' }))));
+
+/* Actualizaciones y auditoría */
+const upd = (db, id, cambios) => updateDoc(doc(db, 'crm_prospectos', id), { actualizadoEn: serverTimestamp(), version: 2, ...cambios });
+await prueba('ADMIN cambia estado (modelo actual, sin historial en lista)', () => assertSucceeds(upd(admin, 'p1', { estado: 'CONTACTADO' })));
+await prueba('la lista historial ya NO se puede escribir', () => assertFails(updateDoc(doc(admin, 'crm_prospectos', 'p1'), { estado: 'GANADO', actualizadoEn: serverTimestamp(), version: 3, historial: [] })));
+
+/* Acciones: positivos reales y negativos. Un rechazo solo cuenta si el positivo existe. */
+const acc = (db, id, datos) => setDoc(doc(db, 'crm_prospectos', id, 'acciones', 'a-' + Math.random().toString(36).slice(2)), { fecha: serverTimestamp(), ...datos });
+await prueba('ADMIN crea accion alta', () => assertSucceeds(acc(admin, 'p1', { tipo: 'alta', autor: 'uid-admin@ejemplo.test' })));
+await prueba('ADMIN crea accion estado', () => assertSucceeds(acc(admin, 'p1', { tipo: 'estado', desde: 'NUEVO', hacia: 'CONTACTADO', autor: 'uid-admin@ejemplo.test' })));
+await prueba('ADMIN crea accion nota', () => assertSucceeds(acc(admin, 'p1', { tipo: 'nota', detalle: 'nota ficticia', autor: 'uid-admin@ejemplo.test' })));
+await prueba('rechaza tipo de accion inventado', () => assertFails(acc(admin, 'p1', { tipo: 'borrado_magico', autor: 'uid-admin@ejemplo.test' })));
+await prueba('rechaza autor suplantado en accion', () => assertFails(acc(admin, 'p1', { tipo: 'nota', detalle: 'x', autor: 'uid-super@ejemplo.test' })));
+await prueba('rechaza estado invalido en accion', () => assertFails(acc(admin, 'p1', { tipo: 'estado', desde: 'NUEVO', hacia: 'CASI', autor: 'uid-admin@ejemplo.test' })));
+await prueba('rechaza desde == hacia en accion', () => assertFails(acc(admin, 'p1', { tipo: 'estado', desde: 'NUEVO', hacia: 'NUEVO', autor: 'uid-admin@ejemplo.test' })));
+await prueba('rechaza campo extra en accion', () => assertFails(acc(admin, 'p1', { tipo: 'nota', detalle: 'x', autor: 'uid-admin@ejemplo.test', extra: 1 })));
+await prueba('OPERADOR no crea acciones', () => assertFails(acc(oper, 'p1', { tipo: 'nota', detalle: 'x', autor: 'uid-oper@ejemplo.test' })));
+await prueba('no se puede tocar creadoPor en edición', () => assertFails(upd(admin, 'p1', { estado: 'NEGOCIACION', creadoPor: 'uid-oper@ejemplo.test' })));
+await prueba('OPERADOR no edita', () => assertFails(upd(oper, 'p1', { estado: 'PERDIDO' })));
+
+/* Borrado */
+await prueba('nadie modifica una accion existente', async () => {
+  const ref = doc(admin, 'crm_prospectos', 'p1', 'acciones', 'a-fija');
+  await entorno.withSecurityRulesDisabled(async (ctx) => { await setDoc(doc(ctx.firestore(), 'crm_prospectos', 'p1', 'acciones', 'a-fija'), { tipo: 'nota', detalle: 'original', autor: 'uid-admin@ejemplo.test', fecha: Timestamp.now() }); });
+  await assertFails(updateDoc(ref, { detalle: 'alterada' }));
+});
+await prueba('nadie borra una accion existente', () => assertFails(deleteDoc(doc(admin, 'crm_prospectos', 'p1', 'acciones', 'a-fija'))));
+await prueba('nadie borra prospectos', async () => { await assertFails(deleteDoc(doc(admin, 'crm_prospectos', 'p1'))); await assertFails(deleteDoc(doc(supera, 'crm_prospectos', 'p2'))); });
+
+/* Regresión: colecciones anteriores conservan sus permisos */
+await prueba('anónimo NO lee clientes ni pagos ni contactos', async () => {
+  await assertFails(getDocs(collection(anon, 'clientes')));
+  await assertFails(getDocs(collection(anon, 'pagos')));
+  await assertFails(getDocs(collection(anon, 'contactos')));
+});
+await prueba('OPERADOR sigue sin escribir clientes', () => assertFails(setDoc(doc(oper, 'clientes', 'c1'), { nombre: 'Ficticio' })));
+
+await entorno.cleanup();
+console.log(fallos === 0 ? '\nRESULTADO: PASS (reglas verificadas, sin publicar)' : '\nRESULTADO: FAIL (' + fallos + ' pruebas fallidas)');
+process.exit(fallos === 0 ? 0 : 1);

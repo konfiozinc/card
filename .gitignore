@@ -27,6 +27,12 @@ ui-debug.log
 functions/*.log
 .runtimeconfig.json
 
+# Directorio temporal que prepara pruebas/PROBAR-VISUAL-CARDSPARK.ps1: contiene una
+# COPIA de firestore.rules (byte a byte) y el firebase.json generado, porque
+# firebase-tools exige que la ruta de reglas viva dentro del directorio del
+# proyecto. Se recrea en cada corrida: no se versiona.
+pruebas/emulador-temporal/
+
 # Variables de entorno de Cloud Functions. Aquí viaja el interruptor del motor
 # de vencimientos (KZ_MOTOR_VENCIMIENTOS=HABILITADO) y cualquier ajuste de
 # despliegue. El repositorio es público: solo se versiona el ejemplo.
