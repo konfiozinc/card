@@ -35,10 +35,11 @@ const preparacion = [];
 const resultados = [];
 const consola = [];
 const red = [];
+const pageerrors = [];
 let produccion = 0;
 
 const guardar = (extra = {}) => writeFileSync(evid + '/resultado-visual.json', JSON.stringify({
-  ...extra, preparacion, resultados, consola, red, peticiones_a_produccion: produccion,
+  ...extra, preparacion, resultados, consola, red, pageerrors, peticiones_a_produccion: produccion,
 }, null, 2));
 
 const anota = (n, e, d = '') => {
@@ -125,6 +126,10 @@ try {
   const pagina = await contexto.newPage();
   pagina.on('console', (m) => { if (m.type() === 'error') consola.push(m.text().slice(0, 160)); });
   pagina.on('requestfailed', (r) => red.push(r.url().slice(0, 120)));
+  /* Los fallos de resolución de módulos (importmap ausente) NO llegan como
+     mensaje de consola: llegan como excepción no capturada. Sin este listener la
+     corrida del 15-nov los vio como "consola=0" y siguió adelante. */
+  pagina.on('pageerror', (e) => pageerrors.push(String((e && e.message) || e).slice(0, 200)));
 
   const entrar = async () => {
     await pagina.goto(BASE + '/admin/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
@@ -155,6 +160,10 @@ try {
   }
 
   await paso('Dashboard original visible con sesión', async () => {
+    /* El shell se pinta de forma asíncrona (onAuthStateChanged + getDoc). Un
+       count() inmediato tras waitForURL daba 0 por carrera, no porque faltara la
+       navegación: aquí se espera el enlace real del DOM de shell.js. */
+    await pagina.waitForSelector('#app-shell .side__link', { timeout: 25000 });
     const n = await pagina.locator('#app-shell .side__link').count();
     if (n === 0) throw new Error('sin navegacion en #app-shell');
     await pagina.screenshot({ path: evid + '/01-dashboard.png' });
@@ -250,10 +259,11 @@ try {
     return 'sin desbordamiento (scrollWidth=' + ancho + ')';
   });
 
-  await paso('Sin errores críticos de consola', async () => {
+  await paso('Sin errores críticos de consola ni de JavaScript', async () => {
+    if (pageerrors.length) throw new Error('pageerror: ' + pageerrors[0]);
     const graves = consola.filter((c) => /Uncaught|is not a function|permission-denied/i.test(c));
     if (graves.length) throw new Error(graves[0]);
-    return 'consola=' + consola.length;
+    return 'consola=' + consola.length + ', pageerror=0';
   });
 
   await paso('Cero conexiones a Firebase de producción', async () => {

@@ -113,7 +113,7 @@ export async function esperarEmuladores({ proyecto, limiteMs = 180000, cadaMs = 
  * consulta esAdmin() en firestore.rules). Idempotente: si el usuario ya existe,
  * inicia sesion para obtener el mismo uid.
  */
-export async function sembrarAdmin({ proyecto, email, clave, nombre = 'Admin de prueba', log = () => {} } = {}) {
+export async function sembrarAdmin({ proyecto, email, clave, rol = 'ADMIN', nombre = 'Admin de prueba', log = () => {} } = {}) {
   if (!proyecto || !email || !clave) throw new Error('sembrarAdmin: faltan proyecto, email o clave');
 
   const urlAlta = `${AUTH_EMU}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=${CLAVE_API}`;
@@ -140,7 +140,7 @@ export async function sembrarAdmin({ proyecto, email, clave, nombre = 'Admin de 
   log(`  usuario de Auth: uid=${uid} (${origen})`);
 
   const ficha = { fields: {
-    rol: { stringValue: 'ADMIN' },
+    rol: { stringValue: rol },
     activo: { booleanValue: true },
     email: { stringValue: email },
     nombre: { stringValue: nombre },
@@ -166,7 +166,7 @@ export async function sembrarAdmin({ proyecto, email, clave, nombre = 'Admin de 
  * Comprueba que la cuenta creada sirve para iniciar sesion y que la ficha que
  * el panel va a leer existe y esta activa. Es la puerta previa al navegador.
  */
-export async function comprobarLogin({ proyecto, email, clave, uidEsperado } = {}) {
+export async function comprobarLogin({ proyecto, email, clave, uidEsperado, rolesPermitidos = ['ADMIN', 'SUPERADMIN'] } = {}) {
   const url = `${AUTH_EMU}/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${CLAVE_API}`;
   const r = await pedir('POST', url, { cuerpo: { email, password: clave, returnSecureToken: true }, servicio: 'auth-emulator' });
   if (!r.ok) {
@@ -183,7 +183,7 @@ export async function comprobarLogin({ proyecto, email, clave, uidEsperado } = {
   if (!ficha.ok || !ficha.datos || !ficha.datos.fields) throw new Error(`sin ficha para uid ${uid}: el panel redirigiria al login (HTTP ${ficha.status})`);
   const rol = ficha.datos.fields.rol && ficha.datos.fields.rol.stringValue;
   const activo = ficha.datos.fields.activo && ficha.datos.fields.activo.booleanValue;
-  if (!['ADMIN', 'SUPERADMIN'].includes(rol)) throw new Error(`la ficha tiene rol ${rol} y se exige ADMIN o SUPERADMIN`);
+  if (!rolesPermitidos.includes(rol)) throw new Error(`la ficha tiene rol ${rol} y se esperaba uno de ${rolesPermitidos.join(', ')}`);
   if (activo !== true) throw new Error('la ficha no tiene activo=true');
 
   return { uid, rol, idToken: String(r.datos.idToken).slice(0, 12) + '...' };

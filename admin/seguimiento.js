@@ -32,6 +32,11 @@ function aviso(msg, tipo) {
 export async function iniciarSeguimiento() {
   /* Sesion REAL del panel: misma autenticacion y mismos roles que el resto. */
   const sesion = await requireAuth('seguimiento');
+  /* requireAuth NO resuelve cuando niega el acceso (devuelve `bloqueado()`) y la
+     pagina queda suspendida tras redirigir. Si resolviera null por un fallo al
+     verificar el rol, se sale aqui sin tocar la seccion, que sigue oculta: la
+     pagina falla cerrada en vez de reventar con un TypeError. */
+  if (!sesion) { aviso('No se pudo verificar el acceso.', 'error'); return; }
   const app = getApps()[0] || null;
   if (!app) { aviso('El panel no inicializo Firebase.', 'error'); return; }
   const db = getFirestore(app);

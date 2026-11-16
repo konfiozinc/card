@@ -83,9 +83,10 @@ try {
   Paso '== 2 - Archivos necesarios y aislamiento =='
   $entorno = Join-Path $PSScriptRoot 'entorno-emuladores.mjs'
   $aislado = Join-Path $PSScriptRoot 'siembra-login.mjs'
+  $inicializacion = Join-Path $PSScriptRoot 'inicializacion.mjs'
   $servidor = Join-Path $PSScriptRoot 'servidor-aislado.mjs'
   $guion = Join-Path $PSScriptRoot 'visual-completo.mjs'
-  foreach ($f in @($entorno, $aislado, $servidor, $guion)) {
+  foreach ($f in @($entorno, $aislado, $inicializacion, $servidor, $guion)) {
     if (-not (Test-Path $f)) { Paso "FATAL: falta $f"; Paso 'RESULTADO: FAIL (archivos)'; exit 1 }
     Paso "  OK $(Split-Path $f -Leaf)"
   }
@@ -221,7 +222,24 @@ try {
   if (-not $vivo) { Paso 'FATAL: el servidor aislado no responde en 127.0.0.1:5500 (ver web.log)'; CerrarPropios; Paso 'RESULTADO: FAIL (servidor)'; exit 1 }
   Paso '  OK servidor aislado en http://127.0.0.1:5500'
 
-  Paso '== 7 - Recorrido visual con Playwright =='
+  Paso '== 7 - Prueba focalizada de inicializacion (importmap, shell, roles) =='
+  # Antes del recorrido completo: si #app-shell no pinta la navegacion o el
+  # modulo no inicializa, el resto de operaciones no tiene sentido.
+  $outIni = & node $inicializacion (Resolve-Path $raiz) $evid 2>&1
+  $outIni | ForEach-Object { Paso "  $_" }
+  $codigoIni = $LASTEXITCODE
+  if ($codigoIni -ne 0) {
+    Falla "inicializacion NO aprobada (codigo $codigoIni)"
+    Paso 'ABORTADO: sin inicializacion validada no se ejecuta el recorrido comercial.'
+    CerrarPropios
+    $restantesIni = PuertosOcupados
+    if ($restantesIni.Count -gt 0) { Falla ("tras el cierre siguen ocupados: " + ($restantesIni -join ',')) }
+    Paso 'RESULTADO: FAIL (abortado en la inicializacion)'
+    exit 1
+  }
+  Paso '  OK inicializacion aprobada'
+
+  Paso '== 8 - Recorrido visual con Playwright =='
   $out = & node $guion (Resolve-Path $raiz) $evid 2>&1
   $out | ForEach-Object { Paso "  $_" }
   $salidaGuion = $LASTEXITCODE
@@ -229,7 +247,7 @@ try {
   elseif ($salidaGuion -eq 2) { Falla 'el recorrido se aborto en la preparacion o en el login (codigo 2)' }
   else { Falla "el recorrido visual termino con fallos (codigo $salidaGuion)" }
 
-  Paso '== 8 - Cierre verificado de los procesos de la prueba =='
+  Paso '== 9 - Cierre verificado de los procesos de la prueba =='
   CerrarPropios
 
   # Los logs propios del emulador se escriben en su directorio raiz: se copian a

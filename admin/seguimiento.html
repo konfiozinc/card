@@ -1,10 +1,26 @@
 <!doctype html>
 <html lang="es-CO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Seguimiento comercial · Panel KONFÍO ZINC</title><meta name="robots" content="noindex, nofollow">
-<!-- Esta página enlazaba "admin.css" (404: ese archivo no existe; la hoja del panel
-     es assets/css/admin.css). Un <link> roto producía dos errores 404 en consola,
-     así que se retira. Adoptar la hoja del panel queda pendiente de verificación
-     visual, no se declara hecho aquí. -->
+<link rel="stylesheet" href="../assets/css/kz-tokens.css" />
+<link rel="stylesheet" href="../assets/css/admin.css" />
+<!-- CAUSA DEL FALLO DE LA CORRIDA DEL 15-NOV-2026 (21:16-21:19).
+     Esta era la ÚNICA de las 17 páginas de /admin/ sin importmap. shell.js y
+     core.js importan con especificadores desnudos ('firebase/auth',
+     'firebase/firestore', 'firebase/app'); sin importmap el navegador no puede
+     resolverlos, así que se caía TODO el grafo de módulos: seguimiento.js nunca
+     se evaluaba, requireAuth() nunca se llamaba y por eso la sección no se
+     abría, no había redirección al login sin sesión y no aparecía data-listo.
+     Se copia el mismo bloque que usan las otras 16 páginas: es el contrato real
+     de Card Spark, no uno nuevo. -->
+<script type="importmap">
+{ "imports": {
+    "firebase/app": "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js",
+    "firebase/auth": "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js",
+    "firebase/firestore": "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js",
+    "firebase/functions": "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js",
+    "firebase/messaging": "https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging.js"
+} }
+</script>
 <style>[hidden]{display:none!important}</style>
 </head><body>
 <main class="contenedor">
