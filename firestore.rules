@@ -676,6 +676,24 @@ service cloud.firestore {
     }
     allow delete: if false;
   }
+  /* KZ-MANAGER-IA-REAL-004 · Lectura del SERVIDOR DE REPORTES (delta ADITIVO).
+     En Firestore los bloques que apuntan a la misma ruta se COMBINAN con OR, y
+     la denegación del bloque final NO anula una autorización. Por eso este
+     bloque concede lectura sin tocar una línea de los permisos existentes de
+     OPERADOR/ADMIN: si se retira, todo queda exactamente como estaba.
+     Sólo abre esta puerta el claim firmado CARD_SPARK_REPORT_SERVER, que emite
+     el servidor. No concede escritura, no toca otras colecciones y no permite
+     elegir documentos por ruta arbitraria: sólo get/list en estas cinco. */
+  function esServidorReportes() {
+    return estaAutenticado()
+      && request.auth.token.get('rol', '') == 'CARD_SPARK_REPORT_SERVER';
+  }
+  match /clientes/{clienteId}        { allow read: if esServidorReportes(); }
+  match /servicios/{servicioId}      { allow read: if esServidorReportes(); }
+  match /pagos/{pagoId}              { allow read: if esServidorReportes(); }
+  match /cotizaciones/{cotizacionId} { allow read: if esServidorReportes(); }
+  match /contactos/{contactoId}      { allow read: if esServidorReportes(); }
+
   match /{document=**} {
       allow read, write: if false;
     }
