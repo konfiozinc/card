@@ -40,12 +40,61 @@ const aFecha = (v) => {
   const d = new Date(v);
   return isNaN(d) ? null : d;
 };
-const iso = (d) => { const x = new Date(d); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; };
-const sumarMeses = (f, n) => { const d = new Date(f); const dia = d.getDate(); d.setMonth(d.getMonth() + n); if (d.getDate() < dia) d.setDate(0); return d; };
+/* KZ-CARDSPARK-CIERRE-003 · Fechas seguras.
+   `iso(new Date(NaN))` devolvía literalmente la cadena 'NaN-NaN-NaN' y eso se
+   guardaba en Firestore; después `estadoPorVencimiento` reventaba con un
+   TypeError al intentar leer esa "fecha". Ahora: si el valor no es una fecha
+   real, `iso` LANZA con un mensaje en español y el guardado se bloquea. */
+const MESES_MIN = 1;
+const MESES_MAX = 60;   /* límite lógico: 5 años */
+const iso = (d) => {
+  if (d === null || d === undefined) throw new Error('La fecha no es válida.');
+  const x = new Date(d);
+  if (isNaN(x)) throw new Error('La fecha no es válida. Revisa la fecha de activación.');
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+};
+const sumarMeses = (f, n) => {
+  const d = new Date(f);
+  const meses = Number(n);
+  if (isNaN(d) || !Number.isFinite(meses)) return null;
+  const dia = d.getDate();
+  d.setMonth(d.getMonth() + Math.round(meses));
+  if (d.getDate() < dia) d.setDate(0);
+  return isNaN(d) ? null : d;
+};
+
+/** Meses utilizables: si llega null/NaN/fuera de rango, se usa el valor por
+ *  defecto de la configuración y, si ese tampoco sirve, 12. */
+const mesesSeguros = (n) => {
+  const m = Number(n);
+  if (Number.isFinite(m) && m >= MESES_MIN && m <= MESES_MAX) return Math.round(m);
+  const porDefecto = Number(NEG.mesesSuscripcion);
+  if (Number.isFinite(porDefecto) && porDefecto >= MESES_MIN && porDefecto <= MESES_MAX) return Math.round(porDefecto);
+  return 12;
+};
+
+/** Valida una fecha opcional del formulario. Devuelve ISO o null si no viene. */
+const exigirFechaISO = (v, campo) => {
+  if (v === undefined || v === null || v === '') return null;
+  const f = aFecha(v);
+  if (!f || isNaN(f)) throw new Error(`La ${campo} no es una fecha válida (usa AAAA-MM-DD).`);
+  return iso(f);
+};
+
+/** Vencimiento calculado sin poder producir NaN. */
+const calcularVencimiento = (activacion, meses) => {
+  const base = aFecha(activacion) || new Date();
+  const d = sumarMeses(base, mesesSeguros(meses));
+  if (!d) throw new Error('No se pudo calcular el vencimiento: revisa la fecha de activación y la duración.');
+  return iso(d);
+};
+
 const estadoPorVencimiento = (v) => {
   if (!v) return 'ACTIVO';
   const h = new Date(); h.setHours(0, 0, 0, 0);
-  const f = aFecha(v); f.setHours(0, 0, 0, 0);
+  const f = aFecha(v);
+  if (!f || isNaN(f)) return 'ACTIVO';   /* nunca reventar por una fecha mala */
+  f.setHours(0, 0, 0, 0);
   const dias = Math.round((f - h) / 86400000);
   if (dias < 0) return 'PENDIENTE_PAGO';
   if (dias <= NEG.diasPorVencer) return 'POR_VENCER';
@@ -112,7 +161,13 @@ export async function crearCliente(d) {
   const dupTel = await getDocs(query(collection(db, 'clientes'), where('telefono', '==', tel), limit(1)));
   if (!dupTel.empty) throw new Error(`Ya existe un cliente con el teléfono ${d.telefono}.`);
 
-  const vencimiento = d.fechaVencimiento || iso(sumarMeses(d.fechaActivacion || new Date(), NEG.mesesSuscripcion));
+  /* KZ-CARDSPARK-CIERRE-003: fechas validadas antes de escribir. Si la fecha que
+     llega del formulario es inválida se lanza un error con mensaje claro y NO se
+     escribe nada; si `duracionMeses` viene vacía, nula o absurda se usa el valor
+     por defecto (nunca se genera 'NaN-NaN-NaN'). */
+  const activacion = exigirFechaISO(d.fechaActivacion, 'fecha de activación') || iso(new Date());
+  const vencimiento = exigirFechaISO(d.fechaVencimiento, 'fecha de vencimiento')
+    || calcularVencimiento(activacion, d.duracionMeses);
   const estado = estadoPorVencimiento(vencimiento);
 
   const cliente = {
@@ -121,7 +176,7 @@ export async function crearCliente(d) {
     ciudad: d.ciudad || '', servicio: d.servicio, categoria: d.categoria || null,
     planId: d.planId || null, planNombre: d.planNombre || null,
     precio: Number(d.precio) || 0, metodoPagoPreferido: d.metodoPagoPreferido || null,
-    fechaActivacion: d.fechaActivacion || iso(new Date()), fechaVencimiento: vencimiento,
+    fechaActivacion: activacion, fechaVencimiento: vencimiento,
     estadoCliente: estado, estadoServicio: estado,
     urlServicio: d.urlServicio || null, proyectoId: d.proyectoId || null,
     observaciones: d.observaciones || '', activo: true,
@@ -419,7 +474,7 @@ export async function confirmarPago(pagoId) {
       }
       const vencServicio = aFecha(servicioAntes.fechaVencimiento);
       const vigente = vencServicio && Math.round((vencServicio - hoy) / 86400000) > 0;
-      nuevoVenc = iso(sumarMeses(vigente ? vencServicio : hoy, concepto.meses || NEG.mesesSuscripcion));
+      nuevoVenc = calcularVencimiento(vigente ? vencServicio : hoy, concepto.meses);
     }
 
     if (nuevoVenc) {
