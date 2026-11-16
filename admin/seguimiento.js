@@ -38,13 +38,19 @@ export async function iniciarSeguimiento() {
   const admin = canAccess(sesion.rol, 'ADMIN') || canAccess(sesion.rol, 'SUPERADMIN');
   const seccion = document.getElementById('vg-seguimiento');
   if (!seccion) return;
-  if (!admin) { seccion.classList.add('oculto'); return; }
-  seccion.classList.remove('oculto');
+  /* `hidden` (atributo nativo) y no una clase: la clase `oculto` no está definida
+     en ninguna hoja del repositorio, así que no ocultaba nada y la sección era
+     visible sin sesión (defecto demostrado en la corrida del 15-nov-2026). */
+  if (!admin) { seccion.hidden = true; return; }
+  seccion.hidden = false;
 
   const sel = document.getElementById('vg-estado');
   if (sel) sel.innerHTML = ESTADOS.map((e) => '<option>' + e + '</option>').join('');
   const serv = document.getElementById('vg-servicio');
   if (serv) serv.innerHTML = SERVICIOS.map((s) => '<option>' + s + '</option>').join('');
+  /* Señal de módulo inicializado con sesión autorizada: la prueba visual exige
+     este marcador en vez de conformarse con "la sección se ve". */
+  seccion.dataset.listo = '1';
 
   async function pintar() {
     const caja = document.getElementById('vg-lista');

@@ -1,155 +1,273 @@
-/* KZ-UNIFICACION-002 · Recorrido visual completo (Playwright) contra emuladores demo-*.
- * Sale con 0 solo si TODAS las operaciones obligatorias dan PASS.
+/* KZ-UNIFICACION-002 - Recorrido visual completo (Playwright) contra emuladores demo-*.
+ *
  * Uso: node pruebas/visual-completo.mjs <raiz> <evidencias>
+ *
+ * CAMBIO DE COMPORTAMIENTO (corrida real del 15-nov-2026)
+ * Aquella corrida siguio con las operaciones comerciales despues de fallar la
+ * siembra y el login, y produjo un PASS falso ("Abrir Seguimiento sin segundo
+ * inicio de sesion") sobre una sesion que no existia. Ahora:
+ *   1. La preparacion va PRIMERO y sin navegador: disponibilidad real de Auth y
+ *      Firestore, siembra de la ficha en usuarios/<uid>, login REST y control de
+ *      que las reglas del repositorio estan cargadas.
+ *   2. Si la preparacion falla, el proceso sale con codigo 2 SIN ejecutar ninguna
+ *      operacion comercial.
+ *   3. Solo se da por bueno el acceso a Seguimiento si el modulo dejo su marca
+ *      `data-listo="1"`, es decir, si requireAuth confirmo una ficha activa.
+ *
+ * Salidas: 0 = todo PASS | 1 = fallo comercial | 2 = abortado en la preparacion.
  */
 import { chromium } from '../herramientas/node_modules/playwright/index.mjs';
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { esperarEmuladores, sembrarAdmin, comprobarLogin, comprobarReglasActivas } from './entorno-emuladores.mjs';
 
 const raiz = process.argv[2];
 const evid = process.argv[3];
 const BASE = 'http://127.0.0.1:5500';
-const PROYECTO = 'demo-kz-crm-prospectos';
-const AUTH_EMU = 'http://127.0.0.1:9099';
-const FS_EMU = 'http://127.0.0.1:8080';
+const PROYECTO = process.env.KZ_PROYECTO_DEMO || 'demo-kz-crm-prospectos';
 const EMAIL = 'admin.prueba@demo.test';
 const CLAVE = 'PruebaDemo123!';
+const LIMITE_PREP = Number(process.env.KZ_LIMITE_EMULADORES || 180000);
 
+if (!evid) { console.log('FALTA el directorio de evidencias: node pruebas/visual-completo.mjs <raiz> <evidencias>'); process.exit(2); }
+mkdirSync(evid, { recursive: true });
+
+const preparacion = [];
 const resultados = [];
 const consola = [];
 const red = [];
 let produccion = 0;
-const anota = (n, e, d = '') => { resultados.push({ n, e, d }); console.log(`${e} · ${n}${d ? ' → ' + d : ''}`); };
-const paso = async (n, fn) => { try { const d = await fn(); anota(n, 'PASS', d || ''); return true; } catch (e) { anota(n, 'FAIL', String((e && e.message) || e).slice(0, 140)); return false; } };
-mkdirSync(evid, { recursive: true });
 
-const semilla = async () => {
-  const alta = await fetch(`${AUTH_EMU}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo-key`, {
-    method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: EMAIL, password: CLAVE, returnSecureToken: true }),
-  });
-  const c = await alta.json().catch(() => ({}));
-  const doc = `projects/${PROYECTO}/databases/(default)/documents/usuarios/${encodeURIComponent(EMAIL)}`;
-  const r = await fetch(`${FS_EMU}/v1/${doc}`, {
-    method: 'PATCH', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer owner' },
-    body: JSON.stringify({ fields: { rol: { stringValue: 'ADMIN' }, activo: { booleanValue: true }, email: { stringValue: EMAIL } } }),
-  });
-  if (!r.ok) throw new Error('siembra HTTP ' + r.status);
-  return 'uid=' + String(c.localId || '').slice(0, 10) + '… ficha creada';
+const guardar = (extra = {}) => writeFileSync(evid + '/resultado-visual.json', JSON.stringify({
+  ...extra, preparacion, resultados, consola, red, peticiones_a_produccion: produccion,
+}, null, 2));
+
+const anota = (n, e, d = '') => {
+  resultados.push({ n, e, d });
+  console.log(`${e} - ${n}${d ? ' -> ' + d : ''}`);
 };
 
+const paso = async (n, fn) => {
+  try { const d = await fn(); anota(n, 'PASS', d || ''); return true; }
+  catch (e) { anota(n, 'FAIL', String((e && e.message) || e).slice(0, 200)); return false; }
+};
+
+/* -- Fase 1: preparacion. Cualquier fallo aborta sin tocar el navegador. -- */
+const exigir = async (nombre, fn) => {
+  try {
+    const r = await fn();
+    preparacion.push({ n: nombre, e: 'PASS', d: (r && r.detalle) || '' });
+    console.log(`PASS - ${nombre}${r && r.detalle ? ' -> ' + r.detalle : ''}`);
+    return r && r.valor;
+  } catch (e) {
+    const motivo = String((e && e.message) || e);
+    preparacion.push({ n: nombre, e: 'FAIL', d: motivo });
+    console.log(`FAIL - ${nombre} -> ${motivo}`);
+    guardar({ abortado: true, paso_fallido: nombre, motivo });
+    console.log('');
+    console.log('ABORTADO EN LA PREPARACION: ' + nombre);
+    console.log('No se ejecuta ninguna operacion comercial: sin sesion verificada no hay nada que probar.');
+    console.log('RESULTADO GLOBAL: FAIL (abortado antes del navegador)');
+    process.exit(2);
+  }
+};
+
+const tiempos = await exigir('Emuladores Auth y Firestore disponibles', async () => {
+  const t = await esperarEmuladores({ proyecto: PROYECTO, limiteMs: LIMITE_PREP });
+  return { valor: t, detalle: `auth en ${t.auth} ms, firestore en ${t.firestore} ms` };
+});
+
+const uid = await exigir('Sembrar usuario ADMIN y su ficha', async () => {
+  const r = await sembrarAdmin({ proyecto: PROYECTO, email: EMAIL, clave: CLAVE });
+  return { valor: r.uid, detalle: `uid=${r.uid}` };
+});
+
+const sesionRest = await exigir('Iniciar sesion con la cuenta sembrada', async () => {
+  const r = await comprobarLogin({ proyecto: PROYECTO, email: EMAIL, clave: CLAVE, uidEsperado: uid });
+  return { valor: r, detalle: `rol=${r.rol} uid=${r.uid}` };
+});
+
+const reglas = await exigir('Reglas del repositorio cargadas en el emulador', async () => {
+  const r = await comprobarReglasActivas({ proyecto: PROYECTO });
+  return { valor: r, detalle: `lectura anonima denegada con HTTP ${r.estado}` };
+});
+
+/* -- Fase 2: navegador -- */
 const navegador = await chromium.launch();
-const contexto = await navegador.newContext({ viewport: { width: 1366, height: 900 } });
-await contexto.route('**/*', (ruta) => {
+const instalarRutas = async (contexto) => contexto.route('**/*', (ruta) => {
   const u = ruta.request().url();
-  if (!u.includes('127.0.0.1') && /identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com|firestore\.googleapis\.com|firebaseio\.com/.test(u)) { produccion += 1; return ruta.abort(); }
+  if (!u.includes('127.0.0.1') && /identitytoolkit\.googleapis\.com|securetoken\.googleapis\.com|firestore\.googleapis\.com|firebaseio\.com|firebaseapp\.com/.test(u)) {
+    produccion += 1;
+    return ruta.abort();
+  }
   return ruta.continue();
 });
-const pagina = await contexto.newPage();
-pagina.on('console', (m) => { if (m.type() === 'error') consola.push(m.text().slice(0, 160)); });
-pagina.on('requestfailed', (r) => red.push(r.url().slice(0, 120)));
-
-const entrar = async () => {
-  await pagina.goto(BASE + '/admin/dashboard.html', { waitUntil: 'networkidle', timeout: 45000 });
-  const correo = pagina.locator('input[type=email], #email, #correo').first();
-  if (await correo.count()) {
-    await correo.fill(EMAIL);
-    await pagina.locator('input[type=password]').first().fill(CLAVE);
-    await pagina.locator('button[type=submit], button:has-text("Entrar"), button:has-text("Iniciar")').first().click();
-    await pagina.waitForTimeout(4500);
-  }
-  if (await pagina.locator('input[type=password]').count()) throw new Error('login no superado');
-  return (await pagina.title()).slice(0, 60);
-};
 
 try {
-  await paso('Sembrar usuario ADMIN y su ficha en los emuladores', semilla);
-  await paso('Iniciar sesión en Card Spark con la cuenta ficticia', entrar);
-  await paso('Dashboard original visible', async () => {
-    const n = await pagina.locator('nav a, aside a, .sidebar a').count();
-    if (n === 0) throw new Error('sin navegación');
+  /* Control negativo: sin sesion NO se debe ver el modulo. Esta comprobacion
+     existe porque la corrida anterior aprobo esa entrada sin sesion. */
+  const contextoAnonimo = await navegador.newContext({ viewport: { width: 1366, height: 900 } });
+  await instalarRutas(contextoAnonimo);
+  const anon = await contextoAnonimo.newPage();
+  await paso('Control negativo: sin sesión no se ve Seguimiento', async () => {
+    const html = await fetch(BASE + '/admin/seguimiento.html').then((r) => r.text());
+    if (!/<section id="vg-seguimiento"[^>]*\bhidden\b/.test(html)) throw new Error('la seccion no nace oculta en el HTML');
+    await anon.goto(BASE + '/admin/seguimiento.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await anon.waitForURL(/index\.html/, { timeout: 25000 }).catch(() => {});
+    if (!/index\.html/.test(anon.url())) throw new Error('no redirigio al login: ' + anon.url().replace(BASE, ''));
+    if (await anon.locator('#vg-seguimiento').isVisible().catch(() => false)) throw new Error('la seccion se ve sin sesion');
+    return 'redirigido a ' + anon.url().replace(BASE, '');
+  });
+  await contextoAnonimo.close();
+
+  /* -- Sesion real por la interfaz -- */
+  const contexto = await navegador.newContext({ viewport: { width: 1366, height: 900 } });
+  await instalarRutas(contexto);
+  const pagina = await contexto.newPage();
+  pagina.on('console', (m) => { if (m.type() === 'error') consola.push(m.text().slice(0, 160)); });
+  pagina.on('requestfailed', (r) => red.push(r.url().slice(0, 120)));
+
+  const entrar = async () => {
+    await pagina.goto(BASE + '/admin/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await pagina.waitForSelector('#login-form', { timeout: 25000 });
+    await pagina.fill('#login-email', EMAIL);
+    await pagina.fill('#login-pass', CLAVE);
+    await pagina.click('#login-btn');
+    try {
+      await pagina.waitForURL(/dashboard\.html/, { timeout: 35000 });
+    } catch {
+      const ver = await pagina.locator('#login-error').isVisible().catch(() => false);
+      const txt = ver ? (await pagina.locator('#login-error').innerText()).trim().slice(0, 140) : '(sin aviso visible)';
+      throw new Error(`login no superado: ${txt} | url=${pagina.url().replace(BASE, '')}`);
+    }
+    if (await pagina.locator('#login-pass').count()) throw new Error('el formulario de login sigue presente');
+    return 'sesion iniciada, url=' + pagina.url().replace(BASE, '');
+  };
+
+  const loginOk = await paso('Iniciar sesión en Card Spark con la cuenta ficticia', entrar);
+  if (!loginOk) {
+    /* Sin sesion no se ejecuta nada mas: es exactamente lo que exigio la mision. */
+    guardar({ abortado: true, paso_fallido: 'Iniciar sesion por la interfaz' });
+    console.log('');
+    console.log('ABORTADO EN EL LOGIN: no se ejecuta ninguna operacion comercial.');
+    console.log('RESULTADO GLOBAL: FAIL (abortado en el login)');
+    await navegador.close();
+    process.exit(2);
+  }
+
+  await paso('Dashboard original visible con sesión', async () => {
+    const n = await pagina.locator('#app-shell .side__link').count();
+    if (n === 0) throw new Error('sin navegacion en #app-shell');
     await pagina.screenshot({ path: evid + '/01-dashboard.png' });
     return 'enlaces=' + n;
   });
+
   await paso('Entrada "Seguimiento comercial" en el menú', async () => {
-    const n = await pagina.locator('text=Seguimiento comercial').count();
-    if (n === 0) throw new Error('no está en el menú');
+    const n = await pagina.locator('.side__link', { hasText: 'Seguimiento comercial' }).count();
+    if (n === 0) throw new Error('no esta en el menu lateral');
     return 'coincidencias=' + n;
   });
+
   await paso('Abrir Seguimiento sin segundo inicio de sesión', async () => {
-    await pagina.goto(BASE + '/admin/seguimiento.html', { waitUntil: 'networkidle', timeout: 45000 });
-    if (await pagina.locator('input[type=password]').count()) throw new Error('pidió login otra vez');
-    if (!(await pagina.locator('#vg-seguimiento').isVisible())) throw new Error('sección no visible');
+    await pagina.goto(BASE + '/admin/seguimiento.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await pagina.waitForFunction(() => {
+      const s = document.querySelector('#vg-seguimiento');
+      return !!s && s.dataset.listo === '1';
+    }, null, { timeout: 30000 });
+    if (await pagina.locator('#login-pass').count()) throw new Error('pidio login otra vez');
+    if (/index\.html/.test(pagina.url())) throw new Error('redirigido al login: la sesion no se conservo');
+    const opciones = await pagina.locator('#vg-servicio option').count();
+    if (opciones < 6) throw new Error('select de servicios sin poblar (' + opciones + ' opciones)');
+    if (!(await pagina.locator('#vg-seguimiento').isVisible())) throw new Error('seccion no visible con sesion');
     await pagina.screenshot({ path: evid + '/02-seguimiento.png' });
-    return 'visible';
+    return 'modulo listo, servicios=' + opciones;
   });
+
   await paso('Crear prospecto ficticio', async () => {
     await pagina.fill('#vg-nombre', 'Prospecto Ficticio V2');
     await pagina.fill('#vg-telefono', '3001234567');
     await pagina.locator('#vg-servicio').selectOption({ index: 1 });
     await pagina.locator('#vg-alta button[type=submit]').click();
-    await pagina.waitForTimeout(3200);
+    await pagina.waitForFunction(() => {
+      const c = document.querySelector('#vg-lista');
+      return !!c && c.querySelectorAll('tr').length > 0 && !/Cargando/.test(c.textContent);
+    }, null, { timeout: 25000 });
     const filas = await pagina.locator('#vg-lista tr').count();
-    if (filas === 0) throw new Error('listado vacío');
+    const texto = await pagina.locator('#vg-lista').innerText();
+    if (!/Prospecto Ficticio V2/.test(texto)) throw new Error('el prospecto no aparece en el listado: ' + texto.slice(0, 60));
     return 'filas=' + filas;
   });
+
   await paso('Rechazo de duplicado', async () => {
     await pagina.fill('#vg-nombre', 'Prospecto Ficticio V2');
     await pagina.fill('#vg-telefono', '3001234567');
     await pagina.locator('#vg-servicio').selectOption({ index: 1 });
     await pagina.locator('#vg-alta button[type=submit]').click();
-    await pagina.waitForTimeout(2800);
+    await pagina.waitForTimeout(3000);
     const aviso = await pagina.locator('#vg-aviso').innerText();
-    if (!/ya existe|duplicad/i.test(aviso)) throw new Error('no rechazado: ' + aviso.slice(0, 50));
+    if (!/ya existe|duplicad/i.test(aviso)) throw new Error('no rechazado: ' + aviso.slice(0, 60));
     return 'aviso mostrado';
   });
+
   await paso('Cambiar estado (transición permitida)', async () => {
     const b = pagina.locator('#vg-lista button[data-mover]').first();
-    if (!(await b.count())) throw new Error('sin botón de transición');
+    if (!(await b.count())) throw new Error('sin boton de transicion');
     await b.click();
-    await pagina.waitForTimeout(3200);
+    await pagina.waitForTimeout(3500);
     const t = await pagina.locator('#vg-lista').innerText();
     if (!/CONTACTADO|PENDIENTE_CONTACTAR/.test(t)) throw new Error('estado sin cambiar');
-    return 'avanzó';
+    return 'avanzo';
   });
+
   await paso('Registrar nota interna', async () => {
     pagina.once('dialog', (d) => d.accept('Nota ficticia de prueba'));
-    await pagina.locator('#vg-lista button[data-nota]').first().click();
-    await pagina.waitForTimeout(3200);
+    const b = pagina.locator('#vg-lista button[data-nota]').first();
+    if (!(await b.count())) throw new Error('sin boton de nota');
+    await b.click();
+    await pagina.waitForTimeout(3500);
     return 'nota enviada';
   });
+
   await paso('Persistencia tras recargar', async () => {
-    await pagina.reload({ waitUntil: 'networkidle' });
-    await pagina.waitForTimeout(2500);
-    if (!/Prospecto Ficticio V2/.test(await pagina.locator('#vg-lista').innerText())) throw new Error('no persistió');
+    await pagina.reload({ waitUntil: 'domcontentloaded' });
+    await pagina.waitForFunction(() => {
+      const s = document.querySelector('#vg-seguimiento');
+      const c = document.querySelector('#vg-lista');
+      return !!s && s.dataset.listo === '1' && !!c && !/Cargando/.test(c.textContent);
+    }, null, { timeout: 30000 });
+    if (!/Prospecto Ficticio V2/.test(await pagina.locator('#vg-lista').innerText())) throw new Error('no persistio');
     return 'sobrevive a la recarga';
   });
+
   await paso('Apariencia móvil 375x667', async () => {
     const m = await contexto.newPage();
     await m.setViewportSize({ width: 375, height: 667 });
-    await m.goto(BASE + '/admin/seguimiento.html', { waitUntil: 'networkidle', timeout: 45000 });
-    await m.waitForTimeout(1500);
+    await m.goto(BASE + '/admin/seguimiento.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await m.waitForTimeout(2500);
     await m.screenshot({ path: evid + '/03-movil.png', fullPage: true });
     const ancho = await m.evaluate(() => document.documentElement.scrollWidth);
     await m.close();
     if (ancho > 400) throw new Error('desbordamiento ' + ancho);
-    return 'sin desbordamiento';
+    return 'sin desbordamiento (scrollWidth=' + ancho + ')';
   });
+
   await paso('Sin errores críticos de consola', async () => {
     const graves = consola.filter((c) => /Uncaught|is not a function|permission-denied/i.test(c));
     if (graves.length) throw new Error(graves[0]);
     return 'consola=' + consola.length;
   });
+
   await paso('Cero conexiones a Firebase de producción', async () => {
     const r = await fetch(BASE + '/__intentos-produccion').then((x) => x.json()).catch(() => ({ total: 0 }));
     if (produccion + (r.total || 0) > 0) throw new Error('intentos=' + (produccion + r.total));
     return 'bloqueado y contado';
   });
 } finally {
-  writeFileSync(evid + '/resultado-visual.json', JSON.stringify({ resultados, consola, red, peticiones_a_produccion: produccion }, null, 2));
+  guardar();
   await navegador.close();
 }
 
 const fallos = resultados.filter((r) => r.e !== 'PASS').length;
-console.log(`RESUMEN: ${resultados.length} comprobaciones · PASS=${resultados.length - fallos} · FAIL=${fallos} · consola=${consola.length} · produccion=${produccion}`);
+console.log(`RESUMEN: ${preparacion.length + resultados.length} comprobaciones (preparacion=${preparacion.length}, navegador=${resultados.length}) | PASS=${preparacion.filter((p) => p.e === 'PASS').length + resultados.length - fallos} | FAIL=${fallos}`);
+console.log(`emuladores: auth ${tiempos.auth} ms, firestore ${tiempos.firestore} ms | uid=${uid} | rol=${sesionRest.rol} | reglas HTTP ${reglas.estado}`);
 console.log(fallos === 0 ? 'RESULTADO GLOBAL: PASS' : 'RESULTADO GLOBAL: FAIL');
 process.exit(fallos === 0 ? 0 : 1);

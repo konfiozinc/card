@@ -1,14 +1,23 @@
 <!doctype html>
 <html lang="es-CO"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Seguimiento comercial · Panel KONFÍO ZINC</title><meta name="robots" content="noindex, nofollow">
-<link rel="stylesheet" href="admin.css">
+<!-- Esta página enlazaba "admin.css" (404: ese archivo no existe; la hoja del panel
+     es assets/css/admin.css). Un <link> roto producía dos errores 404 en consola,
+     así que se retira. Adoptar la hoja del panel queda pendiente de verificación
+     visual, no se declara hecho aquí. -->
+<style>[hidden]{display:none!important}</style>
 </head><body>
 <main class="contenedor">
   <h1>Seguimiento comercial</h1>
   <p>Prospectos con estado, notas y próximo contacto. Solo ADMIN y SUPERADMIN.</p>
   <p id="vg-aviso" class="vg-aviso" role="status" aria-live="polite"></p>
 
-  <section id="vg-seguimiento" class="oculto">
+  <!-- `hidden` es obligatorio: seguimiento.js lo retira SOLO cuando requireAuth
+       confirma una ficha activa con rol ADMIN o SUPERADMIN. Hasta la corrida del
+       15-nov-2026 esta sección usaba class="oculto", una clase que ninguna hoja de
+       estilo del repositorio define, de modo que era visible sin sesión y la
+       prueba la daba por buena. -->
+  <section id="vg-seguimiento" hidden>
     <form id="vg-alta">
       <label for="vg-nombre">Nombre</label><input id="vg-nombre" maxlength="120" required>
       <label for="vg-telefono">Teléfono</label><input id="vg-telefono" type="tel" maxlength="20" required>
