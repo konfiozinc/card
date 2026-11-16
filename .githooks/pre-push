@@ -11,6 +11,63 @@
 # una herramienta ausente, pero queda dicho en pantalla.
 #
 # Saltar con: git push --no-verify   (queda como decision consciente y anotada)
+#
+# ── KZ-FORENSIC-001 · pruebas de cotizaciones y pagos ────────────────────────
+# Van ANTES de la revision de paginas porque son rapidas: una regresion de
+# permisos o de la logica de cobros se ve en segundos, no tras tres minutos.
+#   1) CR-04 · logica de pagos con dobles de firebase/firestore y core.js.
+#      Menos de un segundo y no necesita emulador.
+#   2) CR-01..CR-03 · reglas de Firestore contra el emulador: 19/19 con el
+#      parche y 6/6 con las reglas ANTERIORES. Ese segundo numero es el que da
+#      valor al primero: si los ataques no pasaran con las reglas viejas, la
+#      prueba no estaria midiendo el parche (necesita Java y el CLI, ~20 s).
+# Misma regla que con Chromium: si falta una herramienta se AVISA y se sigue;
+# si las pruebas FALLAN, el push se bloquea.
+
+if command -v node >/dev/null 2>&1; then
+  NODE_MAYOR=$(node -p "process.versions.node.split('.')[0]" 2>/dev/null || echo 0)
+
+  if [ -f pruebas/escrituras-local.test.mjs ]; then
+    if [ "$NODE_MAYOR" -ge 22 ]; then
+      echo "Probando la logica de pagos (CR-04)..."
+      if ! salida_pagos=$(node --experimental-test-module-mocks pruebas/escrituras-local.test.mjs 2>&1); then
+        echo "$salida_pagos"
+        echo ""
+        echo "PUSH BLOQUEADO: la logica de pagos no pasa sus pruebas (KZ-FORENSIC-001 · CR-04)."
+        echo "Corrige lo indicado arriba o usa 'git push --no-verify' si sabes por que."
+        exit 1
+      fi
+      echo "Pagos OK: CR-04 en verde."
+    else
+      echo "AVISO: Node $NODE_MAYOR no soporta mock.module; se omite CR-04. Usa Node 22 o superior."
+    fi
+  fi
+
+  if [ -f pruebas/verificar-reglas-cotizaciones.cjs ] && command -v firebase >/dev/null 2>&1; then
+    echo "Probando las reglas de cotizaciones en el emulador (~20 s)..."
+    salida_reglas=$(firebase emulators:exec --only firestore --project demo-kz-cotizaciones \
+      "node pruebas/verificar-reglas-cotizaciones.cjs parche && node pruebas/verificar-reglas-cotizaciones.cjs viejo" 2>&1)
+    estado_reglas=$?
+    rm -f firestore-debug.log
+    case "$salida_reglas" in
+      *"FASE CON FALLOS"*|*"ERROR FATAL"*|*"no existe el archivo de reglas"*)
+        echo "$salida_reglas"
+        echo ""
+        echo "PUSH BLOQUEADO: las reglas de cotizaciones no cumplen los casos esperados."
+        echo "Corrige lo indicado arriba o usa 'git push --no-verify' si sabes por que."
+        exit 1
+        ;;
+    esac
+    if [ "$estado_reglas" -eq 0 ]; then
+      echo "Reglas OK: 19/19 con el parche y 6/6 con las anteriores."
+    else
+      echo "AVISO: no se pudo ejecutar el banco de reglas (emulador o Java no disponibles)."
+      echo "       El push continua; comprueba a mano con 'firebase emulators:exec'."
+    fi
+  else
+    echo "AVISO: sin CLI de Firebase o sin pruebas de reglas; se omite ese banco."
+  fi
+fi
 
 if [ -f herramientas/verificar-calidad-html.js ] && command -v node >/dev/null 2>&1; then
   echo "Verificando la calidad de las 62 paginas del sitio (incluye consola, ~3 min)..."
