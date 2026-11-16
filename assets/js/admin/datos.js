@@ -93,9 +93,22 @@ export function estadoPorVencimiento(vencimiento) {
 
 /* ── Lecturas ──────────────────────────────────────────────────────── */
 
-/** Carga todos los clientes (una sola lectura). */
+/* KZ-FORENSIC-FIX-001 · Tope de seguridad (auditoría KZ-FORENSIC-002 · M-2).
+   `clientes` y `servicios` se leían completas y sin tope: con ~358 clientes y
+   ~332 servicios, cada carga del dashboard cuesta cientos de lecturas y sin
+   tope crecería sin límite en el plan Spark. Se acota a LIMITE_SEGURIDAD, que
+   hoy queda por encima del volumen real; si algún día se alcanza, se avisa por
+   consola en vez de mostrar cifras parciales en silencio.
+   NO se usa un tope bajo tipo `.limit(50)`: eso falsearía los totales del
+   dashboard (clientes, ingresos, obligaciones), que es peor que el coste. */
+export const LIMITE_SEGURIDAD = 500;
+
+/** Carga los clientes (una sola lectura, acotada). */
 export async function cargarClientes() {
-  const snap = await getDocs(query(collection(db, 'clientes'), orderBy('nombre')));
+  const snap = await getDocs(query(collection(db, 'clientes'), orderBy('nombre'), limit(LIMITE_SEGURIDAD)));
+  if (snap.docs.length >= LIMITE_SEGURIDAD) {
+    console.warn('[KZ] clientes alcanzo el tope de ' + LIMITE_SEGURIDAD + ': las cifras del panel son parciales');
+  }
   return snap.docs.map(d => ({ id: d.id, ...d.data(), dias: dias(d.data().fechaVencimiento) }));
 }
 
@@ -205,9 +218,12 @@ export function etiquetaCotizacion(estado) {
 /** ¿Se puede seguir editando? (borrador, o el ADMIN reabriendo) */
 export const cotizacionEditable = (estado) => estado === 'BORRADOR';
 
-/** Todos los servicios (instancias por cliente). */
+/** Todos los servicios (instancias por cliente). Acotada: ver LIMITE_SEGURIDAD. */
 export async function cargarServicios() {
-  const snap = await getDocs(query(collection(db, 'servicios'), orderBy('fechaVencimiento')));
+  const snap = await getDocs(query(collection(db, 'servicios'), orderBy('fechaVencimiento'), limit(LIMITE_SEGURIDAD)));
+  if (snap.docs.length >= LIMITE_SEGURIDAD) {
+    console.warn('[KZ] servicios alcanzo el tope de ' + LIMITE_SEGURIDAD + ': las cifras del panel son parciales');
+  }
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
@@ -218,7 +234,10 @@ export async function cargarServicios() {
  *  página Servicios sin ningún error visible. Aquí se leen todos y se ordenan
  *  en memoria, dejando los que no tienen fecha al final. */
 export async function cargarTodosLosServicios() {
-  const snap = await getDocs(collection(db, 'servicios'));
+  const snap = await getDocs(query(collection(db, 'servicios'), limit(LIMITE_SEGURIDAD)));
+  if (snap.docs.length >= LIMITE_SEGURIDAD) {
+    console.warn('[KZ] servicios alcanzo el tope de ' + LIMITE_SEGURIDAD + ': las cifras del panel son parciales');
+  }
   return snap.docs
     .map(d => ({ id: d.id, ...d.data() }))
     .sort((a, b) => String(a.fechaVencimiento || '9999-12-31')
@@ -280,9 +299,14 @@ export async function cargarNotificaciones() {
     .sort((x, y) => aMs(y.preparadaEn || y.fechaEnvio) - aMs(x.preparadaEn || x.fechaEnvio));
 }
 
-/** Suscripción en tiempo real a clientes (el panel se actualiza solo). */
+/** Suscripción en tiempo real a clientes (el panel se actualiza solo).
+ *
+ *  KZ-FORENSIC-FIX-001 · Acotada. Sin `limit`, CADA cambio en cualquier cliente
+ *  reentrega la colección entera y se vuelve a facturar completa (M-2). Hoy esta
+ *  función no tiene ningún llamador en el panel, pero se acota igual para que no
+ *  reaparezca sin tope si alguien la conecta más adelante. */
 export function suscribirClientes(cb) {
-  return onSnapshot(query(collection(db, 'clientes'), orderBy('nombre')), snap => {
+  return onSnapshot(query(collection(db, 'clientes'), orderBy('nombre'), limit(LIMITE_SEGURIDAD)), snap => {
     cb(snap.docs.map(d => ({ id: d.id, ...d.data(), dias: dias(d.data().fechaVencimiento) })));
   });
 }

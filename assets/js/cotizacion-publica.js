@@ -20,8 +20,20 @@ const token = new URLSearchParams(location.search).get('id');
 const cop = (n) => '$ ' + (Number(n) || 0).toLocaleString('es-CO');
 const AGENCIA = '573206411340';
 
+/* KZ-FORENSIC-FIX-001 · Escape obligatorio.
+   Esta página pinta con innerHTML datos que llegan de Firestore
+   (`cotizaciones_publicas`), y esa colección la escribe cualquier OPERADOR sin
+   validación de campos en las reglas. Sin escapar, un OPERADOR podía guardar
+   `<img src=x onerror=...>` y ejecutar código en una página pública del MISMO
+   origen que /card/admin/, donde vive la sesión del panel (auditoría
+   KZ-FORENSIC-002 · C-1). Todo texto que venga de la base pasa por aquí. */
+const esc = (v) => String(v == null ? '' : v)
+  .replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/* `extra` NO se escapa a propósito: varios llamadores le pasan HTML propio
+   (por ejemplo el enlace de WhatsApp). `titulo` y `texto` sí. */
 function pantalla(titulo, texto, extra = '') {
-  root.innerHTML = `<div class="centro"><h1>${titulo}</h1><p>${texto}</p>${extra}</div>`;
+  root.innerHTML = `<div class="centro"><h1>${esc(titulo)}</h1><p>${esc(texto)}</p>${extra}</div>`;
 }
 
 if (!isConfigured()) {
@@ -58,19 +70,19 @@ function pintar(c) {
     : c.estado === 'RECHAZADA'
       ? `<div class="aviso-stado no"><i class="fas fa-circle-xmark"></i> Cotización rechazada</div>`
       : vencida
-        ? `<div class="aviso-stado no"><i class="fas fa-clock"></i> Esta oferta venció el ${c.validaHasta}</div>`
+        ? `<div class="aviso-stado no"><i class="fas fa-clock"></i> Esta oferta venció el ${esc(c.validaHasta)}</div>`
         : `<div class="aviso-stado"><i class="fas fa-paper-plane"></i> Pendiente de tu respuesta</div>`;
 
   root.innerHTML = `
   <div class="hoja">
     <div class="cab">
       <div class="marca">KONFÍO <span>ZINC</span><small>Soluciones digitales · Medellín, Colombia</small></div>
-      <div class="folio">Cotización<b>${c.numero || '—'}</b>Válida hasta ${c.validaHasta || '—'}</div>
+      <div class="folio">Cotización<b>${esc(c.numero || '—')}</b>Válida hasta ${esc(c.validaHasta || '—')}</div>
     </div>
     <div class="cuerpo">
       ${estadoHtml}
       <div class="fila">
-        <div class="bloque"><h4>Para</h4><p><b>${c.negocio || '—'}</b></p></div>
+        <div class="bloque"><h4>Para</h4><p><b>${esc(c.negocio || '—')}</b></p></div>
         <div class="bloque"><h4>Forma de pago</h4><p>${c.formaPago === 'MITAD' ? '50% al inicio y 50% a la entrega' : 'Pago único'}<br><span style="color:var(--suave)">Sin mensualidades</span></p></div>
         <div class="bloque"><h4>De</h4><p><b>KONFÍO ZINC</b><br>+57 320 641 1340</p></div>
       </div>
@@ -79,8 +91,8 @@ function pintar(c) {
         <thead><tr><th>Concepto</th><th class="num">Cant.</th><th class="num">Valor</th><th class="num">Subtotal</th></tr></thead>
         <tbody>
           ${(c.items || []).map((i) => `<tr>
-            <td><b>${i.concepto}</b>${i.detalle ? `<br><span style="color:var(--suave);font-size:12px">${i.detalle}</span>` : ''}</td>
-            <td class="num">${i.cantidad}</td><td class="num">${cop(i.valorUnitario)}</td><td class="num">${cop(i.subtotal)}</td></tr>`).join('')}
+            <td><b>${esc(i.concepto)}</b>${i.detalle ? `<br><span style="color:var(--suave);font-size:12px">${esc(i.detalle)}</span>` : ''}</td>
+            <td class="num">${esc(i.cantidad)}</td><td class="num">${cop(i.valorUnitario)}</td><td class="num">${cop(i.subtotal)}</td></tr>`).join('')}
         </tbody>
       </table>
 
@@ -90,7 +102,7 @@ function pintar(c) {
         <div class="t"><span>Total</span><span>${cop(c.total)}</span></div>
       </div>
 
-      ${c.notaCliente ? `<div class="nota"><i class="fas fa-circle-info"></i> ${c.notaCliente}</div>` : ''}
+      ${c.notaCliente ? `<div class="nota"><i class="fas fa-circle-info"></i> ${esc(c.notaCliente)}</div>` : ''}
 
       <div class="cond">
         <b>Qué incluye:</b> el trabajo descrito arriba, publicado en línea.<br>

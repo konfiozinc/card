@@ -72,8 +72,8 @@ export async function iniciarSeguimiento() {
         const siguiente = (TRANSICIONES[p.estado] || [])[0] || '';
         return '<tr><td>' + esc(p.nombre) + '</td><td>' + esc(p.estado) + '</td><td>' + esc(p.servicio) +
           '</td><td>' + esc(p.proximaFecha || '—') + '</td><td>' +
-          (siguiente ? '<button data-mover="' + d.id + '" data-hacia="' + siguiente + '">Pasar a ' + siguiente + '</button>' : '—') +
-          ' <button data-nota="' + d.id + '">Nota</button></td></tr>';
+          (siguiente ? '<button data-mover="' + esc(d.id) + '" data-hacia="' + siguiente + '">Pasar a ' + siguiente + '</button>' : '—') +
+          ' <button data-nota="' + esc(d.id) + '">Nota</button></td></tr>';
       }).join('');
     } catch (e) { caja.innerHTML = '<tr><td colspan="5">No se pudo leer: ' + esc(e.code || 'error') + '</td></tr>'; }
   }

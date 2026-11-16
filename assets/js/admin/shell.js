@@ -166,8 +166,15 @@ export function requireAuth(activeKey) {
 
         renderShell(activeKey, data.rol, data.nombre || user.email);
 
-        /* Marca de último acceso (no bloquea la carga si falla) */
-        updateDoc(doc(db, 'usuarios', user.uid), { ultimoAcceso: serverTimestamp() }).catch(() => {});
+        /* Marca de último acceso. Las reglas dan `allow write: if false` sobre
+           /usuarios (firestore.rules:106), así que esta escritura FALLA siempre:
+           antes se silenciaba con `.catch(() => {})` y no quedaba rastro de que
+           la auditoría de accesos nunca se registra (KZ-FORENSIC-002 · M-3). Se
+           deja constancia con `console.warn` —el verificador de calidad sólo
+           cuenta los console.error— en lugar de un rechazo sin manejar, que
+           pondría en rojo la revisión de consola de las 63 páginas. */
+        updateDoc(doc(db, 'usuarios', user.uid), { ultimoAcceso: serverTimestamp() })
+          .catch((e) => console.warn('[KZ] ultimoAcceso NO registrado (reglas /usuarios: allow write:false):', (e && e.code) || e));
 
         resolve({ uid: user.uid, rol: data.rol, nombre: data.nombre || '', email: user.email || '' });
       } catch (err) {
