@@ -196,13 +196,26 @@ try {
     await pagina.fill('#vg-telefono', '3001234567');
     await pagina.locator('#vg-servicio').selectOption({ index: 1 });
     await pagina.locator('#vg-alta button[type=submit]').click();
-    await pagina.waitForFunction(() => {
-      const c = document.querySelector('#vg-lista');
-      return !!c && c.querySelectorAll('tr').length > 0 && !/Cargando/.test(c.textContent);
-    }, null, { timeout: 25000 });
+    /* Se espera al NOMBRE, no a que exista "alguna fila": la lista vacía también
+       trae un <tr> ("Sin prospectos todavía."), así que la condición anterior se
+       cumplía al instante y la aserción de texto fallaba después aunque la
+       escritura sí estaba en curso (la corrida de las 21:38 lo demostró: el
+       prospecto apareció en los pasos siguientes). */
+    try {
+      await pagina.waitForFunction(
+        (nombre) => {
+          const c = document.querySelector('#vg-lista');
+          return !!c && c.textContent.includes(nombre) && !/Cargando/.test(c.textContent);
+        },
+        'Prospecto Ficticio V2',
+        { timeout: 25000 },
+      );
+    } catch {
+      const aviso = await pagina.locator('#vg-aviso').innerText().catch(() => '(sin aviso)');
+      const lista = await pagina.locator('#vg-lista').innerText().catch(() => '(sin lista)');
+      throw new Error(`el prospecto no apareció. aviso="${aviso.slice(0, 80)}" lista="${lista.slice(0, 80)}"`);
+    }
     const filas = await pagina.locator('#vg-lista tr').count();
-    const texto = await pagina.locator('#vg-lista').innerText();
-    if (!/Prospecto Ficticio V2/.test(texto)) throw new Error('el prospecto no aparece en el listado: ' + texto.slice(0, 60));
     return 'filas=' + filas;
   });
 

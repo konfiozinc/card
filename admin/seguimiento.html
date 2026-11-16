@@ -42,8 +42,14 @@
     </form>
 
     <label for="vg-buscar">Buscar</label><input id="vg-buscar" type="search" placeholder="Nombre o teléfono">
-    <table><thead><tr><th>Prospecto</th><th>Estado</th><th>Servicio</th><th>Próximo contacto</th><th>Acciones</th></tr></thead>
-    <tbody id="vg-lista"></tbody></table>
+    <!-- Tabla con el componente REAL de Card Spark: `.tabla__wrap` es el que
+         aporta `overflow-x:auto` y `.tabla` trae `min-width:880px`. Sin el
+         envoltorio, la tabla ancha desbordaba el documento a 375 px (medido:
+         scrollWidth 484) porque la página usa las hojas del panel. -->
+    <div class="tabla__wrap">
+      <table class="tabla"><thead><tr><th>Prospecto</th><th>Estado</th><th>Servicio</th><th>Próximo contacto</th><th>Acciones</th></tr></thead>
+      <tbody id="vg-lista"></tbody></table>
+    </div>
     <p class="nota">Las transiciones inválidas las rechaza también el servidor de reglas.</p>
     <label for="vg-estado">Estados válidos</label><select id="vg-estado" aria-hidden="true" tabindex="-1" hidden></select>
   </section>
