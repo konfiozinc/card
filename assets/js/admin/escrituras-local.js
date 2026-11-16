@@ -347,40 +347,19 @@ export async function registrarPago(d) {
   const concepto = String(d.concepto || '').trim();
   if (!concepto) throw new Error('Selecciona un concepto de cobro. No se asume «DESARROLLO» por omisión.');
   if (!(CFG.conceptosPago || []).some((x) => x.codigo === concepto)) throw new Error('Concepto de cobro no válido.');
-  const clienteSnap = await getDoc(doc(db, 'clientes', d.clienteId));
-  if (!clienteSnap.exists()) throw new Error('Cliente no encontrado.');
-
-  /* KZ-OPS-001 · Un pago renovable DEBE apuntar a un servicio del MISMO
-     cliente. Sin esta comprobación se podía registrar una renovación contra el
-     servicio de otro cliente y, al confirmarla, extender la vigencia ajena. */
-  const defConcepto = (CFG.conceptosPago || []).find((x) => x.codigo === concepto);
-  let servicioId = d.servicioId || null;
-  if (servicioId) {
-    const sv = await getDoc(doc(db, 'servicios', servicioId));
-    if (!sv.exists()) throw new Error('El servicio asociado al pago no existe.');
-    if (sv.data().clienteId !== d.clienteId) {
-      throw new Error('El servicio asociado pertenece a otro cliente. Elige un servicio de este cliente.');
-    }
-  } else if (defConcepto && defConcepto.extensible) {
-    throw new Error('Un cobro renovable necesita el servicio que renueva. Añade primero el servicio al cliente y vuelve a registrar el pago.');
-  }
-
+  /* CR-04 · (KZ-FORENSIC-001) Todo lo que decide el CONTENIDO del pago ocurre
+     DENTRO de la transacción: la comprobación de idempotencia, la lectura del
+     cliente y del servicio, y el cálculo de la fecha de pago.
+     Antes el cliente y el servicio se leían FUERA y se escribía después: entre
+     la comprobación y la escritura el cliente podía cambiar de nombre o el
+     servicio pasar a otro cliente, y el pago se guardaba con datos ya viejos
+     (TOCTOU). La fecha, además, se calculaba al construir el objeto —al abrir el
+     formulario— y no al escribir.
+     El SDK web solo admite lecturas POR REFERENCIA dentro de una transacción;
+     aquí no hace falta ninguna consulta, así que no hay motivo para leer fuera. */
   const referencia = String(d.referencia || '').trim();
   const descripcion = String(d.descripcion || '').trim();
-  const pago = {
-    clienteId: d.clienteId, clienteNombre: clienteSnap.data().nombre,
-    servicioId: servicioId, monto: Number(d.monto),
-    concepto: concepto,
-    metodoPago: d.metodoPago || 'Efectivo', fechaPago: d.fechaPago || iso(new Date()),
-    referencia: referencia || null, comprobanteUrl: d.comprobanteUrl || null,
-    estado: 'PENDIENTE', registradoPor: c.uid, registradoPorNombre: c.nombre,
-    createdAt: serverTimestamp()
-  };
-  /* La descripción es OPCIONAL: si está vacía no se escribe la clave. Enviar
-     `descripcion: null` hacía que la regla de creación rechazara el pago entero
-     (exigía `is string`), así que registrar un cobro sin detalle fallaba siempre
-     con un mensaje de reglas ilegible. */
-  if (descripcion) pago.descripcion = descripcion;
+  const defConcepto = (CFG.conceptosPago || []).find((x) => x.codigo === concepto);
 
   /* IDEMPOTENCIA: si el operador escribe la referencia del comprobante, el
      documento se crea con un id derivado de ella. Si se corta la red y vuelve a
@@ -389,15 +368,51 @@ export async function registrarPago(d) {
     ? doc(db, 'pagos', 'ref_' + referencia.replace(/[^A-Za-z0-9_-]/g, '').slice(0, 60))
     : doc(collection(db, 'pagos'));
 
-  const id = await runTransaction(db, async (tx) => {
+  const hecho = await runTransaction(db, async (tx) => {
     const ya = await tx.get(ref);
     if (ya.exists()) throw new Error('Ya existe un pago con esa referencia. Revísalo en la lista antes de registrarlo otra vez.');
+
+    const clienteSnap = await tx.get(doc(db, 'clientes', d.clienteId));
+    if (!clienteSnap.exists()) throw new Error('Cliente no encontrado.');
+
+    /* KZ-OPS-001 · Un pago renovable DEBE apuntar a un servicio del MISMO
+       cliente. Sin esta comprobación se podía registrar una renovación contra el
+       servicio de otro cliente y, al confirmarla, extender la vigencia ajena. */
+    const servicioId = d.servicioId || null;
+    if (servicioId) {
+      const sv = await tx.get(doc(db, 'servicios', servicioId));
+      if (!sv.exists()) throw new Error('El servicio asociado al pago no existe.');
+      if (sv.data().clienteId !== d.clienteId) {
+        throw new Error('El servicio asociado pertenece a otro cliente. Elige un servicio de este cliente.');
+      }
+    } else if (defConcepto && defConcepto.extensible) {
+      throw new Error('Un cobro renovable necesita el servicio que renueva. Añade primero el servicio al cliente y vuelve a registrar el pago.');
+    }
+
+    const pago = {
+      clienteId: d.clienteId, clienteNombre: clienteSnap.data().nombre,
+      servicioId: servicioId, monto: Number(d.monto),
+      concepto: concepto,
+      metodoPago: d.metodoPago || 'Efectivo',
+      /* La fecha por omisión se calcula AQUÍ, con el reloj del momento de
+         escribir, no con el de cuando se abrió el formulario. */
+      fechaPago: d.fechaPago || iso(new Date()),
+      referencia: referencia || null, comprobanteUrl: d.comprobanteUrl || null,
+      estado: 'PENDIENTE', registradoPor: c.uid, registradoPorNombre: c.nombre,
+      createdAt: serverTimestamp()
+    };
+    /* La descripción es OPCIONAL: si está vacía no se escribe la clave. Enviar
+       `descripcion: null` hacía que la regla de creación rechazara el pago entero
+       (exigía `is string`), así que registrar un cobro sin detalle fallaba siempre
+       con un mensaje de reglas ilegible. */
+    if (descripcion) pago.descripcion = descripcion;
+
     tx.set(ref, pago);
-    return ref.id;
+    return { id: ref.id, pago };
   });
 
-  await auditar(c, 'REGISTRAR_PAGO', 'pagos', id, null, pago);
-  return { id, estado: 'PENDIENTE', idempotente: !!referencia };
+  await auditar(c, 'REGISTRAR_PAGO', 'pagos', hecho.id, null, hecho.pago);
+  return { id: hecho.id, estado: 'PENDIENTE', idempotente: !!referencia };
 }
 
 export async function confirmarPago(pagoId) {
@@ -408,21 +423,26 @@ export async function confirmarPago(pagoId) {
      Una transacción del SDK web solo puede leer documentos POR REFERENCIA: un
      `tx.get(query)` no está soportado y hacía abortar la transacción entera, de
      modo que la confirmación de una renovación no escribía NADA (ni el pago ni
-     la fecha) y la pantalla solo mostraba un error de reglas. Los hermanos se
-     leen aquí y se usan únicamente para recalcular la fecha genérica del
-     cliente; la decisión sigue tomándose dentro de la transacción con el estado
-     real del servidor. */
+     la fecha) y la pantalla solo mostraba un error de reglas. Aquí solo se
+     LOCALIZAN los hermanos; sus vencimientos se releen ya dentro de la
+     transacción (CR-04) y la decisión sigue tomándose allí con el estado real
+     del servidor. */
   const pagoPrevio = await getDoc(pagoRef);
   if (!pagoPrevio.exists()) throw new Error('Pago no encontrado.');
   const datosPrevios = pagoPrevio.data();
-  let fechasHermanas = [];
+  /* CR-04 · Esta lectura y la consulta que sigue NO deciden ninguna fecha: sirven
+     solo para LOCALIZAR, por referencia, los servicios hermanos del cliente,
+     porque el SDK web no admite consultas dentro de una transacción. Los
+     vencimientos que se usan se releen ya dentro de la transacción con `tx.get`,
+     así que un hermano que cambie entre la consulta y la escritura no se escribe
+     con la fecha vieja. */
+  let hermanosRef = [];
   if (datosPrevios.clienteId) {
     const hermanos = await getDocs(query(collection(db, 'servicios'),
       where('clienteId', '==', datosPrevios.clienteId)));
-    fechasHermanas = hermanos.docs
+    hermanosRef = hermanos.docs
       .filter((x) => x.id !== datosPrevios.servicioId)
-      .map((x) => x.data().fechaVencimiento)
-      .filter((f) => typeof f === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f));
+      .map((x) => x.ref);
   }
 
   /* En una transacción: se relee el pago y se decide con el estado REAL en el
@@ -477,6 +497,18 @@ export async function confirmarPago(pagoId) {
       nuevoVenc = calcularVencimiento(vigente ? vencServicio : hoy, concepto.meses);
     }
 
+    /* CR-04 · Los hermanos se releen POR REFERENCIA dentro de la transacción.
+       La fecha genérica del cliente es la obligación MÁS LEJANA entre sus
+       servicios; calcularla con la foto de la consulta previa podía dejar al
+       cliente «vencido» o «al día» por un servicio que había cambiado mientras
+       se confirmaba el pago. Todas las lecturas van antes de la primera escritura. */
+    const fechasHermanas = [];
+    for (const hRef of hermanosRef) {
+      const hSnap = await tx.get(hRef);
+      const f = hSnap.exists() ? hSnap.data().fechaVencimiento : null;
+      if (typeof f === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f)) fechasHermanas.push(f);
+    }
+
     if (nuevoVenc) {
       const estado = estadoPorVencimiento(nuevoVenc);
       tx.update(servicioRef, {
@@ -486,7 +518,8 @@ export async function confirmarPago(pagoId) {
       /* La fecha genérica del cliente pasa a ser la obligación MÁS LEJANA entre
          sus servicios: es la que usa el dashboard y evita que el cliente
          aparezca «vencido» por un servicio ya renovado. Los demás servicios se
-         leyeron antes de la transacción (aquí no se pueden consultar). */
+         releen por referencia dentro de esta misma transacción (arriba); una
+         CONSULTA —no una referencia— sí sería imposible aquí. */
       const fechas = fechasHermanas.slice();
       fechas.push(nuevoVenc);
       const vencCliente = fechas.sort().slice(-1)[0];

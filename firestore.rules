@@ -538,7 +538,32 @@ service cloud.firestore {
       function estadoValido(v) {
         return v in ['BORRADOR', 'ENVIADA', 'ACEPTADA', 'RECHAZADA'];
       }
-      // El total no se envía «a dedo»: tiene que cuadrar con sus partes.
+      /* ── CR-03 · El TOTAL se valida contra la SUMA de los ítems ───────
+         (KZ-FORENSIC-001). Antes solo se comprobaba
+         `total == subtotal - descuento`: tres números inventados que cuadraran
+         entre sí publicaban cualquier importe, porque el `subtotal` NUNCA se
+         comparaba con sus propios ítems.
+         Este lenguaje no tiene bucles ni `reduce`, así que la suma se escribe
+         acotada al máximo real de ítems (30, ver `itemsValidos`). Cada término
+         va protegido con un ternario: indexar fuera de rango es un ERROR en este
+         motor y negaría escrituras legítimas. `.get('subtotal', 0)` evita que un
+         ítem sin ese campo tumbe la evaluación; si el subtotal no cuadra,
+         incumple igual, que es lo que se busca. */
+      function sumaItems() {
+        let it = request.resource.data.items;
+        let n = it.size();
+        return (n > 0 ? it[0].get('subtotal', 0) : 0) + (n > 1 ? it[1].get('subtotal', 0) : 0) + (n > 2 ? it[2].get('subtotal', 0) : 0)
+             + (n > 3 ? it[3].get('subtotal', 0) : 0) + (n > 4 ? it[4].get('subtotal', 0) : 0) + (n > 5 ? it[5].get('subtotal', 0) : 0)
+             + (n > 6 ? it[6].get('subtotal', 0) : 0) + (n > 7 ? it[7].get('subtotal', 0) : 0) + (n > 8 ? it[8].get('subtotal', 0) : 0)
+             + (n > 9 ? it[9].get('subtotal', 0) : 0) + (n > 10 ? it[10].get('subtotal', 0) : 0) + (n > 11 ? it[11].get('subtotal', 0) : 0)
+             + (n > 12 ? it[12].get('subtotal', 0) : 0) + (n > 13 ? it[13].get('subtotal', 0) : 0) + (n > 14 ? it[14].get('subtotal', 0) : 0)
+             + (n > 15 ? it[15].get('subtotal', 0) : 0) + (n > 16 ? it[16].get('subtotal', 0) : 0) + (n > 17 ? it[17].get('subtotal', 0) : 0)
+             + (n > 18 ? it[18].get('subtotal', 0) : 0) + (n > 19 ? it[19].get('subtotal', 0) : 0) + (n > 20 ? it[20].get('subtotal', 0) : 0)
+             + (n > 21 ? it[21].get('subtotal', 0) : 0) + (n > 22 ? it[22].get('subtotal', 0) : 0) + (n > 23 ? it[23].get('subtotal', 0) : 0)
+             + (n > 24 ? it[24].get('subtotal', 0) : 0) + (n > 25 ? it[25].get('subtotal', 0) : 0) + (n > 26 ? it[26].get('subtotal', 0) : 0)
+             + (n > 27 ? it[27].get('subtotal', 0) : 0) + (n > 28 ? it[28].get('subtotal', 0) : 0) + (n > 29 ? it[29].get('subtotal', 0) : 0);
+      }
+      // El total no se envía «a dedo»: tiene que cuadrar con sus partes Y con sus ítems.
       function importesCoherentes() {
         return request.resource.data.subtotal is number
             && request.resource.data.subtotal >= 0
@@ -547,6 +572,7 @@ service cloud.firestore {
             && request.resource.data.total is number
             && request.resource.data.total >= 0
             && request.resource.data.descuento <= request.resource.data.subtotal
+            && request.resource.data.subtotal == sumaItems()
             && request.resource.data.total == request.resource.data.subtotal - request.resource.data.descuento;
       }
       function itemsValidos() {
@@ -554,33 +580,81 @@ service cloud.firestore {
             && request.resource.data.items.size() > 0
             && request.resource.data.items.size() <= 30;
       }
+      function antes() { return resource.data.get('estado', ''); }
+      function despues() { return request.resource.data.get('estado', ''); }
       // Volver de un estado final a borrador es REABRIR: solo ADMIN.
       function reapertura() {
-        return request.resource.data.get('estado', '') == 'BORRADOR'
-            && resource.data.get('estado', '') != 'BORRADOR';
+        return despues() == 'BORRADOR' && antes() != 'BORRADOR';
       }
-      function camposPermitidos() {
-        return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'numero', 'version', 'estado', 'items', 'subtotal', 'descuento', 'total',
-          'notaCliente', 'notasInternas', 'formaPago', 'validaHasta',
-          'enviadaEn', 'respondidaEn', 'motivoRechazo', 'token',
-          'clienteId', 'actualizadoEn', 'actualizadoPor'
+
+      /* ── CR-01 / CR-02 · Qué puede cambiar un OPERADOR en cada paso ───
+         (KZ-FORENSIC-001). Antes bastaba con `esOperador() && camposPermitidos()`
+         y una lista única de campos: se podía saltar de BORRADOR a ACEPTADA
+         (una aceptación falsa, sin haber enviado nada al cliente), marcar ENVIADA
+         sin número ni token, o reescribir los importes de una cotización que el
+         cliente ya tenía en la mano. Ahora cada paso tiene su propio juego de
+         claves y la transición se exige explícitamente en `allow update`. */
+      function clavesEdicion() {
+        return tocados().hasOnly([
+          'version', 'items', 'subtotal', 'descuento', 'total', 'notaCliente',
+          'notasInternas', 'formaPago', 'validaHasta', 'clienteId',
+          'actualizadoEn', 'actualizadoPor'
         ]);
+      }
+      function clavesEnvio() {
+        return tocados().hasOnly(['numero', 'token', 'estado', 'enviadaEn',
+                                  'actualizadoEn', 'actualizadoPor']);
+      }
+      function clavesRespuesta() {
+        return tocados().hasOnly(['estado', 'respondidaEn', 'motivoRechazo',
+                                  'actualizadoEn', 'actualizadoPor']);
+      }
+      function clavesReapertura() {
+        return tocados().hasOnly([
+          'estado', 'respondidaEn', 'motivoRechazo',
+          'version', 'items', 'subtotal', 'descuento', 'total', 'notaCliente',
+          'notasInternas', 'formaPago', 'validaHasta', 'clienteId',
+          'actualizadoEn', 'actualizadoPor'
+        ]);
+      }
+      function clavesConversion() {
+        return tocados().hasOnly(['clienteId', 'actualizadoEn', 'actualizadoPor']);
       }
 
       allow read: if esOperador();
+      /* CR-01 · Toda cotización NACE en borrador, sin número y sin token: solo
+         `enviarCotizacion` la numera y la publica. Nacer ENVIADA o ACEPTADA era
+         la vía para saltarse el envío al cliente. */
       allow create: if esOperador()
         && request.resource.data.creadoPor == request.auth.uid
-        && estadoValido(request.resource.data.get('estado', ''))
+        && request.resource.data.get('estado', '') == 'BORRADOR'
+        && request.resource.data.get('numero', null) == null
+        && request.resource.data.get('token', null) == null
         && itemsValidos()
         && importesCoherentes();
       allow update: if esOperador()
-        && camposPermitidos()
-        && estadoValido(request.resource.data.get('estado', ''))
+        && estadoValido(despues())
         && request.resource.data.creadoPor == resource.data.creadoPor
         && itemsValidos()
         && importesCoherentes()
-        && (!reapertura() || esAdmin());
+        && (
+          /* editar contenido: solo mientras siga en BORRADOR */
+             (antes() == 'BORRADOR' && despues() == 'BORRADOR' && clavesEdicion())
+          /* enviar: exige número y token; sin ellos el cliente no tiene enlace */
+          || (antes() == 'BORRADOR' && despues() == 'ENVIADA' && clavesEnvio()
+              && textoNoVacio(request.resource.data.get('numero', ''))
+              && request.resource.data.get('token', '') is string
+              && request.resource.data.token.matches('^[0-9a-f]{32}$'))
+          /* registrar la respuesta del cliente: solo desde ENVIADA y solo el estado */
+          || (antes() == 'ENVIADA' && despues() in ['ACEPTADA', 'RECHAZADA']
+              && clavesRespuesta()
+              && request.resource.data.get('respondidaEn', null) is timestamp)
+          /* convertir en cliente: de una ACEPTADA y solo el vínculo */
+          || (antes() == 'ACEPTADA' && despues() == 'ACEPTADA' && clavesConversion()
+              && textoNoVacio(request.resource.data.get('clienteId', '')))
+          /* reabrir: ADMIN, y todo vuelve a BORRADOR */
+          || (reapertura() && esAdmin() && clavesReapertura())
+        );
       allow delete: if esAdmin() && resource.data.get('estado', '') == 'BORRADOR';
     }
 
@@ -604,11 +678,59 @@ service cloud.firestore {
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'respondidaEn'])
             && request.resource.data.get('respondidaEn', null) == request.time;
       }
+      /* ── CR-02 · La proyección tiene que ser COPIA FIEL del registro ──
+         (KZ-FORENSIC-001). Antes la escritura del equipo era
+         `allow create/update/delete: if esOperador()`, sin una sola validación
+         de campos: cualquier OPERADOR podía reescribir importes, ítems y textos
+         de una cotización YA enviada al cliente —o inventarse una—, y esta es
+         justamente la colección que se abre por enlace público. Ahora:
+           · el documento solo puede vivir bajo el token del registro interno;
+           · ítems, subtotal, descuento, total y número se comparan campo a campo
+             contra `cotizaciones/{cotizacionId}`;
+           · el equipo solo puede copiar la respuesta del cliente;
+           · borrar la proyección deja de ser cosa de un OPERADOR.
+         Se lee con `getAfter()` y NO con `get()`: `enviarCotizacion` escribe el
+         registro y la proyección en la MISMA transacción, y `get()` devolvería la
+         versión anterior —en BORRADOR y sin número— y negaría el envío entero. */
+      function registroInterno() {
+        return getAfter(/databases/$(database)/documents/cotizaciones/$(request.resource.data.get('cotizacionId', '__sin_registro__')));
+      }
+      function proyeccionFiel() {
+        return request.resource.data.get('cotizacionId', '') is string
+            && request.resource.data.cotizacionId.size() > 0
+            && registroInterno().data.get('token', '') == token
+            && registroInterno().data.items == request.resource.data.items
+            && registroInterno().data.subtotal == request.resource.data.subtotal
+            && registroInterno().data.descuento == request.resource.data.descuento
+            && registroInterno().data.total == request.resource.data.total
+            && registroInterno().data.get('numero', null) == request.resource.data.get('numero', null);
+      }
+      function clavesProyeccion() {
+        return request.resource.data.keys().hasOnly([
+          'cotizacionId', 'numero', 'version', 'negocio', 'items', 'subtotal',
+          'descuento', 'total', 'moneda', 'formaPago', 'notaCliente',
+          'validaHasta', 'estado', 'emitidaEn', 'respondidaEn'
+        ]);
+      }
+      /* Copiar desde el panel la respuesta que dio el cliente: solo el estado. */
+      function respuestaDelEquipo() {
+        return esOperador()
+            && resource.data.get('estado', '') == 'ENVIADA'
+            && request.resource.data.get('estado', '') in ['ACEPTADA', 'RECHAZADA']
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'respondidaEn'])
+            && request.resource.data.get('respondidaEn', null) == request.time;
+      }
+
       allow get: if true;
       allow list: if esOperador();
-      allow create: if esOperador();
-      allow update: if esOperador() || respuestaDelCliente();
-      allow delete: if esOperador();
+      allow create: if esOperador()
+        && request.resource.data.get('estado', '') == 'ENVIADA'
+        && clavesProyeccion()
+        && proyeccionFiel();
+      allow update: if respuestaDelCliente()
+        || respuestaDelEquipo()
+        || (esOperador() && clavesProyeccion() && proyeccionFiel());
+      allow delete: if esAdmin();
     }
 
     /* ── numeración de cotizaciones ──────────────────────────────────

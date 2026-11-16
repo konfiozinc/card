@@ -1,0 +1,701 @@
+rules_version = '2';
+// ═══════════════════════════════════════════════════════════════════
+// KONFÍO ZINC · Reglas de Firestore — panel en MODO SPARK
+//
+// El proyecto está en el plan gratuito Spark, que NO permite Cloud Functions.
+// Por eso el panel escribe directo en Firestore y TODA la autorización vive
+// aquí. El rol se lee de `usuarios/{uid}.rol` (o de la ficha heredada
+// `usuarios/{correo}` mientras no se vincule), nunca de una variable que el
+// navegador pueda inventar.
+//
+// Garantías:
+//   · Solo usuarios autenticados, con ficha y `activo == true`.
+//   · El rol sale de Firestore; el navegador no puede subirse de rol:
+//     `usuarios` es de SOLO LECTURA desde el cliente.
+//   · El dinero es inmutable: `monto`, cliente y quién registró un pago no
+//     cambian para nadie. Corregir un importe = anular y registrar otro.
+//   · Pagos: solo tres transiciones y una sola vez (PENDIENTE→CONFIRMADO,
+//     PENDIENTE→ANULADO, CONFIRMADO→ANULADO). Confirmar dos veces es imposible.
+//   · Clientes: OPERADOR edita datos de contacto; los campos comerciales
+//     (servicio, plan, precio, fechas, estado) son de ADMIN; la baja lógica
+//     (`eliminado`) es de SUPERADMIN.
+//   · Auditoría e historial: se crean, nunca se modifican ni se borran.
+//   · Notificaciones: el panel solo REGISTRA avisos preparados; marcarlos
+//     enviados es un acto explícito del operador. Nada se envía solo.
+// ═══════════════════════════════════════════════════════════════════
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* ── Identidad y rol ───────────────────────────────────────────── */
+    function estaAutenticado() { return request.auth != null; }
+
+    function correo() {
+      return estaAutenticado() && request.auth.token.email != null
+        ? request.auth.token.email : '__sin_correo__';
+    }
+
+    /* Ficha del usuario: primero por uid (modelo nuevo) y, si no existe, por
+       correo (fichas heredadas de antes de la vinculación). Esto permite
+       operar sin migrar datos: el día que se ejecuta la herramienta local de
+       vinculación, la ficha por correo desaparece y todo sigue igual.
+
+       Las dos lecturas se hacen UNA vez por evaluación (`let`): cada get()
+       cuenta para el límite de 10 por petición, y encadenar helpers que
+       vuelven a leer la misma ficha agotaba ese límite y hacía que las reglas
+       denegaran operaciones legítimas. */
+    function porUid() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid));
+    }
+    function porCorreo() {
+      return get(/databases/$(database)/documents/usuarios/$(correo()));
+    }
+
+    /* El rol se resuelve con dos lecturas: la ficha del UID y, si esa no da un
+       rol válido, la ficha heredada por correo. Se comparan los CAMPOS
+       directamente y NO se usa .exists: en este motor .exists devuelve falso
+       incluso cuando el documento existe, y eso denegaba operaciones
+       legítimas. Un documento ausente produce un error que no tumba la
+       expresión: la rama del correo se evalúa igual (comprobado con sonda). */
+    function esOperador() {
+      return estaAutenticado() && (
+        (porUid().data.get('activo', false) == true
+          && porUid().data.get('rol', '') in ['OPERADOR', 'ADMIN', 'SUPERADMIN'])
+        || (porCorreo().data.get('activo', false) == true
+          && porCorreo().data.get('rol', '') in ['OPERADOR', 'ADMIN', 'SUPERADMIN'])
+      );
+    }
+
+    function esAdmin() {
+      return estaAutenticado() && (
+        (porUid().data.get('activo', false) == true
+          && porUid().data.get('rol', '') in ['ADMIN', 'SUPERADMIN'])
+        || (porCorreo().data.get('activo', false) == true
+          && porCorreo().data.get('rol', '') in ['ADMIN', 'SUPERADMIN'])
+      );
+    }
+
+    function esSuperadmin() {
+      return estaAutenticado() && (
+        (porUid().data.get('activo', false) == true
+          && porUid().data.get('rol', '') == 'SUPERADMIN')
+        || (porCorreo().data.get('activo', false) == true
+          && porCorreo().data.get('rol', '') == 'SUPERADMIN')
+      );
+    }
+
+
+
+    /* ── Utilidades de esquema ─────────────────────────────────────── */
+    function textoNoVacio(v) { return v is string && v.size() > 0; }
+    function fechaTexto(v) {
+      return v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    }
+    function estadoValido(v) {
+      return v in ['ACTIVO', 'POR_VENCER', 'PENDIENTE_PAGO', 'SUSPENDIDO',
+                   'INACTIVO', 'INHABILITADO', 'PENDIENTE_CONFIGURACION'];
+    }
+    function tocados() { return request.resource.data.diff(resource.data).affectedKeys(); }
+
+    /* ── usuarios ──────────────────────────────────────────────────── */
+    // Lectura: cada uno su ficha (por uid o, si es heredada, por correo);
+    // los SUPERADMIN ven todas. Escritura: NADIE desde el navegador. Crear una
+    // cuenta, cambiar un rol o vincular un uid exige el Admin SDK, es decir la
+    // herramienta local privilegiada (herramientas/admin-spark.js).
+    match /usuarios/{clave} {
+      allow read: if estaAutenticado() && (request.auth.uid == clave || correo() == clave || esSuperadmin());
+      allow write: if false;
+    }
+
+    /* ── clientes ──────────────────────────────────────────────────── */
+    // OPERADOR: datos de contacto. ADMIN+: lo comercial y el ciclo de vida.
+    // SUPERADMIN: la baja lógica. Borrado físico: nunca.
+    match /clientes/{clienteId} {
+
+      function contactoOperador() {
+        return tocados().hasOnly([
+          'nombre', 'empresa', 'documento', 'telefono', 'whatsapp', 'email',
+          'ciudad', 'observaciones', 'updatedAt'
+        ]);
+      }
+      function comercialAdmin() {
+        return tocados().hasOnly([
+          'nombre', 'empresa', 'documento', 'telefono', 'whatsapp', 'email',
+          'ciudad', 'observaciones', 'metodoPagoPreferido',
+          'servicio', 'categoria', 'planId', 'planNombre', 'precio',
+          'fechaActivacion', 'fechaVencimiento', 'urlServicio', 'proyectoId',
+          'estadoCliente', 'estadoServicio', 'fechaCambioEstado', 'motivoCambio',
+          'cambiadoPor', 'fechaSuspension', 'fechaReactivacion',
+          'fechaInhabilitacion', 'activo', 'updatedAt'
+        ]);
+      }
+      function tiposValidos() {
+        return request.resource.data.get('precio', 0) is number
+            && request.resource.data.get('precio', 0) >= 0
+            && fechaTexto(request.resource.data.get('fechaActivacion', '2000-01-01'))
+            && fechaTexto(request.resource.data.get('fechaVencimiento', '2000-01-01'))
+            && estadoValido(request.resource.data.get('estadoCliente', 'ACTIVO'))
+            && estadoValido(request.resource.data.get('estadoServicio', 'ACTIVO'));
+      }
+      function sinEliminar() {
+        return request.resource.data.get('eliminado', false) == resource.data.get('eliminado', false);
+      }
+
+      allow read: if esOperador();
+      allow create: if esOperador()
+        && textoNoVacio(request.resource.data.get('nombre', ''))
+        && textoNoVacio(request.resource.data.get('servicio', ''))
+        && textoNoVacio(request.resource.data.get('telefono', ''))
+        && request.resource.data.get('precio', 0) is number
+        && request.resource.data.get('precio', 0) >= 0
+        && fechaTexto(request.resource.data.get('fechaActivacion', '2000-01-01'))
+        && fechaTexto(request.resource.data.get('fechaVencimiento', '2000-01-01'))
+        && request.resource.data.get('eliminado', false) == false;
+      allow update: if esOperador() && (
+          (esAdmin() && comercialAdmin() && tiposValidos() && sinEliminar())
+          || (contactoOperador() && sinEliminar())
+          || (esSuperadmin()
+              && tocados().hasOnly(['eliminado', 'activo', 'estadoCliente', 'estadoServicio',
+                                    'fechaEliminacion', 'motivoCambio', 'fechaCambioEstado',
+                                    'cambiadoPor', 'updatedAt'])
+              && request.resource.data.get('eliminado', false) == true
+              && request.resource.data.get('estadoCliente', '') == 'INHABILITADO')
+        );
+      allow delete: if false;
+    }
+
+    /* ── servicios ─────────────────────────────────────────────────── */
+    // KZ-SEC-002: un OPERADOR solo puede ajustar datos de contacto del
+    // servicio (clienteNombre). Los campos COMERCIALES (precio, fechas, plan,
+    // estado, activo) los toca únicamente ADMIN+, y con tipos válidos. La
+    // autorización vive aquí, no en los botones del panel.
+    match /servicios/{servicioId} {
+      /* KZ-OPS-001: `createdAt` faltaba en la lista de claves permitidas y el
+         panel lo escribía en cada alta. Consecuencia: TODA creación de servicio
+         desde el navegador daba PERMISSION_DENIED, y como crearCliente() lo
+         envolvía en .catch(() => {}), el cliente se guardaba sin ninguno de sus
+         servicios y nadie se enteraba. Se admite el campo, exigiendo timestamp,
+         y se valida estado y fechas para que ninguna escritura deje un servicio
+         en un estado imposible. */
+      function fechaOMnula(v) {
+        return v == null || fechaTexto(v);
+      }
+      function estadoDeServicioValido() {
+        return estadoValido(request.resource.data.get('estado', 'ACTIVO'));
+      }
+      function fechasCoherentesAlta() {
+        return fechaTexto(request.resource.data.get('fechaInicio', '2000-01-01'))
+            && fechaOMnula(request.resource.data.get('fechaVencimiento', null));
+      }
+      /* En una ACTUALIZACIÓN se tolera que un servicio histórico no traiga
+         `fechaInicio`; si la trae, tiene que ser una fecha válida. */
+      function fechasCoherentesEdicion() {
+        return (!('fechaInicio' in request.resource.data)
+                 || fechaTexto(request.resource.data.get('fechaInicio', '2000-01-01')))
+            && fechaOMnula(request.resource.data.get('fechaVencimiento', null));
+      }
+      function camposContacto() {
+        return tocados().hasOnly(['clienteNombre', 'updatedAt']);
+      }
+      function camposComerciales() {
+        return tocados().hasOnly(['clienteNombre', 'planId', 'servicio', 'categoria',
+                                  'fechaInicio', 'fechaVencimiento', 'precio', 'estado',
+                                  'activo', 'updatedAt']);
+      }
+      allow read: if esOperador();
+      allow create: if esOperador()
+        && textoNoVacio(request.resource.data.get('clienteId', ''))
+        && textoNoVacio(request.resource.data.get('servicio', ''))
+        && request.resource.data.keys().hasOnly([
+             'clienteId', 'clienteNombre', 'planId', 'servicio', 'categoria',
+             'fechaInicio', 'fechaVencimiento', 'precio', 'estado', 'activo',
+             'createdAt', 'updatedAt'
+           ])
+        && request.resource.data.get('precio', 0) is number
+        && request.resource.data.get('precio', 0) >= 0
+        && estadoDeServicioValido()
+        && fechasCoherentesAlta()
+        && (!('createdAt' in request.resource.data)
+             || request.resource.data.createdAt is timestamp);
+      allow update: if esOperador()
+        && request.resource.data.get('clienteId', '') == resource.data.get('clienteId', '')
+        && (
+          camposContacto()
+          || (esAdmin() && camposComerciales()
+              && request.resource.data.get('precio', 0) is number
+              && request.resource.data.get('precio', 0) >= 0
+              && estadoDeServicioValido()
+              && fechasCoherentesEdicion())
+        );
+      allow delete: if false;
+    }
+
+    /* ── pagos ─────────────────────────────────────────────────────── */
+    match /pagos/{pagoId} {
+
+      function dineroIntacto() {
+        return request.resource.data.get('monto', null) == resource.data.get('monto', null)
+            && request.resource.data.get('clienteId', null) == resource.data.get('clienteId', null)
+            && request.resource.data.get('clienteNombre', null) == resource.data.get('clienteNombre', null)
+            && request.resource.data.get('servicioId', null) == resource.data.get('servicioId', null)
+            && request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null)
+            && request.resource.data.get('registradoPor', null) == resource.data.get('registradoPor', null)
+            && request.resource.data.get('registradoPorNombre', null) == resource.data.get('registradoPorNombre', null);
+      }
+      function camposPermitidos() {
+        return tocados().hasOnly([
+          'estado', 'metodoPago', 'fechaPago', 'referencia', 'comprobanteUrl',
+          'confirmadoPor', 'confirmadoPorNombre', 'periodoInicio', 'periodoFin',
+          'confirmadoEn', 'anuladoPor', 'motivo', 'anuladoEn'
+        ]);
+      }
+      function transicionAutorizada() {
+        return (resource.data.get('estado', '') == 'PENDIENTE' && request.resource.data.estado == 'CONFIRMADO')
+            || (resource.data.get('estado', '') == 'PENDIENTE' && request.resource.data.estado == 'ANULADO')
+            || (resource.data.get('estado', '') == 'CONFIRMADO' && request.resource.data.estado == 'ANULADO');
+      }
+      function auditoriaCoherente() {
+        return (request.resource.data.estado == 'CONFIRMADO'
+                 && request.resource.data.confirmadoPor == request.auth.uid
+                 && request.resource.data.confirmadoEn is timestamp
+                 && (!('periodoFin' in request.resource.data)
+                     || fechaTexto(request.resource.data.get('periodoFin', '2000-01-01')))
+                 && !tocados().hasAny(['anuladoPor', 'anuladoEn', 'motivo']))
+            || (request.resource.data.estado == 'ANULADO'
+                 && request.resource.data.anuladoPor == request.auth.uid
+                 && textoNoVacio(request.resource.data.get('motivo', ''))
+                 && request.resource.data.anuladoEn is timestamp
+                 && !tocados().hasAny(['confirmadoPor', 'confirmadoPorNombre',
+                                       'periodoInicio', 'periodoFin', 'confirmadoEn']));
+      }
+      function soloMetadatos() {
+        return resource.data.get('estado', '') != 'ANULADO'
+            && request.resource.data.estado == resource.data.get('estado', '')
+            && !tocados().hasAny(['confirmadoPor', 'confirmadoPorNombre', 'periodoInicio',
+                                  'periodoFin', 'confirmadoEn', 'anuladoPor', 'motivo', 'anuladoEn']);
+      }
+      /* KZ-OPS-001 · Clasificación de un pago HISTÓRICO.
+         Los pagos anteriores a CARD-SPARK-002 no tienen concepto y no se pueden
+         confirmar (no se asume «DESARROLLO»). Sin esta vía, la única salida era
+         anular el pago, perdiendo su fecha y su referencia. Aquí un ADMIN lo
+         clasifica UNA sola vez, dejando constancia de quién y cuándo. No sirve
+         para reclasificar: exige que el pago aún NO tenga concepto, exigir
+         que siga PENDIENTE y prohíbe tocar el dinero. */
+      function clasificacionHistorica() {
+        return resource.data.get('estado', '') == 'PENDIENTE'
+            && !('concepto' in resource.data)
+            && request.resource.data.concepto in [
+                 'DESARROLLO', 'RENOVACION_DOMINIO', 'HOSTING', 'MANTENIMIENTO',
+                 'SERVICIO_PERIODICO', 'AMPLIACION', 'OTRO'
+               ]
+            && request.resource.data.get('clasificadoPor', '') == request.auth.uid
+            && request.resource.data.get('clasificadoEn', null) is timestamp
+            && textoNoVacio(request.resource.data.get('motivoClasificacion', ''))
+            && tocados().hasOnly(['concepto', 'descripcion', 'clasificadoPor',
+                                  'clasificadoEn', 'motivoClasificacion']);
+      }
+
+      allow read: if esOperador();
+      allow create: if esOperador()
+        && request.resource.data.get('estado', '') == 'PENDIENTE'
+        && request.resource.data.get('monto', 0) is number
+        && request.resource.data.get('monto', 0) > 0
+        && textoNoVacio(request.resource.data.get('clienteId', ''))
+        && fechaTexto(request.resource.data.get('fechaPago', '2000-01-01'))
+        && request.resource.data.get('registradoPor', '') == request.auth.uid
+        && (!('concepto' in request.resource.data)
+             || request.resource.data.concepto in [
+                  'DESARROLLO', 'RENOVACION_DOMINIO', 'HOSTING', 'MANTENIMIENTO',
+                  'SERVICIO_PERIODICO', 'AMPLIACION', 'OTRO'
+                ])
+        /* KZ-OPS-001: `descripcion` puede venir NULL. El panel enviaba
+           `descripcion: null` cuando el operador no escribía detalle y la regla
+           exigía `is string`, así que registrar un pago sin descripción fallaba
+           SIEMPRE con un mensaje de reglas ilegible. La descripción es opcional
+           por diseño: null es un valor legítimo, no un texto inválido. */
+        && (!('descripcion' in request.resource.data)
+             || request.resource.data.descripcion == null
+             || (request.resource.data.descripcion is string
+                 && request.resource.data.descripcion.size() <= 300))
+        && request.resource.data.keys().hasOnly([
+             'clienteId', 'clienteNombre', 'servicioId', 'monto', 'concepto', 'descripcion',
+             'metodoPago', 'fechaPago', 'referencia', 'comprobanteUrl', 'estado',
+             'registradoPor', 'registradoPorNombre', 'createdAt'
+           ]);
+      allow update: if esAdmin()
+        && dineroIntacto()
+        && (
+          (camposPermitidos()
+            && ((transicionAutorizada() && auditoriaCoherente()) || soloMetadatos()))
+          || clasificacionHistorica()
+        );
+      allow delete: if false;
+    }
+
+    /* ── planes ────────────────────────────────────────────────────── */
+    match /planes/{planId} {
+      allow read: if esOperador();
+      allow create, update: if esAdmin()
+        && textoNoVacio(request.resource.data.get('nombre', ''))
+        && textoNoVacio(request.resource.data.get('servicio', ''))
+        && request.resource.data.get('precio', 0) is number
+        && request.resource.data.get('precio', 0) >= 0;
+      allow delete: if esAdmin();
+    }
+
+    /* ── notificaciones ────────────────────────────────────────────── */
+    // En Spark no hay motor: el panel PREPARA el aviso (estado PREPARADA) y el
+    // operador lo envía a mano por WhatsApp. Marcar ENVIADA es un acto
+    // explícito y queda registrado con quién y cuándo. Nada se envía solo.
+    match /notificaciones/{notificacionId} {
+      allow read: if esOperador();
+      allow create: if esOperador()
+        && request.resource.data.get('estado', '') == 'PREPARADA'
+        && request.resource.data.get('canal', '') in ['MANUAL', 'WHATSAPP']
+        && textoNoVacio(request.resource.data.get('clienteId', ''))
+        && textoNoVacio(request.resource.data.get('mensaje', ''))
+        && request.resource.data.get('usuarioId', '') == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+             'clienteId', 'clienteNombre', 'tipo', 'mensaje', 'estado', 'canal',
+             'usuarioId', 'usuarioNombre', 'preparadaEn'
+           ]);
+      allow update: if esOperador()
+        && request.resource.data.estado == 'ENVIADA'
+        && request.resource.data.get('enviadoPor', '') == request.auth.uid
+        && request.resource.data.enviadoEn is timestamp
+        && tocados().hasOnly(['estado', 'enviadoPor', 'enviadoEn']);
+      allow delete: if false;
+    }
+
+    /* ── tokens_notificacion ───────────────────────────────────────── */
+    // KZ-SEC-002: solo el panel (OPERADOR+) gestiona tokens, el id del
+    // documento debe ser el propio token y no se admiten campos arbitrarios.
+    // Un usuario autenticado cualquiera ya no puede inyectar tokens ajenos.
+    match /tokens_notificacion/{token} {
+      allow read: if esOperador();
+      allow create, update: if esOperador()
+        && textoNoVacio(request.resource.data.get('clienteId', ''))
+        && request.resource.data.get('token', '') == token
+        && request.resource.data.keys().hasOnly([
+             'clienteId', 'token', 'plataforma', 'navegador', 'activo',
+             'fechaRegistro', 'ultimaActividad'
+           ]);
+      allow delete: if esAdmin();
+    }
+
+    /* ── historial_estados ─────────────────────────────────────────── */
+    // El panel lo escribe en cada cambio de estado; se lee desde la ficha del
+    // cliente. Nunca se modifica ni se borra.
+    match /historial_estados/{id} {
+      allow read: if esOperador();
+      allow create: if esOperador()
+        && textoNoVacio(request.resource.data.get('clienteId', ''))
+        && estadoValido(request.resource.data.get('estadoNuevo', 'ACTIVO'))
+        && request.resource.data.get('usuarioId', '') == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    /* ── auditoria ─────────────────────────────────────────────────── */
+    match /auditoria/{id} {
+      allow read: if esSuperadmin();
+      allow create: if esOperador()
+        && textoNoVacio(request.resource.data.get('accion', ''))
+        && textoNoVacio(request.resource.data.get('entidad', ''))
+        && request.resource.data.get('usuarioId', '') == request.auth.uid;
+      allow update, delete: if false;
+    }
+
+    /* ── configuracion ─────────────────────────────────────────────── */
+    // `motorVencimientos` no se toca desde el navegador ni con SUPERADMIN: si
+    // algún día se activa Blaze, ese interruptor se abre solo con Admin SDK.
+    match /configuracion/{clave} {
+      allow read: if esOperador();
+      allow write: if esSuperadmin() && clave != 'motorVencimientos';
+    }
+
+    /* ── contactos (formulario público del sitio) ──────────────────── */
+    // KZ-SEC-002: la creación pública se CIERRA. Solo el Worker de captación
+    // (cuenta de servicio / OAuth2) escribe aquí, con validación y límite por
+    // IP. Una escritura directa desde el navegador queda DENEGADA, de modo que
+    // no se puede saltar el control de abuso.
+    //
+    // KZ-OPS-001: el panel SÍ necesita gestionar el seguimiento comercial, y
+    // antes solo un ADMIN podía escribir, sin restricción de campos: un ADMIN
+    // podía reescribir el teléfono, el correo o el mensaje ORIGINAL del lead y
+    // el registro de captación perdía su valor probatorio. Ahora el OPERADOR
+    // puede hacer el seguimiento (es quien llama al cliente) y nadie puede
+    // alterar los datos con los que el lead llegó: nombre, teléfono, correo,
+    // servicio, mensaje y fecha de recepción quedan INMUTABLES.
+    match /contactos/{contactoId} {
+      function identidadDelLeadIntacta() {
+        return request.resource.data.get('nombre', '') == resource.data.get('nombre', '')
+            && request.resource.data.get('telefono', '') == resource.data.get('telefono', '')
+            && request.resource.data.get('email', '') == resource.data.get('email', '')
+            && request.resource.data.get('mensaje', '') == resource.data.get('mensaje', '')
+            && request.resource.data.get('servicio', '') == resource.data.get('servicio', '')
+            && request.resource.data.get('createdAt', null) == resource.data.get('createdAt', null);
+      }
+      function camposDeGestion() {
+        return tocados().hasOnly(['estado', 'seguimiento', 'nota', 'asignadoA',
+                                  'contactadoEn', 'atendidoEn', 'descartadoEn',
+                                  'convertidoEn', 'clienteId',
+                                  'actualizadoEn', 'actualizadoPor']);
+      }
+      function estadoComercialValido() {
+        return request.resource.data.get('estado', 'NUEVO') in [
+          'NUEVO', 'CONTACTADO', 'ATENDIDO', 'DESCARTADO', 'CONVERTIDO'
+        ];
+      }
+      /* Marcar CONVERTIDO sin cliente asociado sería un estado mentiroso. */
+      function conversionConCliente() {
+        return request.resource.data.get('estado', 'NUEVO') != 'CONVERTIDO'
+            || textoNoVacio(request.resource.data.get('clienteId', ''));
+      }
+      function seguimientoEsLista() {
+        return !('seguimiento' in request.resource.data)
+            || request.resource.data.seguimiento is list;
+      }
+      function firmaPropia() {
+        return (!('actualizadoPor' in request.resource.data)
+                 || request.resource.data.actualizadoPor == request.auth.uid);
+      }
+      /* KZ-CRM-FIX-002 · ALTA MANUAL DE PROSPECTOS DESDE EL PANEL.
+         `create` estaba cerrado del todo (KZ-SEC-002) para que nadie pudiera
+         inyectar leads desde un navegador. Eso sigue igual para visitantes
+         anónimos: la única puerta pública es el Worker de captación. Lo que se
+         abre es el alta MANUAL hecha por un OPERADOR autenticado, para los
+         clientes que llegan por WhatsApp, llamada o en persona. Se acota para
+         que no sirva de puerta trasera:
+           · solo los campos del formulario;
+           · nace siempre en estado NUEVO (no se puede crear «CONVERTIDO»);
+           · marcado como origen PANEL, distinto de los leads del sitio;
+           · firmado por quien lo crea (creadoPor == su propio uid);
+           · nombre y teléfono obligatorios y con tope de longitud. */
+      function altaManualValida() {
+        return textoNoVacio(request.resource.data.get('nombre', ''))
+            && request.resource.data.nombre.size() <= 120
+            && textoNoVacio(request.resource.data.get('telefono', ''))
+            && request.resource.data.telefono.size() <= 30
+            && request.resource.data.get('estado', '') == 'NUEVO'
+            && request.resource.data.get('origen', '') == 'PANEL'
+            && request.resource.data.get('creadoPor', '') == request.auth.uid
+            && (!('email' in request.resource.data) || request.resource.data.email.size() <= 120)
+            && (!('servicio' in request.resource.data) || request.resource.data.servicio.size() <= 120)
+            && (!('mensaje' in request.resource.data) || request.resource.data.mensaje.size() <= 1000)
+            && request.resource.data.keys().hasAll(['nombre', 'telefono', 'estado', 'createdAt'])
+            && request.resource.data.keys().hasOnly([
+                 'nombre', 'telefono', 'email', 'servicio', 'mensaje', 'estado',
+                 'origen', 'creadoPor', 'creadoPorNombre', 'createdAt'
+               ]);
+      }
+
+      allow create: if esOperador() && altaManualValida();
+      allow read: if esOperador();
+      allow update: if esOperador()
+        && identidadDelLeadIntacta()
+        && camposDeGestion()
+        && estadoComercialValido()
+        && conversionConCliente()
+        && seguimientoEsLista()
+        && firmaPropia();
+      allow delete: if esAdmin();
+    }
+
+    /* ── suscriptores_web (avisos push de los visitantes) ──────────── */
+    match /suscriptores_web/{token} {
+      allow create: if true
+        && request.resource.data.token is string
+        && request.resource.data.token == token
+        && request.resource.data.token.size() > 40
+        && request.resource.data.keys().hasOnly(
+             ['token','creadoEn','origen','pagina','idioma','plataforma','activo']
+           );
+      allow update: if true
+        && request.resource.data.token == token
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['creadoEn','pagina','idioma','plataforma','activo']);
+      allow read: if esOperador();
+      allow delete: if esAdmin();
+    }
+
+    /* ── eventos (analítica de las tarjetas) ───────────────────────── */
+    match /eventos/{id} {
+      allow create: if true
+        && request.resource.data.tarjeta is string
+        && request.resource.data.evento is string
+        && request.resource.data.keys().hasOnly(['tarjeta','evento','etiqueta','pagina','ts','ua']);
+      allow read: if esOperador();
+      allow update, delete: if false;
+    }
+
+    /* ── cotizaciones (KZ-CRM-COTIZACIONES-002) ──────────────────────
+       Registro INTERNO de la cotización: solo lo lee el equipo. El cliente
+       NUNCA toca esta colección; ve una proyección en `cotizaciones_publicas`.
+       Decisiones aprobadas por Darwin:
+         · crear y enviar: OPERADOR y ADMIN;
+         · reabrir o anular: solo ADMIN;
+         · nada se borra (salvo un borrador, y solo ADMIN). */
+    match /cotizaciones/{cotizacionId} {
+      function estadoValido(v) {
+        return v in ['BORRADOR', 'ENVIADA', 'ACEPTADA', 'RECHAZADA'];
+      }
+      // El total no se envía «a dedo»: tiene que cuadrar con sus partes.
+      function importesCoherentes() {
+        return request.resource.data.subtotal is number
+            && request.resource.data.subtotal >= 0
+            && request.resource.data.descuento is number
+            && request.resource.data.descuento >= 0
+            && request.resource.data.total is number
+            && request.resource.data.total >= 0
+            && request.resource.data.descuento <= request.resource.data.subtotal
+            && request.resource.data.total == request.resource.data.subtotal - request.resource.data.descuento;
+      }
+      function itemsValidos() {
+        return request.resource.data.items is list
+            && request.resource.data.items.size() > 0
+            && request.resource.data.items.size() <= 30;
+      }
+      // Volver de un estado final a borrador es REABRIR: solo ADMIN.
+      function reapertura() {
+        return request.resource.data.get('estado', '') == 'BORRADOR'
+            && resource.data.get('estado', '') != 'BORRADOR';
+      }
+      function camposPermitidos() {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'numero', 'version', 'estado', 'items', 'subtotal', 'descuento', 'total',
+          'notaCliente', 'notasInternas', 'formaPago', 'validaHasta',
+          'enviadaEn', 'respondidaEn', 'motivoRechazo', 'token',
+          'clienteId', 'actualizadoEn', 'actualizadoPor'
+        ]);
+      }
+
+      allow read: if esOperador();
+      allow create: if esOperador()
+        && request.resource.data.creadoPor == request.auth.uid
+        && estadoValido(request.resource.data.get('estado', ''))
+        && itemsValidos()
+        && importesCoherentes();
+      allow update: if esOperador()
+        && camposPermitidos()
+        && estadoValido(request.resource.data.get('estado', ''))
+        && request.resource.data.creadoPor == resource.data.creadoPor
+        && itemsValidos()
+        && importesCoherentes()
+        && (!reapertura() || esAdmin());
+      allow delete: if esAdmin() && resource.data.get('estado', '') == 'BORRADOR';
+    }
+
+    /* ── cotizaciones_publicas · lo que ve el cliente ─────────────────
+       Es una PROYECCIÓN sin datos internos (notas, correo, identificadores).
+       Las reglas de Firestore no pueden ocultar campos: si el documento es
+       legible, se lee entero. De ahí que sean dos documentos.
+
+       El enlace se comparte por WhatsApp y se abre SIN sesión:
+         · `get` público y `list` solo para el equipo (KZ-CRM-COTIZACIONES-004):
+           sin el token, un anónimo no llega a nada, pero el panel SÍ puede
+           escuchar la colección con onSnapshot y enterarse al instante de la
+           respuesta del cliente sin recargar la página;
+         · el token es aleatorio de 128 bits, no adivinable;
+         · el cliente solo puede responder (aceptar/rechazar) y solo si la
+           cotización está ENVIADA; no puede tocar importes ni contenido. */
+    match /cotizaciones_publicas/{token} {
+      function respuestaDelCliente() {
+        return resource.data.get('estado', '') == 'ENVIADA'
+            && request.resource.data.get('estado', '') in ['ACEPTADA', 'RECHAZADA']
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['estado', 'respondidaEn'])
+            && request.resource.data.get('respondidaEn', null) == request.time;
+      }
+      allow get: if true;
+      allow list: if esOperador();
+      allow create: if esOperador();
+      allow update: if esOperador() || respuestaDelCliente();
+      allow delete: if esOperador();
+    }
+
+    /* ── numeración de cotizaciones ──────────────────────────────────
+       `configuracion` exige SUPERADMIN para escribir, y quien cotiza es un
+       OPERADOR. Este bloque abre SOLO el documento del contador, y solo con
+       esa forma, para que la numeración se pueda hacer en una transacción. */
+    match /configuracion/contadores_cotizacion {
+      allow read: if esOperador();
+      allow create, update: if esOperador()
+        && request.resource.data.keys().hasOnly(['anio', 'ultimo', 'actualizadoEn'])
+        && request.resource.data.anio is number
+        && request.resource.data.ultimo is number
+        && request.resource.data.ultimo >= 1;
+    }
+
+    /* ── Denegar todo lo demás ─────────────────────────────────────── */
+    /* ── crm_prospectos · seguimiento comercial (KZ-UNIFICACION-002) ──────────
+     Alcance nuevo y único. NO amplía clientes, contactos, usuarios, pagos,
+     servicios ni cotizaciones. Escritura solo ADMIN/SUPERADMIN; OPERADOR no.
+     El navegador no puede suplantar al responsable ni tocar campos de auditoría. */
+  match /crm_prospectos/{prospectoId} {
+    function estadosValidos() {
+      return ['NUEVO','PENDIENTE_CONTACTAR','CONTACTADO','COTIZACION_ENVIADA','NEGOCIACION','GANADO','PERDIDO'];
+    }
+    function camposAlta() {
+      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','huella','creadoEn','actualizadoEn','creadoPor','version'];
+    }
+    function camposEdicion() {
+      return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','actualizadoEn','version'];
+    }
+    allow read: if esAdmin() || esSuperadmin();
+    allow create: if (esAdmin() || esSuperadmin())
+      && request.resource.data.keys().hasOnly(camposAlta())
+      && request.resource.data.nombre is string
+      && request.resource.data.nombre.size() >= 2 && request.resource.data.nombre.size() <= 120
+      && request.resource.data.telefono is string
+      && request.resource.data.telefono.size() >= 7 && request.resource.data.telefono.size() <= 20
+      && request.resource.data.servicio is string && request.resource.data.servicio.size() <= 60
+      && request.resource.data.estado in estadosValidos()
+      && (!('notas' in request.resource.data) || request.resource.data.notas is list)
+      && request.resource.data.creadoPor == request.auth.uid
+      && request.resource.data.creadoEn == request.time
+      && request.resource.data.actualizadoEn == request.time;
+    allow update: if (esAdmin() || esSuperadmin())
+      && request.resource.data.diff(resource.data).affectedKeys().hasOnly(camposEdicion())
+      && request.resource.data.estado in estadosValidos()
+      && request.resource.data.creadoPor == resource.data.creadoPor
+      && request.resource.data.actualizadoEn == request.time;
+    /* KZ-UNIFICACION-002 · Historial INMUTABLE por subcolección.
+       Una lista dentro del documento NO puede demostrarse append-only con reglas
+       (size()+1 no impide reemplazarla por otra lista del mismo tamaño). Cada
+       acción es un documento propio: se crea y nunca se edita ni se borra. */
+    match /acciones/{accionId} {
+      allow read: if esAdmin() || esSuperadmin();
+      allow create: if (esAdmin() || esSuperadmin())
+        && request.resource.data.keys().hasOnly(['tipo','detalle','desde','hacia','autor','fecha'])
+        && request.resource.data.tipo in ['alta','estado','nota']
+        && request.resource.data.autor == request.auth.uid
+        && request.resource.data.fecha == request.time
+          && (request.resource.data.tipo != 'estado' || (
+               request.resource.data.desde in ['NUEVO','PENDIENTE_CONTACTAR','CONTACTADO','COTIZACION_ENVIADA','NEGOCIACION','GANADO','PERDIDO']
+               && request.resource.data.hacia in ['NUEVO','PENDIENTE_CONTACTAR','CONTACTADO','COTIZACION_ENVIADA','NEGOCIACION','GANADO','PERDIDO']
+               && request.resource.data.desde != request.resource.data.hacia));
+      allow update, delete: if false;
+    }
+    allow delete: if false;
+  }
+  /* KZ-MANAGER-IA-REAL-004 · Lectura del SERVIDOR DE REPORTES (delta ADITIVO).
+     En Firestore los bloques que apuntan a la misma ruta se COMBINAN con OR, y
+     la denegación del bloque final NO anula una autorización. Por eso este
+     bloque concede lectura sin tocar una línea de los permisos existentes de
+     OPERADOR/ADMIN: si se retira, todo queda exactamente como estaba.
+     Sólo abre esta puerta el claim firmado CARD_SPARK_REPORT_SERVER, que emite
+     el servidor. No concede escritura, no toca otras colecciones y no permite
+     elegir documentos por ruta arbitraria: sólo get/list en estas cinco. */
+  function esServidorReportes() {
+    return estaAutenticado()
+      && request.auth.token.get('rol', '') == 'CARD_SPARK_REPORT_SERVER';
+  }
+  match /clientes/{clienteId}        { allow read: if esServidorReportes(); }
+  match /servicios/{servicioId}      { allow read: if esServidorReportes(); }
+  match /pagos/{pagoId}              { allow read: if esServidorReportes(); }
+  match /cotizaciones/{cotizacionId} { allow read: if esServidorReportes(); }
+  match /contactos/{contactoId}      { allow read: if esServidorReportes(); }
+
+  match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
