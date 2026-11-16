@@ -921,10 +921,10 @@
          es una pregunta de precio, no de producto. */
       if (has(['cuanto cuesta', 'cuanto vale', 'precio', 'precios', 'cuesta', 'costo', 'valor', 'tarifa', 'presupuesto'])
           && has(['tarjeta', 'tarjetas'])) {
-        return { text: 'Las Mini Web van desde $49.900 💳:\n\n• Mini Web Básica $49.900 — tu presentación: contacto, WhatsApp, redes, ubicación y QR.\n• Mini Web Pro $99.900 — añade catálogo o menú, precios y galería.\n\nLas dos son de pago único y el dominio está incluido el primer año. ¿Te recomiendo una según tu negocio?', cta: true };
+        return { text: 'Las Mini Web van desde $49.900 💳:\n\n• Mini Web Básica $49.900 — tu presentación: contacto, WhatsApp, redes, ubicación y QR.\n• Mini Web Pro $99.900 — añade catálogo o menú, precios y galería.\n\nLas dos tienen precio de desarrollo acordado; publicación y dominio propio se especifican antes de contratar. ¿Te recomiendo una según tu negocio?', cta: true };
       }
       if (has(['paquete', 'paquetes', 'todo en uno', 'combo'])) { // verificar-precios:ok (es la palabra que escribe el cliente, no una oferta)
-        return { text: 'Tenemos 2 Mini Webs 🎯:\n\n• Mini Web Básica $49.900 — contacto, redes, ubicación y QR.\n• Mini Web Pro $99.900 ⭐ la más pedida — catálogo o menú, galería y botón de pedido.\n\n\nPago único, con dominio incluido el primer año. Otros servicios (landing, catálogo, menú, QR o agente IA) se cotizan.\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
+        return { text: 'Tenemos 2 Mini Webs 🎯:\n\n• Mini Web Básica $49.900 — contacto, redes, ubicación y QR.\n• Mini Web Pro $99.900 ⭐ la más pedida — catálogo o menú, galería y botón de pedido.\n\n\nPrecio por desarrollo; publicación, dominio y servicios externos se detallan en la propuesta. Otros servicios (landing, catálogo, menú, QR o agente IA) se cotizan.\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
       }
 
       /* ── Programa de aliados ────────────────────────────────────────
@@ -941,15 +941,15 @@
                'marca blanca', 'afiliado', 'afiliados',
                'comprar al por mayor', 'al por mayor', 'por mayor'])
           || (has(['ganar', 'ganancia', 'gano', 'margen']) && has(['tarjeta', 'tarjetas', 'vender', 'venda', 'vendo', 'vendiendo']))) {
-        return { text: '¡Sí! Tenemos un programa de aliados para que ganes vendiendo nuestras Mini Webs 🤝\n\n*Opción 1 · Distribuidor* (la más rentable)\nCompras a precio de aliado y vendes al precio que quieras:\n• Bronce (1 a 4 ventas/mes) · 30% → Básica $34.930 · Pro $69.930\n• Plata (5 a 9) · 40% → Básica $29.940 · Pro $59.940\n• Oro (10 o más) · 50% → Básica $24.950 · Pro $49.950\n\n*Opción 2 · Referido* (sin invertir nada)\nSolo presentas el cliente y ganas el 20%: $9.980 (Básica) o $19.980 (Pro).\n\n🎁 Al activarte te llevas una Mini Web Pro de muestra con 50% de descuento ($49.950), y gratis al completar tus primeras 5 ventas cerradas.\n\nNosotros hacemos el diseño, el hosting y el soporte: tú te concentras en vender.\n\nVer tablas completas: https://konfiozinc.github.io/card/aliados.html\n\n¿Quieres que te active como aliado?', cta: true };
+        return { text: '¡Sí! Tenemos un programa de aliados para que ganes vendiendo nuestras Mini Webs 🤝\n\n*Opción 1 · Distribuidor* (la más rentable)\nCompras a precio de aliado y vendes al precio que quieras:\n• Bronce (1 a 4 ventas/mes) · 30% → Básica $34.930 · Pro $69.930\n• Plata (5 a 9) · 40% → Básica $29.940 · Pro $59.940\n• Oro (10 o más) · 50% → Básica $24.950 · Pro $49.950\n\n*Opción 2 · Referido* (sin invertir nada)\nSolo presentas el cliente y ganas el 20%: $9.980 (Básica) o $19.980 (Pro).\n\nLa agencia desarrolla la Mini Web; la publicación y el soporte dependen del alcance acordado.\n\nVer tablas completas: https://konfiozinc.github.io/card/aliados.html\n\n¿Quieres que te active como aliado?', cta: true };
       }
 
       /* ── Mini Webs (producto) ─────────────────────────────── */
       if (has(['tarjeta', 'tarjetas'])) {
-        return { text: 'La Mini Web es tu presentación en un solo enlace (antes se llamaba tarjeta digital) 💳: contacto, WhatsApp, redes, ubicación, servicios y galería. Se actualiza al instante y reemplaza el papel.\n\nHay dos planes: Mini Web Básica $49.900 y Mini Web Pro $99.900, las dos de pago único.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
+        return { text: 'La Mini Web es tu presentación en un solo enlace (antes se llamaba tarjeta digital) 💳: contacto, WhatsApp, redes, ubicación, servicios y galería. Los contenidos pueden actualizarse al publicar cambios y sustituir materiales impresos.\n\nHay dos planes: Mini Web Básica $49.900 y Mini Web Pro $99.900, las dos de pago único.\n\n¿Quieres ver un ejemplo o cotizarla?', cta: true };
       }
       if (has(['landing', 'pagina', 'landing page', 'landing pages'])) {
-        return { text: 'Creamos landing pages profesionales en 3 planes 🚀:\n\n• *ECO $699.000* — diseño estándar, banner estático, hasta 5 bloques y 1 correo corporativo.\n• *SMART $1.099.000* ⭐ la más pedida — diseño profesional, hasta 10 bloques, formulario personalizado, 5 correos y optimización SEO técnica.\n• *POWER $1.399.000* — diseño exclusivo, animaciones, reCAPTCHA, panel de administración, Google Analytics 4 y optimización SEO técnica.\n\nLos tres incluyen hosting y dominio por 1 año ✅\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
+        return { text: 'Creamos landing pages profesionales en 3 planes 🚀:\n\n• *ECO $699.000* — diseño estándar, banner estático y hasta 5 bloques.\n• *SMART $1.099.000* — diseño profesional, hasta 10 bloques y SEO técnico básico.\n• *POWER $1.399.000* — diseño personalizado y opciones de medición sujetas a configuración.\n\nLa publicación puede realizarse en GitHub Pages; dominio propio, correo empresarial y formularios con servidor se cotizan por separado.\n\n¿Cuál encaja mejor con tu negocio?', cta: true };
       }
       if (has(['catalogo', 'catalogos'])) {
         return { text: 'Tu catálogo digital te permite mostrar productos con fotos y precios actualizables, y compartirlo por WhatsApp o redes 📖. Desde $120.000.\n\n¿Qué tipo de productos o servicios ofreces?', cta: true };
