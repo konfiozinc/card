@@ -88,7 +88,7 @@ const sesionRest = await exigir('Iniciar sesion con la cuenta sembrada', async (
 
 const reglas = await exigir('Reglas del repositorio cargadas en el emulador', async () => {
   const r = await comprobarReglasActivas({ proyecto: PROYECTO });
-  return { valor: r, detalle: `lectura anonima denegada con HTTP ${r.estado}` };
+  return { valor: r, detalle: `anonimo denegado: lectura HTTP ${r.lectura}, escritura HTTP ${r.escritura}` };
 });
 
 /* -- Fase 2: navegador -- */
@@ -268,6 +268,6 @@ try {
 
 const fallos = resultados.filter((r) => r.e !== 'PASS').length;
 console.log(`RESUMEN: ${preparacion.length + resultados.length} comprobaciones (preparacion=${preparacion.length}, navegador=${resultados.length}) | PASS=${preparacion.filter((p) => p.e === 'PASS').length + resultados.length - fallos} | FAIL=${fallos}`);
-console.log(`emuladores: auth ${tiempos.auth} ms, firestore ${tiempos.firestore} ms | uid=${uid} | rol=${sesionRest.rol} | reglas HTTP ${reglas.estado}`);
+console.log(`emuladores: auth ${tiempos.auth} ms, firestore ${tiempos.firestore} ms | uid=${uid} | rol=${sesionRest.rol} | anonimo denegado: lectura ${reglas.lectura}, escritura ${reglas.escritura}`);
 console.log(fallos === 0 ? 'RESULTADO GLOBAL: PASS' : 'RESULTADO GLOBAL: FAIL');
 process.exit(fallos === 0 ? 0 : 1);

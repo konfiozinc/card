@@ -85,25 +85,75 @@ try {
   $aislado = Join-Path $PSScriptRoot 'siembra-login.mjs'
   $servidor = Join-Path $PSScriptRoot 'servidor-aislado.mjs'
   $guion = Join-Path $PSScriptRoot 'visual-completo.mjs'
-  $config = Join-Path $PSScriptRoot 'firebase.emuladores.json'
-  foreach ($f in @($entorno, $aislado, $servidor, $guion, $config)) {
+  foreach ($f in @($entorno, $aislado, $servidor, $guion)) {
     if (-not (Test-Path $f)) { Paso "FATAL: falta $f"; Paso 'RESULTADO: FAIL (archivos)'; exit 1 }
     Paso "  OK $(Split-Path $f -Leaf)"
   }
   if ($demo -notlike 'demo-*') { Paso 'FATAL: el proyecto debe ser demo-*'; exit 1 }
 
-  # Las reglas deben cargarse de verdad. El 15-nov el JSON apuntaba a
-  # pruebas/firestore.rules (que no existe), firebase-tools avisaba "default
-  # allowing all reads and writes" y el emulador corria SIN reglas.
-  $objConfig = Get-Content $config -Raw | ConvertFrom-Json
-  $rutaReglas = Join-Path $PSScriptRoot $objConfig.firestore.rules
-  if (-not (Test-Path $rutaReglas)) { Paso "FATAL: las reglas configuradas no existen: $rutaReglas"; Paso 'RESULTADO: FAIL (reglas)'; exit 1 }
-  Paso "  OK reglas del emulador -> $(Split-Path $rutaReglas -Leaf) (existe)"
-
   foreach ($f in @('admin\seguimiento.js', 'admin\seguimiento.html')) {
     $txt = Get-Content (Join-Path $raiz $f) -Raw
     if ($txt -match 'konfio-zinc') { Falla "$f menciona el proyecto productivo" } else { Paso "  OK $f sin referencias productivas" }
   }
+
+  # ---------------------------------------------------------------------------
+  # 2b - Directorio temporal exclusivo del emulador
+  #
+  # firebase-tools resuelve la ruta de reglas contra el directorio del ARCHIVO DE
+  # CONFIGURACION (lib/detectProjectRoot.js: projectDir = dirname(configPath)) y
+  # rechaza cualquier ruta que se salga de el (lib/config.js:140-142):
+  #     "../firestore.rules is outside of project directory"
+  # Por eso la configuracion vive junto a una COPIA de las reglas: asi la ruta
+  # "firestore.rules" queda dentro del directorio del proyecto y el original
+  # firestore.rules del repositorio no se toca ni se mueve.
+  # ---------------------------------------------------------------------------
+  Paso '== 2b - Directorio temporal del emulador =='
+  $dirEmu = Join-Path $PSScriptRoot 'emulador-temporal'
+  if (Test-Path $dirEmu) { Remove-Item $dirEmu -Recurse -Force }
+  New-Item -ItemType Directory -Force -Path $dirEmu | Out-Null
+
+  $reglasOrigen = Join-Path $raiz 'firestore.rules'
+  if (-not (Test-Path $reglasOrigen)) { Paso "FATAL: no existe $reglasOrigen"; Paso 'RESULTADO: FAIL (reglas)'; exit 1 }
+  $reglasCopia = Join-Path $dirEmu 'firestore.rules'
+  Copy-Item -Path $reglasOrigen -Destination $reglasCopia -Force
+
+  $hashOrigen = (Get-FileHash $reglasOrigen -Algorithm SHA256).Hash
+  $hashCopia = (Get-FileHash $reglasCopia -Algorithm SHA256).Hash
+  if ($hashOrigen -ne $hashCopia) {
+    Paso 'FATAL: la copia de las reglas no es identica al original'
+    Paso "  original: $hashOrigen"
+    Paso "  copia   : $hashCopia"
+    Paso 'RESULTADO: FAIL (reglas)'
+    exit 1
+  }
+  Paso "  OK copia identica al original (SHA-256 " + $hashOrigen.Substring(0, 16) + "...)"
+  Paso "  OK original intacto: firestore.rules ($((Get-Item $reglasOrigen).Length) bytes)"
+
+  $config = Join-Path $dirEmu 'firebase.json'
+  $jsonEmu = @'
+{
+  "emulators": {
+    "auth": { "port": 9099 },
+    "firestore": { "port": 8080 },
+    "ui": { "enabled": false }
+  },
+  "firestore": { "rules": "firestore.rules" }
+}
+'@
+  Set-Content -Path $config -Value $jsonEmu -Encoding ASCII
+  $objConfig = Get-Content $config -Raw | ConvertFrom-Json
+  $valorReglas = $objConfig.firestore.rules
+  if ($valorReglas -match '\.\.') {
+    Paso "FATAL: la ruta de reglas se sale del directorio del proyecto ($valorReglas)"
+    Paso 'RESULTADO: FAIL (reglas)'
+    exit 1
+  }
+  if (-not (Test-Path (Join-Path $dirEmu $valorReglas))) {
+    Paso "FATAL: la ruta de reglas configurada no existe dentro de $dirEmu"
+    Paso 'RESULTADO: FAIL (reglas)'
+    exit 1
+  }
+  Paso "  OK firebase.json generado con rules = `"$valorReglas`" (dentro del mismo directorio)"
 
   Paso '== 3 - Puertos libres antes de arrancar =='
   $ocupados = PuertosOcupados
@@ -131,12 +181,13 @@ try {
   # Se reutiliza la CLI ya instalada (regla de oro del entorno): no hace falta
   # resolver firebase-tools contra el registro en cada corrida.
   $cliFirebase = Get-Command 'firebase.cmd' -ErrorAction SilentlyContinue
+  Paso "  raiz del emulador: $dirEmu"
   if ($cliFirebase) {
     Paso "  CLI instalada: $($cliFirebase.Source)"
-    $emuladores = Start-Process -FilePath $cliFirebase.Source -ArgumentList $argsEmu -PassThru -WindowStyle Hidden -RedirectStandardOutput $logSalida -RedirectStandardError $logError
+    $emuladores = Start-Process -FilePath $cliFirebase.Source -ArgumentList $argsEmu -PassThru -WindowStyle Hidden -WorkingDirectory $dirEmu -RedirectStandardOutput $logSalida -RedirectStandardError $logError
   } else {
     Paso '  CLI no instalada: se usa npx --yes firebase-tools'
-    $emuladores = Start-Process -FilePath 'npx.cmd' -ArgumentList (@('--yes', 'firebase-tools') + $argsEmu) -PassThru -WindowStyle Hidden -RedirectStandardOutput $logSalida -RedirectStandardError $logError
+    $emuladores = Start-Process -FilePath 'npx.cmd' -ArgumentList (@('--yes', 'firebase-tools') + $argsEmu) -PassThru -WindowStyle Hidden -WorkingDirectory $dirEmu -RedirectStandardOutput $logSalida -RedirectStandardError $logError
   }
 
   Paso '== 5 - Caso aislado: disponibilidad, siembra y login (sin navegador) =='
@@ -180,6 +231,20 @@ try {
 
   Paso '== 8 - Cierre verificado de los procesos de la prueba =='
   CerrarPropios
+
+  # Los logs propios del emulador se escriben en su directorio raiz: se copian a
+  # evidencias para que queden junto al resto de la corrida.
+  foreach ($n in @('firebase-debug.log', 'firestore-debug.log')) {
+    $origen = Join-Path $dirEmu $n
+    if (Test-Path $origen) {
+      Copy-Item $origen (Join-Path $evid $n) -Force
+      $avisoReglas = Select-String -Path $origen -Pattern 'allowing all reads and writes|outside of project directory' -ErrorAction SilentlyContinue
+      if ($avisoReglas) { Falla "$n contiene un aviso de reglas no aplicadas o de ruta fuera del proyecto" } else { Paso "  OK $n copiado a evidencias (sin avisos de reglas)" }
+    } else {
+      Paso "  nota: no se encontro $n en el directorio del emulador"
+    }
+  }
+
   $restantes = PuertosOcupados
   if ($restantes.Count -gt 0) {
     Falla ("siguen escuchando tras el cierre: " + ($restantes -join ',') + " (la corrida anterior dejaba java en 8080 y node en 9099)")

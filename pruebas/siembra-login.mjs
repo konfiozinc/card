@@ -65,9 +65,9 @@ try {
 /* 4 - control negativo: sin credenciales la coleccion nueva esta cerrada */
 try {
   const r = await comprobarReglasActivas({ proyecto });
-  anota('Reglas del repositorio cargadas (lectura anonima denegada)', null, `HTTP ${r.estado}`);
+  anota('Reglas del repositorio cargadas (anonimo denegado)', null, `lectura HTTP ${r.lectura}, escritura HTTP ${r.escritura}`);
 } catch (e) {
-  anota('Reglas del repositorio cargadas (lectura anonima denegada)', e, e.message);
+  anota('Reglas del repositorio cargadas (anonimo denegado)', e, e.message);
 }
 
 const fallos = resultados.filter((r) => r.e !== 'PASS').length;

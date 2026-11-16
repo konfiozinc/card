@@ -193,10 +193,19 @@ export async function comprobarLogin({ proyecto, email, clave, uidEsperado } = {
  * Control negativo: sin credenciales, la coleccion nueva debe estar cerrada.
  * Demuestra que el emulador corre CON las reglas del repositorio y no abierto.
  */
-export async function comprobarReglasActivas({ proyecto } = {}) {
-  const url = `${FS_EMU}/v1/projects/${proyecto}/databases/(default)/documents/crm_prospectos?pageSize=1`;
-  const r = await pedir('GET', url, { servicio: 'firestore-emulator' });
-  if (r.ok) throw new Error(`crm_prospectos respondio HTTP ${r.status} SIN credenciales: las reglas del repositorio no estan aplicadas`);
-  if (![401, 403].includes(r.status)) throw new Error(`respuesta inesperada sin credenciales: HTTP ${r.status}`);
-  return { estado: r.status };
+export async function comprobarReglasActivas({ proyecto, coleccion = 'crm_prospectos' } = {}) {
+  const base = `${FS_EMU}/v1/projects/${proyecto}/databases/(default)/documents/${coleccion}`;
+
+  const lectura = await pedir('GET', `${base}?pageSize=1`, { servicio: 'firestore-emulator' });
+  if (lectura.ok) throw new Error(`lectura anonima de ${coleccion} respondio HTTP ${lectura.status}: las reglas del repositorio NO estan aplicadas`);
+  if (![401, 403].includes(lectura.status)) throw new Error(`lectura anonima de ${coleccion}: respuesta inesperada HTTP ${lectura.status}`);
+
+  const escritura = await pedir('PATCH', `${base}/__sonda-reglas`, {
+    cuerpo: { fields: { sonda: { stringValue: 'kz-unificacion-002' } } },
+    servicio: 'firestore-emulator',
+  });
+  if (escritura.ok) throw new Error(`escritura anonima en ${coleccion} respondio HTTP ${escritura.status}: las reglas del repositorio NO estan aplicadas`);
+  if (![401, 403].includes(escritura.status)) throw new Error(`escritura anonima en ${coleccion}: respuesta inesperada HTTP ${escritura.status}`);
+
+  return { lectura: lectura.status, escritura: escritura.status };
 }
