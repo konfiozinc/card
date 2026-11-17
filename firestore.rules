@@ -761,6 +761,22 @@ service cloud.firestore {
     function camposEdicion() {
       return ['nombre','telefono','servicio','origen','estado','proximaFecha','notas','actualizadoEn','version'];
     }
+    /* KZ-SEGUIMIENTO-001 · `proximaFecha` es una fecha de calendario en texto
+       ('AAAA-MM-DD') o la cadena vacía, que significa «sin agendar». Antes se
+       aceptaba cualquier cadena. Con solo comprobar el formato cabían fechas que
+       no existen («2026-02-31», «2026-13-01»), así que se validan por patrones:
+       este lenguaje no tiene bucles ni conversión de enteros. El 29 de febrero
+       solo se admite en año bisiesto. */
+    function proximaFechaValida() {
+      let v = request.resource.data.get('proximaFecha', '');
+      return v is string && (
+           v == ''
+        || v.matches('^[0-9]{4}-(0[13578]|1[02])-(0[1-9]|[12][0-9]|3[01])$')
+        || v.matches('^[0-9]{4}-(0[469]|11)-(0[1-9]|[12][0-9]|30)$')
+        || v.matches('^[0-9]{4}-02-(0[1-9]|1[0-9]|2[0-8])$')
+        || v.matches('^([0-9]{2}(0[48]|[2468][048]|[13579][26])|(0[48]|[2468][048]|[13579][26])00)-02-29$')
+      );
+    }
     allow read: if esAdmin() || esSuperadmin();
     allow create: if (esAdmin() || esSuperadmin())
       && request.resource.data.keys().hasOnly(camposAlta())
@@ -771,12 +787,14 @@ service cloud.firestore {
       && request.resource.data.servicio is string && request.resource.data.servicio.size() <= 60
       && request.resource.data.estado in estadosValidos()
       && (!('notas' in request.resource.data) || request.resource.data.notas is list)
+      && proximaFechaValida()
       && request.resource.data.creadoPor == request.auth.uid
       && request.resource.data.creadoEn == request.time
       && request.resource.data.actualizadoEn == request.time;
     allow update: if (esAdmin() || esSuperadmin())
       && request.resource.data.diff(resource.data).affectedKeys().hasOnly(camposEdicion())
       && request.resource.data.estado in estadosValidos()
+      && proximaFechaValida()
       && request.resource.data.creadoPor == resource.data.creadoPor
       && request.resource.data.actualizadoEn == request.time;
     /* KZ-UNIFICACION-002 · Historial INMUTABLE por subcolección.
@@ -787,7 +805,9 @@ service cloud.firestore {
       allow read: if esAdmin() || esSuperadmin();
       allow create: if (esAdmin() || esSuperadmin())
         && request.resource.data.keys().hasOnly(['tipo','detalle','desde','hacia','autor','fecha'])
-        && request.resource.data.tipo in ['alta','estado','nota']
+        /* 'agenda' (KZ-SEGUIMIENTO-001): el acto de fijar o mover el próximo
+           contacto deja su propia acción inmutable, con la fecha en `detalle`. */
+        && request.resource.data.tipo in ['alta','estado','nota','agenda']
         && request.resource.data.autor == request.auth.uid
         && request.resource.data.fecha == request.time
           && (request.resource.data.tipo != 'estado' || (

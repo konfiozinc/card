@@ -83,8 +83,18 @@
         <label for="vg-servicio">Servicio</label>
         <select id="vg-servicio"></select>
       </div>
+      <div class="campo">
+        <label for="vg-proxima">Próximo contacto (opcional)</label>
+        <input id="vg-proxima" type="date" aria-describedby="vg-proxima-ayuda">
+        <span class="celda-suave" id="vg-proxima-ayuda">Si lo dejas vacío, el prospecto queda sin seguimiento agendado.</span>
+      </div>
       <button class="btn btn--primary" type="submit">Registrar prospecto</button>
     </form>
+
+    <!-- Alerta operativa: se rellena al pintar. Spark no tiene procesos en
+         segundo plano, así que el vencimiento se deriva al abrir la página,
+         igual que hacen los vencimientos de clientes. -->
+    <p id="vg-alertas" class="aviso" role="status" aria-live="polite" hidden></p>
 
     <div class="campo" style="margin-top:1.4rem">
       <label for="vg-buscar">Buscar</label>
