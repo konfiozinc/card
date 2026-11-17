@@ -418,12 +418,12 @@ legend { padding: 0 8px; font-weight: 700; font-size: .92rem; color: var(--ui-ac
 .demo--sabores .demo__nav a.activo { background: var(--p); color: #fff; }
 .demo--sabores .demo__foto { border-radius: 18px; }
 
-/* Profesional: limpia, tarjetas con sombra suave */
-.demo--profesional { background: #f8fafc; }
-.demo--profesional .demo__hero { border-bottom: 4px solid var(--s); }
-.demo--profesional .demo__servicio { border-radius: 10px; box-shadow: 0 6px 18px rgba(15, 23, 42, .06); }
-.demo--profesional .demo__h3 { font-size: .95rem; }
-.demo--profesional .demo__foto { border-radius: 10px; }
+/* Ejecutiva: limpia, tarjetas con sombra suave */
+.demo--ejecutiva { background: #f8fafc; }
+.demo--ejecutiva .demo__hero { border-bottom: 4px solid var(--s); }
+.demo--ejecutiva .demo__servicio { border-radius: 10px; box-shadow: 0 6px 18px rgba(15, 23, 42, .06); }
+.demo--ejecutiva .demo__h3 { font-size: .95rem; }
+.demo--ejecutiva .demo__foto { border-radius: 10px; }
 
 @media (prefers-reduced-motion: reduce) {
   .pantalla.activa { animation: none; }

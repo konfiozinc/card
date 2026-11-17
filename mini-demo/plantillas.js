@@ -66,9 +66,9 @@ export const PLANTILLAS = {
     ]
   },
 
-  profesional: {
-    id: "profesional",
-    nombre: "Profesional",
+  ejecutiva: {
+    id: "ejecutiva",
+    nombre: "Ejecutiva",
     lema: "Clara, ordenada y directa al servicio.",
     paraQuien: "Consultores, abogados, médicos, inmobiliarias, servicios.",
     estilo: {
