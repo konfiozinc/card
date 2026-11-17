@@ -334,6 +334,14 @@
             <span class="field-error"></span>
           </div>
 
+          <!-- Autorización obligatoria (KZ-CRM-032). main.js exige esta casilla
+               marcada antes de enviar nada: sin ella el formulario abortaba con
+               «Marca la autorización» y no había forma de cumplirlo. -->
+          <label class="campo-check" for="consentimiento">
+            <input type="checkbox" id="consentimiento" name="consentimiento" required>
+            <span>Autorizo a <strong>KONFÍO ZINC</strong> (Darwin Montalvo) a tratar mis datos para responder a esta solicitud y hacer seguimiento comercial, según la <a href="politica-privacidad.html">política de privacidad</a>.</span>
+          </label>
+
           <button type="submit" class="btn btn-primary btn-lg btn-block"><i class="fas fa-paper-plane"></i> Enviar mensaje</button>
 
           <p class="form-note">También puedes escribirnos directo por <a href="https://wa.me/573206411340?text=Hola%2C%20quiero%20una%20cotizaci%C3%B3n%20para%20mi%20negocio" target="_blank" rel="noopener noreferrer">WhatsApp</a> al +57 320 641 1340 o al correo <a href="mailto:konfiozinc@gmail.com">konfiozinc@gmail.com</a>. Al enviar el formulario serás redirigido a nuestra página de confirmación; tus datos solo se usan para contactarte y nunca los compartimos con terceros.</p>
