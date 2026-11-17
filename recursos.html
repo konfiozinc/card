@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#050B14">
   <meta name="description" content="Recursos de Konfío Zinc sobre mini webs, catálogos, menús digitales y agentes IA.">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'self'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; connect-src 'self' https://calm-heart-6828.konfiozinc.workers.dev; form-action 'self'; base-uri 'self'">
   <meta property="og:title" content="Recursos — Konfío Zinc">
   <meta property="og:description" content="Ideas sobre presencia digital, catálogos, menús y agentes IA para negocios.">
   <meta property="og:type" content="website">
@@ -161,6 +161,38 @@
   </div>
   </div>
 </footer>
+  <div class="kz-fab-wrapper" id="kzFabWrapper">
+  <div class="kz-fab-chat" id="kzFabChat" role="dialog" aria-label="ZINC · Asesor virtual" aria-hidden="true">
+    <div class="kz-chat-header">
+      <div class="kz-avatar" aria-hidden="true">KZ</div>
+      <div class="kz-info">
+        <div class="kz-name">ZINC · Asesor virtual</div>
+        <div class="kz-status"><span class="kz-dot" aria-hidden="true"></span> En línea</div>
+      </div>
+      <button class="kz-close" id="kzFabClose" aria-label="Cerrar chat">✕</button>
+    </div>
+    <div class="kz-chat-body" id="kzFabBody"></div>
+        <div class="kz-chips" id="kzFabChips">
+      <button type="button" data-msg="Ver precios y planes">💰 Ver precios</button>
+      <button type="button" data-msg="Quiero una tarjeta digital">🪪 Tarjeta digital</button>
+      <button type="button" data-msg="Quiero un menú digital">🍽️ Menú digital</button>
+      <button type="button" data-msg="Quiero un catálogo digital">📖 Catálogo</button>
+      <button type="button" data-msg="Quiero una landing page">🚀 Landing page</button>
+      <button type="button" data-msg="Quiero un código QR">📱 Código QR</button>
+      <button type="button" data-msg="Quiero un agente IA">🤖 Agente IA</button>
+      <button type="button" data-msg="Hablar con un asesor humano">👤 Asesor humano</button>
+      <button type="button" class="kz-chips-more" data-more>Ver más opciones</button>
+    </div>
+    <div class="kz-chat-input">
+      <textarea id="kzFabInput" placeholder="Escribe tu mensaje…" rows="1" aria-label="Escribe tu mensaje"></textarea>
+      <button id="kzFabSend" aria-label="Enviar mensaje">➤</button>
+    </div>
+  </div>
+  <button class="kz-fab-btn" id="kzFabToggle" aria-label="Abrir chat con asesor IA" aria-expanded="false" aria-controls="kzFabChat">
+    <span class="kz-dot" aria-hidden="true"></span>
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M12 5V3.6"/><circle cx="12" cy="2.6" r="1" fill="currentColor" stroke="none"/><rect x="4.5" y="6" width="15" height="11" rx="3"/><circle cx="9.2" cy="11" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.8" cy="11" r="1.2" fill="currentColor" stroke="none"/><path d="M9.5 14.5h5"/><path d="M2.5 11v3M21.5 11v3"/></svg>
+  </button>
+</div>
   <script src="assets/js/main.js" defer></script>
 </body>
 </html>
