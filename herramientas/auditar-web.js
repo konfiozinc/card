@@ -34,8 +34,10 @@ async function medir(page, url, tam) {
     const links = document.getElementById('navLinks');
     const cta = document.querySelector('.nav-cta');
     const btn = document.querySelector('a.btn-primary, .btn-primary, a.button--primary');
+    const fab = document.querySelector('.kz-fab-wrapper');
     const visible = (el) => !!el && el.getBoundingClientRect().width > 0 && g(el, 'display') !== 'none' && g(el, 'visibility') !== 'hidden';
     const cajaCta = cta ? cta.getBoundingClientRect() : null;
+    const cajaFab = fab ? fab.getBoundingClientRect() : null;
     return {
       titulo: document.title,
       headerClase: header ? header.className : null,
@@ -47,14 +49,18 @@ async function medir(page, url, tam) {
       ctaTexto: cta ? cta.textContent.trim().replace(/\s+/g, ' ') : null,
       ctaVisible: visible(cta),
       ctaEnViewport: cajaCta ? (cajaCta.top >= 0 && cajaCta.bottom <= window.innerHeight && cajaCta.right <= window.innerWidth) : false,
+      /* El CTA flotante del sitio es el Asesor (.kz-fab-wrapper): kz-neon.css
+         oculta .wa-float con !important a proposito, para no duplicar accesos. */
+      asesorVisible: visible(fab),
+      asesorEnViewport: cajaFab ? (cajaFab.top >= 0 && cajaFab.bottom <= window.innerHeight && cajaFab.width > 0) : false,
       fuenteCuerpo: g(document.body, 'fontFamily'),
       colorMarca: btn ? g(btn, 'backgroundColor') : null,
       footerColumnas: document.querySelectorAll('footer .footer-col').length,
       mainJs: !!Array.from(document.scripts).find((s) => (s.src || '').includes('assets/js/main.js')),
     };
-  }).catch(() => ({ error: 'evaluate fallÃ³' }));
+  }).catch(() => ({ error: 'evaluate fallÃƒÂ³' }));
 
-  // Â¿El menu movil funciona de verdad? Solo tiene sentido en movil y si hay boton.
+  // Ã‚Â¿El menu movil funciona de verdad? Solo tiene sentido en movil y si hay boton.
   let menuAbre = null;
   if (tam.n === 'movil' && r.tieneToggle && r.toggleVisible) {
     try {
@@ -87,21 +93,23 @@ async function medir(page, url, tam) {
   await navegador.close();
   fs.writeFileSync(SALIDA, JSON.stringify(filas, null, 1), 'utf8');
 
-  const cab = ['pagina', 'tam', 'header', 'tog', 'togVis', 'menuAbre', 'cta', 'ctaVis', 'ctaVP', 'footerCol', 'mainJs', 'consola'];
-  console.log(cab.map((c) => c.padEnd(9)).join(' '));
+  const cab = ['pagina', 'tam', 'header', 'tog', 'togVis', 'menuAbre', 'cta', 'ctaVis', 'ctaVP', 'asesor', 'asesVP', 'footCol', 'mainJs', 'consola'];
+  console.log(cab.map((c) => c.padEnd(8)).join(' '));
   for (const f of filas) {
     console.log([
-      f.pagina.replace('.html', '').slice(0, 9).padEnd(9),
-      f.tam.padEnd(9),
-      String(f.headerClase || '(sin)').slice(0, 9).padEnd(9),
-      (f.tieneToggle ? 'si' : 'NO').padEnd(9),
-      (f.toggleVisible ? 'si' : 'NO').padEnd(9),
-      String(f.menuAbre === null ? 'â€”' : f.menuAbre).padEnd(9),
-      (f.ctaTexto ? 'si' : 'NO').padEnd(9),
-      (f.ctaVisible ? 'si' : 'NO').padEnd(9),
-      (f.ctaEnViewport ? 'si' : 'NO').padEnd(9),
-      String(f.footerColumnas).padEnd(9),
-      (f.mainJs ? 'si' : 'NO').padEnd(9),
+      f.pagina.replace('.html', '').slice(0, 8).padEnd(8),
+      f.tam.padEnd(8),
+      String(f.headerClase || '(sin)').slice(0, 8).padEnd(8),
+      (f.tieneToggle ? 'si' : 'NO').padEnd(8),
+      (f.toggleVisible ? 'si' : 'NO').padEnd(8),
+      String(f.menuAbre === null ? '-' : f.menuAbre).padEnd(8),
+      (f.ctaTexto ? 'si' : 'NO').padEnd(8),
+      (f.ctaVisible ? 'si' : 'NO').padEnd(8),
+      (f.ctaEnViewport ? 'si' : 'NO').padEnd(8),
+      (f.asesorVisible ? 'si' : 'NO').padEnd(8),
+      (f.asesorEnViewport ? 'si' : 'NO').padEnd(8),
+      String(f.footerColumnas).padEnd(8),
+      (f.mainJs ? 'si' : 'NO').padEnd(8),
       String(f.erroresConsola),
     ].join(' '));
   }

@@ -20,7 +20,8 @@
 <meta property="og:description" content="Demostraciones interactivas de tarjeta digital, menú digital y Mini Web. Elige tu industria y pide una propuesta.">
 <meta property="og:url" content="https://konfiozinc.github.io/card/soluciones.html">
 
-<link rel="stylesheet" href="assets/css/styles.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/styles.css">
 <link rel="stylesheet" href="assets/css/kz-neon.css">
 <link rel="stylesheet" href="assets/css/conversion-015.css">
 <link rel="stylesheet" href="assets/css/kz-rescate-001.css">
@@ -281,6 +282,49 @@
   </div>
   </div>
 </footer>
-<script src="assets/js/main.js" defer></script>
+  <div class="kz-fab-wrapper" id="kzFabWrapper">
+  <div class="kz-fab-chat" id="kzFabChat" role="dialog" aria-label="ZINC · Asesor virtual" aria-hidden="true">
+    <div class="kz-chat-header">
+      <div class="kz-avatar" aria-hidden="true">KZ</div>
+      <div class="kz-info">
+        <div class="kz-name">ZINC · Asesor virtual</div>
+        <div class="kz-status"><span class="kz-dot" aria-hidden="true"></span> En línea</div>
+      </div>
+      <button class="kz-close" id="kzFabClose" aria-label="Cerrar chat">✕</button>
+    </div>
+    <div class="kz-chat-body" id="kzFabBody"></div>
+        <div class="kz-chips" id="kzFabChips">
+      <button type="button" data-msg="Ver precios y planes">💰 Ver precios</button>
+      <button type="button" data-msg="Quiero una tarjeta digital">🪪 Tarjeta digital</button>
+      <button type="button" data-msg="Quiero un menú digital">🍽️ Menú digital</button>
+      <button type="button" data-msg="Quiero un catálogo digital">📖 Catálogo</button>
+      <button type="button" data-msg="Quiero una landing page">🚀 Landing page</button>
+      <button type="button" data-msg="Quiero un código QR">📱 Código QR</button>
+      <button type="button" data-msg="Quiero un agente IA">🤖 Agente IA</button>
+      <button type="button" data-msg="Hablar con un asesor humano">👤 Asesor humano</button>
+      <button type="button" class="kz-chips-more" data-more>Ver más opciones</button>
+    </div>
+    <div class="kz-chat-input">
+      <textarea id="kzFabInput" placeholder="Escribe tu mensaje…" rows="1" aria-label="Escribe tu mensaje"></textarea>
+      <button id="kzFabSend" aria-label="Enviar mensaje">➤</button>
+    </div>
+  </div>
+  <button class="kz-fab-btn" id="kzFabToggle" aria-label="Abrir chat con asesor IA" aria-expanded="false" aria-controls="kzFabChat">
+    <span class="kz-dot" aria-hidden="true"></span>
+    <i class="fas fa-robot" aria-hidden="true"></i>
+  </button>
+</div>
+
+<!-- Modal (casos de portafolio, video y listados) -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <span id="modalTitle">Proyecto</span>
+      <button class="modal-close" id="modalClose" aria-label="Cerrar ventana">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+  <script src="assets/js/main.js" defer></script>
 </body>
 </html>
