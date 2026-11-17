@@ -1,15 +1,16 @@
 {
-  "generado": "2026-11-17T05:37:46.355Z",
-  "plantilla": "ejecutiva",
-  "nombrePlantilla": "Ejecutiva",
+  "generado": "2026-11-17T07:53:35.492Z",
+  "motor": "18-KONFIO-ZINC-STUDIO\\server\\mini-web.mjs",
+  "plantilla": "corporativa",
+  "nombrePlantilla": "Corporativa",
   "entradas": {
-    "plantilla": "ejecutiva",
+    "plantilla": "corporativa",
     "negocio": "Consultorio Dental Sonrisa",
     "descripcion": "Odontologia general y estetica con atencion personalizada. Agenda tu cita y resolvemos tus dudas.",
     "ciudad": "Envigado",
     "whatsapp": "573001234567",
-    "url": "https://konfiozinc.github.io/card/demo/mini-web/ejecutiva/",
-    "salida": "C:\\Users\\usuario29\\Documents\\KONFIO_ZINC\\6-LANDING-PAGES\\Konfio-Zinc-Web\\demo\\mini-web\\ejecutiva",
+    "url": "https://konfiozinc.github.io/card/demo/mini-web/corporativa/",
+    "salida": "C:\\Users\\usuario29\\Documents\\KONFIO_ZINC\\6-LANDING-PAGES\\Konfio-Zinc-Web\\demo\\mini-web\\corporativa",
     "playwright": "C:\\Users\\usuario29\\Documents\\KONFIO_ZINC\\6-LANDING-PAGES\\Konfio-Zinc-Web\\herramientas\\node_modules\\playwright",
     "browser": "C:\\Users\\usuario29\\AppData\\Local\\ms-playwright\\chromium-1243\\chrome-win64\\chrome.exe",
     "servicios": [
