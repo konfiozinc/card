@@ -1,0 +1,40 @@
+{
+  "generado": "2026-11-17T05:17:45.575Z",
+  "plantilla": "sabores",
+  "nombrePlantilla": "Sabores",
+  "entradas": {
+    "plantilla": "sabores",
+    "negocio": "Comidas El Rincon",
+    "descripcion": "Almuerzos caseros y comidas rapidas con sabor de casa. Pedidos por WhatsApp y domicilio en el sector.",
+    "ciudad": "Medellin",
+    "whatsapp": "573001234567",
+    "url": "https://konfiozinc.github.io/card/demo/mini-web/sabores/",
+    "salida": "C:\\Users\\usuario29\\Documents\\KONFIO_ZINC\\6-LANDING-PAGES\\Konfio-Zinc-Web\\demo\\mini-web\\sabores",
+    "playwright": "C:\\Users\\usuario29\\Documents\\KONFIO_ZINC\\6-LANDING-PAGES\\Konfio-Zinc-Web\\herramientas\\node_modules\\playwright",
+    "browser": "C:\\Users\\usuario29\\AppData\\Local\\ms-playwright\\chromium-1243\\chrome-win64\\chrome.exe",
+    "servicios": [
+      {
+        "nombre": "Hamburguesa clásica",
+        "precio": "$18.000"
+      },
+      {
+        "nombre": "Combo familiar",
+        "precio": "$49.000"
+      },
+      {
+        "nombre": "Postre del día",
+        "precio": "$8.000"
+      }
+    ]
+  },
+  "archivos": [
+    "apple-touch-icon.png",
+    "favicon.svg",
+    "icono-32.png",
+    "icono-64.png",
+    "index.html",
+    "og.png"
+  ],
+  "contrato": "mini-demo\\plantillas.js",
+  "nota": "Exportación privada. No se ha publicado nada. La imagen og:image apunta a una URL que debe existir cuando se publique; comprobarla a ojo es obligatorio (KZ-QA-CLIENTES-001)."
+}

@@ -1,0 +1,40 @@
+{
+  "generado": "2026-11-17T05:17:53.745Z",
+  "plantilla": "profesional",
+  "nombrePlantilla": "Profesional",
+  "entradas": {
+    "plantilla": "profesional",
+    "negocio": "Consultorio Dental Sonrisa",
+    "descripcion": "Odontologia general y estetica con atencion personalizada. Agenda tu cita y resolvemos tus dudas.",
+    "ciudad": "Envigado",
+    "whatsapp": "573001234567",
+    "url": "https://konfiozinc.github.io/card/demo/mini-web/profesional/",
+    "salida": "C:\\Users\\usuario29\\Documents\\KONFIO_ZINC\\6-LANDING-PAGES\\Konfio-Zinc-Web\\demo\\mini-web\\profesional",
+    "playwright": "C:\\Users\\usuario29\\Documents\\KONFIO_ZINC\\6-LANDING-PAGES\\Konfio-Zinc-Web\\herramientas\\node_modules\\playwright",
+    "browser": "C:\\Users\\usuario29\\AppData\\Local\\ms-playwright\\chromium-1243\\chrome-win64\\chrome.exe",
+    "servicios": [
+      {
+        "nombre": "Consulta inicial",
+        "precio": "$90.000"
+      },
+      {
+        "nombre": "Acompañamiento mensual",
+        "precio": "$320.000"
+      },
+      {
+        "nombre": "Diagnóstico completo",
+        "precio": "Cotizar"
+      }
+    ]
+  },
+  "archivos": [
+    "apple-touch-icon.png",
+    "favicon.svg",
+    "icono-32.png",
+    "icono-64.png",
+    "index.html",
+    "og.png"
+  ],
+  "contrato": "mini-demo\\plantillas.js",
+  "nota": "Exportación privada. No se ha publicado nada. La imagen og:image apunta a una URL que debe existir cuando se publique; comprobarla a ojo es obligatorio (KZ-QA-CLIENTES-001)."
+}
