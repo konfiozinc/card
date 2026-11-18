@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="es-CO">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<!-- Título propio, una sola vez y sin repetir la marca (KZ-QA-GLOBAL-001) -->
+<title>Mini Web para tu negocio desde $49.900 · pago único</title>
+<meta name="description" content="Tu negocio con página propia: menú o catálogo, pedidos que llegan escritos a WhatsApp y QR para el local. Lista en 24 a 48 horas desde $49.900, pago único." />
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="apple-touch-icon" href="favicon.svg" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="KONFÍO ZINC" />
+<meta property="og:locale" content="es_CO" />
+<meta property="og:title" content="Mini Web para tu negocio desde $49.900 · pago único" />
+<meta property="og:description" content="Menú o catálogo propio, pedidos que llegan escritos a WhatsApp y QR para el local. Lista en 24 a 48 horas desde $49.900, pago único." />
+<meta property="og:image" content="https://konfiozinc.github.io/card/assets/img/og/og-tarjetas-digitales.png" />
+<meta name="twitter:card" content="summary_large_image" />
+<style>
+  /* Aestética «Neon Tech»: se reutilizan los tokens de color del STUDIO
+     (web/app.css) en vez de inventar una paleta nueva. */
+  :root {
+    --fondo: #070d16;
+    --superficie: #0f1a28;
+    --borde: #22344b;
+    --texto: #eaf2fb;
+    --tenue: #93a7bf;
+    --cian: #00e5ff;
+    --oro: #f0b429;
+    --ok: #34d399;
+    --radio: 14px;
+    --max: 1080px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(900px 500px at 80% -10%, rgba(0,229,255,.13), transparent 60%),
+      radial-gradient(700px 480px at 0% 100%, rgba(240,180,41,.10), transparent 60%),
+      var(--fondo);
+    color: var(--texto);
+    font: 16px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--cian); }
+  .envoltura { max-width: var(--max); margin: 0 auto; padding: 0 20px; }
+  .barra {
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(10px);
+    background: rgba(7,13,22,.82);
+    border-bottom: 1px solid var(--borde);
+  }
+  .barra__fila { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; }
+  .marca { display: flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: .04em; font-size: .95rem; }
+  .marca img { width: 26px; height: 26px; display: block; }
+  .marca span { color: var(--oro); }
+  .boton {
+    display: inline-block; text-decoration: none; font-weight: 650; line-height: 1;
+    padding: 14px 20px; border-radius: 999px; border: 1px solid transparent;
+    transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+  }
+  .boton--neon {
+    color: #04202a;
+    background: linear-gradient(180deg, #6cf3ff, var(--cian));
+    box-shadow: 0 0 0 1px rgba(0,229,255,.5), 0 10px 30px rgba(0,229,255,.28);
+  }
+  .boton--neon:hover { transform: translateY(-1px); box-shadow: 0 0 0 1px rgba(0,229,255,.7), 0 14px 38px rgba(0,229,255,.4); }
+  .boton--oro {
+    color: #241a00;
+    background: linear-gradient(180deg, #ffd875, var(--oro));
+    box-shadow: 0 10px 30px rgba(240,180,41,.25);
+  }
+  .boton--fantasma { color: var(--texto); border-color: var(--borde); background: rgba(15,26,40,.6); }
+  .boton--fantasma:hover { border-color: var(--cian); }
+  .boton--grande { padding: 17px 28px; font-size: 1.02rem; }
+  header.heroe { padding: 56px 0 40px; }
+  .gancho {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: .82rem; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--cian); border: 1px solid rgba(0,229,255,.35);
+    background: rgba(0,229,255,.07); padding: 7px 14px; border-radius: 999px;
+  }
+  h1 {
+    font-size: clamp(2rem, 5.2vw, 3.5rem); line-height: 1.08; letter-spacing: -.02em;
+    margin: 22px 0 18px; max-width: 20ch;
+  }
+  h1 em { font-style: normal; color: var(--cian); text-shadow: 0 0 28px rgba(0,229,255,.45); }
+  .entradilla { font-size: clamp(1rem, 2.2vw, 1.22rem); color: var(--tenue); max-width: 56ch; margin: 0 0 28px; }
+  .heroe__acciones { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .heroe__nota { margin: 18px 0 0; font-size: .9rem; color: var(--tenue); }
+  .senales { display: flex; flex-wrap: wrap; gap: 10px; margin: 26px 0 0; padding: 0; list-style: none; }
+  .senales li {
+    font-size: .86rem; color: var(--texto); border: 1px solid var(--borde);
+    background: rgba(15,26,40,.7); padding: 8px 14px; border-radius: 999px;
+  }
+  .senales li b { color: var(--ok); }
+  section { padding: 52px 0; border-top: 1px solid rgba(34,52,75,.6); }
+  h2 { font-size: clamp(1.4rem, 3.2vw, 2rem); margin: 0 0 10px; letter-spacing: -.01em; }
+  .sub { color: var(--tenue); margin: 0 0 30px; max-width: 62ch; }
+  .rejilla { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+  .tarjeta {
+    background: linear-gradient(180deg, rgba(15,26,40,.95), rgba(11,20,32,.95));
+    border: 1px solid var(--borde); border-radius: var(--radio); padding: 22px;
+  }
+  .tarjeta h3 { margin: 0 0 8px; font-size: 1.05rem; }
+  .tarjeta p { margin: 0; color: var(--tenue); font-size: .95rem; }
+  .icono {
+    width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center;
+    margin-bottom: 14px; color: var(--cian);
+    background: rgba(0,229,255,.1); border: 1px solid rgba(0,229,255,.3);
+  }
+  .precios { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+  .plan { position: relative; }
+  .plan--pro { border-color: rgba(0,229,255,.55); box-shadow: 0 0 0 1px rgba(0,229,255,.25), 0 18px 50px rgba(0,229,255,.12); }
+  .plan__etiqueta {
+    position: absolute; top: -12px; right: 18px; font-size: .74rem; letter-spacing: .1em;
+    text-transform: uppercase; color: #04202a; background: var(--cian);
+    padding: 5px 10px; border-radius: 999px; font-weight: 700;
+  }
+  .plan__nombre { font-size: 1.1rem; margin: 0 0 4px; color: var(--texto); }
+  .plan__precio { font-size: clamp(1.9rem, 5vw, 2.4rem); font-weight: 800; letter-spacing: -.02em; margin: 6px 0 2px; }
+  .plan__precio small { font-size: .9rem; font-weight: 600; color: var(--tenue); letter-spacing: 0; }
+  .plan__pago { font-size: .84rem; color: var(--tenue); margin: 0 0 18px; }
+  .plan ul { margin: 0 0 22px; padding: 0; list-style: none; display: grid; gap: 9px; }
+  .plan li { position: relative; padding-left: 24px; font-size: .95rem; color: var(--texto); }
+  .plan li::before { content: "✓"; position: absolute; left: 0; color: var(--ok); font-weight: 700; }
+  .plan li.tenue { color: var(--tenue); }
+  .plan li.tenue::before { content: "—"; color: var(--borde); }
+  .incluye { margin-top: 26px; color: var(--tenue); font-size: .9rem; }
+  .portafolio { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .demo {
+    display: block; text-decoration: none; color: inherit;
+    border: 1px solid var(--borde); border-radius: var(--radio); overflow: hidden;
+    background: var(--superficie); transition: border-color .15s ease, transform .15s ease;
+  }
+  .demo:hover { border-color: var(--cian); transform: translateY(-2px); }
+  /* Miniatura REAL de la web publicada (captura tomada con Chromium) */
+  .demo__foto {
+    display: block; width: 100%; height: 150px; object-fit: cover; object-position: top center;
+    background: #0b1420; border-bottom: 1px solid var(--borde);
+  }
+  .demo__cuerpo { padding: 16px 18px; }
+  .demo__cuerpo b { display: block; font-size: 1rem; margin-bottom: 3px; }
+  .demo__cuerpo span { font-size: .87rem; color: var(--tenue); }
+  /* Franja de la oferta de lanzamiento */
+  .oferta {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px 14px;
+    text-align: center; margin: 0 0 26px; padding: 16px 20px; border-radius: var(--radio);
+    border: 1px solid rgba(0,229,255,.45);
+    background: linear-gradient(90deg, rgba(0,229,255,.13), rgba(240,180,41,.13));
+  }
+  .oferta strong { color: var(--cian); }
+  .oferta__cifra {
+    font-weight: 800; font-size: 1.12em; color: #04202a;
+    background: var(--cian); padding: 3px 10px; border-radius: 999px;
+  }
+  .precio-antes { color: var(--tenue); font-size: .48em; font-weight: 600; letter-spacing: 0; margin-right: 6px; }
+  .precio-antes s { text-decoration-thickness: 2px; }
+  /* Retrato del fundador */
+  .retrato {
+    width: 104px; height: 104px; border-radius: 50%; object-fit: cover; object-position: top center;
+    border: 2px solid rgba(0,229,255,.55); box-shadow: 0 0 0 6px rgba(0,229,255,.08);
+    display: block; margin: 0 auto 16px;
+  }
+  .quien { text-align: center; max-width: 620px; }
+  .quien .sub { margin: 0 auto 24px; }
+  .cierre { text-align: center; }
+  .cierre h2 { max-width: 24ch; margin: 0 auto 12px; }
+  .cierre .sub { margin: 0 auto 28px; }
+  /* Bloque «hoy / con tu panel» dentro de los casos reales */
+  .salto { margin-top: 34px; }
+  .salto > h3 { font-size: clamp(1.1rem, 2.6vw, 1.35rem); margin: 0 0 6px; }
+  .salto > p { color: var(--tenue); margin: 0 0 20px; max-width: 62ch; }
+  .tarjeta--destacada {
+    border-color: rgba(0,229,255,.55);
+    box-shadow: 0 0 0 1px rgba(0,229,255,.22), 0 16px 44px rgba(0,229,255,.10);
+  }
+  .tarjeta--destacada h3 { color: var(--cian); }
+  footer { border-top: 1px solid var(--borde); padding: 30px 0 46px; color: var(--tenue); font-size: .87rem; }
+  footer p { margin: 6px 0; }
+  footer a { color: var(--tenue); text-decoration: none; border-bottom: 1px solid var(--borde); }
+  footer a:hover { color: var(--cian); border-color: var(--cian); }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="barra">
+  <div class="envoltura barra__fila">
+    <p class="marca"><img src="favicon.svg" alt="KONFÍO ZINC" width="26" height="26" /> KONFÍO <span>ZINC</span></p>
+    <a class="boton boton--fantasma" href="https://wa.me/573206411340">Quiero la mía</a>
+  </div>
+</div>
+
+<header class="heroe">
+  <div class="envoltura">
+    <p class="gancho">¿Te llegan pedidos en audios y fotos sueltas?</p>
+    <h1>Tu negocio con página propia. <em>El pedido te llega escrito</em>, con el total.</h1>
+    <p class="entradilla">
+      Un solo enlace con tu menú o catálogo, tus precios, tus fotos, tu ubicación y tu WhatsApp.
+      Tu cliente arma el pedido y a ti te llega detallado, producto por producto. Sin comisión por
+      pedido: <b>no es una app de domicilios</b>.
+    </p>
+    <div class="heroe__acciones">
+      <a class="boton boton--neon boton--grande" href="https://wa.me/573206411340">Empezar por WhatsApp</a>
+      <a class="boton boton--fantasma" href="#precios">Ver precios</a>
+    </div>
+    <p class="heroe__nota">Desde <b>$49.900</b>, pago único · dominio incluido el primer año</p>
+    <ul class="senales">
+      <li><b>24 a 48 h</b> hábiles</li>
+      <li><b>0 %</b> de comisión por pedido</li>
+      <li><b>3 meses</b> de garantía</li>
+    </ul>
+  </div>
+</header>
+
+<section id="beneficios">
+  <div class="envoltura">
+    <h2>¿Por qué una Mini Web y no solo el WhatsApp?</h2>
+    <p class="sub">Porque el WhatsApp sirve para conversar, no para mostrar. Cuando el cliente ya sabe
+      qué quiere, no debería tener que preguntarte el precio uno por uno.</p>
+    <div class="rejilla">
+      <article class="tarjeta">
+        <div class="icono" aria-hidden="true">✎</div>
+        <h3>El pedido llega como una factura</h3>
+        <p>Producto por producto, con subtotales y el total. No más capturas de pantalla ni audios que
+          hay que escuchar dos veces.</p>
+      </article>
+      <article class="tarjeta">
+        <div class="icono" aria-hidden="true">％</div>
+        <h3>Sin comisión por pedido</h3>
+        <p>Pagas una vez por tu página y te quedas con todo el valor de lo que vendes. No cobramos un
+          porcentaje de tus ventas.</p>
+      </article>
+      <article class="tarjeta">
+        <div class="icono" aria-hidden="true">⚡</div>
+        <h3>Lista en 24 a 48 horas</h3>
+        <p>Con tu información completa y el pago, te entregamos el enlace y el código QR para el local.</p>
+      </article>
+      <article class="tarjeta">
+        <div class="icono" aria-hidden="true">🔗</div>
+        <h3>Un enlace para todo</h3>
+        <p>Menú o catálogo, precios, galería, ubicación, redes y un botón de WhatsApp. Lo pegas en tu
+          bio, en tus estados y en el QR.</p>
+      </article>
+      <article class="tarjeta">
+        <div class="icono" aria-hidden="true">📱</div>
+        <h3>Se ve bien en el celular</h3>
+        <p>Hecha para la pantalla donde tu cliente busca: se abre rápido y sin instalar nada.</p>
+      </article>
+      <article class="tarjeta">
+        <div class="icono" aria-hidden="true">🛡</div>
+        <h3>Tres meses de garantía</h3>
+        <p>Si no queda como querías, la rediseñamos sin costo. Y tienes tres actualizaciones gratis al año.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section id="precios">
+  <div class="envoltura">
+    <h2>Precios claros, pago único</h2>
+    <p class="sub">Dos opciones. La diferencia es una sola: si quieres que el cliente pueda
+      <b>pedir</b> desde la página o solo <b>contactarte</b>.</p>
+    <p class="oferta">
+      <span>🚀 <strong>Oferta de lanzamiento:</strong> los 2 primeros negocios se llevan la Pro por</span>
+      <span class="oferta__cifra">$79.920 · 20 % OFF</span>
+    </p>
+    <div class="precios">
+      <article class="tarjeta plan">
+        <h3 class="plan__nombre">Mini Web Básica</h3>
+        <p class="plan__precio">$49.900 <small>COP</small></p>
+        <p class="plan__pago">Pago único · dominio incluido el primer año</p>
+        <ul>
+          <li>Información y presentación de tu negocio</li>
+          <li>Contacto y botón de WhatsApp</li>
+          <li>Redes sociales y ubicación</li>
+          <li>Código QR para el local</li>
+          <li class="tenue">Sin catálogo ni pedidos en línea</li>
+        </ul>
+        <a class="boton boton--fantasma" href="https://wa.me/573206411340">Quiero la Básica</a>
+      </article>
+      <article class="tarjeta plan plan--pro">
+        <p class="plan__etiqueta">La más pedida</p>
+        <h3 class="plan__nombre">Mini Web Pro</h3>
+        <p class="plan__precio"><span class="precio-antes"><s>$99.900</s></span>$79.920 <small>COP</small></p>
+        <p class="plan__pago">Precio de lanzamiento, pago único · dominio incluido el primer año.
+          Después vuelve a $99.900.</p>
+        <ul>
+          <li>Todo lo de la Básica</li>
+          <li>Catálogo o menú de productos</li>
+          <li>Precios que tú actualizas</li>
+          <li>Galería de fotos</li>
+          <li>Botón de pedido que llega a tu WhatsApp</li>
+        </ul>
+        <a class="boton boton--neon" href="https://wa.me/573206411340">Quiero la Pro</a>
+      </article>
+    </div>
+    <p class="incluye">Las dos incluyen: entrega en 24 a 48 horas hábiles, 3 meses de garantía,
+      3 actualizaciones gratis al año y acompañamiento por WhatsApp. No hay mensualidades.</p>
+  </div>
+</section>
+
+<section id="casos">
+  <div class="envoltura">
+    <h2>Casos reales de comida y restaurantes</h2>
+    <p class="sub">Negocios de pollo, comidas rápidas y repostería que ya están en línea con su
+      menú. Ábrelos desde el celular, que es donde los va a ver su cliente.</p>
+    <div class="portafolio">
+      <a class="demo" href="https://konfiozinc.github.io/crocan-pollo/">
+        <img class="demo__foto" src="assets/vender/crocan-pollo.webp" width="720" height="450"
+               alt="Crocan Pollo: portada de su menú digital con el logotipo y los platos" loading="lazy" />
+        <div class="demo__cuerpo"><b>Crocan Pollo</b><span>Pollo asado y apanado · Los Girasoles</span></div>
+      </a>
+      <a class="demo" href="https://konfiozinc.github.io/brosty-papas/">
+        <img class="demo__foto" src="assets/vender/brosty-papas.webp" width="720" height="450"
+               alt="Brosty Papas: portada de su menú digital con el logotipo del negocio" loading="lazy" />
+        <div class="demo__cuerpo"><b>Brosty Papas</b><span>Pollo broaster y asado · 15 platos</span></div>
+      </a>
+      <a class="demo" href="https://konfiozinc.github.io/eltiti/">
+        <img class="demo__foto" src="assets/vender/eltiti.webp" width="720" height="450"
+               alt="El Titi: portada de su menú digital de comidas rápidas" loading="lazy" />
+        <div class="demo__cuerpo"><b>El Titi</b><span>Comidas rápidas · el pedido llega detallado</span></div>
+      </a>
+      <a class="demo" href="https://konfiozinc.github.io/postres/">
+        <img class="demo__foto" src="assets/vender/postres.webp" width="720" height="450"
+               alt="Postres Snoopy: portada de su catálogo de repostería" loading="lazy" />
+        <div class="demo__cuerpo"><b>Postres Snoopy</b><span>Repostería · catálogo con pedido</span></div>
+      </a>
+    </div>
+
+    <div class="salto">
+      <h3>¿Ya tienes tu menú publicado? Esto es lo que cambia con el plan Pro.</h3>
+      <p>Un menú bonito resuelve el escaparate. El siguiente paso es no depender de nadie para
+        cambiarlo.</p>
+      <div class="rejilla">
+        <article class="tarjeta">
+          <h3>Hoy</h3>
+          <p>Cada cambio de precio o de plato se lo pides a quien te hizo la página. Los datos viven
+            dentro del archivo.</p>
+        </article>
+        <article class="tarjeta tarjeta--destacada">
+          <h3>Con tu panel</h3>
+          <p>Entras, cambias el precio o el plato y se publica. Sin llamar a nadie y sin esperar a
+            que te contesten.</p>
+        </article>
+        <article class="tarjeta">
+          <h3>Y además</h3>
+          <p>Dominio propio incluido el primer año, galería de fotos, QR para el local y tres
+            actualizaciones gratis al año.</p>
+        </article>
+      </div>
+      <p class="incluye">Si ya tienes tu menú con nosotros, migrarlo no cuesta aparte:
+        se reutiliza lo que ya está hecho.</p>
+    </div>
+  </div>
+</section>
+
+<section id="quien">
+  <div class="envoltura quien">
+    <img class="retrato" src="assets/vender/darwin.webp" width="104" height="104"
+         alt="Darwin Montalvo, fundador de KONFIO ZINC" />
+    <h2>Hola, soy Darwin. Yo construyo tu web.</h2>
+    <p class="sub">No hay un centro de llamadas en medio: me escribes a mí, te contesto yo y la
+      página la armo yo. Cuéntame qué vendes y te digo cómo quedaría.</p>
+    <a class="boton boton--neon" href="https://wa.me/573206411340">Escríbeme directo por WhatsApp</a>
+  </div>
+</section>
+<section id="empezar" class="cierre">
+  <div class="envoltura">
+    <h2>Cuéntanos de tu negocio y te decimos cómo queda</h2>
+    <p class="sub">Son cuatro pasos cortos. Te respondemos por WhatsApp con la propuesta, sin
+      compromiso y sin pagar nada ahora.</p>
+    <a class="boton boton--oro boton--grande" href="https://wa.me/573206411340">Empezar por WhatsApp</a>
+    <p class="heroe__nota">Prefieres escribirnos directo:
+      <a href="https://wa.me/573206411340">WhatsApp 320 641 1340</a></p>
+  </div>
+</section>
+
+<footer>
+  <div class="envoltura">
+    <p><b>KONFÍO ZINC</b> · soluciones digitales · Medellín, Colombia</p>
+    <p>WhatsApp <a href="https://wa.me/573206411340">320 641 1340</a> ·
+      <a href="mailto:konfiozinc@gmail.com">konfiozinc@gmail.com</a> ·
+      Lun-Vie 8:00-18:00 · Sáb 9:00-13:00</p>
+    <p>Mini Web Básica $49.900 · Mini Web Pro $99.900 · pago único · el dominio del primer año va
+      incluido y su renovación se cotiza aparte.</p>
+  </div>
+</footer>
+
+</body>
+</html>
