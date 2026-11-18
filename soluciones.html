@@ -1,330 +1,391 @@
 <!DOCTYPE html>
-<html lang="es-CO" data-base="." data-root=".">
+<html lang="es-CO">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Soluciones digitales por tipo de negocio | KONFÍO ZINC</title>
-<meta name="description" content="Elige tu tipo de negocio, prueba una demostración real y solicita una propuesta. Mini Web Básica $49.900 y Pro $99.900 COP.">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Arma tu Mini Web en un minuto | KONFÍO ZINC</title>
+<meta name="description" content="Cuatro datos y ves tu Mini Web armándose en vivo: nombre del negocio, WhatsApp, color y eslogan. Sin cuentas, sin pasos intermedios.">
 <meta name="robots" content="index, follow">
-<meta name="theme-color" content="#050B14">
+<meta name="theme-color" content="#070d16">
 <link rel="canonical" href="https://konfiozinc.github.io/card/soluciones.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="KONFÍO ZINC">
 <meta property="og:locale" content="es_CO">
-<meta property="og:title" content="Descubre, prueba y solicita tu solución digital | KONFÍO ZINC">
-  <meta property="og:image" content="https://konfiozinc.github.io/card/assets/img/og/og-1200x630.png">
-  <meta property="og:image:width" content="1200">
-  <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="KONFÍO ZINC · Soluciones digitales por tipo de negocio">
-  <meta name="twitter:card" content="summary_large_image">
-<meta property="og:description" content="Demostraciones interactivas de tarjeta digital, menú digital y Mini Web. Elige tu industria y pide una propuesta.">
+<meta property="og:title" content="Arma tu Mini Web en un minuto">
+<meta property="og:description" content="Tu negocio, tu WhatsApp, tu color y un eslogan. A la derecha ves tu Mini Web armándose en vivo. Sin registros ni pasos.">
+<meta property="og:image" content="https://konfiozinc.github.io/card/assets/img/og/og-1200x630.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="KONFÍO ZINC · Arma tu Mini Web en un minuto">
 <meta property="og:url" content="https://konfiozinc.github.io/card/soluciones.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/svg+xml" href="assets/img/marca/favicon.svg">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/img/logos/favicon-64.png">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/img/logos/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/img/icons/apple-touch-icon.png">
+<style>
+  /* Paleta de la casa (oro #F0B429 + cian sobre azul noche). Nada nuevo inventado. */
+  :root {
+    --fondo: #070d16; --superficie: #0f1a28; --borde: #22344b;
+    --texto: #eaf2fb; --tenue: #93a7bf; --cian: #00e5ff; --oro: #f0b429;
+    --ok: #34d399;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0; min-height: 100dvh; color: var(--texto);
+    font: 16px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background:
+      radial-gradient(900px 520px at 78% -8%, rgba(0,229,255,.12), transparent 62%),
+      radial-gradient(700px 460px at 0% 100%, rgba(240,180,41,.09), transparent 62%),
+      var(--fondo);
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--cian); }
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-  <link rel="stylesheet" href="assets/css/styles.css">
-<link rel="stylesheet" href="assets/css/kz-neon.css">
-<link rel="stylesheet" href="assets/css/conversion-015.css">
-<link rel="stylesheet" href="assets/css/kz-rescate-001.css">
-  <link rel="icon" type="image/svg+xml" href="assets/img/marca/favicon.svg">
-  <link rel="icon" type="image/png" sizes="64x64" href="assets/img/logos/favicon-64.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="assets/img/logos/favicon-32.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="assets/img/icons/apple-touch-icon.png">
+  /* Barra mínima: la marca y una salida. Nada más. */
+  .barra {
+    max-width: 1180px; margin: 0 auto; padding: 18px 20px 0;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .barra__logo { display: block; width: 112px; height: auto; }
+  .barra__volver { font-size: .82rem; text-decoration: none; color: var(--tenue); }
+  .barra__volver:hover, .barra__volver:focus-visible { color: var(--cian); }
+
+  .pantalla {
+    max-width: 1180px; margin: 0 auto; padding: 22px 20px 30px;
+    display: grid; gap: 26px; grid-template-columns: minmax(0, 1fr);
+  }
+  h1 { font-size: clamp(1.5rem, 3.6vw, 2.1rem); line-height: 1.12; letter-spacing: -.02em; margin: 6px 0 6px; }
+  h1 span { color: var(--cian); }
+  .sub { color: var(--tenue); margin: 0 0 20px; font-size: .95rem; max-width: 42ch; }
+
+  form { display: grid; gap: 14px; }
+  .campo { display: grid; gap: 6px; }
+  .campo > span { font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; color: var(--tenue); }
+  input[type="text"], input[type="tel"] {
+    width: 100%; padding: 13px 14px; border-radius: 12px; font-size: 1rem;
+    color: var(--texto); background: var(--superficie);
+    border: 1px solid var(--borde); outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  input[type="text"]:focus, input[type="tel"]:focus {
+    border-color: var(--cian); box-shadow: 0 0 0 3px rgba(0,229,255,.14);
+  }
+  .fila-color { display: flex; align-items: center; gap: 12px; }
+  input[type="color"] {
+    width: 56px; height: 46px; padding: 3px; border-radius: 12px; cursor: pointer;
+    background: var(--superficie); border: 1px solid var(--borde);
+  }
+  .fila-color small { color: var(--tenue); font-size: .84rem; }
+
+  .autoriza {
+    display: flex; gap: 11px; align-items: flex-start; margin-top: 4px;
+    font-size: .84rem; color: var(--tenue); line-height: 1.4;
+  }
+  .autoriza input {
+    margin: 2px 0 0; width: 18px; height: 18px; flex: none;
+    accent-color: var(--cian); cursor: pointer;
+  }
+  /* El aviso ámbar solo aparece cuando la persona ya intentó continuar:
+     de entrada no se le señala con el dedo. */
+  .intentado .autoriza:has(input:invalid) span { color: #fbbf24; }
+
+  .generar {
+    margin-top: 6px; width: 100%; padding: 18px 20px; border: 0; border-radius: 999px;
+    font-size: 1.05rem; font-weight: 750; letter-spacing: .01em; cursor: pointer;
+    color: #04202a; background: linear-gradient(180deg, #6cf3ff, var(--cian));
+    box-shadow: 0 12px 34px rgba(0,229,255,.28);
+    transition: transform .15s ease, box-shadow .15s ease;
+  }
+  .generar:hover { transform: translateY(-1px); box-shadow: 0 16px 42px rgba(0,229,255,.42); }
+  .aviso { min-height: 1.2em; margin: 0; font-size: .86rem; color: var(--ok); text-align: center; }
+
+  /* Lo que aparece DESPUÉS de ver la Mini Web: el paso que de verdad interesa. */
+  .listo {
+    display: none; gap: 12px; padding: 16px 18px; border-radius: 16px;
+    border: 1px solid rgba(52,211,153,.35); background: rgba(52,211,153,.07);
+  }
+  .listo.visible { display: grid; }
+  .listo p { margin: 0; font-size: .9rem; }
+  .listo b { color: var(--ok); }
+  .enviar {
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+    padding: 15px 20px; border-radius: 999px; text-decoration: none;
+    font-weight: 750; font-size: .98rem; color: #04202a;
+    background: linear-gradient(180deg, #7bf0b0, #25d366);
+    box-shadow: 0 12px 30px rgba(37,211,102,.24);
+  }
+  .enviar svg { flex: none; }
+  .listo small { color: var(--tenue); font-size: .76rem; line-height: 1.4; }
+
+  /* Vista previa: el móvil de la derecha. */
+  .movil { display: grid; place-items: center; }
+  .movil__marco {
+    width: min(320px, 92vw); aspect-ratio: 320 / 660; padding: 12px;
+    border-radius: 42px; background: #0b1420; border: 1px solid #2a3d56;
+    box-shadow: 0 0 0 8px rgba(0,229,255,.05), 0 30px 70px rgba(0,0,0,.55);
+    position: relative;
+  }
+  .movil__marco::before {
+    content: ""; position: absolute; left: 50%; top: 14px; transform: translateX(-50%);
+    width: 72px; height: 6px; border-radius: 999px; background: #1c2b40;
+  }
+  .movil__pantalla {
+    width: 100%; height: 100%; border-radius: 32px; overflow: hidden;
+    background: #0a111b; display: flex; flex-direction: column;
+    transition: box-shadow .25s ease;
+  }
+  .publicado .movil__pantalla { box-shadow: inset 0 0 0 2px rgba(0,229,255,.5); }
+  .demo__heroe {
+    padding: 26px 18px 20px; text-align: center; color: #fff;
+    background: var(--marca, #1f3a5f); transition: background .2s ease;
+  }
+  .demo__logo {
+    width: 44px; height: 44px; margin: 0 auto 10px; border-radius: 50%;
+    display: grid; place-items: center; font-weight: 800; font-size: 1rem;
+    color: #04202a; background: var(--acento, #f0b429);
+  }
+  .demo__nombre { margin: 0; font-size: 1.02rem; font-weight: 800; line-height: 1.2; word-break: break-word; }
+  .demo__lema { margin: 6px 0 0; font-size: .78rem; opacity: .85; line-height: 1.35; }
+  .demo__cuerpo { padding: 14px; display: grid; gap: 10px; overflow: hidden; }
+  .demo__h { margin: 0; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--tenue); }
+  .demo__item {
+    display: flex; justify-content: space-between; gap: 10px; align-items: center;
+    padding: 10px 12px; border-radius: 10px; background: var(--superficie);
+    border: 1px solid var(--borde); font-size: .8rem;
+  }
+  .demo__item b { font-weight: 600; }
+  .demo__item i { font-style: normal; color: var(--acento, #f0b429); font-weight: 700; }
+  /* El botón de la demo es un MUÑECO: no es un enlace ni se puede pulsar. */
+  .demo__boton {
+    margin-top: auto; padding: 13px; border-radius: 999px; text-align: center;
+    font-size: .82rem; font-weight: 700; color: #04202a;
+    background: var(--acento, #f0b429); user-select: none;
+  }
+  .demo__pie { padding: 10px 14px 16px; font-size: .62rem; color: #64748b; text-align: center; }
+
+  .pie {
+    max-width: 1180px; margin: 0 auto; padding: 10px 20px 30px;
+    display: grid; gap: 8px; text-align: center;
+    color: var(--tenue); font-size: .78rem;
+  }
+  .pie p { margin: 0; }
+  .borrar {
+    justify-self: center; padding: 6px 10px; border: 0; border-radius: 8px;
+    background: none; color: #64748b; font-size: .72rem; cursor: pointer;
+    text-decoration: underline; text-underline-offset: 3px;
+  }
+  .borrar:hover, .borrar:focus-visible { color: var(--tenue); }
+
+  @media (min-width: 860px) {
+    .pantalla { grid-template-columns: minmax(0, 1fr) minmax(320px, 420px); align-items: center; padding: 26px 26px 34px; }
+    .columna-form { max-width: 520px; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
 </head>
-<body class="sol-page">
+<body>
+<div class="barra">
+  <a href="index.html" aria-label="KONFÍO ZINC · ir al inicio del sitio">
+    <img class="barra__logo" src="assets/img/marca/logo-oficial.png" alt="KONFÍO ZINC" width="1332" height="574" decoding="async">
+  </a>
+  <a class="barra__volver" href="index.html">Inicio</a>
+</div>
 
-<header class="site-header" id="header">
-  <nav class="nav container" aria-label="Navegación principal">
-    <a href="index.html" class="nav-logo" aria-label="KONFÍO ZINC - Inicio">
-      <img class="nav-logo-img" src="assets/img/marca/logo-oficial.png" alt="KONFÍO ZINC" width="1332" height="574" decoding="async"></span>
-    </a>
+<main class="pantalla">
 
-    <ul class="nav-links" id="navLinks">
-      <li><a href="index.html" class="nav-link">Inicio</a></li>
-      <li><a href="nosotros.html" class="nav-link">Nosotros</a></li>
-      <li class="nav-item">
-        <a href="servicios.html" class="nav-link nav-parent">Servicios</a>
-        <button class="nav-link nav-sub-toggle nav-caret" aria-label="Ver lista de servicios" aria-expanded="false"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
-        <div class="nav-sub">
-          <a href="servicios/tarjetas-digitales.html">Tarjetas Digitales</a>
-          <a href="servicios/catalogos-digitales.html">Catálogos Digitales</a>
-          <a href="servicios/menus-digitales.html">Menús Digitales</a>
-          <a href="servicios/landing-pages.html">Landing Pages</a>
-          <a href="servicios/codigos-qr.html">Códigos QR</a>
-          <a href="servicios/agentes-ia.html">Agentes IA</a>
-        </div>
-      </li>
-<li><a href="soluciones.html" class="nav-link">Soluciones</a></li>
-      <li><a href="portafolio.html" class="nav-link">Portafolio</a></li>
-<li><a href="precios.html" class="nav-link">Precios</a></li>
-      <li><a href="blog.html" class="nav-link">Blog</a></li>
-      <li><a href="aliados.html" class="nav-link">Aliados</a></li>
-      <li><a href="contacto.html" class="nav-link">Contacto</a></li>
-    </ul>
+  <section class="columna-form">
+    <h1>Arma tu Mini Web <span>en un minuto</span></h1>
+    <p class="sub">Cuatro datos y la ves armándose a la derecha. Sin cuentas y sin pasos intermedios.</p>
 
-    <div class="nav-actions">
-      <a href="contacto.html" class="btn btn-primary nav-cta"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg> Consulta gratis</a>
-      <button class="nav-toggle" id="navToggle" aria-label="Abrir menú de navegación" aria-expanded="false" aria-controls="navLinks"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg></button>
-    </div>
-  </nav>
-</header>
-<main class="sol-wrap">
-
-  <header class="sol-hero">
-    <h1>Descubre, prueba y solicita tu solución digital</h1>
-    <p>Elige tu tipo de negocio, prueba una demostración real con datos ficticios y pide una propuesta.
-       Sin compromiso y sin pagos en línea.</p>
-  </header>
-
-  <!-- A. Selector de negocio -->
-  <section class="sol-seccion" aria-labelledby="t-industria">
-    <h2 id="t-industria">1. ¿Qué tipo de negocio tienes?</h2>
-    <p class="sub">Según tu respuesta te sugerimos una solución concreta. Puedes cambiarla cuando quieras.</p>
-    <div class="industrias" id="industrias"></div>
-    <div class="reco" id="reco" role="status" aria-live="polite"></div>
-  </section>
-
-  <!-- B. Demostraciones -->
-  <section class="sol-seccion" aria-labelledby="t-demos" id="demos">
-    <h2 id="t-demos">2. Prueba antes de decidir</h2>
-    <p class="sub">Tres demostraciones funcionales. Todos los datos son ficticios y están marcados como tales:
-       no se envía nada a ningún negocio real.</p>
-
-    <div class="tabs" role="tablist" aria-label="Demostraciones">
-      <button class="tab" role="tab" id="tab-tarjeta" data-demo="tarjeta" aria-selected="true" aria-controls="demo-tarjeta" tabindex="0">Tarjeta digital</button>
-      <button class="tab" role="tab" id="tab-menu" data-demo="menu" aria-selected="false" aria-controls="demo-menu" tabindex="-1">Menú / catálogo</button>
-      <button class="tab" role="tab" id="tab-miniweb" data-demo="miniweb" aria-selected="false" aria-controls="demo-miniweb" tabindex="-1">Mini Web</button>
-    </div>
-
-    <!-- Demo 1 -->
-    <div class="demo" id="demo-tarjeta" data-demo="tarjeta" role="tabpanel" aria-labelledby="tab-tarjeta">
-      <span class="demo-sello">Demostración · datos ficticios</span>
-      <div class="tdc">
-        <div class="tdc__avatar" aria-hidden="true">🌿</div>
-        <p class="tdc__nombre">Valentina Ríos</p>
-        <p class="tdc__rol">Estudio Aurora · ejemplo de tarjeta digital</p>
-        <div class="tdc__acciones">
-          <button type="button" class="btn" id="tdc-guardar">Guardar contacto</button>
-          <button type="button" class="btn" id="tdc-compartir">Compartir tarjeta</button>
-        </div>
-      </div>
-      <p class="nota">«Guardar contacto» descarga un archivo <code>.vcf</code> de ejemplo y «Compartir» usa el menú del sistema
-         o copia el enlace. Son acciones reales, sobre datos ficticios.</p>
-    </div>
-
-    <!-- Demo 2 -->
-    <div class="demo" id="demo-menu" data-demo="menu" role="tabpanel" aria-labelledby="tab-menu" hidden>
-      <span class="demo-sello">Demostración · ningún pedido se envía</span>
-      <div class="menu-demo" id="menu-items"></div>
-      <div class="menu-demo__pie">
-        <div><span class="menu-demo__total">Total de la demostración: <span id="menu-total">$0</span></span>
-          <span class="nota" id="menu-cuenta">0 productos</span></div>
-        <button type="button" class="btn" id="menu-limpiar">Limpiar</button>
-      </div>
-      <p class="nota">Este carrito es una simulación: no existe pasarela de pago ni envío a un restaurante real.</p>
-    </div>
-
-    <!-- Demo 3 -->
-    <div class="demo" id="demo-miniweb" data-demo="miniweb" role="tabpanel" aria-labelledby="tab-miniweb" hidden>
-      <span class="demo-sello">Demostración · vista previa</span>
-      <div class="mw">
-        <div class="mw__panel">
-          <label for="mw-nombre">Nombre de tu negocio</label>
-          <input id="mw-nombre" type="text" value="Café Aurora" maxlength="40" autocomplete="organization">
-          <label for="mw-plantilla">Plantilla</label>
-          <select id="mw-plantilla">
-            <option>Tibia</option>
-            <option>Colorida</option>
-            <option>Minimalista</option>
-          </select>
-          <label for="mw-acento">Color de acento</label>
-          <input id="mw-acento" type="color" value="#35d0ff">
-          <label for="mw-fondo">Color de fondo</label>
-          <input id="mw-fondo" type="color" value="#0b1622">
-        </div>
-        <div class="mw__vista" id="mw-vista">
-          <div class="mw__barra"><span class="mw__punto"></span><span class="mw__punto"></span><span class="mw__punto"></span>
-            <span id="mw-url">tu-negocio.kzfio.com</span></div>
-          <div class="mw__cuerpo">
-            <h3 id="mw-titulo">Café Aurora</h3>
-            <p id="mw-texto">Plantilla «Tibia» · vista previa de demostración con datos ficticios.</p>
-            <span class="falso-boton">Contactar por WhatsApp</span>
-          </div>
-        </div>
-      </div>
-      <p class="nota">La vista previa es una demostración: el botón de la maqueta no envía nada.</p>
-    </div>
-  </section>
-
-  <!-- C. Recorrido comercial -->
-  <section class="sol-seccion" aria-labelledby="t-recorrido">
-    <h2 id="t-recorrido">3. Tu recorrido</h2>
-    <p class="sub">Se marca solo cuando completas cada paso de verdad. Sin trampas: si no pruebas la demostración, no se marca.</p>
-    <div class="pasos">
-      <div class="paso" id="paso-industria"><b>1. Elegir industria</b>Selecciona tu tipo de negocio.</div>
-      <div class="paso" id="paso-demo"><b>2. Probar la solución</b>Usa una demostración.</div>
-      <div class="paso" id="paso-alcance"><b>3. Conocer el alcance</b><label><input type="checkbox" id="alcance"> He leído cómo funciona el servicio</label></div>
-      <div class="paso" id="paso-cotiza"><b>4. Elegir servicio</b>Mira el precio oficial.</div>
-      <div class="paso" id="paso-solicitud"><b>5. Solicitar propuesta</b>Envía tus datos.</div>
-    </div>
-    <p class="estado-sol info" id="progreso" role="status" aria-live="polite">0 de 5 pasos completados</p>
-    <details class="nota" style="margin-top:10px">
-      <summary>Qué incluye cada servicio (alcance real, sin promesas de más)</summary>
-      <ul>
-        <li><b>Mini Web Básica · $49.900 COP</b> (pago único): contacto, WhatsApp y redes; ubicación con mapa; 
-            código QR con tu marca; dominio incluido el primer año; entrega en 24–48 horas.</li>
-        <li><b>Mini Web Pro · $99.900 COP</b> (pago único): todo lo de la Básica, más catálogo <i>o</i> menú digital, 
-            galería de productos o trabajos, botón de pedido por WhatsApp y soporte prioritario.</li>
-        <li><b>Proyectos a medida</b>: no tienen precio de lista; se evalúan contigo.</li>
-        <li>El dominio está incluido el primer año en ambos planes; su renovación se cotiza aparte.</li>
-      </ul>
-    </details>
-  </section>
-
-  <!-- D. Cotizador -->
-  <section class="sol-seccion" aria-labelledby="t-cotiza">
-    <h2 id="t-cotiza">4. Cotizador</h2>
-    <p class="sub">Precios oficiales publicados por la agencia. Aquí no se inventan descuentos ni se confirma ninguna compra.</p>
-    <div class="cotizador" id="planes">
-      <button type="button" class="plan" data-plan="basica" aria-pressed="false">
-        Mini Web Básica <span class="precio">$49.900</span><small>COP · pago único</small>
-      </button>
-      <button type="button" class="plan" data-plan="pro" aria-pressed="false">
-        Mini Web Pro <span class="precio">$99.900</span><small>COP · pago único</small>
-      </button>
-      <button type="button" class="plan" data-plan="medida" aria-pressed="false">
-        Proyecto a medida <span class="precio">A evaluar</span><small>Sin precio de lista</small>
-      </button>
-    </div>
-    <div class="cotiza-resumen" id="cotiza-resumen" role="status" aria-live="polite"></div>
-  </section>
-
-  <!-- E. Solicitud -->
-  <section class="sol-seccion" aria-labelledby="t-solicitud">
-    <h2 id="t-solicitud">5. Solicita tu propuesta</h2>
-    <p class="sub">Deja tus datos y se abre WhatsApp con el mensaje escrito. Nada queda confirmado hasta que tú lo envíes y te respondamos.</p>
-    <form class="form-sol" id="form-sol" novalidate>
-      <label for="f-nombre">Tu nombre</label>
-      <input type="text" id="f-nombre" name="nombre" autocomplete="name" maxlength="60" aria-describedby="err-f-nombre">
-      <p class="campo-error" id="err-f-nombre" role="alert"></p>
-
-      <label for="f-tel">Tu WhatsApp (con indicativo si es de otro país)</label>
-      <input type="tel" id="f-tel" name="telefono" inputmode="numeric" autocomplete="tel" maxlength="18" aria-describedby="err-f-tel">
-      <p class="campo-error" id="err-f-tel" role="alert"></p>
-
-      <label class="consent">
-        <input type="checkbox" id="f-consent" aria-describedby="err-f-consent">
-        <span>Autorizo a KONFÍO ZINC a contactarme por WhatsApp para responder esta solicitud. Mis datos no se comparten con terceros. El borrador se guarda <b>solo en este navegador</b> hasta que lo borres con el botón de abajo y también puedes pedir su eliminación al negocio.</span>
+    <form id="formulario" autocomplete="off" novalidate>
+      <label class="campo">
+        <span>Nombre del negocio</span>
+        <input id="negocio" type="text" maxlength="40" placeholder="Panadería La Espiga" required>
       </label>
-      <p class="campo-error" id="err-f-consent" role="alert"></p>
+      <label class="campo">
+        <span>WhatsApp</span>
+        <input id="whatsapp" type="tel" inputmode="tel" maxlength="20" placeholder="300 000 0000" required>
+      </label>
+      <label class="campo">
+        <span>Color de tu marca</span>
+        <span class="fila-color">
+          <input id="color" type="color" value="#1f3a5f">
+          <small>El que más te represente</small>
+        </span>
+      </label>
+      <label class="campo">
+        <span>Tu eslogan</span>
+        <input id="eslogan" type="text" maxlength="60" placeholder="Pan caliente todo el día">
+      </label>
 
-      <button type="submit" class="btn" id="f-enviar">Preparar solicitud en WhatsApp</button>
-      <div class="estado-sol" id="estado-sol" role="status" aria-live="polite"></div>
-      <button type="button" class="btn" id="f-borrar" style="margin-top:8px">Borrar los datos guardados en este navegador</button>
+      <label class="autoriza">
+        <input id="autoriza" type="checkbox" required>
+        <span>Autorizo que Konfío Zinc me contacte por WhatsApp con esta información.</span>
+      </label>
+      <button class="generar" type="submit">Generar mi Mini Web y guardar mis datos</button>
+      <p class="aviso" id="aviso" role="status" aria-live="polite"></p>
+
+      <div class="listo" id="listo">
+        <p><b>¡Listo!</b> Esta es tu Mini Web. Si te gusta, te la dejamos publicada de verdad.</p>
+        <a class="enviar" id="enviar" href="https://wa.me/573206411340" rel="noopener">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.5 14.4c-.3-.2-1.8-.9-2-1s-.5-.2-.7.1-.8 1-.9 1.2-.3.2-.6.1a8 8 0 0 1-2.4-1.5 9 9 0 0 1-1.6-2c-.2-.3 0-.5.1-.6l.5-.6c.2-.2.2-.3.3-.5s0-.4 0-.5-.7-1.7-.9-2.3c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4s-1 1-1 2.4 1 2.8 1.2 3 .2.5 1.9 1.7a13 13 0 0 0 4 1.9c.6.2 1.1.3 1.5.4.7.2 1.3.2 1.8.1.5-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4s-.2-.2-.4-.3M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2m0 18.2a8.2 8.2 0 0 1-4.2-1.2l-.3-.2-3.1.8.8-3-.2-.3A8.2 8.2 0 1 1 12 20.2"/></svg>
+          Enviar mis datos por WhatsApp
+        </a>
+        <small>Se abre WhatsApp con tus datos ya escritos. Tú decides si lo envías: nosotros no mandamos nada por tu cuenta.</small>
+      </div>
     </form>
-    <p class="nota">No se cobra nada en este sitio. No hay pagos, ni contratos automáticos, ni ventas «confirmadas» por abrir WhatsApp.</p>
   </section>
 
-  <!-- F. Métricas -->
-  <section class="sol-seccion" aria-labelledby="t-metricas">
-    <h2 id="t-metricas">6. Actividad de esta visita — solo en tu navegador</h2>
-    <p class="sub">Estos contadores son de <b>tu propia sesión</b> y viven en este navegador. No son un CRM, no son estadísticas de la agencia y no llegan a ningún servidor.</p>
-    <div class="metricas" id="metricas"></div>
-    <p class="nota"><b>Dónde queda tu solicitud:</b> se guarda un borrador <b>solo en este navegador</b> (puedes borrarlo y no se envía a ningún servidor). La agencia <b>no recibe nada</b> hasta que tú pulses «Enviar» dentro de WhatsApp y nosotros lo leamos. El seguimiento comercial real exige un CRM con autenticación: está diseñado pero <b>no está publicado</b>, pendiente de revisión de seguridad y privacidad.</p>
+  <section class="movil" aria-label="Vista previa de tu Mini Web">
+    <div class="movil__marco">
+      <div class="movil__pantalla" id="pantalla-movil">
+        <div class="demo__heroe" id="demo-heroe">
+          <div class="demo__logo" id="demo-logo">TU</div>
+          <p class="demo__nombre" id="demo-nombre">Tu negocio</p>
+          <p class="demo__lema" id="demo-lema">Aquí va tu eslogan</p>
+        </div>
+        <div class="demo__cuerpo">
+          <p class="demo__h">Lo que verá tu cliente</p>
+          <div class="demo__item"><b>Producto de ejemplo</b><i>$ 10.000</i></div>
+          <div class="demo__item"><b>Otro producto</b><i>$ 15.000</i></div>
+          <div class="demo__item"><b>Combo de la casa</b><i>$ 25.000</i></div>
+          <div class="demo__boton" id="demo-boton" aria-hidden="true">Pedir por WhatsApp</div>
+        </div>
+        <p class="demo__pie">Demostración · no se ha publicado nada</p>
+      </div>
+    </div>
   </section>
 
 </main>
 
-<script src="assets/js/conversion-015.js" defer></script>
-<footer class="footer">
-  <div class="container footer-grid">
-    <div class="footer-brand">
-      <img src="assets/img/marca/marca-oficial.png" alt="Logotipo de KONFÍO ZINC" class="footer-logo" width="1024" height="1024" loading="lazy" decoding="async">
-      <p>Soluciones digitales para negocios en Colombia: tarjetas digitales, catálogos, menús digitales, landing pages, códigos QR y agentes IA que hacen crecer tu negocio.</p>
-      <p class="footer-social-texto"><a href="https://www.facebook.com/share/1DRqH4Vvrt/" target="_blank" rel="noopener noreferrer">Facebook</a> · <a href="https://www.instagram.com/konfio_zinc" target="_blank" rel="noopener noreferrer">Instagram</a> · <a href="https://www.tiktok.com/@tarjetaszinc" target="_blank" rel="noopener noreferrer">TikTok</a> · <a href="https://www.youtube.com/watch?v=ndRhGLFUlLA" target="_blank" rel="noopener noreferrer">Ver video en YouTube</a></p>
-    </div>
-
-    <div class="footer-col">
-      <h3>Servicios</h3>
-      <a href="servicios/tarjetas-digitales.html">Tarjetas Digitales</a>
-      <a href="servicios/catalogos-digitales.html">Catálogos Digitales</a>
-      <a href="servicios/menus-digitales.html">Menús Digitales</a>
-      <a href="servicios/landing-pages.html">Landing Pages</a>
-      <a href="servicios/codigos-qr.html">Códigos QR</a>
-      <a href="servicios/agentes-ia.html">Agentes IA</a>
-    </div>
-
-    <div class="footer-col">
-      <h3>Explora</h3>
-      <a href="nosotros.html">Nosotros</a>
-      <a href="portafolio.html">Portafolio</a>
-      <a href="precios.html">Precios</a>
-      <a href="aliados.html">Programa de aliados</a>
-      <a href="contacto.html">Contacto</a>
-    </div>
-
-    <div class="footer-col">
-      <h3>Contacto</h3>
-      <a href="mailto:konfiozinc@gmail.com">konfiozinc@gmail.com</a>
-      <a href="tel:+573206411340">+57 320 641 1340</a>
-      <a href="https://wa.me/573206411340" target="_blank" rel="noopener noreferrer">WhatsApp directo</a>
-      <a href="https://konfiozinc.github.io/card/" target="_blank" rel="noopener noreferrer">konfiozinc.github.io/card</a>
-    </div>
-
-    <!-- ══ REDES SOCIALES (colores oficiales de cada red) ══ -->
-    <div class="social-links">
-      
-      
-      
-    </div>
-
-  <div class="footer-bottom">
-    <p>© 2026 KONFÍO ZINC · Todos los derechos reservados · <a href="contacto.html">Trabajemos juntos</a></p>
-  </div>
-  </div>
+<footer class="pie">
+  <p>KONFÍO ZINC · Medellín · WhatsApp +57 320 641 1340 · konfiozinc@gmail.com</p>
+  <p>Tus datos se guardan solo en este navegador. No llegan a nosotros hasta que envíes el mensaje de WhatsApp.</p>
+  <button type="button" class="borrar" id="borrar">Borrar lo que guardé en este navegador</button>
 </footer>
-  <div class="kz-fab-wrapper" id="kzFabWrapper">
-  <div class="kz-fab-chat" id="kzFabChat" role="dialog" aria-label="ZINC · Asesor virtual" aria-hidden="true">
-    <div class="kz-chat-header">
-      <div class="kz-avatar" aria-hidden="true">KZ</div>
-      <div class="kz-info">
-        <div class="kz-name">ZINC · Asesor virtual</div>
-        <div class="kz-status"><span class="kz-dot" aria-hidden="true"></span> En línea</div>
-      </div>
-      <button class="kz-close" id="kzFabClose" aria-label="Cerrar chat">✕</button>
-    </div>
-    <div class="kz-chat-body" id="kzFabBody"></div>
-        <div class="kz-chips" id="kzFabChips">
-      <button type="button" data-msg="Ver precios y planes">💰 Ver precios</button>
-      <button type="button" data-msg="Quiero una tarjeta digital">🪪 Tarjeta digital</button>
-      <button type="button" data-msg="Quiero un menú digital">🍽️ Menú digital</button>
-      <button type="button" data-msg="Quiero un catálogo digital">📖 Catálogo</button>
-      <button type="button" data-msg="Quiero una landing page">🚀 Landing page</button>
-      <button type="button" data-msg="Quiero un código QR">📱 Código QR</button>
-      <button type="button" data-msg="Quiero un agente IA">🤖 Agente IA</button>
-      <button type="button" data-msg="Hablar con un asesor humano">👤 Asesor humano</button>
-      <button type="button" class="kz-chips-more" data-more>Ver más opciones</button>
-    </div>
-    <div class="kz-chat-input">
-      <textarea id="kzFabInput" placeholder="Escribe tu mensaje…" rows="1" aria-label="Escribe tu mensaje"></textarea>
-      <button id="kzFabSend" aria-label="Enviar mensaje">➤</button>
-    </div>
-  </div>
-  <button class="kz-fab-btn" id="kzFabToggle" aria-label="Abrir chat con asesor IA" aria-expanded="false" aria-controls="kzFabChat">
-    <span class="kz-dot" aria-hidden="true"></span>
-    <i class="fas fa-robot" aria-hidden="true"></i>
-  </button>
-</div>
 
-<!-- Modal (casos de portafolio, video y listados) -->
-<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-hidden="true">
-  <div class="modal-inner">
-    <div class="modal-header">
-      <span id="modalTitle">Proyecto</span>
-      <button class="modal-close" id="modalClose" aria-label="Cerrar ventana">✕</button>
-    </div>
-    <div class="modal-body" id="modalBody"></div>
-  </div>
-</div>
-  <script src="assets/js/main.js" defer></script>
+<script>
+  (function () {
+    "use strict";
+    var $ = function (id) { return document.getElementById(id); };
+    var negocio = $("negocio"), whatsapp = $("whatsapp"), color = $("color"), eslogan = $("eslogan");
+    var heroe = $("demo-heroe"), logo = $("demo-logo"), nombre = $("demo-nombre"), lema = $("demo-lema");
+    var aviso = $("aviso"), listo = $("listo"), enviar = $("enviar");
+
+    /* Un borrador de la visita, en ESTE navegador. Es la misma ficha y el mismo
+       esquema que guarda el STUDIO en Firestore, para que el día que haya un
+       servicio donde recibirlo no haya que traducir nada. */
+    var CLAVE = "kz-lead-demo-001";
+
+    function aclarar(hex, factor) {
+      var n = parseInt(hex.slice(1), 16);
+      var r = Math.min(255, Math.round(((n >> 16) & 255) * factor));
+      var g = Math.min(255, Math.round(((n >> 8) & 255) * factor));
+      var b = Math.min(255, Math.round((n & 255) * factor));
+      return "rgb(" + r + "," + g + "," + b + ")";
+    }
+
+    function pintar() {
+      var texto = (negocio.value || "").trim();
+      var lemaTexto = (eslogan.value || "").trim();
+      var c = color.value || "#1f3a5f";
+      nombre.textContent = texto || "Tu negocio";
+      lema.textContent = lemaTexto || "Aquí va tu eslogan";
+      logo.textContent = (texto ? texto.slice(0, 2) : "TU").toUpperCase();
+      heroe.style.setProperty("--marca", aclarar(c, 0.85));
+      heroe.style.background = aclarar(c, 0.85);
+      document.documentElement.style.setProperty("--acento", c);
+      $("demo-boton").style.background = c;
+      $("demo-boton").style.color = "#04202a";
+    }
+
+    /* El mensaje que se le abre al cliente en WhatsApp, ya escrito. */
+    function mensaje() {
+      var lineas = [
+        "Hola, soy " + (negocio.value || "").trim() + ".",
+        "Armé mi Mini Web en la página de Konfío Zinc:",
+        "• Color de marca: " + color.value,
+        "• Eslogan: " + ((eslogan.value || "").trim() || "(sin eslogan)"),
+        "• Mi WhatsApp: " + (whatsapp.value || "").trim(),
+        "¿Me la dejamos publicada?"
+      ];
+      return lineas.join("\n");
+    }
+
+    function refrescarEnlace() {
+      enviar.href = "https://wa.me/573206411340?text=" + encodeURIComponent(mensaje());
+    }
+
+    function guardar() {
+      var ficha = {
+        negocio: (negocio.value || "").trim(),
+        whatsapp: (whatsapp.value || "").trim(),
+        color: color.value,
+        eslogan: (eslogan.value || "").trim(),
+        autorizaContacto: $("autoriza").checked,
+        origen: "soluciones-publica",
+        esquema: "KZ-LEAD-DEMO-001",
+        creadoEn: new Date().toISOString()
+      };
+      try { localStorage.setItem(CLAVE, JSON.stringify(ficha)); } catch (e) { /* incógnito: se sigue igual */ }
+      return ficha;
+    }
+
+    function recuperar() {
+      try {
+        var bruto = localStorage.getItem(CLAVE);
+        if (!bruto) return null;
+        var ficha = JSON.parse(bruto);
+        if (ficha.negocio) negocio.value = ficha.negocio;
+        if (ficha.whatsapp) whatsapp.value = ficha.whatsapp;
+        if (ficha.color && /^#[0-9a-f]{6}$/i.test(ficha.color)) color.value = ficha.color;
+        if (ficha.eslogan) eslogan.value = ficha.eslogan;
+        return ficha;
+      } catch (e) { return null; }
+    }
+
+    negocio.addEventListener("input", function () { aviso.textContent = ""; pintar(); });
+    eslogan.addEventListener("input", function () { aviso.textContent = ""; pintar(); });
+    whatsapp.addEventListener("input", function () { aviso.textContent = ""; });
+    color.addEventListener("input", pintar);
+
+    $("formulario").addEventListener("submit", function (ev) {
+      ev.preventDefault();
+      var faltan = [];
+      if ((negocio.value || "").trim().length < 2) faltan.push("el nombre del negocio");
+      var digitos = (whatsapp.value || "").replace(/[^\d]/g, "");
+      if (digitos.length < 7) faltan.push("un WhatsApp válido");
+      if (!$("autoriza").checked) faltan.push("tu autorización para contactarte");
+      if (faltan.length) {
+        document.body.classList.add("intentado");
+        aviso.style.color = "#fbbf24";
+        aviso.textContent = "Falta " + faltan.join(" y ") + ".";
+        return;
+      }
+      guardar();
+      pintar();
+      refrescarEnlace();
+      document.body.classList.add("publicado");
+      listo.classList.add("visible");
+      aviso.style.color = "#34d399";
+      aviso.textContent = "¡Listo! Guardamos tus datos en este navegador y así se ve tu Mini Web.";
+      listo.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+
+    $("borrar").addEventListener("click", function () {
+      try { localStorage.removeItem(CLAVE); } catch (e) { /* nada que borrar */ }
+      aviso.style.color = "#93a7bf";
+      aviso.textContent = "Listo: borramos lo guardado en este navegador.";
+      listo.classList.remove("visible");
+      document.body.classList.remove("publicado");
+    });
+
+    /* Si alguien vuelve, encuentra lo que había escrito. */
+    if (recuperar()) { refrescarEnlace(); }
+    pintar();
+  })();
+</script>
 </body>
 </html>
