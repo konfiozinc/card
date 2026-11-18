@@ -99,13 +99,16 @@ function servir() {
     comprobar(resp.status() === 200, "la página responde 200");
 
     // ── 1 · lo que SÍ debe estar ─────────────────────────────────────
-    comprobar((await pagina.locator("input").count()) === 7, "hay 7 controles: 4 datos + 1 permiso + 2 imágenes");
+    comprobar(
+      (await pagina.locator("input").count()) === 17,
+      "hay 17 controles: 4 datos + 1 permiso + 2 imágenes + 10 opcionales (plegados)"
+    );
     comprobar((await pagina.locator("#negocio").count()) === 1, "está el campo del negocio");
     comprobar((await pagina.locator("#whatsapp").count()) === 1, "está el campo del WhatsApp");
     comprobar((await pagina.locator("#color").count()) === 1, "está el campo del color");
     comprobar((await pagina.locator("#eslogan").count()) === 1, "está el campo del eslogan");
     // La simplicidad se mide: cuatro datos de texto/color y DOS imágenes opcionales, nada más.
-    comprobar((await pagina.locator("input[type=text], input[type=tel], input[type=color]").count()) === 4, "siguen siendo exactamente 4 datos");
+    comprobar((await pagina.locator("label.campo input").count()) === 4, "siguen siendo exactamente 4 datos en la pantalla principal");
     comprobar((await pagina.locator("input[type=file]").count()) === 2, "hay exactamente 2 zonas de imagen (logo y portada)");
     const aceptan = await pagina.locator("input[type=file]").evaluateAll((is) => is.map((i) => i.getAttribute("accept")));
     comprobar(
@@ -251,6 +254,106 @@ function servir() {
     const sinImagenes = decodeURIComponent(((await pagina.locator("#enviar").getAttribute("href")) || "").split("text=")[1] || "");
     comprobar(!/portada|logo/.test(sinImagenes), "y el mensaje deja de hablar de imágenes");
 
+    // ── 5d · los dos acordeones: catálogo y redes ───────────────────
+    // La regla de oro: la pantalla principal sigue siendo simple.
+    comprobar((await pagina.locator("details.acordeon").count()) === 2, "hay exactamente 2 acordeones");
+    comprobar((await pagina.locator("details.acordeon[open]").count()) === 0, "los dos vienen CERRADOS: la pantalla principal no se ensucia");
+
+    // Sin tocar nada, el móvil sigue enseñando sus tres ejemplos (no sale vacío).
+    comprobar((await pagina.locator("#demo-items .demo__item").count()) === 3, "sin productos escritos, el móvil enseña los 3 ejemplos");
+    comprobar(await pagina.locator("#demo-footer").isHidden(), "y no hay pie de redes si no hay redes");
+
+    await pagina.locator("#acordeon-productos summary").click();
+    await pagina.locator("#acordeon-redes summary").click();
+    comprobar((await pagina.locator("details.acordeon[open]").count()) === 2, "los dos se abren al tocarlos");
+
+    // Producto 1 con nombre y precio, producto 2 solo con nombre, producto 3 vacío.
+    await pagina.fill("#producto-1", "Bandeja paisa");
+    await pagina.fill("#precio-1", "25000");
+    await pagina.fill("#producto-2", "Empanada de carne");
+    await pagina.fill("#precio-2", "");
+    await pagina.waitForTimeout(150);
+
+    const filas = await pagina.locator("#demo-items .demo__item").evaluateAll((fs) => fs.map((f) => f.innerText.replace(/\s+/g, " ").trim()));
+    comprobar(filas.length === 2, "el móvil enseña solo los productos escritos (2 de 3)", filas.join(" | "));
+    comprobar(/Bandeja paisa/.test(filas[0] || ""), "el producto 1 aparece con su nombre", filas[0]);
+    comprobar(/\$\s?25\.000/.test(filas[0] || ""), "y el precio se escribe como $ 25.000", filas[0]);
+    comprobar(/Empanada/.test(filas[1] || "") && !/\$/.test(filas[1] || ""), "el producto sin precio sale sin precio, sin hueco ni $ vacío", filas[1]);
+    comprobar(!filas.some((f) => /Producto de ejemplo/.test(f)), "los ejemplos desaparecen en cuanto hay productos propios");
+    comprobar((await pagina.locator("#productos-cuenta").innerText()).trim() === "2 productos", "el acordeón cuenta los productos");
+
+    // Redes: dos de tres, más dirección.
+    await pagina.fill("#red-instagram", "@lapaisa");
+    await pagina.fill("#red-tiktok", "@lapaisa.co");
+    await pagina.waitForTimeout(150);
+    comprobar(!(await pagina.locator("#demo-footer").isHidden()), "aparece el pie del móvil con las redes");
+    const chips = await pagina.locator("#demo-redes .demo__red").evaluateAll((cs) => cs.map((c) => ({ etiqueta: c.getAttribute("aria-label"), fondo: getComputedStyle(c).backgroundColor })));
+    comprobar(chips.length === 2, "se pintan solo las redes rellenadas (2)", JSON.stringify(chips));
+    comprobar(chips.some((c) => c.etiqueta === "Instagram") && chips.some((c) => c.etiqueta === "TikTok"), "con sus nombres accesibles");
+    comprobar(!chips.some((c) => c.etiqueta === "Facebook"), "la que se dejó vacía NO se pinta");
+    comprobar(chips.every((c) => c.fondo !== "rgba(0, 0, 0, 0)"), "cada red lleva su color de marca");
+    comprobar((await pagina.locator("#demo-redes .demo__red svg").count()) === 2, "cada red trae su silueta dibujada (sin CDN)");
+    comprobar((await pagina.locator("#redes-cuenta").innerText()).trim() === "2 datos", "el acordeón cuenta las dos redes");
+
+    await pagina.fill("#direccion", "Cra 45 #12-34, Medellín");
+    await pagina.waitForTimeout(150);
+    comprobar((await pagina.locator("#redes-cuenta").innerText()).trim() === "3 datos", "y suma la dirección a la cuenta");
+    comprobar(!(await pagina.locator("#demo-dir").isHidden()), "la dirección se pinta en el pie");
+    comprobar(/Cra 45/.test(await pagina.locator("#demo-dir-texto").innerText()), "con el texto que escribió el cliente");
+
+    // Todo dentro del móvil: nada recortado por abajo.
+    const ajuste = await pagina.evaluate(() => {
+      const caja = (s) => document.querySelector(s).getBoundingClientRect();
+      const pantalla = caja("#pantalla-movil");
+      const boton = caja("#demo-boton");
+      const pie = caja("#demo-footer");
+      const legal = caja(".demo__pie");
+      return {
+        alto: Math.round(pantalla.height),
+        botonDentro: Math.round(pantalla.bottom - boton.bottom),
+        pieDentro: Math.round(pantalla.bottom - pie.bottom),
+        legalDentro: Math.round(pantalla.bottom - legal.bottom)
+      };
+    });
+    comprobar(ajuste.botonDentro >= 0 && ajuste.pieDentro >= 0 && ajuste.legalDentro >= 0,
+      "con catálogo y redes, nada se sale del móvil",
+      `botón ${ajuste.botonDentro}px · pie ${ajuste.pieDentro}px · legal ${ajuste.legalDentro}px de margen`);
+
+    // El mensaje presume de catálogo y redes, y solo de lo que hay.
+    await pagina.click("button.generar");
+    await pagina.waitForTimeout(250);
+    const conTodo = decodeURIComponent(((await pagina.locator("#enviar").getAttribute("href")) || "").split("text=")[1] || "");
+    comprobar(/Además, ya personalicé mi catálogo y mis redes sociales/.test(conTodo), "el mensaje menciona catálogo y redes", conTodo.replace(/\n/g, " "));
+    comprobar(/¿Me ayudas a publicarla\?\s*$/.test(conTodo), "y sigue cerrando con la pregunta directa");
+
+    // Solo catálogo (se vacían las redes): el mensaje no debe hablar de redes.
+    await pagina.fill("#red-instagram", "");
+    await pagina.fill("#red-tiktok", "");
+    await pagina.fill("#direccion", "");
+    await pagina.waitForTimeout(200);
+    const soloCatalogo = decodeURIComponent(((await pagina.locator("#enviar").getAttribute("href")) || "").split("text=")[1] || "");
+    comprobar(/ya personalicé mi catálogo para enviártelo/.test(soloCatalogo), "con solo catálogo, no presume de redes", soloCatalogo.replace(/\n/g, " "));
+    comprobar(await pagina.locator("#demo-footer").isHidden(), "y el pie del móvil desaparece al vaciar las redes");
+
+    // Nada de esto es obligatorio: con los acordeones vacíos la demo se genera igual.
+    await pagina.fill("#producto-1", "");
+    await pagina.fill("#producto-2", "");
+    await pagina.waitForTimeout(150);
+    comprobar((await pagina.locator("#demo-items .demo__item").count()) === 3, "al vaciar los productos vuelven los ejemplos (sin huecos)");
+    const sinExtras = decodeURIComponent(((await pagina.locator("#enviar").getAttribute("href")) || "").split("text=")[1] || "");
+    comprobar(!/personalicé/.test(sinExtras), "y el mensaje deja de hablar de catálogo y redes");
+
+    // Se vuelve a escribir un producto para comprobar su memoria tras recargar.
+    await pagina.fill("#producto-1", "Bandeja paisa");
+    await pagina.fill("#precio-1", "25000");
+    await pagina.waitForTimeout(150);
+    const editorGuardado = await pagina.evaluate(() => JSON.parse(localStorage.getItem("kz-demo-editor-001") || "null"));
+    comprobar(
+      editorGuardado && editorGuardado.productos && editorGuardado.productos[0].nombre === "Bandeja paisa",
+      "el catálogo se recuerda en su PROPIA clave (la ficha del lead no cambia)",
+      JSON.stringify(editorGuardado && editorGuardado.productos && editorGuardado.productos[0])
+    );
+
     // El nombre del color, con una batería de colores reales, por el camino de verdad.
     const COLORES = [
       ["#ff0000", "rojo"],
@@ -312,11 +415,18 @@ function servir() {
       !/blob:/.test(await pagina.locator("#demo-heroe").evaluate((e) => getComputedStyle(e).backgroundImage)),
       "al recargar, la portada también se ha perdido"
     );
+    // El catálogo y las redes son texto: esos sí se recuerdan, y en su propia clave.
+    await pagina.locator("#acordeon-productos summary").click();
+    comprobar((await pagina.inputValue("#producto-1")) === "Bandeja paisa", "al recargar, el catálogo sigue escrito");
 
     // ── 7 · borrar lo guardado ──────────────────────────────────────
     await pagina.click("#borrar");
-    const trasBorrar = await pagina.evaluate(() => localStorage.getItem("kz-lead-demo-001"));
-    comprobar(trasBorrar === null, "el botón de borrar deja el navegador sin datos");
+    const trasBorrar = await pagina.evaluate(() => ({
+      lead: localStorage.getItem("kz-lead-demo-001"),
+      editor: localStorage.getItem("kz-demo-editor-001")
+    }));
+    comprobar(trasBorrar.lead === null && trasBorrar.editor === null, "el botón de borrar deja el navegador sin datos (las dos claves)");
+    comprobar((await pagina.inputValue("#producto-1")) === "", "y vacía también el catálogo de la pantalla");
 
     // ── 8 · cero ruido ──────────────────────────────────────────────
     comprobar(errores.length === 0, "cero errores en la consola", errores.join(" | "));
@@ -393,7 +503,27 @@ function servir() {
     );
     comprobar(String(evidencia.urlPortada).startsWith("blob:") && String(evidencia.urlLogo).startsWith("blob:"), "las dos se sirven por URL de objeto, ninguna va incrustada");
 
+    await pagina.evaluate(() => document.querySelectorAll("details.acordeon").forEach((d) => { d.open = false; }));
+    await pagina.waitForTimeout(120);
     await pagina.screenshot({ path: path.join(SALIDA, "soluciones-1366.png"), fullPage: true });
+
+    // Y ahora el editor a plena potencia: acordeones abiertos, catálogo y redes puestos.
+    await pagina.evaluate(() => document.querySelectorAll("details.acordeon").forEach((d) => { d.open = true; }));
+    await pagina.fill("#producto-1", "Bandeja paisa");
+    await pagina.fill("#precio-1", "25000");
+    await pagina.fill("#producto-2", "Empanada de carne");
+    await pagina.fill("#precio-2", "3000");
+    await pagina.fill("#producto-3", "Jugo natural");
+    await pagina.fill("#precio-3", "6000");
+    await pagina.fill("#red-instagram", "@lapaisa");
+    await pagina.fill("#red-tiktok", "@lapaisa.co");
+    await pagina.fill("#direccion", "Cra 45 #12-34, Medellín");
+    await pagina.check("#autoriza");
+    await pagina.click("button.generar");
+    await pagina.waitForTimeout(450);
+    await pagina.locator(".columna-form").screenshot({ path: path.join(SALIDA, "editor-abierto.png") });
+    await pagina.locator(".movil").screenshot({ path: path.join(SALIDA, "movil-con-redes.png") });
+    await pagina.screenshot({ path: path.join(SALIDA, "pagina-completa-editor.png"), fullPage: true });
 
     const movil = await navegador.newPage({ viewport: { width: 375, height: 667 }, deviceScaleFactor: 2 });
     await movil.goto(`${base}/soluciones.html`, { waitUntil: "load" });
@@ -403,9 +533,17 @@ function servir() {
     await movil.fill("#eslogan", DATOS.eslogan);
     await movil.setInputFiles("#archivo-logo", LOGO);
     await movil.setInputFiles("#archivo-portada", PORTADA);
+    await movil.evaluate(() => document.querySelectorAll("details.acordeon").forEach((d) => { d.open = true; }));
+    await movil.fill("#producto-1", "Bandeja paisa");
+    await movil.fill("#precio-1", "25000");
+    await movil.fill("#producto-2", "Empanada de carne");
+    await movil.fill("#precio-2", "3000");
+    await movil.fill("#red-instagram", "@lapaisa");
+    await movil.fill("#red-facebook", "lapaisa");
+    await movil.fill("#direccion", "Cra 45 #12-34, Medellín");
     await movil.check("#autoriza");
     await movil.click("button.generar");
-    await movil.waitForTimeout(400);
+    await movil.waitForTimeout(450);
     const mMedidas = await movil.evaluate(() => ({ desborde: document.documentElement.scrollWidth - window.innerWidth, boton: Math.round(document.querySelector(".generar").getBoundingClientRect().height) }));
     comprobar(mMedidas.desborde <= 1, "sin desborde horizontal en 375", `${mMedidas.desborde}px`);
     comprobar(mMedidas.boton >= 44, "el botón es grande en el móvil", `${mMedidas.boton}px`);

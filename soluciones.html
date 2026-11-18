@@ -31,6 +31,10 @@
     --ok: #34d399;
   }
   * { box-sizing: border-box; }
+  /* Regla de higiene, aprendida a golpes en esta página: cualquier regla propia
+     con `display` anula el atributo `hidden` (la hoja del navegador pierde
+     siempre contra la del autor). Esto lo cierra de una vez para todos. */
+  [hidden] { display: none !important; }
   html { -webkit-text-size-adjust: 100%; }
   body {
     margin: 0; min-height: 100dvh; color: var(--texto);
@@ -123,6 +127,51 @@
   }
   .subir__quitar:hover, .subir__quitar:focus-visible { color: #f87171; border-color: rgba(248,113,113,.55); }
 
+  /* ── Acordeones: todo lo que es opcional vive cerrado y no estorba ── */
+  .acordeon {
+    border: 1px solid var(--borde); border-radius: 14px; background: rgba(15,26,40,.5);
+    overflow: hidden; transition: background .2s ease, border-color .2s ease;
+  }
+  .acordeon[open] { background: rgba(15,26,40,.88); border-color: #2b405c; }
+  .acordeon > summary {
+    display: flex; align-items: center; gap: 11px; padding: 13px 14px;
+    cursor: pointer; list-style: none; user-select: none;
+  }
+  .acordeon > summary::-webkit-details-marker { display: none; }
+  .acordeon > summary:focus-visible { outline: 2px solid var(--cian); outline-offset: -2px; }
+  .acordeon__ico {
+    width: 30px; height: 30px; flex: none; display: grid; place-items: center;
+    border-radius: 9px; background: var(--superficie); border: 1px solid var(--borde); color: var(--cian);
+  }
+  .acordeon__txt { display: grid; gap: 1px; min-width: 0; }
+  .acordeon__txt b { font-size: .88rem; font-weight: 650; }
+  .acordeon__txt small { font-size: .73rem; color: var(--tenue); }
+  .acordeon__cuenta {
+    margin-left: auto; font-size: .68rem; font-weight: 700; white-space: nowrap;
+    padding: 3px 9px; border-radius: 999px; background: rgba(0,229,255,.14); color: var(--cian);
+  }
+  .acordeon__chevron { margin-left: auto; flex: none; color: var(--tenue); transition: transform .2s ease; }
+  .acordeon__cuenta:not([hidden]) + .acordeon__chevron { margin-left: 9px; }
+  .acordeon[open] .acordeon__chevron { transform: rotate(180deg); color: var(--cian); }
+  .acordeon__cuerpo { display: grid; gap: 10px; padding: 2px 14px 14px; }
+
+  .campo__mini { display: grid; gap: 5px; min-width: 0; }
+  .campo__mini > span { font-size: .71rem; letter-spacing: .05em; text-transform: uppercase; color: var(--tenue); }
+  .campo__mini input {
+    width: 100%; padding: 10px 11px; border-radius: 10px; font-size: .9rem;
+    color: var(--texto); background: var(--superficie); border: 1px solid var(--borde); outline: none;
+    transition: border-color .15s ease, box-shadow .15s ease;
+  }
+  .campo__mini input:focus { border-color: var(--cian); box-shadow: 0 0 0 3px rgba(0,229,255,.14); }
+  .fila-producto { display: grid; grid-template-columns: minmax(0, 1fr) 116px; gap: 9px; align-items: end; }
+  .campo__red { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 9px; align-items: end; }
+  .marca-red {
+    width: 28px; height: 28px; margin-bottom: 1px; border-radius: 9px;
+    display: grid; place-items: center; color: #fff;
+  }
+  .marca-red svg { width: 15px; height: 15px; display: block; }
+  @media (max-width: 430px) { .fila-producto { grid-template-columns: 1fr; } }
+
   .generar {
     margin-top: 6px; width: 100%; padding: 18px 20px; border: 0; border-radius: 999px;
     font-size: 1.05rem; font-weight: 750; letter-spacing: .01em; cursor: pointer;
@@ -182,12 +231,10 @@
   /* Con logo subido: la imagen manda y las iniciales se apartan. */
   .demo__logo.con-imagen { background: #0a111b; box-shadow: 0 0 0 2px rgba(255,255,255,.25); }
   .demo__logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  /* Sin esto, la regla de arriba (más específica) anula el atributo `hidden` y
-     la imagen vacía se queda ocupando el círculo en lugar de las iniciales. */
-  .demo__logo img[hidden] { display: none; }
   .demo__nombre { margin: 0; font-size: 1.02rem; font-weight: 800; line-height: 1.2; word-break: break-word; }
   .demo__lema { margin: 6px 0 0; font-size: .78rem; opacity: .85; line-height: 1.35; }
   .demo__cuerpo { padding: 14px; display: grid; gap: 10px; overflow: hidden; }
+  .demo__lista { display: grid; gap: 10px; }
   .demo__h { margin: 0; font-size: .68rem; letter-spacing: .12em; text-transform: uppercase; color: var(--tenue); }
   .demo__item {
     display: flex; justify-content: space-between; gap: 10px; align-items: center;
@@ -203,6 +250,24 @@
     background: var(--acento, #f0b429); user-select: none;
   }
   .demo__pie { padding: 10px 14px 16px; font-size: .62rem; color: #64748b; text-align: center; }
+
+  /* Pie de página del móvil: las redes que el cliente haya escrito y su dirección. */
+  .demo__pie2 {
+    display: grid; gap: 8px; margin-top: auto;
+    padding: 11px 14px 6px; border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .demo__redes { display: flex; gap: 7px; justify-content: center; }
+  .demo__red {
+    width: 23px; height: 23px; border-radius: 7px;
+    display: grid; place-items: center; color: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,.35);
+  }
+  .demo__red svg { width: 14px; height: 14px; display: block; }
+  .demo__dir {
+    margin: 0; display: flex; align-items: center; justify-content: center; gap: 5px;
+    font-size: .58rem; line-height: 1.3; color: #94a3b8; text-align: center;
+  }
+  .demo__dir svg { flex: none; width: 10px; height: 10px; }
 
   .pie {
     max-width: 1180px; margin: 0 auto; padding: 10px 20px 30px;
@@ -293,6 +358,74 @@
         </div>
       </div>
 
+      <!-- Catálogo editable: cerrado por omisión, para no ensuciar la pantalla simple -->
+      <details class="acordeon" id="acordeon-productos">
+        <summary>
+          <span class="acordeon__ico" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+          </span>
+          <span class="acordeon__txt">
+            <b>Personaliza tus productos</b>
+            <small>Opcional · hasta 3</small>
+          </span>
+          <span class="acordeon__cuenta" id="productos-cuenta" hidden></span>
+          <svg class="acordeon__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="acordeon__cuerpo">
+          <div class="fila-producto">
+            <label class="campo__mini"><span>Producto 1</span><input id="producto-1" type="text" maxlength="34" placeholder="Bandeja paisa"></label>
+            <label class="campo__mini"><span>Precio 1</span><input id="precio-1" type="text" maxlength="14" inputmode="numeric" placeholder="25.000"></label>
+          </div>
+          <div class="fila-producto">
+            <label class="campo__mini"><span>Producto 2</span><input id="producto-2" type="text" maxlength="34" placeholder="Empanada de carne"></label>
+            <label class="campo__mini"><span>Precio 2</span><input id="precio-2" type="text" maxlength="14" inputmode="numeric" placeholder="3.000"></label>
+          </div>
+          <div class="fila-producto">
+            <label class="campo__mini"><span>Producto 3</span><input id="producto-3" type="text" maxlength="34" placeholder="Jugo natural"></label>
+            <label class="campo__mini"><span>Precio 3</span><input id="precio-3" type="text" maxlength="14" inputmode="numeric" placeholder="6.000"></label>
+          </div>
+        </div>
+      </details>
+
+      <!-- Redes y contacto: también cerrado, y solo se pinta lo que se escriba -->
+      <details class="acordeon" id="acordeon-redes">
+        <summary>
+          <span class="acordeon__ico" aria-hidden="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+          </span>
+          <span class="acordeon__txt">
+            <b>Redes sociales y contacto</b>
+            <small>Opcional · se ven en el pie del celular</small>
+          </span>
+          <span class="acordeon__cuenta" id="redes-cuenta" hidden></span>
+          <svg class="acordeon__chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <div class="acordeon__cuerpo">
+          <div class="campo__red">
+            <span class="marca-red" style="background:#e1306c" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.1" cy="6.9" r="1" fill="currentColor" stroke="none"/></svg>
+            </span>
+            <label class="campo__mini"><span>Instagram</span><input id="red-instagram" type="text" maxlength="30" placeholder="@mipanaderia"></label>
+          </div>
+          <div class="campo__red">
+            <span class="marca-red" style="background:#1877f2" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M14.6 6.4c-2.3-.5-3.7.8-3.7 3V20.4"/><path d="M8.3 11.4h6.4"/></svg>
+            </span>
+            <label class="campo__mini"><span>Facebook</span><input id="red-facebook" type="text" maxlength="40" placeholder="mipanaderia"></label>
+          </div>
+          <div class="campo__red">
+            <span class="marca-red" style="background:#111214;box-shadow:inset 0 0 0 1px #2a3d56" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M13.7 4.2v11.1" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="M13.7 5.5c.8 2.3 2.5 3.7 4.6 4" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="10.7" cy="16.4" r="3" fill="currentColor"/></svg>
+            </span>
+            <label class="campo__mini"><span>TikTok</span><input id="red-tiktok" type="text" maxlength="30" placeholder="@mipanaderia"></label>
+          </div>
+          <label class="campo__mini">
+            <span>Dirección</span>
+            <input id="direccion" type="text" maxlength="60" placeholder="Cra 45 #12-34, Medellín">
+          </label>
+        </div>
+      </details>
+
       <label class="autoriza">
         <input id="autoriza" type="checkbox" required>
         <span>Autorizo que Konfío Zinc me contacte por WhatsApp con esta información.</span>
@@ -321,10 +454,16 @@
         </div>
         <div class="demo__cuerpo">
           <p class="demo__h">Lo que verá tu cliente</p>
-          <div class="demo__item"><b>Producto de ejemplo</b><i>$ 10.000</i></div>
-          <div class="demo__item"><b>Otro producto</b><i>$ 15.000</i></div>
-          <div class="demo__item"><b>Combo de la casa</b><i>$ 25.000</i></div>
+          <div class="demo__lista" id="demo-items"></div>
           <div class="demo__boton" id="demo-boton" aria-hidden="true">Pedir por WhatsApp</div>
+        </div>
+        <!-- El pie del móvil solo existe cuando hay algo que poner. -->
+        <div class="demo__pie2" id="demo-footer" hidden>
+          <div class="demo__redes" id="demo-redes"></div>
+          <p class="demo__dir" id="demo-dir" hidden>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.1 7-11a7 7 0 1 0-14 0c0 4.9 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            <span id="demo-dir-texto"></span>
+          </p>
         </div>
         <p class="demo__pie">Demostración · no se ha publicado nada</p>
       </div>
@@ -354,6 +493,40 @@
     var IMAGENES = { logo: null, portada: null };
     var TIPOS = ["image/jpeg", "image/png", "image/webp"];
     var PESO_MAXIMO = 2 * 1024 * 1024; // 2 MB
+
+    /* Lo que enseña el móvil cuando el cliente todavía no ha escrito productos:
+       ejemplos honestos, marcados como ejemplos, para que la demo no salga vacía. */
+    var EJEMPLOS = [
+      { nombre: "Producto de ejemplo", precio: "10000" },
+      { nombre: "Otro producto", precio: "15000" },
+      { nombre: "Combo de la casa", precio: "25000" }
+    ];
+
+    /* Las tres redes: color de marca y una silueta dibujada aquí mismo.
+       No se cargan iconos de ningún CDN a propósito (esta página no hace ni una
+       petición externa). Son siluetas reconocibles, no los logos oficiales. */
+    var REDES = {
+      instagram: {
+        nombre: "Instagram",
+        color: "#e1306c",
+        glifo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="3.2" width="17.6" height="17.6" rx="5"/><circle cx="12" cy="12" r="4.1"/><circle cx="17.1" cy="6.9" r="1" fill="currentColor" stroke="none"/></svg>'
+      },
+      facebook: {
+        nombre: "Facebook",
+        color: "#1877f2",
+        glifo: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M14.6 6.4c-2.3-.5-3.7.8-3.7 3V20.4"/><path d="M8.3 11.4h6.4"/></svg>'
+      },
+      tiktok: {
+        nombre: "TikTok",
+        color: "#111214",
+        glifo: '<svg viewBox="0 0 24 24" fill="none"><path d="M13.7 4.2v11.1" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><path d="M13.7 5.5c.8 2.3 2.5 3.7 4.6 4" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/><circle cx="10.7" cy="16.4" r="3" fill="currentColor"/></svg>'
+      }
+    };
+
+    /* El catálogo y las redes se recuerdan en este navegador (son texto, pesan
+       nada) con SU PROPIA clave: la ficha del lead conserva el esquema que ya
+       comparte con el STUDIO, y ahí no se mete nada nuevo sin avisar. */
+    var CLAVE_EDITOR = "kz-demo-editor-001";
 
     /* Un borrador de la visita, en ESTE navegador. Es la misma ficha y el mismo
        esquema que guarda el STUDIO en Firestore, para que el día que haya un
@@ -493,6 +666,129 @@
       }
     }
 
+    /* ── Catálogo editable ───────────────────────────────────────────── */
+
+    /* Solo cuentan los productos CON nombre. Un precio suelto no es un producto,
+       y una fila a medias no se pinta: en la demo no queremos huecos. */
+    function productosEscritos() {
+      var lista = [];
+      for (var n = 1; n <= 3; n++) {
+        var nombre = $("producto-" + n).value.trim();
+        if (!nombre) continue;
+        lista.push({ nombre: nombre, precio: $("precio-" + n).value.trim() });
+      }
+      return lista;
+    }
+
+    /* "25000" o "25.000" se enseñan como "$ 25.000". Si el cliente escribe algo
+       sin números ("según el tamaño"), se respeta tal cual, sin inventarle un $. */
+    function precioBonito(texto) {
+      var limpio = String(texto || "").trim();
+      if (!limpio) return "";
+      var digitos = limpio.replace(/[^\d]/g, "");
+      if (!digitos) return limpio;
+      return "$ " + parseInt(digitos, 10).toLocaleString("es-CO");
+    }
+
+    function pintarProductos() {
+      var caja = $("demo-items");
+      var escritos = productosEscritos();
+      var filas = escritos.length ? escritos : EJEMPLOS;
+
+      caja.textContent = "";
+      filas.forEach(function (producto) {
+        var fila = document.createElement("div");
+        fila.className = "demo__item";
+
+        var titulo = document.createElement("b");
+        titulo.textContent = producto.nombre;
+        fila.appendChild(titulo);
+
+        var precio = precioBonito(producto.precio);
+        if (precio) {
+          var valor = document.createElement("i");
+          valor.textContent = precio;
+          fila.appendChild(valor);
+        }
+        caja.appendChild(fila);
+      });
+
+      var cuenta = $("productos-cuenta");
+      cuenta.hidden = escritos.length === 0;
+      cuenta.textContent = escritos.length === 1 ? "1 producto" : escritos.length + " productos";
+    }
+
+    /* ── Redes y dirección ───────────────────────────────────────────── */
+
+    function redesEscritas() {
+      return ["instagram", "facebook", "tiktok"].filter(function (red) {
+        return $("red-" + red).value.trim().length > 0;
+      });
+    }
+
+    function pintarRedes() {
+      var caja = $("demo-redes");
+      var puestas = redesEscritas();
+      var direccion = $("direccion").value.trim();
+
+      caja.textContent = "";
+      puestas.forEach(function (red) {
+        var ficha = REDES[red];
+        var usuario = $("red-" + red).value.trim();
+        var chip = document.createElement("span");
+        chip.className = "demo__red";
+        chip.style.background = ficha.color;
+        chip.setAttribute("role", "img");
+        chip.setAttribute("aria-label", ficha.nombre);
+        chip.title = ficha.nombre + ": " + usuario;
+        // El glifo es una cadena fija de este archivo, nunca texto del cliente.
+        chip.innerHTML = ficha.glifo;
+        caja.appendChild(chip);
+      });
+
+      $("demo-dir-texto").textContent = direccion;
+      $("demo-dir").hidden = direccion.length === 0;
+      $("demo-footer").hidden = puestas.length === 0 && direccion.length === 0;
+
+      var cuenta = $("redes-cuenta");
+      var cuantas = puestas.length + (direccion ? 1 : 0);
+      cuenta.hidden = cuantas === 0;
+      cuenta.textContent = cuantas === 1 ? "1 dato" : cuantas + " datos";
+    }
+
+    /* ── Memoria del editor (texto, en este navegador) ───────────────── */
+
+    function guardarEditor() {
+      if (recuperando) return;
+      var datos = { productos: [], redes: {}, direccion: $("direccion").value.trim() };
+      for (var n = 1; n <= 3; n++) {
+        datos.productos.push({ nombre: $("producto-" + n).value.trim(), precio: $("precio-" + n).value.trim() });
+      }
+      ["instagram", "facebook", "tiktok"].forEach(function (red) {
+        datos.redes[red] = $("red-" + red).value.trim();
+      });
+      try { localStorage.setItem(CLAVE_EDITOR, JSON.stringify(datos)); } catch (e) { /* incógnito */ }
+    }
+
+    var recuperando = false;
+
+    function recuperarEditor() {
+      var datos;
+      try { datos = JSON.parse(localStorage.getItem(CLAVE_EDITOR) || "null"); } catch (e) { datos = null; }
+      if (!datos) return;
+      recuperando = true;
+      (datos.productos || []).slice(0, 3).forEach(function (producto, indice) {
+        if (!producto) return;
+        if (producto.nombre) $("producto-" + (indice + 1)).value = producto.nombre;
+        if (producto.precio) $("precio-" + (indice + 1)).value = producto.precio;
+      });
+      ["instagram", "facebook", "tiktok"].forEach(function (red) {
+        if (datos.redes && datos.redes[red]) $("red-" + red).value = datos.redes[red];
+      });
+      if (datos.direccion) $("direccion").value = datos.direccion;
+      recuperando = false;
+    }
+
     /* El nombre del color, en palabras. Un cliente no dice «#e11d48»: dice rojo.
        Se deduce del tono (HSL) en vez de una lista de códigos, para que acierte
        con cualquier color que elija y no solo con los de la lista. */
@@ -557,8 +853,17 @@
         imagenes = "\nYa tengo lista mi foto de portada para enviártela.";
       }
 
+      /* Igual que con las imágenes: solo se presume de lo que de verdad hizo.
+         Si solo tocó una de las dos cosas, se dice solo esa. */
+      var hayCatalogo = productosEscritos().length > 0;
+      var hayRedes = redesEscritas().length > 0 || $("direccion").value.trim().length > 0;
+      var extra = "";
+      if (hayCatalogo && hayRedes) extra = "\nAdemás, ya personalicé mi catálogo y mis redes sociales para enviártelos.";
+      else if (hayCatalogo) extra = "\nAdemás, ya personalicé mi catálogo para enviártelo.";
+      else if (hayRedes) extra = "\nAdemás, ya personalicé mis redes sociales para enviártelas.";
+
       return "¡Hola! Acabo de armar mi Mini Web para mi negocio *" + marca + "*.\n\n" +
-        cuerpo + imagenes + "\nMi WhatsApp es " + tel + ".\n\n" +
+        cuerpo + imagenes + extra + "\nMi WhatsApp es " + tel + ".\n\n" +
         "¿Me ayudas a publicarla?";
     }
 
@@ -599,6 +904,9 @@
     function alEditar() {
       aviso.textContent = "";
       pintar();
+      pintarProductos();
+      pintarRedes();
+      guardarEditor();
       if (listo.classList.contains("visible")) refrescarEnlace();
     }
 
@@ -606,6 +914,16 @@
     eslogan.addEventListener("input", alEditar);
     whatsapp.addEventListener("input", alEditar);
     color.addEventListener("input", alEditar);
+
+    /* Los diez campos opcionales: catálogo (3 pares) y redes + dirección. */
+    for (var n = 1; n <= 3; n++) {
+      $("producto-" + n).addEventListener("input", alEditar);
+      $("precio-" + n).addEventListener("input", alEditar);
+    }
+    ["instagram", "facebook", "tiktok"].forEach(function (red) {
+      $("red-" + red).addEventListener("input", alEditar);
+    });
+    $("direccion").addEventListener("input", alEditar);
 
     /* Las dos imágenes: tocar la zona, soltar un archivo encima o pulsar la ×. */
     ["logo", "portada"].forEach(function (cual) {
@@ -665,7 +983,19 @@
     });
 
     $("borrar").addEventListener("click", function () {
-      try { localStorage.removeItem(CLAVE); } catch (e) { /* nada que borrar */ }
+      try {
+        localStorage.removeItem(CLAVE);
+        localStorage.removeItem(CLAVE_EDITOR);
+      } catch (e) { /* nada que borrar */ }
+      // También se vacía lo que se ve, para que no quede nada a medias.
+      for (var n = 1; n <= 3; n++) {
+        $("producto-" + n).value = "";
+        $("precio-" + n).value = "";
+      }
+      ["instagram", "facebook", "tiktok"].forEach(function (red) { $("red-" + red).value = ""; });
+      $("direccion").value = "";
+      pintarProductos();
+      pintarRedes();
       aviso.style.color = "#93a7bf";
       aviso.textContent = "Listo: borramos lo guardado en este navegador.";
       listo.classList.remove("visible");
@@ -674,7 +1004,10 @@
 
     /* Si alguien vuelve, encuentra lo que había escrito. */
     if (recuperar()) { refrescarEnlace(); }
+    recuperarEditor();
     pintar();
+    pintarProductos();
+    pintarRedes();
   })();
 </script>
 </body>
