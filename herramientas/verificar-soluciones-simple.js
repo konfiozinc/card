@@ -99,11 +99,20 @@ function servir() {
     comprobar(resp.status() === 200, "la página responde 200");
 
     // ── 1 · lo que SÍ debe estar ─────────────────────────────────────
-    comprobar((await pagina.locator("input:not([type=checkbox])").count()) === 4, "hay exactamente 4 campos");
+    comprobar((await pagina.locator("input").count()) === 7, "hay 7 controles: 4 datos + 1 permiso + 2 imágenes");
     comprobar((await pagina.locator("#negocio").count()) === 1, "está el campo del negocio");
     comprobar((await pagina.locator("#whatsapp").count()) === 1, "está el campo del WhatsApp");
     comprobar((await pagina.locator("#color").count()) === 1, "está el campo del color");
     comprobar((await pagina.locator("#eslogan").count()) === 1, "está el campo del eslogan");
+    // La simplicidad se mide: cuatro datos de texto/color y DOS imágenes opcionales, nada más.
+    comprobar((await pagina.locator("input[type=text], input[type=tel], input[type=color]").count()) === 4, "siguen siendo exactamente 4 datos");
+    comprobar((await pagina.locator("input[type=file]").count()) === 2, "hay exactamente 2 zonas de imagen (logo y portada)");
+    const aceptan = await pagina.locator("input[type=file]").evaluateAll((is) => is.map((i) => i.getAttribute("accept")));
+    comprobar(
+      aceptan.length === 2 && aceptan.every((a) => /jpeg/.test(a) && /png/.test(a) && /webp/.test(a)),
+      "las dos aceptan JPG, PNG y WEBP",
+      aceptan.join(" | ")
+    );
     comprobar((await pagina.locator("input[type=checkbox]").count()) === 1, "hay exactamente 1 permiso (el check)");
     comprobar((await pagina.locator("button[type=submit]").count()) === 1, "hay exactamente 1 botón de envío");
     comprobar((await pagina.locator("#pantalla-movil").count()) === 1, "está la vista previa en vivo");
@@ -166,6 +175,81 @@ function servir() {
     comprobar(!/#[0-9a-f]{6}\b/i.test(textoWa), "el color no se enseña como código hexadecimal", textoWa.replace(/\n/g, " "));
     comprobar(/mi color de marca es naranja\./.test(textoWa), "el color se dice en palabras (naranja)", textoWa.replace(/\n/g, " "));
     comprobar(/^¡Hola!/.test(textoWa), "empieza con un saludo de persona");
+    comprobar(!/portada|logo/i.test(textoWa), "sin imágenes subidas, el mensaje no las menciona (no miente)");
+
+    // ── 5c · las dos imágenes: logo y portada ───────────────────────
+    const PORTADA = path.join(RAIZ, "assets/img/og/og-1200x630.png");
+    const LOGO = path.join(RAIZ, "assets/img/marca/marca-oficial.png");
+
+    await pagina.setInputFiles("#archivo-logo", { name: "notas.txt", mimeType: "text/plain", buffer: Buffer.from("no soy una imagen") });
+    await pagina.waitForTimeout(150);
+    comprobar(/JPG, PNG o WEBP/.test(await pagina.locator("#aviso").innerText()), "un archivo que no es imagen se rechaza con su motivo");
+    comprobar(await pagina.locator("#demo-logo-img").isHidden(), "y no se pinta nada en el móvil");
+
+    await pagina.setInputFiles("#archivo-portada", {
+      name: "enorme.png",
+      mimeType: "image/png",
+      buffer: Buffer.alloc(Math.round(2.5 * 1024 * 1024), 7)
+    });
+    await pagina.waitForTimeout(200);
+    const avisoPeso = await pagina.locator("#aviso").innerText();
+    comprobar(/2 MB/.test(avisoPeso), "una imagen de más de 2 MB se rechaza con su peso", avisoPeso);
+    comprobar(await pagina.locator("#portada-mini").isHidden(), "y la portada no se pinta");
+
+    // Se cuentan las URL de objeto liberadas, para probar que no hay fuga de memoria.
+    await pagina.evaluate(() => {
+      window.__liberadas = 0;
+      const original = URL.revokeObjectURL.bind(URL);
+      URL.revokeObjectURL = (u) => { window.__liberadas += 1; return original(u); };
+    });
+
+    await pagina.setInputFiles("#archivo-logo", LOGO);
+    await pagina.setInputFiles("#archivo-portada", PORTADA);
+    await pagina.waitForTimeout(300);
+
+    const srcLogo = String(await pagina.locator("#demo-logo-img").getAttribute("src"));
+    comprobar(srcLogo.startsWith("blob:"), "el logo del móvil se pinta con una URL de objeto (blob:)", srcLogo.slice(0, 34));
+    comprobar(await pagina.locator("#demo-logo-img").isVisible(), "el logo se ve en el círculo del móvil");
+    comprobar(await pagina.locator("#demo-logo-txt").isHidden(), "las iniciales se apartan cuando hay logo");
+    comprobar(await pagina.locator("#demo-logo").evaluate((e) => e.classList.contains("con-imagen")), "el círculo queda marcado como «con imagen»");
+
+    const fondo = await pagina.locator("#demo-heroe").evaluate((e) => getComputedStyle(e).backgroundImage);
+    comprobar(/url\(/.test(fondo) && /blob:/.test(fondo), "la portada se ve en el encabezado del móvil", fondo.slice(0, 60));
+    comprobar(/linear-gradient/.test(fondo), "y lleva un velo oscuro para que el nombre se lea");
+
+    comprobar(!(await pagina.locator("#logo-mini").isHidden()), "aparece la miniatura del logo en el control");
+    const estadoLogo = await pagina.locator("#logo-estado").innerText();
+    comprobar(/KB|MB/.test(estadoLogo), "el control dice el nombre y el peso del archivo", estadoLogo);
+    comprobar(!(await pagina.locator("#logo-quitar").isHidden()), "hay botón para quitar el logo");
+
+    const conImagenes = decodeURIComponent(((await pagina.locator("#enviar").getAttribute("href")) || "").split("text=")[1] || "");
+    comprobar(/foto de portada y mi logo/.test(conImagenes), "el mensaje avisa de que ya tiene portada y logo", conImagenes.replace(/\n/g, " "));
+    comprobar(/¿Me ayudas a publicarla\?\s*$/.test(conImagenes), "y sigue terminando en la pregunta directa");
+
+    // Con las imágenes puestas se guarda el borrador: no deben viajar al almacén.
+    await pagina.click("button.generar");
+    await pagina.waitForTimeout(300);
+    const almacen = await pagina.evaluate(() => localStorage.getItem("kz-lead-demo-001") || "");
+    comprobar(!/blob:|data:image|base64/.test(almacen), "las imágenes NO se guardan en el navegador");
+    comprobar(/"negocio"/.test(almacen), "pero los cuatro datos sí se guardan");
+
+    // Cambiar una imagen tiene que liberar la anterior.
+    await pagina.setInputFiles("#archivo-portada", LOGO);
+    await pagina.waitForTimeout(200);
+    const liberadas = await pagina.evaluate(() => window.__liberadas);
+    comprobar(liberadas >= 1, "al reemplazar una imagen se libera la anterior (sin fugas)", `${liberadas} liberada(s)`);
+
+    // Quitar deja todo como estaba.
+    await pagina.locator("#logo-quitar").click();
+    await pagina.locator("#portada-quitar").click();
+    await pagina.waitForTimeout(200);
+    comprobar(await pagina.locator("#demo-logo-img").isHidden(), "quitar el logo devuelve las iniciales");
+    comprobar(
+      !/blob:/.test(await pagina.locator("#demo-heroe").evaluate((e) => getComputedStyle(e).backgroundImage)),
+      "quitar la portada devuelve el color de la marca"
+    );
+    const sinImagenes = decodeURIComponent(((await pagina.locator("#enviar").getAttribute("href")) || "").split("text=")[1] || "");
+    comprobar(!/portada|logo/.test(sinImagenes), "y el mensaje deja de hablar de imágenes");
 
     // El nombre del color, con una batería de colores reales, por el camino de verdad.
     const COLORES = [
@@ -219,10 +303,15 @@ function servir() {
     comprobar(guardado && guardado.esquema === "KZ-LEAD-DEMO-001", "con el esquema de la casa");
     comprobar(guardado && guardado.autorizaContacto === true, "y con la autorización registrada");
 
-    // ── 6 · al volver, encuentra lo que escribió ────────────────────
+    // ── 6 · al volver, encuentra lo que escribió (las imágenes no: se pierden) ──
     await pagina.reload({ waitUntil: "load" });
     comprobar((await pagina.inputValue("#negocio")) === DATOS.negocio, "al recargar, el nombre sigue ahí");
     comprobar((await pagina.inputValue("#eslogan")) === DATOS.eslogan, "al recargar, el eslogan sigue ahí");
+    comprobar(await pagina.locator("#demo-logo-img").isHidden(), "al recargar, el logo se ha perdido (no se guarda)");
+    comprobar(
+      !/blob:/.test(await pagina.locator("#demo-heroe").evaluate((e) => getComputedStyle(e).backgroundImage)),
+      "al recargar, la portada también se ha perdido"
+    );
 
     // ── 7 · borrar lo guardado ──────────────────────────────────────
     await pagina.click("#borrar");
@@ -244,15 +333,76 @@ function servir() {
     comprobar(medidas.boton && medidas.boton.alto >= 44, "el botón es cómodo de pulsar", medidas.boton && `${medidas.boton.alto}px`);
     comprobar(medidas.check && medidas.check.ancho >= 16, "el check se ve", medidas.check && `${medidas.check.ancho}px`);
 
-    // ── 10 · capturas ───────────────────────────────────────────────
+    // ── 10 · capturas (con las dos imágenes puestas, que es como se ve de verdad) ──
     fs.mkdirSync(SALIDA, { recursive: true });
+    await pagina.setInputFiles("#archivo-logo", LOGO);
+    await pagina.setInputFiles("#archivo-portada", PORTADA);
+    await pagina.check("#autoriza");
+    await pagina.click("button.generar");
+    await pagina.waitForTimeout(400);
+
+    // Antes de la foto: comprobar que lo que se pinta es una imagen con contenido,
+    // no un hueco del mismo color. Se mide la variedad de colores de la imagen
+    // que el navegador tiene realmente aplicada en el móvil.
+    const evidencia = await pagina.evaluate(async () => {
+      const cargar = (url) => new Promise((ok, mal) => {
+        const i = new Image();
+        i.onload = () => ok(i);
+        i.onerror = () => mal(new Error("no carga"));
+        i.src = url;
+      });
+      async function variedad(url) {
+        try {
+          const img = await cargar(url);
+          const c = document.createElement("canvas");
+          c.width = 48; c.height = 48;
+          const ctx = c.getContext("2d");
+          ctx.drawImage(img, 0, 0, 48, 48);
+          const d = ctx.getImageData(0, 0, 48, 48).data;
+          const vistos = new Set();
+          for (let i = 0; i < d.length; i += 4) vistos.add(d[i] + "," + d[i + 1] + "," + d[i + 2]);
+          return { colores: vistos.size, ancho: img.naturalWidth, alto: img.naturalHeight };
+        } catch (e) {
+          return null;
+        }
+      }
+      const fondo = getComputedStyle(document.getElementById("demo-heroe")).backgroundImage;
+      const urlPortada = (fondo.match(/url\(["']?([^"')]+)["']?\)/) || [])[1] || "";
+      const urlLogo = document.getElementById("demo-logo-img").getAttribute("src") || "";
+      return {
+        portada: urlPortada ? await variedad(urlPortada) : null,
+        logo: urlLogo ? await variedad(urlLogo) : null,
+        urlPortada,
+        urlLogo
+      };
+    });
+    console.log(
+      "  ...    medida de lo pintado: portada " +
+      (evidencia.portada ? `${evidencia.portada.colores} colores distintos · ${evidencia.portada.ancho}x${evidencia.portada.alto}` : "sin leer") +
+      " · logo " +
+      (evidencia.logo ? `${evidencia.logo.colores} colores distintos · ${evidencia.logo.ancho}x${evidencia.logo.alto}` : "sin leer")
+    );
+    comprobar(
+      "la portada aplicada es una foto con contenido, no un color plano",
+      evidencia.portada ? `${evidencia.portada.colores} colores · ${evidencia.portada.ancho}x${evidencia.portada.alto}` : "no se pudo leer"
+    );
+    comprobar(
+      evidencia.logo && evidencia.logo.colores >= 20,
+      "el logo aplicado es una imagen con contenido",
+      evidencia.logo ? `${evidencia.logo.colores} colores · ${evidencia.logo.ancho}x${evidencia.logo.alto}` : "no se pudo leer"
+    );
+    comprobar(String(evidencia.urlPortada).startsWith("blob:") && String(evidencia.urlLogo).startsWith("blob:"), "las dos se sirven por URL de objeto, ninguna va incrustada");
+
     await pagina.screenshot({ path: path.join(SALIDA, "soluciones-1366.png"), fullPage: true });
+
     const movil = await navegador.newPage({ viewport: { width: 375, height: 667 }, deviceScaleFactor: 2 });
     await movil.goto(`${base}/soluciones.html`, { waitUntil: "load" });
     await movil.fill("#negocio", DATOS.negocio);
     await movil.fill("#whatsapp", DATOS.whatsapp);
     await movil.evaluate((c) => { const el = document.getElementById("color"); el.value = c; el.dispatchEvent(new Event("input", { bubbles: true })); }, DATOS.color);
     await movil.fill("#eslogan", DATOS.eslogan);
+    await movil.setInputFiles("#archivo-logo", LOGO);
+    await movil.setInputFiles("#archivo-portada", PORTADA);
     await movil.check("#autoriza");
     await movil.click("button.generar");
     await movil.waitForTimeout(400);
