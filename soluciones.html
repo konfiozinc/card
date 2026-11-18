@@ -301,17 +301,61 @@
       $("demo-boton").style.color = "#04202a";
     }
 
-    /* El mensaje que se le abre al cliente en WhatsApp, ya escrito. */
+    /* El nombre del color, en palabras. Un cliente no dice «#e11d48»: dice rojo.
+       Se deduce del tono (HSL) en vez de una lista de códigos, para que acierte
+       con cualquier color que elija y no solo con los de la lista. */
+    function nombreDeColor(hex) {
+      var h = String(hex || "").replace("#", "");
+      if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+      if (!/^[0-9a-f]{6}$/i.test(h)) return "el que elegí";
+      var r = parseInt(h.slice(0, 2), 16) / 255;
+      var v = parseInt(h.slice(2, 4), 16) / 255;
+      var a = parseInt(h.slice(4, 6), 16) / 255;
+      var max = Math.max(r, v, a), min = Math.min(r, v, a);
+      var luz = (max + min) / 2;
+      var delta = max - min;
+      var saturacion = delta === 0 ? 0 : delta / (1 - Math.abs(2 * luz - 1));
+      if (saturacion < 0.10) {
+        if (luz < 0.12) return "negro";
+        if (luz > 0.90) return "blanco";
+        return "gris";
+      }
+      var tono;
+      if (max === r) tono = 60 * (((v - a) / delta + 6) % 6);
+      else if (max === v) tono = 60 * ((a - r) / delta + 2);
+      else tono = 60 * ((r - v) / delta + 4);
+      if (tono < 15 || tono >= 345) return "rojo";
+      if (tono < 45) return "naranja";
+      if (tono < 70) return "amarillo";
+      if (tono < 150) return luz > 0.72 ? "verde claro" : "verde";
+      if (tono < 175) return "turquesa";
+      if (tono < 200) return "celeste";
+      if (tono < 260) {
+        if (luz < 0.32) return "azul marino";
+        if (luz > 0.75) return "azul claro";
+        return "azul";
+      }
+      if (tono < 305) return "morado";
+      return "rosa";
+    }
+
+    /* El mensaje que se le abre al cliente en WhatsApp. Suena a persona que
+       escribe, no a ficha: una frase, el nombre del negocio destacado (en
+       WhatsApp la negrita son los asteriscos), el color en palabras y una
+       pregunta directa al final. Sin viñetas ni listas de campos. */
     function mensaje() {
-      var lineas = [
-        "Hola, soy " + (negocio.value || "").trim() + ".",
-        "Armé mi Mini Web en la página de Konfío Zinc:",
-        "• Color de marca: " + color.value,
-        "• Eslogan: " + ((eslogan.value || "").trim() || "(sin eslogan)"),
-        "• Mi WhatsApp: " + (whatsapp.value || "").trim(),
-        "¿Me la dejamos publicada?"
-      ];
-      return lineas.join("\n");
+      var marca = (negocio.value || "").trim();
+      var lema = (eslogan.value || "").trim();
+      var tel = (whatsapp.value || "").trim();
+      var comoEs = nombreDeColor(color.value);
+
+      var cuerpo = lema
+        ? 'Mi eslogan es "' + lema + '" y mi color de marca es ' + comoEs + "."
+        : "Mi color de marca es " + comoEs + ".";
+
+      return "¡Hola! Acabo de armar mi Mini Web para mi negocio *" + marca + "*.\n\n" +
+        cuerpo + "\nMi WhatsApp es " + tel + ".\n\n" +
+        "¿Me ayudas a publicarla?";
     }
 
     function refrescarEnlace() {
@@ -346,10 +390,18 @@
       } catch (e) { return null; }
     }
 
-    negocio.addEventListener("input", function () { aviso.textContent = ""; pintar(); });
-    eslogan.addEventListener("input", function () { aviso.textContent = ""; pintar(); });
-    whatsapp.addEventListener("input", function () { aviso.textContent = ""; });
-    color.addEventListener("input", pintar);
+    /* Si el cliente corrige algo DESPUÉS de ver su Mini Web, el mensaje de
+       WhatsApp tiene que decir lo corregido, no lo de antes. */
+    function alEditar() {
+      aviso.textContent = "";
+      pintar();
+      if (listo.classList.contains("visible")) refrescarEnlace();
+    }
+
+    negocio.addEventListener("input", alEditar);
+    eslogan.addEventListener("input", alEditar);
+    whatsapp.addEventListener("input", alEditar);
+    color.addEventListener("input", alEditar);
 
     $("formulario").addEventListener("submit", function (ev) {
       ev.preventDefault();

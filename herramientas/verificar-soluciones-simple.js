@@ -158,6 +158,58 @@ function servir() {
     comprobar(textoWa.includes(DATOS.eslogan), "el mensaje lleva el eslogan");
     comprobar(textoWa.includes(DATOS.whatsapp), "el mensaje lleva el WhatsApp del cliente");
 
+    // ── 5b · el mensaje suena a persona, no a ficha ─────────────────
+    comprobar(textoWa.includes("*" + DATOS.negocio + "*"), "el nombre del negocio va destacado (negrita de WhatsApp)");
+    comprobar(/¿Me ayudas a publicarla\?\s*$/.test(textoWa), "termina con una pregunta directa", textoWa.slice(-40));
+    comprobar(!/¿Me la dejamos publicada/.test(textoWa), "ya no habla como un trámite de banco");
+    comprobar(!/[•·]/.test(textoWa), "no hay viñetas de lista de campos");
+    comprobar(!/#[0-9a-f]{6}\b/i.test(textoWa), "el color no se enseña como código hexadecimal", textoWa.replace(/\n/g, " "));
+    comprobar(/mi color de marca es naranja\./.test(textoWa), "el color se dice en palabras (naranja)", textoWa.replace(/\n/g, " "));
+    comprobar(/^¡Hola!/.test(textoWa), "empieza con un saludo de persona");
+
+    // El nombre del color, con una batería de colores reales, por el camino de verdad.
+    const COLORES = [
+      ["#ff0000", "rojo"],
+      ["#00ff00", "verde"],
+      ["#0000ff", "azul"],
+      ["#1f3a5f", "azul marino"],
+      ["#ffff00", "amarillo"],
+      ["#00ffff", "celeste"],
+      ["#800080", "morado"],
+      ["#ff69b4", "rosa"],
+      ["#000000", "negro"],
+      ["#ffffff", "blanco"],
+      ["#808080", "gris"]
+    ];
+    let aciertos = 0;
+    const fallados = [];
+    for (const [hex, esperado] of COLORES) {
+      await pagina.evaluate((c) => {
+        const el = document.getElementById("color");
+        el.value = c;
+        el.dispatchEvent(new Event("input", { bubbles: true }));
+      }, hex);
+      const href = await pagina.locator("#enviar").getAttribute("href");
+      const texto = decodeURIComponent((href || "").split("text=")[1] || "");
+      const dicho = (texto.match(/mi color de marca es ([^.\n]+)\./) || [])[1];
+      if (dicho === esperado) aciertos += 1;
+      else fallados.push(`${hex} → dijo «${dicho}», se esperaba «${esperado}»`);
+    }
+    comprobar(aciertos === COLORES.length, `los ${COLORES.length} colores se dicen en palabras`, fallados.join(" · "));
+
+    // El mensaje no se queda viejo si el cliente corrige algo después de generarlo.
+    await pagina.fill("#eslogan", DATOS.eslogan + " y punto");
+    const trasCorregir = decodeURIComponent(((await pagina.locator("#enviar").getAttribute("href")) || "").split("text=")[1] || "");
+    comprobar(trasCorregir.includes("y punto"), "si corrige el eslogan, el mensaje se actualiza solo");
+    await pagina.fill("#eslogan", DATOS.eslogan);
+
+    // Se deja el color de la prueba como estaba, para las capturas.
+    await pagina.evaluate((c) => {
+      const el = document.getElementById("color");
+      el.value = c;
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    }, DATOS.color);
+
     // Guardado local, con el mismo esquema que usa el STUDIO.
     const guardado = await pagina.evaluate(() => {
       const bruto = localStorage.getItem("kz-lead-demo-001");
