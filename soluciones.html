@@ -474,7 +474,7 @@
 
 <footer class="pie">
   <p>KONFÍO ZINC · Medellín · WhatsApp +57 320 641 1340 · konfiozinc@gmail.com</p>
-  <p>Tus datos se guardan solo en este navegador. No llegan a nosotros hasta que envíes el mensaje de WhatsApp.</p>
+  <p>Tus datos se guardan en este navegador y se nos envían para poder contactarte. Los conservamos 60 días y después se borran solos. Detalle en la <a href="politica-privacidad.html">política de privacidad</a>.</p>
   <button type="button" class="borrar" id="borrar">Borrar lo que guardé en este navegador</button>
 </footer>
 
@@ -978,9 +978,50 @@
       document.body.classList.add("publicado");
       listo.classList.add("visible");
       aviso.style.color = "#34d399";
-      aviso.textContent = "¡Listo! Guardamos tus datos en este navegador y así se ve tu Mini Web.";
+      aviso.textContent = "¡Listo! Así se ve tu Mini Web. Enviando tus datos…";
       listo.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      enviarLead();
+
     });
+
+    /* ── Envío del contacto al servicio de Konfío Zinc ──────────────────
+       Hasta ahora el contacto se quedaba en el navegador y solo llegaba si la
+       persona enviaba el WhatsApp (se perdían casi todos). Ahora se manda al
+       Worker `kz-leads`, que lo guarda 60 días y después lo borra solo.
+
+       Tres reglas que no se rompen:
+         · No bloquea nunca: si el envío falla, la Mini Web y el botón de
+           WhatsApp siguen funcionando.
+         · No miente: el aviso solo dice «nos llegaron» si el servidor lo confirma.
+         · No viaja nada de más: ni imágenes, ni catálogo, ni redes. Solo los
+           cuatro datos y el consentimiento. */
+    function enviarLead() {
+      var destino = window.KZ_LEADS_URL || "https://kz-leads.konfiozinc.workers.dev/";
+      var cuerpo = JSON.stringify({
+        negocio: (negocio.value || "").trim(),
+        whatsapp: (whatsapp.value || "").trim(),
+        color: color.value,
+        eslogan: (eslogan.value || "").trim(),
+        autoriza: $("autoriza").checked,
+        pagina: String(location.href || "").slice(0, 200),
+        origen: "soluciones-publica"
+      });
+
+      fetch(destino, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: cuerpo
+      })
+        .then(function (respuesta) {
+          if (!respuesta.ok) throw new Error("HTTP " + respuesta.status);
+          aviso.style.color = "#34d399";
+          aviso.textContent = "¡Listo! Tus datos nos llegaron y así se ve tu Mini Web.";
+        })
+        .catch(function () {
+          aviso.style.color = "#fbbf24";
+          aviso.textContent = "Tu Mini Web está lista, pero no pudimos enviarnos los datos. Usa el botón de WhatsApp y los recibimos igual.";
+        });
+    }
 
     $("borrar").addEventListener("click", function () {
       try {

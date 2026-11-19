@@ -57,8 +57,35 @@ const DATOS = {
   eslogan: "Papas a la francesa recién hechas"
 };
 
+/* Lo que la página envía al servicio de leads (lo captura el doble local). */
+const RECIBIDOS = [];
+
 function servir() {
   const servidor = http.createServer((req, res) => {
+    // Doble local del servicio de leads: así la prueba NO llena el almacén real.
+    if (req.method === "POST" && (req.url === "/leads" || req.url === "/leads-falla")) {
+      let cuerpo = "";
+      req.on("data", (trozo) => { cuerpo += trozo; });
+      req.on("end", () => {
+        let datos = null;
+        try { datos = JSON.parse(cuerpo); } catch { datos = null; }
+        RECIBIDOS.push({ ruta: req.url, datos });
+        if (req.url === "/leads-falla") {
+          res.writeHead(500, { "content-type": "application/json" }).end('{"ok":false}');
+          return;
+        }
+        res.writeHead(201, { "content-type": "application/json", "access-control-allow-origin": "*" }).end('{"ok":true,"id":"PRUEBA-LOCAL"}');
+      });
+      return;
+    }
+    if (req.method === "OPTIONS") {
+      res.writeHead(204, {
+        "access-control-allow-origin": "*",
+        "access-control-allow-headers": "content-type",
+        "access-control-allow-methods": "POST, OPTIONS"
+      }).end();
+      return;
+    }
     const limpio = decodeURIComponent(req.url.split("?")[0]);
     const relativo = limpio === "/" ? "/index.html" : limpio;
     const destino = path.join(RAIZ, relativo);
@@ -155,13 +182,29 @@ function servir() {
     comprobar(await pagina.evaluate(() => localStorage.getItem("kz-lead-demo-001")) === null, "sin el check no se guarda nada");
 
     // ── 5 · el camino bueno ─────────────────────────────────────────
+    // El envío se apunta a un doble local: la prueba comprueba el envío de
+    // verdad, pero NO mete contactos falsos en el almacén de producción.
+    await pagina.evaluate(() => { window.KZ_LEADS_URL = location.origin + "/leads"; });
     await pagina.check("#autoriza");
     await pagina.click("button.generar");
-    await pagina.waitForTimeout(400);
+    await pagina.waitForTimeout(600);
     comprobar(await pagina.locator("#listo").evaluate((e) => e.classList.contains("visible")), "con el check aparece el paso de WhatsApp");
     const avisoBueno = (await pagina.locator("#aviso").innerText()).trim();
     comprobar(/^¡Listo!/.test(avisoBueno), "confirma en pantalla", avisoBueno);
+    comprobar(/nos llegaron/.test(avisoBueno), "y solo dice que llegaron cuando el servidor lo confirma", avisoBueno);
     comprobar(await pagina.locator("body").evaluate((b) => b.classList.contains("publicado")), "la vista previa queda marcada como generada");
+
+    // ── 5a · el contacto viaja al servicio, con lo justo ─────────────
+    comprobar(RECIBIDOS.length >= 1, "el contacto se envía al servicio de leads", RECIBIDOS.length + " envío(s)");
+    const enviado = (RECIBIDOS.find((r) => r.ruta === "/leads") || {}).datos || {};
+    comprobar(enviado.negocio === DATOS.negocio, "viaja el nombre del negocio", enviado.negocio);
+    comprobar(enviado.whatsapp === DATOS.whatsapp, "viaja el WhatsApp", enviado.whatsapp);
+    comprobar(enviado.color === DATOS.color, "viaja el color", enviado.color);
+    comprobar(enviado.eslogan === DATOS.eslogan, "viaja el eslogan", enviado.eslogan);
+    comprobar(enviado.autoriza === true, "viaja el consentimiento explícito");
+    comprobar(enviado.origen === "soluciones-publica", "y el origen del envío", enviado.origen);
+    comprobar(!("logo" in enviado) && !("portada" in enviado) && !JSON.stringify(enviado).includes("blob:"), "las imágenes NO viajan");
+    comprobar(!("productos" in enviado) && !("red-instagram" in enviado), "el catálogo y las redes tampoco viajan");
 
     const enlaceWa = await pagina.locator("#enviar").getAttribute("href");
     comprobar(/^https:\/\/wa\.me\/573206411340\?text=/.test(enlaceWa), "el botón de WhatsApp apunta al número de la agencia", enlaceWa && enlaceWa.slice(0, 45));
@@ -432,6 +475,20 @@ function servir() {
     comprobar(errores.length === 0, "cero errores en la consola", errores.join(" | "));
     comprobar(fallosRed.length === 0, "cero peticiones fallidas (nada roto)", fallosRed.join(" | "));
 
+    // ── 8b · si el servicio falla, la página NO miente ──────────────
+    // Va después de la comprobación de consola porque un 500 deja un error
+    // esperado en la consola del navegador, y aquí lo estamos provocando.
+    await pagina.evaluate(() => { window.KZ_LEADS_URL = location.origin + "/leads-falla"; });
+    await pagina.fill("#negocio", DATOS.negocio);
+    await pagina.fill("#whatsapp", DATOS.whatsapp);
+    await pagina.check("#autoriza");
+    await pagina.click("button.generar");
+    await pagina.waitForTimeout(800);
+    const avisoFallo = (await pagina.locator("#aviso").innerText()).trim();
+    comprobar(/no pudimos enviarnos los datos/i.test(avisoFallo), "si el servicio falla, lo dice claro", avisoFallo);
+    comprobar(!/nos llegaron/i.test(avisoFallo), "y NO dice que llegaron cuando no llegaron");
+    comprobar(await pagina.locator("#enviar").isVisible(), "el botón de WhatsApp sigue disponible para no perder el contacto");
+
     // ── 9 · medidas: que se vea, no solo que exista ─────────────────
     const medidas = await pagina.evaluate(() => {
       const r = (s) => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return { ancho: Math.round(b.width), alto: Math.round(b.height), y: Math.round(b.y) }; };
@@ -542,6 +599,9 @@ function servir() {
     await movil.fill("#red-facebook", "lapaisa");
     await movil.fill("#direccion", "Cra 45 #12-34, Medellín");
     await movil.check("#autoriza");
+    // También aquí se apunta al doble local, para no meter contactos de prueba
+    // en el almacén real desde la captura del móvil.
+    await movil.evaluate(() => { window.KZ_LEADS_URL = location.origin + "/leads"; });
     await movil.click("button.generar");
     await movil.waitForTimeout(450);
     const mMedidas = await movil.evaluate(() => ({ desborde: document.documentElement.scrollWidth - window.innerWidth, boton: Math.round(document.querySelector(".generar").getBoundingClientRect().height) }));
