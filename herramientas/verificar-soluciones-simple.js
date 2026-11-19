@@ -215,7 +215,7 @@ function servir() {
 
     // ── 5b · el mensaje suena a persona, no a ficha ─────────────────
     comprobar(textoWa.includes("*" + DATOS.negocio + "*"), "el nombre del negocio va destacado (negrita de WhatsApp)");
-    comprobar(/¿Me ayudas a publicarla\?\s*$/.test(textoWa), "termina con una pregunta directa", textoWa.slice(-40));
+    comprobar(/¿Me ayudas a crearla y me dices cómo seguimos\?\s*$/.test(textoWa), "termina con una pregunta directa", textoWa.slice(-40));
     comprobar(!/¿Me la dejamos publicada/.test(textoWa), "ya no habla como un trámite de banco");
     comprobar(!/[•·]/.test(textoWa), "no hay viñetas de lista de campos");
     comprobar(!/#[0-9a-f]{6}\b/i.test(textoWa), "el color no se enseña como código hexadecimal", textoWa.replace(/\n/g, " "));
@@ -270,7 +270,7 @@ function servir() {
 
     const conImagenes = decodeURIComponent(((await pagina.locator("#enviar").getAttribute("href")) || "").split("text=")[1] || "");
     comprobar(/foto de portada y mi logo/.test(conImagenes), "el mensaje avisa de que ya tiene portada y logo", conImagenes.replace(/\n/g, " "));
-    comprobar(/¿Me ayudas a publicarla\?\s*$/.test(conImagenes), "y sigue terminando en la pregunta directa");
+    comprobar(/¿Me ayudas a crearla y me dices cómo seguimos\?\s*$/.test(conImagenes), "y sigue terminando en la pregunta directa");
 
     // Con las imágenes puestas se guarda el borrador: no deben viajar al almacén.
     await pagina.click("button.generar");
@@ -367,7 +367,7 @@ function servir() {
     await pagina.waitForTimeout(250);
     const conTodo = decodeURIComponent(((await pagina.locator("#enviar").getAttribute("href")) || "").split("text=")[1] || "");
     comprobar(/Además, ya personalicé mi catálogo y mis redes sociales/.test(conTodo), "el mensaje menciona catálogo y redes", conTodo.replace(/\n/g, " "));
-    comprobar(/¿Me ayudas a publicarla\?\s*$/.test(conTodo), "y sigue cerrando con la pregunta directa");
+    comprobar(/¿Me ayudas a crearla y me dices cómo seguimos\?\s*$/.test(conTodo), "y sigue cerrando con la pregunta directa");
 
     // Solo catálogo (se vacían las redes): el mensaje no debe hablar de redes.
     await pagina.fill("#red-instagram", "");
